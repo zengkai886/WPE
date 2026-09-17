@@ -1,0 +1,13 @@
+{
+  "sourceArchiveSha256": "1F524B84621F064ACD91C3F9D764D1ADDF19AC42019E7FCEDE11BF55EA536113",
+  "files": [
+    {
+      "path": "tests/oracle/upstream/IpcProtocol.cs",
+      "sha256": "5353DF12B2F23C716AE04F0411E8F01D5A565842EFB4B0D1427A9C369C7BA307"
+    },
+    {
+      "path": "tests/oracle/upstream/PacketFrame.cs",
+      "sha256": "0AD60704D45178B13E66CC6E9F7FF72A4C29DD7B26C8B90C3B7B8AF178DDA72B"
+    }
+  ]
+}
