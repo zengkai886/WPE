@@ -21,16 +21,16 @@ function Run([string]$Executable,[string[]]$Arguments,[string]$Log) {
 }
 $manifest=[ordered]@{
     schemaVersion=1
-    testId='CPP-EXCHANGE-WIRING-005'
-    specificationSections=@('0','2.3','3.1','3.2','3.3','4.2','4.4','9.2','9.3','13.1')
-    scope='Protocol/ring, native SQLite, editors, plaintext XML export, private-station OS clipboard, original Vue/HexView/export/clipboard buttons and restart. UI clipboard uses a memory seam; file picker uses a fixed-path seam. topmostProbe is non-gating; no picker UI automation, injection, capture, proxy, executors or complete acceptance'
+    testId='CPP-EXCHANGE-WIRING-006'
+    specificationSections=@('0','2.3','3.1','3.2','3.3','4.1','4.2','4.4','9.2','9.3','13.1')
+    scope='Protocol/ring and real three-channel Windows named-pipe transport with current-user ACL; native SQLite, editors, plaintext XML export, private-station OS clipboard, original Vue/HexView/export/clipboard buttons and restart. UI clipboard uses a memory seam; file picker uses a fixed-path seam. topmostProbe is non-gating; no picker UI automation, injection, capture, proxy, executors or complete acceptance'
     startedUtc=[DateTime]::UtcNow.ToString('o')
     finishedUtc=$null
     result='running'
     runDirectory=$run
     command="$PSCommandPath -BuildRoot $BuildRoot -Architecture $($Architecture -join ',')"
     architectures=@()
-    cleanup='Owned test processes and WebView2 controller closed. No injection, target hooks, certificates, system proxy or listening sockets. Only isolated test SQLite databases and WebView2 profiles changed; retained under the external build directory.'
+    cleanup='Owned test processes, WebView2 controller and named-pipe instances closed. No injection, target hooks, certificates, system proxy or listening sockets. Only isolated test SQLite databases and WebView2 profiles changed; retained under the external build directory.'
 }
 try {
     $lock=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'contracts\oracle-source.json') -Raw | ConvertFrom-Json
@@ -124,7 +124,7 @@ try {
             parity=(Get-Content -LiteralPath (Join-Path $run "$arch-parity.log"))
             reverse=(Get-Content -LiteralPath (Join-Path $run "$arch-reverse.log"))
             ring=(Get-Content -LiteralPath (Join-Path $run "$arch-ring.log"))
-            artifacts=@($test,(Join-Path $build 'Release\wpe64-common.lib'),$packets,(Join-Path $build 'CMakeCache.txt')) | ForEach-Object {[ordered]@{path=$_;sha256=(Hash $_)}}
+            artifacts=@($test,(Join-Path $build 'Release\wpe64-pipe-test.exe'),(Join-Path $build 'Release\wpe64-common.lib'),$packets,(Join-Path $build 'CMakeCache.txt')) | ForEach-Object {[ordered]@{path=$_;sha256=(Hash $_)}}
         }
     }
     & (Join-Path $PSScriptRoot 'verify-assets.ps1')
