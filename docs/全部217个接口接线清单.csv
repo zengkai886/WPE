@@ -1,4 +1,4 @@
-原方法名,原ShellForm行号,已注册,本轮状态,准确范围与缺口
+﻿原方法名,原ShellForm行号,已注册,本轮状态,准确范围与缺口
 getPacketDetail,1328,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 getPrefs,1367,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
 setAppearance,1403,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
@@ -151,8 +151,8 @@ saveExtProxySetting,4281,否,未接线,没有原方法名处理器；调用返�
 getHotkeySetting,4296,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 registerHotkey,4298,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 saveHotkeyType,4305,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-exportBackup,4318,是,文件接线已接（备份部分）,原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、WhiteList、BlackList、InjectMode 与四父列表九组，其余五组整次拒绝；参见配置加密接线进度。
-importBackup,4351,是,文件接线已接（备份部分）,原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、WhiteList、BlackList、InjectMode 与四父列表九组，其余五组整次拒绝；参见配置加密接线进度。
+exportBackup,4318,是,文件接线已接（备份部分）,原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、ProxyAccountList、WhiteList、BlackList、InjectMode、AutoStores 与四父列表共十一组，其余三组整次拒绝；参见配置加密接线进度。
+importBackup,4351,是,文件接线已接（备份部分）,原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、ProxyAccountList、WhiteList、BlackList、InjectMode、AutoStores 与四父列表共十一组，其余三组整次拒绝；参见配置加密接线进度。
 getRemoteSetting,4384,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 saveRemoteSetting,4386,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 copyProxyHex,4407,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
@@ -186,12 +186,12 @@ wareHouseListAction,4649,是,多分支部分接线,父列表排序/复制/删除
 importWareHouses,4663,是,文件接线已接,原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。
 exportWareHouses,4669,是,文件接线已接,原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。
 clearWareHouses,4675,是,数据清空已接,经原 Vue 确认后事务清空；取消不修改数据；确认文字尚未完全逐语言对齐。
-getAutoStoresMeta,4686,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-setAutoStoresSwitch,4698,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-saveAutoStores,4726,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-setAutoStoresEnable,4736,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-deleteAutoStores,4744,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-autoStoresAction,4751,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
+getAutoStoresMeta,4686,是,自动入库数据与文件已接,AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。
+setAutoStoresSwitch,4698,是,自动入库数据与文件已接,AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。
+saveAutoStores,4726,是,自动入库数据与文件已接,AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。
+setAutoStoresEnable,4736,是,自动入库数据与文件已接,AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。
+deleteAutoStores,4744,是,自动入库数据与文件已接,AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。
+autoStoresAction,4751,是,自动入库数据与文件已接,AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。
 openWareHouseEdit,4773,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
 getStoreRows,4781,是,仓库数据读取已接,原 BLOB、预览/截断和 CRLF 文本，配合本轮条目动作及明文导入；系统剪贴板写入和采集入库未接。
 getStorePreviews,4791,是,仓库数据读取已接,原 BLOB、预览/截断和 CRLF 文本，配合本轮条目动作及明文导入；系统剪贴板写入和采集入库未接。

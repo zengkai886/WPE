@@ -1,9 +1,9 @@
 {
   "scope": "Registration inventory, not a functional-completion percentage. Partial and offline methods are explicitly distinguished.",
   "originalRpcCount": 217,
-  "nativeDataRegistered": 100,
+  "nativeDataRegistered": 106,
   "nativeHostRegistered": 10,
-  "remainingUnregistered": 107,
+  "remainingUnregistered": 101,
   "originalSource": "WinsockPacketEditor/ShellForm.cs",
   "originalSourceSha256": "86d277408d233903ec82ffe8f06a2cd1995898617c477a1f181046ebe0f72f12",
   "methods": [
@@ -1076,14 +1076,14 @@
       "originalLine": 4318,
       "registered": true,
       "status": "文件接线已接（备份部分）",
-      "note": "原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、WhiteList、BlackList、InjectMode 与四父列表九组，其余五组整次拒绝；参见配置加密接线进度。"
+      "note": "原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、ProxyAccountList、WhiteList、BlackList、InjectMode、AutoStores 与四父列表共十一组，其余三组整次拒绝；参见配置加密接线进度。"
     },
     {
       "method": "importBackup",
       "originalLine": 4351,
       "registered": true,
       "status": "文件接线已接（备份部分）",
-      "note": "原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、WhiteList、BlackList、InjectMode 与四父列表九组，其余五组整次拒绝；参见配置加密接线进度。"
+      "note": "原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、ProxyAccountList、WhiteList、BlackList、InjectMode、AutoStores 与四父列表共十一组，其余三组整次拒绝；参见配置加密接线进度。"
     },
     {
       "method": "getRemoteSetting",
@@ -1319,44 +1319,44 @@
     {
       "method": "getAutoStoresMeta",
       "originalLine": 4686,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "自动入库数据与文件已接",
+      "note": "AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。"
     },
     {
       "method": "setAutoStoresSwitch",
       "originalLine": 4698,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "自动入库数据与文件已接",
+      "note": "AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。"
     },
     {
       "method": "saveAutoStores",
       "originalLine": 4726,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "自动入库数据与文件已接",
+      "note": "AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。"
     },
     {
       "method": "setAutoStoresEnable",
       "originalLine": 4736,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "自动入库数据与文件已接",
+      "note": "AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。"
     },
     {
       "method": "deleteAutoStores",
       "originalLine": 4744,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "自动入库数据与文件已接",
+      "note": "AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。"
     },
     {
       "method": "autoStoresAction",
       "originalLine": 4751,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "自动入库数据与文件已接",
+      "note": "AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。"
     },
     {
       "method": "openWareHouseEdit",

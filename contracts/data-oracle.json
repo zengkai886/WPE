@@ -38,7 +38,7 @@
     },
     {
       "path": "src/shell/data_schema.h",
-      "sha256": "619251A71E27CFC00474EC828531B22EF097685AE04C292088CB918546AEC7AB"
+      "sha256": "44190C3F4664F9E47120C4737FC0EBDDBF5BA270F4E27C6FEED07CBCDF9E107D"
     },
     {
       "path": "tests/data_oracle/ConfigFileOracle.cs",

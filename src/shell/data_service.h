@@ -26,6 +26,7 @@ private:
     void PersistList(int list,const Json& rows);
     void PersistIpRules(int list,const Json& rows);
     void PersistAccounts(const Json& rows);
+    void PersistAutoStores(const Json& rows);
     void RefreshExportAliases(int list);
     Json PrepareExport(const std::string& method,const Json& args);
     Json WriteExport(Json plan,const std::string& path,const std::string& password={});
@@ -61,5 +62,6 @@ private:
     std::map<std::string,ImportPlan> import_plans_;
     std::uint64_t packet_id_{};
     bool hook_tcp_req_{true},hook_tcp_resp_{true},hook_udp_req_{true},hook_udp_resp_{true};
+    bool auto_stores_enabled_{}; // Upstream runtime-only switch; deliberately resets on restart.
 };
 }

@@ -494,6 +494,22 @@ void Host::BeginTest(){
             await wait(()=>d.querySelectorAll('.row2').length===2&&d.querySelector('.row2 .dt')?.textContent==='00 FF 80');
             if(d.querySelector('.bd > .row input').value!=='C++ 仓储编辑测试')throw Error('warehouse name restart mismatch');await closeEditor('WareHouseEdit');
           }
+          document.querySelector('.list-page .bar .btn.warn').click();
+          const autoDialog=()=>[...document.querySelectorAll('[role=dialog]')].find(x=>x.querySelector('.sub')?.textContent==='Auto Store');
+          const ruleDialog=()=>[...document.querySelectorAll('[role=dialog]')].find(x=>x.querySelector('.sub')?.textContent==='Auto-Store Rule');
+          await wait(()=>autoDialog()?.querySelector('.lbar .mini')&&feeds.has(12));
+          if(!restart&&!(feeds.get(12)||[]).some(x=>x.PacketHead==='16 03 01')){
+            autoDialog().querySelector('.lbar .mini').click();await wait(()=>ruleDialog()?.querySelector('input.inp'));
+            input(ruleDialog().querySelector('input.inp'),'16 03 01');ruleDialog().querySelector('.ft .btn.primary').click();
+            await wait(()=>!ruleDialog()&&(feeds.get(12)||[]).some(x=>x.PacketHead==='16 03 01'));
+            await wait(()=>autoDialog()?.querySelector('.trow .ck button'));
+            autoDialog().querySelector('.trow .ck button').click();await wait(()=>feeds.get(12)[0].IsEnable===true);
+            await wait(()=>autoDialog()?.querySelector('.bd > .row .v .chk'));autoDialog().querySelector('.bd > .row .v .chk').click();autoDialog().querySelector('.ft .btn.primary').click();await wait(()=>!autoDialog());
+          }else{
+            await wait(()=>autoDialog().querySelector('.trow .head')?.textContent.trim()==='16 03 01');
+            if(!feeds.get(12)[0].IsEnable||(await call('getAutoStoresMeta')).enable)throw Error('auto-store restart state mismatch');
+            autoDialog().querySelector('.ft .btn:not(.primary)').click();await wait(()=>!autoDialog());
+          }
           await nav('机器人列表');if(!restart){document.querySelector('.list-page .bar .btn.primary').click();await wait(()=>feeds.get(10)?.length===1&&document.querySelector('.list-page .row .name'));}
           d=await openEditor('RobotEdit');
           if(!restart){
@@ -505,7 +521,7 @@ void Host::BeginTest(){
           }
           await wait(()=>d.querySelectorAll('.flow .blk').length===3);
           if(d.querySelector('.wbar input.nm').value!=='C++ 指令闭环测试'||!d.querySelector('.flow .blk.c1').textContent.includes('25'))throw Error('robot draft/restart mismatch');
-          return {originalEditorButtons:true,originalHexViewEdited:true,originalExportButtons:!restart,originalClipboardButtons:!restart,encryptedExportAndImport:!restart,wrongPasswordRetried:!restart,importGrantRestricted:!restart,clipboardTest:'UI uses isolated memory clipboard; real OS clipboard tested separately in private window station',importNotifications:true,chooserCancelKeptData:true,robotCancelKeptSavedInstructions:true,editorRestartPersistence:restart,editorCounts:[feeds.get(9)[0].PacketCount,feeds.get(10)[0].InstructionCount,feeds.get(11)[0].DataCount],chooserTest:'fixed-path seam; production Windows picker UI not automated'};
+          return {originalEditorButtons:true,originalHexViewEdited:true,originalExportButtons:!restart,originalClipboardButtons:!restart,encryptedExportAndImport:!restart,wrongPasswordRetried:!restart,importGrantRestricted:!restart,clipboardTest:'UI uses isolated memory clipboard; real OS clipboard tested separately in private window station',importNotifications:true,chooserCancelKeptData:true,robotCancelKeptSavedInstructions:true,autoStoresRoundTrip:true,editorRestartPersistence:restart,editorCounts:[feeds.get(9)[0].PacketCount,feeds.get(10)[0].InstructionCount,feeds.get(11)[0].DataCount],chooserTest:'fixed-path seam; production Windows picker UI not automated'};
         };
     )JS" LR"JS(
         const prefs=await call('getPrefs');if(!prefs.isDark||prefs.language!=='zh-CN')throw Error('unexpected fresh DB prefs');

@@ -112,6 +112,7 @@ DataService::DataService(const std::filesystem::path& path,Emit emit):db_(path),
         lists_[list]=std::move(rows);
     }
     {auto rows=db_.Query("SELECT * FROM ProxyAccount ORDER BY rowid"),logins=db_.Query("SELECT * FROM ProxyAccountIPInfo ORDER BY rowid");for(auto& row:rows){for(const auto* key:{"IsEnable","IsLimitLinks","IsLimitDevices","IsExpiry"})row[key]=B(row,key);row["IsOnLine"]=false;row["_logins"]=Json::array();for(const auto& login:logins)if(Upper(S(login,"GUID"))==Upper(S(row,"GUID")))row["_logins"].push_back({{"LoginTime",S(login,"LoginTime")},{"LoginIP",S(login,"LoginIP")},{"IPLocation",""}});}lists_[5]=std::move(rows);}
+    {auto rows=db_.Query("SELECT * FROM AutoStores ORDER BY rowid");for(auto& row:rows){row["IsEnable"]=B(row,"IsEnable");row["WID"]=Upper(S(row,"WID"));row["_id"]=Guid();}lists_[12]=std::move(rows);}
 }
 std::vector<std::string> DataService::Methods(){return {
     "getPrefs","setAppearance","setLanguage","saveActionColor","getSystemSetting","saveSystemSetting","getLogSetting","saveLogSetting",
@@ -123,12 +124,13 @@ std::vector<std::string> DataService::Methods(){return {
     "getSendMeta","addSend","setSendEnable","setAllSendEnable","resetSendCount","sendListAction","clearSends","openSendEdit","closeSendEdit","getSendCollection","saveSendEdit","exportSendCollection",
     "getRobotMeta","addRobot","setRobotEnable","setAllRobotEnable","resetRobotCount","robotListAction","clearRobots",
     "addWareHouse","wareHouseListAction","clearWareHouses","openWareHouseEdit","getStoreRows","getStorePreviews","copyStoresHex","saveWareHouseName",
+    "getAutoStoresMeta","setAutoStoresSwitch","saveAutoStores","setAutoStoresEnable","deleteAutoStores","autoStoresAction",
     "openRobotEdit","closeRobotEdit","getRobotInstructions","addRobotInstruction","robotInstructionAction","saveRobotEdit",
     "sendCollectionAction","clearSendCollection","importSendCollection","openPacketEdit","savePacketEdit","storesAction","storesCommand",
     "importFilters","exportFilters","importSends","exportSends","importRobots","exportRobots","importWareHouses","exportWareHouses","importBackup","exportBackup"
 };}
 bool DataService::NeedsConfirmation(const std::string& method,const Json& args){
-    if(method=="deleteAccount"||method=="clearAllAccounts"||method=="deleteSelectedAccounts"||method=="deleteIPRule"||method=="clearSendCollection"||((method=="robotInstructionAction"||method=="storesCommand"||method=="sendCollectionAction"||method=="ipRuleAction")&&N(args,"action",-1)==7))return true;
+    if(method=="deleteAccount"||method=="clearAllAccounts"||method=="deleteSelectedAccounts"||method=="deleteIPRule"||method=="deleteAutoStores"||method=="clearSendCollection"||((method=="robotInstructionAction"||method=="storesCommand"||method=="sendCollectionAction"||method=="ipRuleAction"||method=="autoStoresAction")&&N(args,"action",-1)==7))return true;
     return method=="clearFilters"||method=="clearSends"||method=="clearRobots"||method=="clearWareHouses"||method=="clearLogs"||
         ((method=="filterListAction"||method=="sendListAction"||method=="robotListAction"||method=="wareHouseListAction")&&N(args,"action",-1)==6);
 }
@@ -195,6 +197,12 @@ void DataService::PersistAccounts(const Json& rows){
     Json accounts=Json::array(),logins=Json::array();for(const auto& source:rows){auto row=source;row.erase("IsOnLine");row.erase("_logins");accounts.push_back(std::move(row));if(source.contains("_logins"))for(const auto& sourceLogin:source.at("_logins")){auto login=sourceLogin;login.erase("IPLocation");login["GUID"]=S(source,"GUID");logins.push_back(std::move(login));}}
     db_.Execute("DELETE FROM ProxyAccountIPInfo");db_.Replace("ProxyAccount",accounts);db_.Replace("ProxyAccountIPInfo",logins);
 }
+void DataService::PersistAutoStores(const Json& rows){
+    // Upstream deletes the table, then InsertTable_AutoStores silently skips an
+    // exact PacketHead duplicate while leaving both runtime rows visible until
+    // restart. Preserve that unusual split instead of making import fail.
+    db_.Execute("DELETE FROM AutoStores");for(const auto& row:rows)db_.Execute("INSERT OR IGNORE INTO AutoStores (IsEnable,PacketHead,WID) VALUES (?,?,?)",Json::array({B(row,"IsEnable"),S(row,"PacketHead"),Upper(S(row,"WID"))}));
+}
 void DataService::SaveList(int list,const Json& rows){
     db_.Transaction([&]{PersistList(list,rows);});lists_[list]=rows;RefreshExportAliases(list);Publish(list);
 }
@@ -203,6 +211,7 @@ void DataService::SaveAccounts(const Json& rows){db_.Transaction([&]{PersistAcco
 Json DataService::Rows(int list)const{
     Json result=Json::array();
     if(list==5){for(const auto& row:lists_[5])result.push_back({{"Id",Upper(S(row,"GUID"))},{"IsCheck",false},{"IsEnable",B(row,"IsEnable")},{"UserName",S(row,"UserName")},{"IsLimitLinks",B(row,"IsLimitLinks")},{"LimitLinks",N(row,"LimitLinks")},{"IsLimitDevices",B(row,"IsLimitDevices")},{"LimitDevices",N(row,"LimitDevices")},{"IsExpiry",B(row,"IsExpiry")},{"ExpiryTime",S(row,"ExpiryTime")},{"CreateTime",S(row,"CreateTime")},{"IsOnLine",B(row,"IsOnLine")},{"LoginCount",row.contains("_logins")?row.at("_logins").size():0}});return result;}
+    if(list==12){for(const auto& row:lists_[12])result.push_back({{"Id",S(row,"_id")},{"IsEnable",B(row,"IsEnable")},{"PacketHead",S(row,"PacketHead")},{"WareHouseId",Upper(S(row,"WID"))}});return result;}
     if(list<8||list>11)return lists_[list];
     for(const auto& row:lists_[list]){
         Json r{{"Id",row["GUID"]},{"Name",S(row,"Name")}};
@@ -223,6 +232,7 @@ void DataService::PublishAll(){
     for(int list=8;list<=11;++list)Publish(list);
     for(int list=2;list<=4;++list)Publish(list);
     Publish(5);
+    Publish(12);
     Publish(15);Publish(16);
 }
 Json DataService::FilterEdit(const Json& row)const{
@@ -465,6 +475,31 @@ Json DataService::Call(const std::string& method,const Json& args){
         Json changes=Json::object();if(args.contains("autoClear"))changes["PacketList_AutoClear"]=B(args,"autoClear");if(args.contains("autoClearValue")){const int keep=N(args,"autoClearValue");if(keep<100||keep>500000)return Bad(Text("ListSettingsForm.Range","保留条数需在 100 ~ 500000 之间"));changes["PacketList_AutoClear_Value"]=keep;}SaveInjectConfig(changes);return Good();
     }
     if(method=="getFilterExecute")return {{"mode",N(config_,"FilterExecute",1)}};
+    if(method=="getAutoStoresMeta")return {{"enable",auto_stores_enabled_},{"limit",B(config_,"StoresLimit",true)},{"limitValue",N(config_,"StoresLimit_Value",5000)}};
+    if(method=="setAutoStoresSwitch"){
+        auto_stores_enabled_=B(args,"enable");Json changes=Json::object();if(args.contains("limit"))changes["StoresLimit"]=B(args,"limit");if(args.contains("limitValue"))changes["StoresLimit_Value"]=std::clamp(N(args,"limitValue"),1,1000000);if(!changes.empty())SaveConfig(changes);
+        return {{"ok",true},{"enable",auto_stores_enabled_},{"limit",B(config_,"StoresLimit",true)},{"limitValue",N(config_,"StoresLimit_Value",5000)}};
+    }
+    if(method=="saveAutoStores"){
+        const auto head=Trim(S(args,"head")),compact=Upper(Trim(head,true));if(compact.empty())return Bad(Text("AutoStoresEdit.PacketHead.Error","指定包头设置错误"));
+        if(compact.size()%2||!std::all_of(compact.begin(),compact.end(),[](char c){return (c>='0'&&c<='9')||(c>='A'&&c<='F');}))return Bad(Text("AutoStoresEdit.PacketHead.Hex","指定包头应是十六进制字节，如 16 03 01"));
+        const auto wid=NormalGuid(S(args,"wid"));if(wid==zero_guid||!Find(11,wid))return Bad(Text("AutoStoresEdit.WareHouse.Error","请选择入库名称"));
+        const auto id=Upper(S(args,"id"));auto rows=lists_[12];auto self=rows.end();if(!id.empty())self=std::find_if(rows.begin(),rows.end(),[&](const Json& row){return Upper(S(row,"_id"))==id;});
+        for(auto it=rows.begin();it!=rows.end();++it)if(it!=self&&Upper(Trim(S(*it,"PacketHead"),true))==compact)return Bad(Text("AutoStoresEdit.PacketHead.Exists","这个包头已经有一条规则了"));
+        if(self==rows.end())rows.push_back({{"IsEnable",false},{"PacketHead",head},{"WID",wid},{"_id",Guid()}});else{(*self)["PacketHead"]=head;(*self)["WID"]=wid;}
+        db_.Transaction([&]{PersistAutoStores(rows);});lists_[12]=std::move(rows);Publish(12);return {{"ok",true},{"error",""}};
+    }
+    if(method=="setAutoStoresEnable"){
+        const auto id=Upper(S(args,"id"));auto rows=lists_[12];auto row=std::find_if(rows.begin(),rows.end(),[&](const Json& item){return Upper(S(item,"_id"))==id;});if(row==rows.end())return {{"ok",false}};(*row)["IsEnable"]=B(args,"enable");db_.Transaction([&]{PersistAutoStores(rows);});lists_[12]=std::move(rows);Publish(12);return Good();
+    }
+    if(method=="deleteAutoStores"){
+        const auto id=Upper(S(args,"id"));auto rows=lists_[12];auto row=std::find_if(rows.begin(),rows.end(),[&](const Json& item){return Upper(S(item,"_id"))==id;});if(row==rows.end())return {{"ok",false}};rows.erase(row);db_.Transaction([&]{PersistAutoStores(rows);});lists_[12]=std::move(rows);Publish(12);return Good();
+    }
+    if(method=="autoStoresAction"){
+        const int action=N(args,"action",-1);if(action==5||action==8)return Good();if(action<0||action>7||action==4||action==6)throw std::invalid_argument("Unsupported auto-store action");auto rows=lists_[12];
+        if(action==7)rows.clear();else{const auto id=Upper(S(args,"id"));auto it=std::find_if(rows.begin(),rows.end(),[&](const Json& item){return Upper(S(item,"_id"))==id;});if(it==rows.end())return Good();const auto index=static_cast<std::size_t>(it-rows.begin());if((action==1&&index==0)||(action==2&&index+1==rows.size()))return Good();auto row=*it;rows.erase(it);const auto target=action==0?0:action==1?index-1:action==2?index+1:action==3?rows.size():index;rows.insert(rows.begin()+static_cast<Json::difference_type>(target),std::move(row));}
+        db_.Transaction([&]{PersistAutoStores(rows);});lists_[12]=std::move(rows);Publish(12);return Good();
+    }
     if(method=="getSendMeta")return {{"systemSocket",0},{"running",false},{"listExecute",N(config_,"ListExecute",1)}};
     if(method=="getRobotMeta")return {{"running",false},{"listExecute",N(config_,"ListExecute",1)}};
     if(method=="enterProxyMode"){PublishAll();return Good();}

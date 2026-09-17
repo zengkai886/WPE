@@ -16,7 +16,7 @@ Json Call(DataService& service,const std::string& method,Json args=Json::object(
 int main(int argc,char** argv){
     try{
         const auto dir=fs::current_path()/"data-test"/std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());fs::create_directories(dir);
-        const auto file=dir/L"中文持久化.db";std::map<int,Json> feeds;std::string id,sid,wid,accountId;
+        const auto file=dir/L"中文持久化.db";std::map<int,Json> feeds;std::string id,sid,wid,accountId,autoStoreId;
         auto emit=[&](std::string event,Json data){if(event=="toast")return;const auto list=data.at("list").get<int>();if(event=="feed:replace")feeds[list]=data.at("rows");else if(event=="feed:append")for(const auto& row:data.at("rows"))feeds[list].push_back(row);else Require(false,"wrong feed event");};
         {
             DataService service(file,emit);
@@ -76,6 +76,14 @@ int main(int argc,char** argv){
             Require(Call(service,"getExecuteTargets",{{"type",1},{"excludeId",robot}})["items"].empty(),"execute target exclusion");
             wid=Call(service,"addWareHouse")["id"].get<std::string>();Call(service,"saveWareHouseName",{{"wid",wid},{"name","仓库持久化"}});Require(feeds[11][0]["Name"]=="仓库持久化","warehouse feed");
             Require(Call(service,"getStoreRows",{{"wid",wid}})["rows"].empty(),"warehouse should be empty");
+            Require(feeds.contains(12)&&feeds[12].empty(),"fresh auto-store feed");
+            Require(Call(service,"saveAutoStores",{{"head"," A B C "},{"wid",wid}})["ok"]==false,"odd auto-store hex accepted");
+            Require(Call(service,"saveAutoStores",{{"head"," 16 03 01 "},{"wid","missing"}})["ok"]==false,"missing auto-store warehouse accepted");
+            Require(Call(service,"saveAutoStores",{{"head"," 16 03 01 "},{"wid",wid}})["ok"]==true&&feeds[12].size()==1,"auto-store add/feed");
+            autoStoreId=feeds[12][0]["Id"].get<std::string>();Require(feeds[12][0]["PacketHead"]=="16 03 01"&&!feeds[12][0]["IsEnable"].get<bool>(),"auto-store defaults");
+            Require(Call(service,"saveAutoStores",{{"head","160301"},{"wid",wid}})["ok"]==false,"normalized duplicate auto-store accepted");
+            Require(Call(service,"setAutoStoresEnable",{{"id",autoStoreId},{"enable",true}})["ok"]==true&&feeds[12][0]["IsEnable"]==true,"auto-store enable");
+            auto meta=Call(service,"setAutoStoresSwitch",{{"enable",true},{"limit",true},{"limitValue",0}});Require(meta["enable"]==true&&meta["limitValue"]==1,"auto-store runtime switch/limit clamp");
             Throws([&]{Call(service,"startProxy");});Require(Call(service,"filterListAction",{{"action",5},{"ids",Json::array({id})}})["ok"]==true,"cancelled filter export should preserve original successful cancellation");
         }
         {
@@ -87,8 +95,11 @@ int main(int argc,char** argv){
             Require(Call(reopened,"getAccountPassword",{{"id",accountId}})["password"]=="P@ss'中"&&Call(reopened,"getAccountLogins",{{"id",accountId}})["rows"].empty(),"account secret/login restart persistence");
             Require(Call(reopened,"getAccountPassword",{{"id",feeds[5][1]["Id"]}})["password"]=="Batch09","batch password restart persistence");
             Require(Call(reopened,"getPrefs")["themeMode"]=="system"&&Call(reopened,"getPrefs")["scanLine"]==false,"appearance persistence");
+            Require(feeds[12].size()==1&&feeds[12][0]["PacketHead"]=="16 03 01"&&feeds[12][0]["WareHouseId"]==wid&&feeds[12][0]["IsEnable"]==true,"auto-store restart persistence");
+            auto meta=Call(reopened,"getAutoStoresMeta");Require(meta["enable"]==false&&meta["limitValue"]==1,"auto-store runtime switch persisted or limit lost");
+            autoStoreId=feeds[12][0]["Id"].get<std::string>();Call(reopened,"autoStoresAction",{{"action",7}});Require(feeds[12].empty(),"auto-store clear");
         }
-        {Database schema(file);const auto tables=schema.Query("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('ProxyAccount','ProxyAccountIPInfo')");Require(tables.size()==2,"account schema tables missing");}
+        {Database schema(file);const auto tables=schema.Query("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('ProxyAccount','ProxyAccountIPInfo','AutoStores')");Require(tables.size()==3,"account/auto-store schema tables missing");}
         {
             Database db(dir/"rollback.db");db.Execute("CREATE TABLE test (id TEXT PRIMARY KEY,value BLOB)");
             const Json original=Json::array({{{"id","keep"},{"value",Json::binary({0,255,128})}}});

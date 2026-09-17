@@ -96,7 +96,7 @@ try {
             } finally {$process.Dispose()}
             $manifest.host=Get-Content -LiteralPath (Join-Path $hostEvidence 'host-self-test.json') -Raw | ConvertFrom-Json
             if($manifest.host.result -ne 'passed'){throw 'Native host did not pass'}
-            if(-not $manifest.host.frontend.originalExportButtons -or -not $manifest.host.frontend.originalClipboardButtons -or -not $manifest.host.frontend.encryptedExportAndImport -or -not $manifest.host.frontend.wrongPasswordRetried -or -not $manifest.host.frontend.importGrantRestricted -or -not $manifest.host.frontend.batchAccountRoundTrip){throw 'Export/encryption/clipboard/batch-account original UI test did not pass'}
+            if(-not $manifest.host.frontend.originalExportButtons -or -not $manifest.host.frontend.originalClipboardButtons -or -not $manifest.host.frontend.encryptedExportAndImport -or -not $manifest.host.frontend.wrongPasswordRetried -or -not $manifest.host.frontend.importGrantRestricted -or -not $manifest.host.frontend.batchAccountRoundTrip -or -not $manifest.host.frontend.autoStoresRoundTrip){throw 'Export/encryption/clipboard/batch-account/auto-store original UI test did not pass'}
             [xml]$sendExport=Get-Content -LiteralPath (Join-Path $hostEvidence 'export.sc') -Raw
             [xml]$storeExport=Get-Content -LiteralPath (Join-Path $hostEvidence 'export.whs') -Raw
             if(@($sendExport.SendCollection.Collection).Count -ne 2 -or $sendExport.SendCollection.Collection[0].Socket -ne '99' -or $sendExport.SendCollection.Collection[0].Buffer -ne 'AA FF 80 42'){throw 'Native send export content mismatch'}
@@ -116,7 +116,7 @@ try {
                 $process.Refresh();if($process.ExitCode -ne 0){throw 'Native host restart test failed'}
             } finally {$process.Dispose()}
             $manifest.hostRestart=Get-Content -LiteralPath (Join-Path $reopenEvidence 'host-self-test.json') -Raw | ConvertFrom-Json
-            if($manifest.hostRestart.result -ne 'passed' -or -not $manifest.hostRestart.frontend.restartPersistence -or -not $manifest.hostRestart.frontend.batchAccountRoundTrip -or $manifest.hostRestart.frontend.persistentFilterId -ne $manifest.host.frontend.persistentFilterId){throw 'Native host did not restore the same saved data'}
+            if($manifest.hostRestart.result -ne 'passed' -or -not $manifest.hostRestart.frontend.restartPersistence -or -not $manifest.hostRestart.frontend.batchAccountRoundTrip -or -not $manifest.hostRestart.frontend.autoStoresRoundTrip -or $manifest.hostRestart.frontend.persistentFilterId -ne $manifest.host.frontend.persistentFilterId){throw 'Native host did not restore the same saved data'}
             if(-not $manifest.host.frontend.originalEditorButtons -or -not $manifest.hostRestart.frontend.editorRestartPersistence){throw 'Native editor UI/restart did not pass'}
         }
         $manifest.architectures += [ordered]@{

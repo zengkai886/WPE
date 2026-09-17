@@ -14,7 +14,7 @@ const std::array<std::string,4> parts={"filterList","sendList","robotList","ware
 std::filesystem::path Path(const std::string& p){return std::filesystem::path(std::u8string(p.begin(),p.end()));}
 int List(const std::string& kind){const auto i=std::find(kinds.begin(),kinds.end(),kind);return i==kinds.end()?-1:8+static_cast<int>(i-kinds.begin());}
 Json BackupResult(const Json& p){return {{"language",p["language"]},{"isDark",p["isDark"]},{"themeMode",p["themeMode"]},{"scanLine",p["scanLine"]}};}
-void CheckBackupParts(const Json& args){for(const auto* key:{"proxyMapping","autoStores","wpcServer","wpcNotice"})if(B(args,key))throw std::runtime_error("尚未实现备份分组："+std::string(key)+"；已取消整次导出，不会生成缺项备份");}
+void CheckBackupParts(const Json& args){for(const auto* key:{"proxyMapping","wpcServer","wpcNotice"})if(B(args,key))throw std::runtime_error("尚未实现备份分组："+std::string(key)+"；已取消整次导出，不会生成缺项备份");}
 Json ExportBatchRows(const Json& args){
     Json rows=Json::array();const auto it=args.find("rows");if(it==args.end()||!it->is_array())return rows;
     for(const auto& source:*it){if(!source.is_object())continue;const auto user=S(source,"UserName"),password=S(source,"Password");if(!user.empty()&&!password.empty())rows.push_back({{"UserName",Trim(user)},{"Password",Trim(password)}});}return rows;
@@ -24,22 +24,23 @@ std::string Today(){SYSTEMTIME now{};GetLocalTime(&now);char value[11]{};sprintf
 }
 std::string DataService::FileKind(const std::string& method,const Json& args){
     if(method=="ipRuleAction")return B(args,"black")?"bl":"wl";
+    if(method=="importAutoStores"||method=="exportAutoStores"||method=="autoStoresAction")return "pas";
     if(method=="exportBatchAccounts")return "xls";
     if(method=="importAccounts"||method=="exportAccounts"||method=="exportSelectedAccounts")return "pa";
     for(std::size_t i=0;i<kinds.size();++i)if(method==imports[i]||method==exports[i]||(method==actions[i]&&N(args,"action",-1)==5))return kinds[i];
     if(method=="importBackup"||method=="exportBackup")return "sb";
     if(method=="importSendCollection"||method=="exportSendCollection"||method=="sendCollectionAction")return "sc";return "whs";
 }
-bool DataService::NeedsOpenFile(const std::string& method,const Json& args){return method=="importAccounts"||std::find(imports.begin(),imports.end(),method)!=imports.end()||method=="importBackup"||method=="importSendCollection"||(method=="storesCommand"&&N(args,"action",-1)==8)||(method=="ipRuleAction"&&N(args,"action",-1)==8);}
+bool DataService::NeedsOpenFile(const std::string& method,const Json& args){return method=="importAccounts"||method=="importAutoStores"||std::find(imports.begin(),imports.end(),method)!=imports.end()||method=="importBackup"||method=="importSendCollection"||(method=="storesCommand"&&N(args,"action",-1)==8)||(method=="ipRuleAction"&&N(args,"action",-1)==8)||(method=="autoStoresAction"&&N(args,"action",-1)==8);}
 bool DataService::NeedsSaveFile(const std::string& method,const Json& args){
-    return method=="exportAccounts"||method=="exportSelectedAccounts"||method=="exportBatchAccounts"||std::find(exports.begin(),exports.end(),method)!=exports.end()||method=="exportBackup"||method=="exportSendCollection"||((std::find(actions.begin(),actions.end(),method)!=actions.end()||method=="sendCollectionAction"||method=="storesAction"||method=="storesCommand"||method=="ipRuleAction")&&N(args,"action",-1)==5);
+    return method=="exportAccounts"||method=="exportSelectedAccounts"||method=="exportBatchAccounts"||method=="exportAutoStores"||std::find(exports.begin(),exports.end(),method)!=exports.end()||method=="exportBackup"||method=="exportSendCollection"||((std::find(actions.begin(),actions.end(),method)!=actions.end()||method=="sendCollectionAction"||method=="storesAction"||method=="storesCommand"||method=="ipRuleAction"||method=="autoStoresAction")&&N(args,"action",-1)==5);
 }
 Json DataService::FileInfo(const std::string& kind,bool save)const{
     const auto prefix=save?"Export":"Import";std::string key,name;
     if(kind=="sc"){key=std::string(prefix)+"SendCollection";name="发送集";}else if(kind=="whs"){key=std::string(prefix)+"Stores";name="仓储数据";}
     else if(kind=="sb"){key="BackUpSettingsForm."+std::string(prefix);name="系统备份";}
     else if(kind=="pa"){key=std::string(prefix)+"ProxyAccountList";name="代理账号列表";}
-    else if(kind=="xls"){key="ExcelFile";name="Excel";}
+    else if(kind=="xls"){key="ExcelFile";name="Excel";}else if(kind=="pas"){key=std::string("AutoStores.")+(save?"Export":"Import");name="自动入库";}
     else if(kind=="wl"||kind=="bl"){const bool black=kind=="bl";key=std::string("FireWallSetting.")+(black?"BlackListFile":"WhiteListFile")+'.'+prefix;name=black?"黑名单":"白名单";}
     else if(kind=="whp"){key="WareHouseList."+std::string(prefix);name="仓库列表";}
     else{const int list=List(kind);if(list<8)throw std::invalid_argument("未知配置文件类型");key=std::string(prefix)+tables[list-8]+"List";name=list==8?"滤镜列表":list==9?"发送列表":"机器人列表";}
@@ -50,12 +51,13 @@ Json DataService::FileInfo(const std::string& kind,bool save)const{
 Json DataService::PrepareParentExport(const std::string& method,const Json& args){
     const auto kind=FileKind(method,args);auto plan=FileInfo(kind,true);plan["rows"]=Json::array();plan["result"]=Good();plan["send"]=false;
     if(kind=="sb"){
-        CheckBackupParts(args);bool selected=B(args,"systemConfig")||B(args,"proxySet")||B(args,"proxyAccount")||B(args,"injectSet")||B(args,"whiteList")||B(args,"blackList");for(const auto& part:parts)selected=selected||B(args,part.c_str());
+        CheckBackupParts(args);bool selected=B(args,"systemConfig")||B(args,"proxySet")||B(args,"proxyAccount")||B(args,"injectSet")||B(args,"whiteList")||B(args,"blackList")||B(args,"autoStores");for(const auto& part:parts)selected=selected||B(args,part.c_str());
         if(!selected){emit_("toast",{{"level",3},{"text",Text("BackUpSettingsForm.NothingSelected","请先勾选要备份的内容")}});return plan;}
         plan["parts"]=args;plan["rows"].push_back(true);return plan; // Backup reads live state after the password dialog, like upstream.
     }
     if(kind=="xls"){plan["rows"]=ExportBatchRows(args);plan["expiryTime"]=ExportBatchExpiry(args);return plan;}
     if(kind=="pa"){std::set<std::string> ids;if(method=="exportSelectedAccounts")for(const auto& id:args.value("ids",Json::array()))if(id.is_string())ids.insert(Upper(id.get<std::string>()));for(const auto& row:lists_[5])if(method!="exportSelectedAccounts"||ids.contains(Upper(S(row,"GUID"))))plan["rows"].push_back(row);return plan;}
+    if(kind=="pas"){plan["rows"]=lists_[12];return plan;}
     if(kind=="wl"||kind=="bl"){plan["rows"]=lists_[kind=="bl"?16:15];return plan;}
     const auto list=List(kind);const bool selected=method==actions[list-8];std::set<std::string> ids;
     if(selected){for(const auto& id:args.value("ids",Json::array()))if(id.is_string())ids.insert(Upper(id.get<std::string>()));plan["result"]={{"ok",!ids.empty()},{"delta",0}};}
@@ -96,14 +98,17 @@ Json DataService::ApplyImport(const std::string& method,const Json& args,std::st
         const auto root=ParseXml(bytes);
         if(kind=="sb"){
             if(root.LocalName()!="WPE64_BackUp")throw std::runtime_error("不是原版系统备份文件");
-            for(const auto& n:root.nodes)if(n.name!="SystemConfig"&&n.name!="ProxyMode"&&n.name!="ProxyAccountList"&&n.name!="InjectMode"&&n.name!="WhiteList"&&n.name!="BlackList"&&n.name!="FilterList"&&n.name!="SendList"&&n.name!="RobotList"&&n.name!="WareHouseList")throw std::runtime_error("尚未实现备份分组："+n.name+"；已取消整次导入，未修改数据库");
+            for(const auto& n:root.nodes)if(n.name!="SystemConfig"&&n.name!="ProxyMode"&&n.name!="ProxyAccountList"&&n.name!="InjectMode"&&n.name!="WhiteList"&&n.name!="BlackList"&&n.name!="FilterList"&&n.name!="SendList"&&n.name!="RobotList"&&n.name!="WareHouseList"&&n.name!="AutoStores")throw std::runtime_error("尚未实现备份分组："+n.name+"；已取消整次导入，未修改数据库");
             auto config=config_,proxy=proxy_config_,inject=inject_config_;if(const auto* node=root.Get("SystemConfig"))config=ParseSystemConfig(*node,config);
             if(const auto* node=root.Get("ProxyMode"))proxy=ParseProxyMode(*node,proxy);if(const auto* node=root.Get("InjectMode"))inject=ParseInjectMode(*node,inject);std::map<int,Json> changed;
             for(int list=8;list<=11;++list){const auto name=list==11?"WareHouseList":tables[list-8]+"List";if(const auto* node=root.Get(name))changed[list]=ParseParentList(list,*node,{},packet_id_,config);}
             if(const auto* node=root.Get("ProxyAccountList"))changed[5]=ParseAccountList(*node,Json::array());
+            if(const auto* node=root.Get("AutoStores"))changed[12]=ParseAutoStores(*node,Json::array(),false);
             if(const auto* node=root.Get("WhiteList"))changed[15]=ParseIpRuleList(false,*node,Json::array());if(const auto* node=root.Get("BlackList"))changed[16]=ParseIpRuleList(true,*node,Json::array());
-            db_.Transaction([&]{if(root.Get("SystemConfig"))db_.Replace("SystemConfig",Json::array({config}));if(root.Get("ProxyMode"))db_.Replace("ProxyMode",Json::array({proxy}));if(root.Get("InjectMode"))db_.Replace("InjectMode",Json::array({inject}));for(const auto& [list,rows]:changed)if(list==5)PersistAccounts(rows);else if(list>=15)PersistIpRules(list,rows);else PersistList(list,rows);});
+            db_.Transaction([&]{if(root.Get("SystemConfig"))db_.Replace("SystemConfig",Json::array({config}));if(root.Get("ProxyMode"))db_.Replace("ProxyMode",Json::array({proxy}));if(root.Get("InjectMode"))db_.Replace("InjectMode",Json::array({inject}));for(const auto& [list,rows]:changed)if(list==5)PersistAccounts(rows);else if(list==12)PersistAutoStores(rows);else if(list>=15)PersistIpRules(list,rows);else PersistList(list,rows);});
             config_=std::move(config);proxy_config_=std::move(proxy);inject_config_=std::move(inject);for(auto& [list,rows]:changed)lists_[list]=std::move(rows);PublishAll();
+        }else if(kind=="pas"){
+            auto rows=ParseAutoStores(root,lists_[12],true);db_.Transaction([&]{PersistAutoStores(rows);});lists_[12]=std::move(rows);Publish(12);
         }else if(kind=="wl"||kind=="bl"){
             const int list=kind=="bl"?16:15;SaveIpRules(list,ParseIpRuleList(list==16,root,lists_[list]));
         }else if(kind=="pa"){

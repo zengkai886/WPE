@@ -103,6 +103,13 @@ int main(int argc,char** argv){try{
     }
     call("importBackup",{{"_filePath",Path(backup)}}); // Replace, not append.
     const auto wid="44444444-4444-4444-4444-444444444444";
+    Check(DataService::NeedsOpenFile("autoStoresAction",{{"action",8}})&&DataService::NeedsSaveFile("autoStoresAction",{{"action",5}})&&DataService::FileKind("autoStoresAction",{{"action",5}})=="pas","Auto-store chooser routing missing");
+    Check(call("saveAutoStores",{{"head","16 03 01"},{"wid",wid}})["ok"]==true,"Auto-store rule was not saved");
+    const auto pas=dir/"rules.pas",encryptedPas=dir/"rules-encrypted.pas";call("autoStoresAction",{{"action",5},{"_filePath",Path(pas)}});
+    const std::string expectedPas="\xEF\xBB\xBF<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\r\n<AutoStores>\r\n  <Rule>\r\n    <IsEnable>false</IsEnable>\r\n    <PacketHead>16 03 01</PacketHead>\r\n    <WID>44444444-4444-4444-4444-444444444444</WID>\r\n  </Rule>\r\n</AutoStores>";
+    Check(read(pas)==expectedPas,"Standalone auto-store XML bytes differ from original format");call("autoStoresAction",{{"action",5},{"_filePath",Path(encryptedPas)},{"_password","密码中文测试"}});Check(CryptXml(read(encryptedPas),"密码中文测试",false)==expectedPas,"Encrypted auto-store export did not round-trip");
+    call("autoStoresAction",{{"action",7}});call("autoStoresAction",{{"action",8},{"_filePath",Path(pas)}});const auto autoBackup=dir/"auto.sb";call("exportBackup",{{"autoStores",true},{"_filePath",Path(autoBackup)}});const auto autoRoot=ParseXml(read(autoBackup));Check(autoRoot.Get("AutoStores")&&autoRoot.Get("AutoStores")->nodes.size()==1,"Auto-store backup section missing");
+    call("autoStoresAction",{{"action",7}});call("importBackup",{{"_filePath",Path(autoBackup)}});call("autoStoresAction",{{"action",5},{"_filePath",Path(dir/"rules-restored.pas")}});Check(read(dir/"rules-restored.pas")==expectedPas,"Auto-store backup replace did not restore rule");
     auto selection=call("__prepareEditorExport",{{"method","wareHouseListAction"},{"args",{{"action",5},{"ids",Json::array({wid})}}}});
     call("saveWareHouseName",{{"wid",wid},{"name","live alias"}});call("__writeEditorExport",{{"plan",selection},{"_filePath",Path(dir/"selection.whp")}});
     Check(ParseXml(read(dir/"selection.whp")).nodes[0].Value("Name")=="live alias","Parent export lost original object alias");

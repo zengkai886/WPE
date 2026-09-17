@@ -93,9 +93,11 @@ Json DataService::WriteExport(Json plan,const std::string& path,const std::strin
             if(B(parts,"whiteList")&&!lists_[15].empty())root.nodes.push_back(IpRuleListXml(false,lists_[15]));
             if(B(parts,"blackList")&&!lists_[16].empty())root.nodes.push_back(IpRuleListXml(true,lists_[16]));
             if(B(parts,"injectSet"))root.nodes.push_back(InjectModeXml(inject_config_));
+            if(B(parts,"autoStores")&&!lists_[12].empty())root.nodes.push_back(AutoStoresXml(lists_[12]));
             const std::array<const char*,4> partKeys={"filterList","sendList","robotList","wareHouse"};
             for(int list=8;list<=11;++list)if(B(parts,partKeys[list-8])&&!lists_[list].empty())root.nodes.push_back(ParentListXml(list,lists_[list]));WriteXmlFile(target,root,password);
-        }else if(kind=="wl"||kind=="bl")WriteXmlFile(target,IpRuleListXml(kind=="bl",plan.at("rows")),password);
+        }else if(kind=="pas")WriteXmlFile(target,AutoStoresXml(plan.at("rows")),password);
+        else if(kind=="wl"||kind=="bl")WriteXmlFile(target,IpRuleListXml(kind=="bl",plan.at("rows")),password);
         else if(kind=="pa")WriteXmlFile(target,AccountListXml(plan.at("rows")),password);
         else WriteXmlFile(target,ParentListXml(kind=="fp"?8:kind=="sp"?9:kind=="rp"?10:11,plan.at("rows")),password);
         emit_("notify",{{"level",2},{"title",plan.at("success")},{"content",path}});

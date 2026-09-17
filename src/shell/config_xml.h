@@ -15,4 +15,6 @@ XmlNode IpRuleListXml(bool black,const Json& rows);
 Json ParseIpRuleList(bool black,const XmlNode& root,const Json& current);
 XmlNode AccountListXml(const Json& rows);
 Json ParseAccountList(const XmlNode& root,const Json& current);
+XmlNode AutoStoresXml(const Json& rows);
+Json ParseAutoStores(const XmlNode& root,const Json& current,bool append);
 }

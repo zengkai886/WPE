@@ -122,6 +122,18 @@ Json ParseAccountList(const XmlNode& root,const Json& current){
         ids.insert(id);users.insert(user);rows.push_back(std::move(row));
     }return rows;
 }
+XmlNode AutoStoresXml(const Json& rows){
+    XmlNode root("AutoStores");for(const auto& row:rows){XmlNode rule("Rule");rule.nodes={XmlNode("IsEnable",B(row,"IsEnable")?"true":"false"),XmlNode("PacketHead",S(row,"PacketHead")),XmlNode("WID",Upper(S(row,"WID")))};root.nodes.push_back(std::move(rule));}return root;
+}
+Json ParseAutoStores(const XmlNode& root,const Json& current,bool append){
+    if(root.LocalName()!="AutoStores")throw std::runtime_error("不是原版自动入库文件");Json rows=append?current:Json::array();
+    for(const auto& node:root.nodes){
+        const auto wid=NormalGuid(node.Value("WID"));if(wid==zero_guid)continue;
+        const auto head=node.Value("PacketHead");if(head.empty())continue;
+        bool enabled=false;if(const auto field=node.Get("IsEnable")){const auto value=Upper(field->text.value_or(""));if(value=="TRUE")enabled=true;else if(value!="FALSE")throw std::runtime_error("自动入库 IsEnable 不是有效布尔值");}
+        rows.push_back({{"IsEnable",enabled},{"PacketHead",head},{"WID",wid},{"_id",Guid()}});
+    }return rows;
+}
 XmlNode ParentListXml(int list,const Json& rows){
     XmlNode root(list==11?"WareHouseList":tables[list-8]+"List");
     for(const auto& row:rows){XmlNode parent(tables[list-8]);
