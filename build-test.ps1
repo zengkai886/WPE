@@ -21,16 +21,16 @@ function Run([string]$Executable,[string[]]$Arguments,[string]$Log) {
 }
 $manifest=[ordered]@{
     schemaVersion=1
-    testId='CPP-HOST-RING-002'
+    testId='CPP-DATA-WIRING-003'
     specificationSections=@('0','2.3','3.1','3.2','3.3','4.2','4.4','9.2','9.3','13.1')
-    scope='Common protocol/ring, bridge transport and original Vue startup; no native pipes, injection, capture, proxy, complete business handlers or full UI acceptance'
+    scope='Protocol/ring, asynchronous bridge, native SQLite data RPC subset, real original Vue add/edit/enable/cancel and restart; no native pipes, injection, capture, proxy, executors or complete business acceptance'
     startedUtc=[DateTime]::UtcNow.ToString('o')
     finishedUtc=$null
     result='running'
     runDirectory=$run
     command="$PSCommandPath -BuildRoot $BuildRoot -Architecture $($Architecture -join ',')"
     architectures=@()
-    cleanup='Owned test processes and WebView2 controller closed. No injection, target hooks, certificates, system proxy, listening sockets or database changes. Build files and isolated WebView2 profile retained.'
+    cleanup='Owned test processes and WebView2 controller closed. No injection, target hooks, certificates, system proxy or listening sockets. Only isolated test SQLite databases and WebView2 profiles changed; retained under the external build directory.'
 }
 try {
     $lock=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'contracts\oracle-source.json') -Raw | ConvertFrom-Json
@@ -46,14 +46,22 @@ try {
     $deps=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'contracts\third-party.json') -Raw | ConvertFrom-Json
     foreach($dependency in $deps.files){if((Hash (Join-Path $PSScriptRoot $dependency.path)) -ne $dependency.sha256){throw "Dependency hash mismatch: $($dependency.path)"}}
     $manifest.dependencies=$deps
-    $files=@(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'src'),(Join-Path $PSScriptRoot 'tests') -File -Recurse | Where-Object {$_.Extension -in '.cpp','.h','.cs','.csproj','.ps1','.manifest' -and $_.FullName -notmatch '[\\/](obj|bin)[\\/]'})
+    $dataOracle=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'contracts\data-oracle.json') -Raw | ConvertFrom-Json
+    foreach($file in $dataOracle.files){if((Hash (Join-Path $PSScriptRoot $file.path)) -ne $file.sha256){throw "Data contract hash mismatch: $($file.path)"}}
+    $manifest.dataOracle=$dataOracle
+    $files=@(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'src'),(Join-Path $PSScriptRoot 'tests') -File -Recurse | Where-Object {$_.Extension -in '.cpp','.h','.cs','.csproj','.ps1','.manifest','.json','.py' -and $_.FullName -notmatch '[\\/](obj|bin)[\\/]'})
     $files+=Get-Item -LiteralPath $PSCommandPath,(Join-Path $PSScriptRoot 'CMakeLists.txt'),(Join-Path $PSScriptRoot 'contracts\oracle-source.json'),(Join-Path $PSScriptRoot 'contracts\active-spec.json'),(Join-Path $PSScriptRoot 'contracts\preserved-assets.json'),(Join-Path $PSScriptRoot 'verify-assets.ps1')
     $manifest.sourceFiles=@($files | Sort-Object FullName | ForEach-Object {[ordered]@{path=$_.FullName.Substring($PSScriptRoot.Length+1);sha256=(Hash $_.FullName)}})
-    $revision=& git -C $PSScriptRoot rev-parse HEAD
-    if($LASTEXITCODE -ne 0){throw 'Cannot read Git revision'}
-    $changes=& git -C $PSScriptRoot status --porcelain
-    if($LASTEXITCODE -ne 0){throw 'Cannot read Git worktree'}
-    $manifest.git=[ordered]@{commit="$revision";dirty=(@($changes).Count -gt 0)}
+    # A source ZIP intentionally has no .git directory. Its byte hashes remain
+    # the build identity; Git is optional provenance, not a build dependency.
+    $manifest.git=[ordered]@{commit=$null;dirty=$null;available=$false}
+    if((Test-Path -LiteralPath (Join-Path $PSScriptRoot '.git')) -and (Get-Command git -ErrorAction SilentlyContinue)){
+        $revision=& git -C $PSScriptRoot rev-parse HEAD
+        if($LASTEXITCODE -ne 0){throw 'Cannot read Git revision'}
+        $changes=& git -C $PSScriptRoot status --porcelain
+        if($LASTEXITCODE -ne 0){throw 'Cannot read Git worktree'}
+        $manifest.git=[ordered]@{commit="$revision";dirty=(@($changes).Count -gt 0);available=$true}
+    }
     $manifest.environment=[ordered]@{os=[Environment]::OSVersion.VersionString;powershell=$PSVersionTable.PSVersion.ToString();cmake=(& cmake --version | Select-Object -First 1);dotnetSdk=(& dotnet --version)}
     $oracle=Join-Path $run 'oracle'
     $obj=Join-Path $run 'oracle-obj'
@@ -70,7 +78,7 @@ try {
         $build=Join-Path $run $arch
         Run 'cmake' @('-S',$PSScriptRoot,'-B',$build,'-G','Visual Studio 17 2022','-A',$arch) (Join-Path $run "$arch-configure.log")
         Run 'cmake' @('--build',$build,'--config','Release','--parallel','2') (Join-Path $run "$arch-build.log")
-        Run 'ctest' @('--test-dir',$build,'-C','Release','--output-on-failure') (Join-Path $run "$arch-ctest.log")
+        Run 'ctest' @('--test-dir',$build,'-C','Release','--verbose','--output-on-failure') (Join-Path $run "$arch-ctest.log")
         $test=Join-Path $build 'Release\wpe64-parity-test.exe'
         $packets=Join-Path $run "$arch-packets.tsv"
         Run $test @($vectors,$packets) (Join-Path $run "$arch-parity.log")
@@ -89,6 +97,15 @@ try {
             $manifest.host=Get-Content -LiteralPath (Join-Path $hostEvidence 'host-self-test.json') -Raw | ConvertFrom-Json
             if($manifest.host.result -ne 'passed'){throw 'Native host did not pass'}
             $manifest.hostArtifacts=@($app,(Join-Path $hostEvidence 'host-self-test.json'),(Join-Path $hostEvidence 'original-vue.png')) | ForEach-Object {[ordered]@{path=$_;sha256=(Hash $_)}}
+            $reopenEvidence=Join-Path $run 'host-reopen'
+            $arguments=@('--assets',('"'+(Join-Path $PSScriptRoot 'wwwroot')+'"'),'--data-dir',('"'+(Join-Path $run 'webview-profile')+'"'),'--self-test',('"'+$reopenEvidence+'"'))
+            $process=Start-Process -FilePath $app -ArgumentList $arguments -WindowStyle Hidden -PassThru
+            try{
+                if(-not $process.WaitForExit(45000)){Stop-Process -Id $process.Id -ErrorAction SilentlyContinue;throw 'Native host restart test timeout'}
+                $process.Refresh();if($process.ExitCode -ne 0){throw 'Native host restart test failed'}
+            } finally {$process.Dispose()}
+            $manifest.hostRestart=Get-Content -LiteralPath (Join-Path $reopenEvidence 'host-self-test.json') -Raw | ConvertFrom-Json
+            if($manifest.hostRestart.result -ne 'passed' -or -not $manifest.hostRestart.frontend.restartPersistence -or $manifest.hostRestart.frontend.persistentFilterId -ne $manifest.host.frontend.persistentFilterId){throw 'Native host did not restore the same saved data'}
         }
         $manifest.architectures += [ordered]@{
             architecture=$arch;result='passed'

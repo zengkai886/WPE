@@ -1,78 +1,106 @@
-# WPE64 C++ 重写工程
+# WPE64 C++ 重写工程 · 数据接线开发版
 
-**当前是 C++ 宿主、双向消息桥、公共协议库和封包队列的开发增量，不是完整抓包软件。** 原 Vue 已在原生 WebView2 宿主中运行；注入 DLL、滤镜、代理和完整业务接口尚未实现。版本栏明确标为 `C++ M0-dev`，未实现的方法返回错误，不伪造抓包结果。
+**当前已经有真实的 C++ → SQLite → 原 Vue 数据闭环，不再只有展示界面；但还不是完整 WPE，也没有完成“所有数据接通”。**
 
-## 当前开发依据
+版本栏为 `C++ DATA-dev`。原版 217 个 RPC 中，目前注册了 **50 个数据方法 + 7 个宿主方法**；其中包含只接设置、只接部分分支或返回未运行状态的方法，**57/217 不是功能完成率**。剩余 160 个原方法名未注册，调用明确报错。完整清单见 `docs/全部217个接口接线清单.csv`。
 
-- 生效需求：`docs/用户提供-重写工程文档-更新版.md`，即用户上传的 `WPE x64 C++ 重写工程文档 (1).md`。
-- 界面固定为：**C++ WebView2 宿主 + 全部原 Vue 前端**。主方案没有 Qt 依赖，不重画界面。
-- 本目录独立于旧 Java 工程；生产库为 C++20，不调用 Java，也不启动原版 C# 业务程序。
-- C# 只用于测试：原版编解码源码生成参照数据，并反向验证 C++ 产生的封包。
-- 原版源码 ZIP 与两版用户文档均保持原件不变。当前版本及 SHA-256 在 `contracts/active-spec.json`。
+## 开发依据与不变项
 
-## 本次已经实现
+- 生效需求：`docs/用户提供-重写工程文档-更新版.md`，对应用户上传的 `WPE x64 C++ 重写工程文档 (1).md`。
+- 主方案：**C++20 + Win32/WebView2 宿主 + 全部原 Vue**，不重画页面，不换成 Java 或 Qt。
+- 原始 Vue、TypeScript、语言、静态资源、远程页面共 **555 个文件**逐个哈希不变，其中 **70 个 Vue 文件**。
+- 产品不启动原 C# 程序，不依赖其业务程序集；C# 只用于独立测试参照。
+- SQLite 3.46.1 与 WebView2 Loader 静态链接；WebView2 **Runtime 仍为外部运行依赖**，没有伪称打入 exe。
+- 原 ZIP、两份需求文档保持不变，版本和哈希见 `contracts`。
 
-| 内容 | 状态 |
-|---|---|
-| CMake / MSVC C++20 / 静态 CRT，x64 与 Win32 公共库构建 | 通过 |
-| LE 基础类型、null/空区分、UTF-8、GUID 编解码 | 已实现并对拍 |
-| v4 命令/事件/状态/配置类别编号、管道命名 | 已实现并对拍；不是命令处理器 |
-| 长度前缀分帧、分片读取、EOF/畸形长度边界 | 已实现并对拍；不是 Windows 管道传输实现 |
-| 封包帧原始/修改缓冲区及同内容省略位 | 已实现并双向对拍 |
-| PacketRing 丢旧包/累计丢弃/批量预算/清空/唤醒 | 已实现；每架构通过 6,416 条原 C# 队列状态对拍及并发守恒测试 |
-| C++ WebView2 宿主加载原 wwwroot | 已构建 x64 exe，原 Vue 启动及真实消息往返测试通过 |
-| call/result/ask/answer/event 消息桥 | 已实现消息路由、来源检查、超时、取消和错误路径；不等于已实现全部业务方法 |
-| 窗口最小化、最大化、关闭、置顶、拖动 | 已接原前端的方法名；自动化实测置顶开关，其他窗口操作仍需人工体验回归 |
-| 原 Vue/TypeScript/语言/静态资源及远程页面 | 从原 ZIP 提取，555 文件哈希校验通过，其中 70 个 Vue 文件 |
-| 两端真实管道、心跳/卸钩、配置快照、注入、滤镜、代理、完整 GUI 业务、数据及发布 | 后续实现，尚未验收 |
+## 当前接通的真实数据
 
-M0 的桌面启动和基础库已有可运行实现；注入 DLL/测试靶子等工程目标及后续 M1～M8 仍未完成。**没有把整套工程或全功能 GUI 标记为完成。**
+| 模块 | 已实现的数据路径 | 明确未完成 |
+|---|---|---|
+| 偏好与设置 | 语言、明暗/跟随系统的偏好值、扫描线、滤镜动作颜色、系统/日志设置真实读写 SQLite，启动恢复 | 跟随系统的系统主题变化监听；执行/自动清理设置对应的运行引擎 |
+| 滤镜列表与编辑 | 新增、读取编辑内容、校验、保存、启用标志、批量启用、排序、复制、确认删除/清空、实时列表更新 | 在真实封包上执行滤镜；XML 导入导出 |
+| 发送列表 | 列表管理、启用标志、编辑会话、名称/循环参数/备注保存；读取既有发送子项 | 新增/编辑/导入封包、实际发送、执行进度 |
+| 机器人列表 | 新增、复制、排序、启用标志、删除/清空；读取已有指令数量 | 指令编辑、调度、执行 |
+| 仓库 | 列表管理、改名；读取已有 BLOB、延迟十六进制预览、复制文本 | 采集入库、导入、仓库条目新增/修改及执行 |
+| 数据库 | 原字段名的 8 张表；事务提交、失败回滚、中文路径、重开恢复 | 其余 12 张原表、数据库路径切换、旧结构迁移、备份/恢复完整流程 |
+| 页面入口与静态字典 | 进入原代理工作区；原国家代码表 | 启动代理、客户端数据、IP 归属地库 |
 
-## 启动宿主联调版
+四个持久化列表使用原 `feed:replace` 与原编号 **8 / 9 / 10 / 11**。日志编号 2 / 3 / 4 目前只有空运行期列表及清空操作，不冒充日志生产者；**其余推送源尚未接通，不能把 19 类 feed 全部算完成**。
 
-构建完成后，使用 x64 输出目录里的 `wpe64-app.exe`。发布的宿主联调 ZIP 已将原 `wwwroot` 放在 exe 旁，解压后可以直接双击。不要把它当成最终产品：目前注入/代理业务按钮会返回“尚未实现”，数据库/归属地未加载，语言主题设置也尚未接入持久化。
+数据库任务由独立工作线程串行执行，成功提交后才更新内存及通知原 Vue。退出取消未开始任务，只等待当前事务；通知或回调异常不会吞掉同批其他结果。确认删除通过原 Vue 的对话框往返，不是直接删库；当前确认文字仍需逐语言对齐。
 
-需要 Windows WebView2 Runtime。仅 SDK 的 x64 loader 静态链接进 exe，**浏览器 Runtime 没有打进 exe**。本机自动化测试使用 Runtime `153.0.4234.32`。宿主目前使用普通权限，不会在联调阶段强制提权；目标注入权限属于后续模块。
+## 运行
 
-可显式指定资源和浏览器数据目录：
+解压 `WPE64-Cpp-数据接线版.zip`，双击 `wpe64-app.exe`。不要只复制 exe，旁边的 `wwwroot` 是原前端必需资源。需要 Windows x64 和 WebView2 Runtime；本机测试 Runtime 为 `153.0.4234.32`。
 
-```powershell
-& '完整路径\wpe64-app.exe' --assets '完整路径\wwwroot' --data-dir '完整路径\browser-data'
+查看数据列表：进入原 **代理模式工作区**，点击左侧滤镜、发送、机器人或仓库列表。进入工作区不等于启动了代理，底栏仍是未启动。可以新增/保存列表数据；不能用本开发版开始实际抓包或代理。
+
+默认数据位置：
+
+```text
+exe 所在目录/
+  wwwroot/                  原预构建前端
+  runtime/                  运行后生成的数据目录
+    2.3.0/WPE.db             真实 SQLite 业务数据库
+    ...                     WebView2 浏览器数据
 ```
 
-宿主的 `--self-test '结果目录'` 会在隐藏窗口中加载真正的原 Vue，测试首屏、窗口置顶、未知方法拒绝、C++ 提问/原 Vue 对话框回答、通知事件，然后写 JSON 与实际渲染截图并退出；它不会执行注入、抓包或代理。自测方法仅在该模式下注册。默认浏览器缓存放在 exe 旁的 `runtime`，联调包没有包含测试缓存。
+**重要：`runtime` 现在同时含业务数据库，不再是可以整体删除的“缓存”。清理或升级时请保留/备份 `runtime/2.3.0/WPE.db`，关闭程序后再复制。** 发布包不含测试数据库、浏览器缓存或演示记录；第一次启动是空业务列表。目前同一数据目录请只运行一个实例，多实例协调尚未实现。
 
-## 一键构建和原版对拍
+可显式指定资源与独立数据目录：
 
-需要 Visual Studio 2022 C++ Build Tools（x64/x86）、Windows SDK、CMake ≥ 3.24、.NET SDK 及 .NET Framework 4.8。C# 工具仅是测试依赖，不是 C++ 产品运行依赖。
+```powershell
+& '完整路径\wpe64-app.exe' --assets '完整路径\wwwroot' --data-dir '完整路径\我的WPE数据'
+```
 
-在 PowerShell 执行：
+不要将它指向唯一一份生产数据库。尚未完整验证所有旧版本结构、全部 20 张表或升级路径。
+
+## 构建与验证
+
+需要 Visual Studio 2022 C++ Build Tools（x64/x86）、Windows SDK、CMake ≥ 3.24、.NET SDK 及 .NET Framework 4.8。C# 仅是测试依赖，不是产品运行依赖。
 
 ```powershell
 & 'E:\codex\2026-09-17\bi-a\outputs\WPE64-Cpp\build-test.ps1' `
-  -BuildRoot 'E:\codex\2026-09-17\bi-a\work\cpp-parity'
+  -BuildRoot 'E:\codex\2026-09-17\bi-a\work\cpp-data-check'
 ```
 
-必须提供位于源码目录之外的 `-BuildRoot`，如上例。默认分别构建并测试 x64 和 Win32；拒绝空架构列表及重复架构。每次使用新的 `run-<GUID>` 目录，不读入旧编译文件。
+源码移动后相应调整路径。`-BuildRoot` 必须位于源码目录之外。每次新建 `run-<GUID>`，默认构建并验证 x64 和 Win32；桌面宿主仅构建 x64。工程 C++ 以 `/W4 /WX` 编译，第三方 SQLite C 源码不套用工程的 C++ 警告规则。
 
-最近一次完整结果：**每个架构 74,684 条原 C# 参照数据、76,618 条断言通过；每个架构输出的 600 个封包又由原 C# 解码器验证通过。** 编译启用 `/W4 /WX`，两个架构均无编译警告。
+本次全新目录验证通过：
 
-本轮另增加每架构 **6,416 条队列状态对拍**、四项 CTest（codec、frame、queue、bridge），以及 x64 原 Vue 宿主自测。证据见 `evidence/host-ring-run-manifest.json`、`evidence/host-ring-full.log`、`evidence/host-self-test.json`、`evidence/original-vue.png`。
+- **x64 / Win32 各 6/6 CTest**：编解码、协议边界、队列、消息桥、数据服务、数据线程。
+- 数据服务每架构 **440 项检查**，含 **120 条原 C# 真实生成的连续滤镜编辑参照**，以及落库/重开/事务回滚/Unicode 空白/负偏移/仓库 BLOB 预览等。
+- 每架构 **74,684 条原 C# 协议参照、76,618 条断言**；每架构另有 600 个 C++ 封包由原 C# 反向解码验证。
+- 每架构 **6,416 条原 C# 队列状态对拍**及并发检查。
+- 真正的 x64 WebView2/原 Vue 自测：原新增按钮、编辑数据保存、原启用复选框、原列表刷新、取消删除不丢数据；关闭重开后恢复**同一 GUID、名称、启用状态及负偏移内容**。
+- 独立反向兼容检查：原 C# 加载器读取此次 C++ 测试写出的偏好、滤镜、发送、机器人及仓库数据。不是完整 20 表互操作验收。
+- 555 个前端/远程文件哈希未改变。
 
-原版参考文件的哈希每次执行前检查；测试证据记录新文档哈希、源码哈希、构建环境、产物哈希和测试范围。参见 `evidence/protocol-run-manifest.json`、`evidence/build-test.log`。
+证据：`evidence/data-run-manifest.json`、`data-full.log`、`data-host-self-test.json`、`data-host-restart.json`、`data-original-read-native-db.json`。双向数据参照的重生成方法见 `tests/data_oracle/README.md`。
+
+发布前另外将源码导出 ZIP 并在**无 `.git` 的新目录**重新构建：双架构六项测试、协议/队列对拍和原 Vue 首次启动/重启均再次通过，证据为 `data-archive-run-manifest.json`、`data-archive-full.log`。Git 只提供可选的来源信息，不是构建前提；固定哈希的契约、黄金数据和生成头文件按原字节归档，避免 Windows 换行转换导致校验失效。运行包使用这次重新构建的 x64 exe，并从包内默认 `wwwroot` 通过独立 UI 自测，见 `data-package-self-test.json`。
+
+`--self-test '结果目录'` 使用真正的原 Vue，但会新增/修改测试记录；**只能配合新的独立 `--data-dir` 使用，不能对自己的常用数据库运行**。自测不注入进程、不抓包、不启动代理、不修改系统代理或安装证书。测试入口只在自测模式注册。
+
+一次较早的隐藏窗口自测在置顶检查失败；随后独立重跑和本次全新构建的首次启动/重启均通过。原失败证据保留为 `evidence/data-earlier-topmost-failure.json`；原因尚未定位，不能据此宣称所有窗口体验稳定通过。其他窗口动作、全部页面、多语言业务提示、十万包性能及全功能矩阵仍需单独验收。
+
+## 尚未接通的主干
+
+真实 Windows 管道与心跳、目标注入和钩子、真实封包采集、滤镜执行器、发送/机器人执行器、SOCKS5/HTTP 代理、账号/认证、映射、黑白名单、服务端规则、远程管理、导入导出、备份与剩余业务接口。保留这些原页面不等于已经实现这些功能。
+
+计划和逐项边界见 `docs/数据接线进度.md`。原有协议/队列实现仍是基础库，不等于两端已经通信。
 
 ## 目录
 
-- `src/common`：C++ 公共协议库。
-- `src/shell`：Win32/WebView2 宿主与 JSON 消息桥。
-- `tests`：公共接口测试和原 C# 对照运行器。
-- `frontend`：原 `WebUI`，未改动。
-- `wwwroot`：原包内预构建前端，未改动。
-- `remote-web`：原远程管理静态页面，未删除。
-- `contracts`：当前文档、源文件、界面资源的校验清单。
-- `third_party`：固定版本 JSON 头文件、WebView2 SDK 头文件/x64 loader 及许可证；全部有 SHA-256 清单。
-- `docs/实施校核.md`：文档差异、必须修正的示例和后续验收边界。
+- `src/common`：协议编解码、分帧、PacketRing。
+- `src/shell`：Win32/WebView2 宿主、异步 JSON 桥、数据库与数据服务。
+- `tests`：原版对照运行器、固定参照、回归测试。
+- `frontend` / `wwwroot` / `remote-web`：原前端源码 / 原预构建前端 / 原远程页面，未改动。
+- `contracts`：需求、原接口/表结构、接线状态、依赖和文件哈希。
+- `third_party`：固定版本 JSON、WebView2 SDK 和 SQLite；附许可证或源文件许可声明。
+- `evidence`：分阶段测试记录。历史记录不是本轮结果，当前以 `data-*` 为准。
+- `REVIEW-data-wiring.md`：本轮 Standards / Spec 双轴审查、已修复问题和未验收边界。
 
-`wwwroot` 是原压缩包里的产物。本次没有重新构建前端，也没有声称原预构建资源与重新构建产物相同。已测试原页面加载和真实双向桥；完整窗口体验、全部业务方法、七语言持久化及十万包列表性能仍需单独验收。
+`wwwroot` 是原压缩包自带产物，本次未重新构建或改写前端。实际显示截图见 `evidence/data-original-vue.png`，不是界面设计稿。
 
-实现参考：[Microsoft 本地资源映射](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2_3)、[Microsoft WebView2 安全建议](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/security)、[nlohmann/json 3.12.0](https://github.com/nlohmann/json/releases/tag/v3.12.0)。宿主限定原页面来源、拒绝跨域导航/新窗口/网页权限，使用原生 `PostWebMessageAsJson`，不通过拼接脚本传递业务 JSON。
+实现参考：[WebView2 本地资源映射](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2_3)、[WebView2 安全建议](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/security)、[SQLite 连接接口](https://www.sqlite.org/c3ref/open.html)、[SQLite 事务](https://www.sqlite.org/lang_transaction.html)。

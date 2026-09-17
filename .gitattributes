@@ -9,3 +9,10 @@ frontend/** -text
 wwwroot/** -text
 remote-web/** -text
 third_party/** -text
+# Hash-pinned generated contracts/fixtures must survive Windows checkout and ZIP export byte-for-byte.
+contracts/** -text
+tests/fixtures/** -text
+tests/data_oracle/** -text
+src/shell/data_schema.h -text
+src/shell/data_l10n.h -text
+tests/oracle/Program.cs -text

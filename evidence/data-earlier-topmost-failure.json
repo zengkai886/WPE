@@ -1,0 +1,11 @@
+{
+  "frontend": {
+    "error": "Error: topmost failed",
+    "ok": false
+  },
+  "nativeDrag": true,
+  "result": "failed",
+  "scope": "Original Vue buttons -> async native RPC -> SQLite commit -> feed -> original list DOM; cancelled delete; no capture/proxy/injection",
+  "webMessagesReceived": 6,
+  "webview2Runtime": "153.0.4234.32"
+}

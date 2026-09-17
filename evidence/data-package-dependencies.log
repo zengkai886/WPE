@@ -1,0 +1,27 @@
+Microsoft (R) COFF/PE Dumper Version 14.44.35228.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file .\outputs\WPE64-Cpp-数据接线版\wpe64-app.exe
+
+File Type: EXECUTABLE IMAGE
+
+  Image has the following dependencies:
+
+    ole32.dll
+    USER32.dll
+    SHELL32.dll
+    SHLWAPI.dll
+    ADVAPI32.dll
+    dwmapi.dll
+    KERNEL32.dll
+
+  Summary
+
+        E000 .data
+        1000 .fptable
+        E000 .pdata
+       68000 .rdata
+        2000 .reloc
+        1000 .rsrc
+      154000 .text

@@ -10,7 +10,10 @@ bool WebBridge::IsAllowedSource(std::string_view source){
     if(source.size()<origin.size() || Key(std::string(source.substr(0,origin.size())))!=origin)return false;
     return source.size()==origin.size() || source[origin.size()]=='/';
 }
-void WebBridge::Register(std::string method,Handler handler){methods_[Key(std::move(method))]=std::move(handler);}
+void WebBridge::Register(std::string method,Handler handler){
+    RegisterAsync(std::move(method),[handler=std::move(handler)](const Json& args,Completion done){done(handler(args),{});});
+}
+void WebBridge::RegisterAsync(std::string method,AsyncHandler handler){methods_[Key(std::move(method))]=std::move(handler);}
 void WebBridge::Reply(const Json& id,bool ok,Json value,const std::string& error){
     Json message{{"type","result"},{"ok",ok}};
     if(!id.is_null())message["id"]=id;
@@ -36,8 +39,13 @@ void WebBridge::Receive(std::string_view source,std::string_view raw){
         if(found==methods_.end()){Reply(id,false,nullptr,"尚未实现的方法: "+method);return;}
         const auto args=message.value("args",Json::object());
         if(!args.is_null()&&!args.is_object())throw std::invalid_argument("args must be an object or null");
-        const auto result=found->second(args.is_null()?Json::object():args);
-        Reply(id,true,result);
+        auto once=std::make_shared<bool>(false);
+        Completion done=[this,alive=std::weak_ptr(call_epoch_),once,id](Json result,std::string error){
+            if(alive.expired()||*once)return;*once=true;
+            try{Reply(id,error.empty(),std::move(result),error);}catch(...){/* Closing transport. */}
+        };
+        try{found->second(args.is_null()?Json::object():args,done);}
+        catch(const std::exception& error){done(nullptr,error.what());}
     }catch(const std::exception& error){
         if(!id.is_null())try{Reply(id,false,nullptr,error.what());}catch(...){/* Transport is already closed. */}
     }
@@ -58,6 +66,7 @@ void WebBridge::Complete(const std::string& id,Json value){
 void WebBridge::FailAllPending(){
     if(cancelling_)return;
     cancelling_=true;
+    call_epoch_.reset();
     // Keep cancellation active while callbacks run: they may try to ask again.
     // Extracting the whole map needs no temporary ID allocations during shutdown.
     auto abandoned=std::move(pending_);
@@ -67,6 +76,7 @@ void WebBridge::FailAllPending(){
         if(pending.complete)try{pending.complete(nullptr);}catch(...){}
     }
     cancelling_=false;
+    if(!closed_)call_epoch_=std::make_shared<int>(0);
 }
 void WebBridge::Tick(Clock::time_point now){
     std::vector<std::string> expired;

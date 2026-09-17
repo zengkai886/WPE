@@ -12,6 +12,12 @@
       "source": "https://www.nuget.org/packages/Microsoft.Web.WebView2/1.0.4191.47",
       "license": "See third_party/webview2/LICENSE.txt and NOTICE.txt",
       "runtimeBundled": false
+    },
+    {
+      "name": "SQLite",
+      "version": "3.46.1",
+      "source": "https://www.sqlite.org/2024/sqlite-amalgamation-3460100.zip",
+      "license": "Public domain; see header of sqlite3.c"
     }
   ],
   "files": [
@@ -38,6 +44,14 @@
     {
       "path": "third_party\\webview2\\x64\\WebView2LoaderStatic.lib",
       "sha256": "79723D3395C26F103275EF043062AF41B87542C2668386DDC70CDCA367720C2D"
+    },
+    {
+      "path": "third_party/sqlite/sqlite3.c",
+      "sha256": "6C35BC5F7F85EAC9C49928BACBB02BB694B547AABF69197E058CCA245AD80E83"
+    },
+    {
+      "path": "third_party/sqlite/sqlite3.h",
+      "sha256": "89B62C671C5964E137409CE034941B7B05A3AF2C9875ABA41F47F9483D0C2515"
     }
   ]
 }

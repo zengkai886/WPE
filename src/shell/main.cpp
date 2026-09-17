@@ -8,6 +8,7 @@
 #include <wrl.h>
 #include <WebView2.h>
 #include "web_bridge.h"
+#include "data_worker.h"
 #include <filesystem>
 #include <fstream>
 #include <memory>
@@ -75,6 +76,7 @@ public:
     explicit Host(Options options):options_(std::move(options)),exit_code_(options_.test?1:0){}
     ~Host(){
         closing_=true;lifetime_.reset();
+        data_.reset();
         // Complete callbacks while the report/window state they capture still exists.
         if(bridge_){bridge_->FailAllPending();bridge_.reset();}
         if(controller_)controller_->Close();
@@ -101,6 +103,7 @@ private:
     ComPtr<ICoreWebView2Controller> controller_;
     ComPtr<ICoreWebView2> view_;
     std::unique_ptr<WebBridge> bridge_;
+    std::unique_ptr<wpe::shell::DataWorker> data_;
     bool native_drag_{},ready_{},revealed_{},closing_{},done_{},failure_posted_{};
     int exit_code_;
     std::uint64_t messages_{};
@@ -135,6 +138,7 @@ LRESULT Host::Message(UINT message,WPARAM wparam,LPARAM lparam){
     case WM_SIZE:Resize();State();return 0;
     case WM_TIMER:
         if(bridge_)bridge_->Tick();
+        if(data_&&bridge_&&!closing_)data_->Drain([this](std::string name,Json value){bridge_->PushEvent(std::move(name),std::move(value));});
         if(options_.test && std::chrono::steady_clock::now()-started_>std::chrono::seconds(30))Fail("WebView2 self-test timed out");
         if(!options_.test && !revealed_ && std::chrono::steady_clock::now()-started_>std::chrono::seconds(4)){revealed_=true;ShowWindow(window_,SW_SHOW);}
         if(!options_.test && !ready_ && std::chrono::steady_clock::now()-started_>std::chrono::seconds(30))Fail("原 Vue 页面未在 30 秒内完成初始化，请检查 WebView2 Runtime 和 wwwroot 资源。");
@@ -215,11 +219,27 @@ void Host::Configure(){
 void Host::Resize(){if(controller_){RECT bounds{};GetClientRect(window_,&bounds);if(!IsZoomed(window_)){InflateRect(&bounds,-3,-3);}controller_->put_Bounds(bounds);}}
 void Host::State(){if(bridge_&&!closing_)bridge_->PushEvent("window:state",{{"maximized",IsZoomed(window_)!=FALSE}});}
 void Host::RegisterMethods(){
-    bridge_->Register("getSystemCheck",[this](const Json&){return Json{
-        {"isAdmin",IsAdmin()},{"version","C++ M0-dev"},{"isBeta",false},{"language","zh-CN"},
-        {"themeMode","dark"},{"isDark",true},{"scanLine",true},{"nativeDrag",native_drag_},
-        {"dbDir",""},{"dbFile",""},{"dbFull",""},{"dbInstance",""},{"lastInjection",""},{"lastInject",nullptr},
-        {"socks5Port",0},{"socks5Addr",""},{"httpAddr",""},{"geoVersion","未实现"},{"geoCount",0}};});
+    const auto db=options_.data/L"2.3.0"/L"WPE.db";
+    data_=std::make_unique<wpe::shell::DataWorker>(db);
+    for(const auto& method:wpe::shell::DataService::Methods()){
+        bridge_->RegisterAsync(method,[this,method](const Json& args,WebBridge::Completion done){
+            auto submit=[this,method,args,done]{data_->Submit(method,args,done);};
+            if(wpe::shell::DataService::NeedsConfirmation(method,args)){
+                bridge_->Ask("confirm",{{"title","确认操作"},{"content","确定删除选中的数据吗？此操作不可撤销。"},{"icon",2}},
+                    [submit=std::move(submit),done](Json answer){if(answer==true)submit();else done({{"ok",true},{"delta",0}},{});});
+            }else submit();
+        });
+    }
+    bridge_->RegisterAsync("getSystemCheck",[this,db](const Json&,WebBridge::Completion done){
+        data_->Submit("getPrefs",Json::object(),[this,db,done](Json prefs,std::string error){
+            if(!error.empty()){done(nullptr,std::move(error));return;}
+            done(Json{
+                {"isAdmin",IsAdmin()},{"version","C++ DATA-dev"},{"isBeta",false},{"language",prefs["language"]},
+                {"themeMode",prefs["themeMode"]},{"isDark",prefs["isDark"]},{"scanLine",prefs["scanLine"]},{"nativeDrag",native_drag_},
+                {"dbDir",Utf8(db.parent_path().wstring())},{"dbFile","WPE.db"},{"dbFull",Utf8(db.wstring())},{"dbInstance","default"},{"lastInjection",""},{"lastInject",nullptr},
+                {"socks5Port",0},{"socks5Addr",""},{"httpAddr",""},{"geoVersion","未实现"},{"geoCount",0}},{});
+        });
+    });
     bridge_->Register("uiReady",[this](const Json&){PostMessageW(window_,app_ready,0,0);return Json{{"ok",true}};});
     bridge_->Register("minimizeWindow",[this](const Json&){ShowWindow(window_,SW_MINIMIZE);return Json{{"ok",true}};});
     bridge_->Register("toggleMaximize",[this](const Json&){ShowWindow(window_,IsZoomed(window_)?SW_RESTORE:SW_MAXIMIZE);return Json{{"maximized",IsZoomed(window_)!=FALSE}};});
@@ -247,7 +267,7 @@ void Host::BeginTest(){
       const call=(method,args={})=>new Promise((resolve,reject)=>{const id='selftest-'+(++seq);pending.set(id,{resolve,reject});w.postMessage({type:'call',id,method,args});});
       const wait=async(f)=>{for(let i=0;i<150;i++){if(f())return;await new Promise(r=>setTimeout(r,40));}throw Error('DOM condition timed out');};
       (async()=>{
-        const info=await call('getSystemCheck');if(info.version!=='C++ M0-dev')throw Error('wrong native host');
+        const info=await call('getSystemCheck');if(info.version!=='C++ DATA-dev')throw Error('wrong native host');
         await wait(()=>document.querySelector('.win .titlebar')&&document.querySelectorAll('.rack .cd').length>=2);
         const top=await call('setTopMost',{on:true});if(!top.topMost)throw Error('topmost failed');
         const normal=await call('setTopMost',{on:false});if(normal.topMost)throw Error('topmost reset failed');
@@ -257,7 +277,38 @@ void Host::BeginTest(){
         await wait(()=>document.querySelector('[role=alertdialog] .btn.primary'));
         document.querySelector('[role=alertdialog] .btn.primary').click();
         await wait(()=>document.body.textContent.includes('NATIVE_BRIDGE_EVENT_OK'));
-        await call('__testDone',{ok:true,titlebar:!!document.querySelector('.titlebar'),modeCards:document.querySelectorAll('.rack .cd').length,unsupportedRejected:unsupported,windowRoundTrip:true,url:location.href});
+        const modeCards=document.querySelectorAll('.rack .cd').length;
+        const feeds=new Map();w.addEventListener('message',e=>{const m=e.data;if(m.type==='event'&&m.name==='feed:replace')feeds.set(m.data.list,m.data.rows);});
+        const prefs=await call('getPrefs');if(!prefs.isDark||prefs.language!=='zh-CN')throw Error('unexpected fresh DB prefs');
+        await call('setLanguage',{language:'ja-JP'});if((await call('getPrefs')).language!=='ja-JP')throw Error('language not saved');
+        await call('setLanguage',{language:'zh-CN'});
+        document.querySelector('.rack .cd.cy').click();
+        await wait(()=>document.querySelector('.side .sb-item')&&feeds.has(8));
+        const filterNav=[...document.querySelectorAll('.side .sb-item')].find(e=>e.querySelector('.t')?.textContent.trim()==='滤镜列表');
+        if(!filterNav)throw Error('original filter navigation missing');filterNav.click();
+        await wait(()=>document.querySelector('.list-page .bar .btn.primary'));
+        if(feeds.get(8).length){
+          const old=feeds.get(8);if(old.length!==1||old[0].Name!=='C++ 数据闭环测试'||!old[0].IsEnable)throw Error('restart list persistence failed');
+          const restored=(await call('getFilterEdit',{id:old[0].Id})).row;
+          if(restored.Modify[0].Index!==-1||!restored.Modify[0].Progression)throw Error('restart editor persistence failed');
+          await wait(()=>document.querySelector('.list-page .row .name')?.textContent==='C++ 数据闭环测试');
+          await call('__testDone',{ok:true,restartPersistence:true,originalListDom:true,persistentFilterId:old[0].Id,dbFull:info.dbFull});return;
+        }
+        document.querySelector('.list-page .bar .btn.primary').click();
+        await wait(()=>feeds.get(8)?.length===1&&document.querySelector('.list-page .row .name'));
+        const id=feeds.get(8)[0].Id;const edit=(await call('getFilterEdit',{id})).row;
+        edit.Name='C++ 数据闭环测试';edit.Mode=1;edit.StartFrom=1;
+        edit.Search=[{Index:0,Value:'AA',Exclude:true}];edit.Modify=[{Index:-1,Value:'BB',Progression:true,Random:false}];
+        const saved=await call('saveFilterEdit',{row:edit});if(!saved.ok)throw Error(saved.error);
+        await wait(()=>document.querySelector('.list-page .row .name')?.textContent==='C++ 数据闭环测试');
+        document.querySelector('.list-page .row .chk').click();
+        await wait(()=>feeds.get(8)?.[0]?.IsEnable===true);
+        const back=(await call('getFilterEdit',{id})).row;if(back.Modify[0].Index!==-1)throw Error('negative offset lost');
+        const deletion=call('filterListAction',{action:6,ids:[id]});
+        await wait(()=>document.querySelector('[role=alertdialog] .btn:not(.primary)'));
+        document.querySelector('[role=alertdialog] .btn:not(.primary)').click();await deletion;
+        if(!(await call('getFilterEdit',{id})).row)throw Error('cancelled deletion changed data');
+        await call('__testDone',{ok:true,titlebar:!!document.querySelector('.titlebar'),modeCards,unsupportedRejected:unsupported,windowRoundTrip:true,originalListDom:true,originalAddAndEnableButtons:true,negativeOffsetRoundTrip:true,cancelledDeletionKeptData:true,persistentFilterId:id,dbFull:info.dbFull,url:location.href});
       })().catch(error=>call('__testDone',{ok:false,error:String(error)}));
     })())JS");
 }
@@ -279,7 +330,7 @@ void Host::Fail(const std::string& message){
 void Host::Finish(bool success){
     if(done_)return;done_=true;exit_code_=success?0:1;
     report_["result"]=success?"passed":"failed";report_["webMessagesReceived"]=messages_;report_["nativeDrag"]=native_drag_;
-    report_["scope"]="Original Vue startup, window RPC, native ask/Vue answer and event; no capture/proxy/injection";
+    report_["scope"]="Original Vue buttons -> async native RPC -> SQLite commit -> feed -> original list DOM; cancelled delete; no capture/proxy/injection";
     if(options_.test){std::ofstream file(options_.report/L"host-self-test.json",std::ios::binary);file<<report_.dump(2);file.flush();if(!file)exit_code_=1;}
     PostMessageW(window_,WM_CLOSE,0,0);
 }

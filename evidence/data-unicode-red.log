@@ -1,0 +1,14 @@
+Test project E:/codex/2026-09-17/bi-a/work/data-wire/build
+    Start 5: native-data
+1/2 Test #5: native-data ......................***Failed    0.16 sec
+FAIL: Unicode whitespace name must be rejected like .NET Trim
+
+    Start 6: data-worker
+2/2 Test #6: data-worker ......................   Passed    1.09 sec
+
+50% tests passed, 1 tests failed out of 2
+
+Total Test time (real) =   1.25 sec
+
+The following tests FAILED:
+	  5 - native-data (Failed)

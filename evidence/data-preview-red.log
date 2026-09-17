@@ -1,0 +1,12 @@
+Test project E:/codex/2026-09-17/bi-a/work/data-wire/build
+    Start 5: native-data
+1/1 Test #5: native-data ......................***Failed    0.28 sec
+FAIL: preview must be string, not row DTO
+
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   0.29 sec
+
+The following tests FAILED:
+	  5 - native-data (Failed)

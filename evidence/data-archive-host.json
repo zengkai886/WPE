@@ -1,0 +1,22 @@
+{
+  "frontend": {
+    "cancelledDeletionKeptData": true,
+    "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-data-archive-test\\run-7d6a16bcda794762ba37671bb6c6c19f\\webview-profile\\2.3.0\\WPE.db",
+    "modeCards": 2,
+    "negativeOffsetRoundTrip": true,
+    "ok": true,
+    "originalAddAndEnableButtons": true,
+    "originalListDom": true,
+    "persistentFilterId": "6AD85668-0518-45BC-B1C6-A23B361DD94E",
+    "titlebar": true,
+    "unsupportedRejected": true,
+    "url": "https://app.wpe64.local/index.html",
+    "windowRoundTrip": true
+  },
+  "nativeDrag": true,
+  "originalVueConfirmed": true,
+  "result": "passed",
+  "scope": "Original Vue buttons -> async native RPC -> SQLite commit -> feed -> original list DOM; cancelled delete; no capture/proxy/injection",
+  "webMessagesReceived": 34,
+  "webview2Runtime": "153.0.4234.32"
+}

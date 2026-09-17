@@ -1,0 +1,15 @@
+{
+  "frontend": {
+    "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-data-archive-test\\run-7d6a16bcda794762ba37671bb6c6c19f\\webview-profile\\2.3.0\\WPE.db",
+    "ok": true,
+    "originalListDom": true,
+    "persistentFilterId": "6AD85668-0518-45BC-B1C6-A23B361DD94E",
+    "restartPersistence": true
+  },
+  "nativeDrag": true,
+  "originalVueConfirmed": true,
+  "result": "passed",
+  "scope": "Original Vue buttons -> async native RPC -> SQLite commit -> feed -> original list DOM; cancelled delete; no capture/proxy/injection",
+  "webMessagesReceived": 24,
+  "webview2Runtime": "153.0.4234.32"
+}

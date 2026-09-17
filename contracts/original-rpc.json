@@ -1,0 +1,874 @@
+{
+  "source": "WinsockPacketEditor/ShellForm.cs",
+  "sha256": "86d277408d233903ec82ffe8f06a2cd1995898617c477a1f181046ebe0f72f12",
+  "methods": [
+    {
+      "method": "getPacketDetail",
+      "line": 1328
+    },
+    {
+      "method": "getPrefs",
+      "line": 1367
+    },
+    {
+      "method": "setAppearance",
+      "line": 1403
+    },
+    {
+      "method": "getStats",
+      "line": 1443
+    },
+    {
+      "method": "clearPackets",
+      "line": 1506
+    },
+    {
+      "method": "openExternal",
+      "line": 1549
+    },
+    {
+      "method": "setLanguage",
+      "line": 1589
+    },
+    {
+      "method": "getFileAssoc",
+      "line": 1617
+    },
+    {
+      "method": "setFileAssoc",
+      "line": 1620
+    },
+    {
+      "method": "enterProxyMode",
+      "line": 1649
+    },
+    {
+      "method": "enterInjectMode",
+      "line": 1675
+    },
+    {
+      "method": "injectQuick",
+      "line": 1713
+    },
+    {
+      "method": "getInjectProcessList",
+      "line": 1732
+    },
+    {
+      "method": "pickTargetExe",
+      "line": 1739
+    },
+    {
+      "method": "injectAttach",
+      "line": 1760
+    },
+    {
+      "method": "injectStartHook",
+      "line": 1777
+    },
+    {
+      "method": "injectStopHook",
+      "line": 1802
+    },
+    {
+      "method": "pickWindow",
+      "line": 1820
+    },
+    {
+      "method": "cancelPickWindow",
+      "line": 1822
+    },
+    {
+      "method": "getInjectStatus",
+      "line": 1828
+    },
+    {
+      "method": "getInjectStats",
+      "line": 1842
+    },
+    {
+      "method": "startProxy",
+      "line": 1883
+    },
+    {
+      "method": "stopProxy",
+      "line": 1905
+    },
+    {
+      "method": "setListEnable",
+      "line": 1918
+    },
+    {
+      "method": "getCountryTable",
+      "line": 1988
+    },
+    {
+      "method": "getProxySetting",
+      "line": 1992
+    },
+    {
+      "method": "saveProxySetting",
+      "line": 2039
+    },
+    {
+      "method": "setSystemProxy",
+      "line": 2147
+    },
+    {
+      "method": "exportCert",
+      "line": 2169
+    },
+    {
+      "method": "getListSetting",
+      "line": 2218
+    },
+    {
+      "method": "saveListAutoClear",
+      "line": 2260
+    },
+    {
+      "method": "saveListSetting",
+      "line": 2293
+    },
+    {
+      "method": "getClientConnections",
+      "line": 2361
+    },
+    {
+      "method": "addIpRule",
+      "line": 2367
+    },
+    {
+      "method": "getFireWall",
+      "line": 2418
+    },
+    {
+      "method": "saveFireWall",
+      "line": 2429
+    },
+    {
+      "method": "saveIPRule",
+      "line": 2467
+    },
+    {
+      "method": "deleteIPRule",
+      "line": 2487
+    },
+    {
+      "method": "ipRuleAction",
+      "line": 2495
+    },
+    {
+      "method": "getHookSetting",
+      "line": 2536
+    },
+    {
+      "method": "saveHookSetting",
+      "line": 2562
+    },
+    {
+      "method": "getSystemSetting",
+      "line": 2706
+    },
+    {
+      "method": "saveSystemSetting",
+      "line": 2713
+    },
+    {
+      "method": "saveActionColor",
+      "line": 2759
+    },
+    {
+      "method": "getLeachSetting",
+      "line": 2834
+    },
+    {
+      "method": "saveLeachSetting",
+      "line": 2881
+    },
+    {
+      "method": "getAccountPassword",
+      "line": 3005
+    },
+    {
+      "method": "getAccountLogins",
+      "line": 3012
+    },
+    {
+      "method": "saveAccount",
+      "line": 3018
+    },
+    {
+      "method": "deleteAccount",
+      "line": 3108
+    },
+    {
+      "method": "clearAllAccounts",
+      "line": 3121
+    },
+    {
+      "method": "setAccountEnable",
+      "line": 3128
+    },
+    {
+      "method": "importAccounts",
+      "line": 3138
+    },
+    {
+      "method": "exportAccounts",
+      "line": 3144
+    },
+    {
+      "method": "previewBatchAccounts",
+      "line": 3161
+    },
+    {
+      "method": "saveBatchAccounts",
+      "line": 3198
+    },
+    {
+      "method": "exportBatchAccounts",
+      "line": 3228
+    },
+    {
+      "method": "adjustAccountExpiry",
+      "line": 3246
+    },
+    {
+      "method": "adjustAccountLimit",
+      "line": 3261
+    },
+    {
+      "method": "exportSelectedAccounts",
+      "line": 3280
+    },
+    {
+      "method": "deleteSelectedAccounts",
+      "line": 3286
+    },
+    {
+      "method": "verifyEncryptPassword",
+      "line": 3333
+    },
+    {
+      "method": "getFilterExecute",
+      "line": 3354
+    },
+    {
+      "method": "getFilterEdit",
+      "line": 3371
+    },
+    {
+      "method": "saveFilterEdit",
+      "line": 3377
+    },
+    {
+      "method": "clipboardRead",
+      "line": 3409
+    },
+    {
+      "method": "clipboardWrite",
+      "line": 3423
+    },
+    {
+      "method": "getExecuteTargets",
+      "line": 3443
+    },
+    {
+      "method": "addFilter",
+      "line": 3450
+    },
+    {
+      "method": "setFilterEnable",
+      "line": 3455
+    },
+    {
+      "method": "setAllFilterEnable",
+      "line": 3463
+    },
+    {
+      "method": "resetFilterCount",
+      "line": 3472
+    },
+    {
+      "method": "filterListAction",
+      "line": 3485
+    },
+    {
+      "method": "importFilters",
+      "line": 3499
+    },
+    {
+      "method": "exportFilters",
+      "line": 3505
+    },
+    {
+      "method": "clearFilters",
+      "line": 3511
+    },
+    {
+      "method": "getSendMeta",
+      "line": 3526
+    },
+    {
+      "method": "addSend",
+      "line": 3537
+    },
+    {
+      "method": "setSendEnable",
+      "line": 3542
+    },
+    {
+      "method": "setAllSendEnable",
+      "line": 3549
+    },
+    {
+      "method": "resetSendCount",
+      "line": 3558
+    },
+    {
+      "method": "sendListAction",
+      "line": 3566
+    },
+    {
+      "method": "importSends",
+      "line": 3580
+    },
+    {
+      "method": "exportSends",
+      "line": 3586
+    },
+    {
+      "method": "clearSends",
+      "line": 3592
+    },
+    {
+      "method": "startSendList",
+      "line": 3605
+    },
+    {
+      "method": "stopSendList",
+      "line": 3643
+    },
+    {
+      "method": "getRobotMeta",
+      "line": 3663
+    },
+    {
+      "method": "addRobot",
+      "line": 3669
+    },
+    {
+      "method": "setRobotEnable",
+      "line": 3674
+    },
+    {
+      "method": "setAllRobotEnable",
+      "line": 3681
+    },
+    {
+      "method": "resetRobotCount",
+      "line": 3688
+    },
+    {
+      "method": "robotListAction",
+      "line": 3696
+    },
+    {
+      "method": "importRobots",
+      "line": 3710
+    },
+    {
+      "method": "exportRobots",
+      "line": 3716
+    },
+    {
+      "method": "clearRobots",
+      "line": 3722
+    },
+    {
+      "method": "startRobotList",
+      "line": 3732
+    },
+    {
+      "method": "stopRobotList",
+      "line": 3747
+    },
+    {
+      "method": "openRobotEdit",
+      "line": 3770
+    },
+    {
+      "method": "closeRobotEdit",
+      "line": 3773
+    },
+    {
+      "method": "getRobotInstructions",
+      "line": 3779
+    },
+    {
+      "method": "addRobotInstruction",
+      "line": 3785
+    },
+    {
+      "method": "robotInstructionAction",
+      "line": 3794
+    },
+    {
+      "method": "saveRobotEdit",
+      "line": 3815
+    },
+    {
+      "method": "startRobotEdit",
+      "line": 3821
+    },
+    {
+      "method": "stopRobotEdit",
+      "line": 3827
+    },
+    {
+      "method": "getRobotEditProgress",
+      "line": 3833
+    },
+    {
+      "method": "textDuplicates",
+      "line": 3843
+    },
+    {
+      "method": "transcode",
+      "line": 3860
+    },
+    {
+      "method": "extractPick",
+      "line": 3868
+    },
+    {
+      "method": "extractBytes",
+      "line": 3872
+    },
+    {
+      "method": "saveExtraction",
+      "line": 3880
+    },
+    {
+      "method": "saveServer",
+      "line": 3896
+    },
+    {
+      "method": "setServerEnable",
+      "line": 3909
+    },
+    {
+      "method": "serverListAction",
+      "line": 3915
+    },
+    {
+      "method": "clearServers",
+      "line": 3923
+    },
+    {
+      "method": "getRuleTypes",
+      "line": 3929
+    },
+    {
+      "method": "getServerRules",
+      "line": 3931
+    },
+    {
+      "method": "saveServerRule",
+      "line": 3936
+    },
+    {
+      "method": "setServerRuleEnable",
+      "line": 3947
+    },
+    {
+      "method": "serverRuleAction",
+      "line": 3955
+    },
+    {
+      "method": "clearServerRules",
+      "line": 3963
+    },
+    {
+      "method": "saveNotice",
+      "line": 3969
+    },
+    {
+      "method": "noticeListAction",
+      "line": 3979
+    },
+    {
+      "method": "clearNotices",
+      "line": 3987
+    },
+    {
+      "method": "getFilterStats",
+      "line": 3997
+    },
+    {
+      "method": "resetFilterStats",
+      "line": 4003
+    },
+    {
+      "method": "getLogSetting",
+      "line": 4040
+    },
+    {
+      "method": "saveLogSetting",
+      "line": 4046
+    },
+    {
+      "method": "clearLogs",
+      "line": 4085
+    },
+    {
+      "method": "exportLogs",
+      "line": 4090
+    },
+    {
+      "method": "getProcessSetting",
+      "line": 4102
+    },
+    {
+      "method": "getProcessRows",
+      "line": 4105
+    },
+    {
+      "method": "getProcessIcons",
+      "line": 4116
+    },
+    {
+      "method": "addSelectProcessName",
+      "line": 4154
+    },
+    {
+      "method": "removeSelectProcessName",
+      "line": 4159
+    },
+    {
+      "method": "uninstallDriver",
+      "line": 4164
+    },
+    {
+      "method": "saveProcessSetting",
+      "line": 4167
+    },
+    {
+      "method": "testSocksProxy",
+      "line": 4190
+    },
+    {
+      "method": "getMapSetting",
+      "line": 4202
+    },
+    {
+      "method": "saveMapSetting",
+      "line": 4208
+    },
+    {
+      "method": "saveMapLocal",
+      "line": 4216
+    },
+    {
+      "method": "saveMapRemote",
+      "line": 4227
+    },
+    {
+      "method": "setMapEnable",
+      "line": 4241
+    },
+    {
+      "method": "mapAction",
+      "line": 4250
+    },
+    {
+      "method": "mapCommand",
+      "line": 4261
+    },
+    {
+      "method": "pickLocalFile",
+      "line": 4272
+    },
+    {
+      "method": "getExtProxySetting",
+      "line": 4279
+    },
+    {
+      "method": "saveExtProxySetting",
+      "line": 4281
+    },
+    {
+      "method": "getHotkeySetting",
+      "line": 4296
+    },
+    {
+      "method": "registerHotkey",
+      "line": 4298
+    },
+    {
+      "method": "saveHotkeyType",
+      "line": 4305
+    },
+    {
+      "method": "exportBackup",
+      "line": 4318
+    },
+    {
+      "method": "importBackup",
+      "line": 4351
+    },
+    {
+      "method": "getRemoteSetting",
+      "line": 4384
+    },
+    {
+      "method": "saveRemoteSetting",
+      "line": 4386
+    },
+    {
+      "method": "copyProxyHex",
+      "line": 4407
+    },
+    {
+      "method": "addProxyToSend",
+      "line": 4412
+    },
+    {
+      "method": "addProxyToWareHouse",
+      "line": 4418
+    },
+    {
+      "method": "addProxyToFilter",
+      "line": 4424
+    },
+    {
+      "method": "setSystemSocketByProxy",
+      "line": 4430
+    },
+    {
+      "method": "exportProxyExcel",
+      "line": 4437
+    },
+    {
+      "method": "copyPacketHex",
+      "line": 4449
+    },
+    {
+      "method": "addPacketToSend",
+      "line": 4454
+    },
+    {
+      "method": "addPacketToWareHouse",
+      "line": 4460
+    },
+    {
+      "method": "addPacketToFilter",
+      "line": 4466
+    },
+    {
+      "method": "setSystemSocketByPacket",
+      "line": 4472
+    },
+    {
+      "method": "setSelectedPacket",
+      "line": 4489
+    },
+    {
+      "method": "exportPacketExcel",
+      "line": 4499
+    },
+    {
+      "method": "searchProxyList",
+      "line": 4519
+    },
+    {
+      "method": "searchPacketList",
+      "line": 4533
+    },
+    {
+      "method": "openSendEdit",
+      "line": 4554
+    },
+    {
+      "method": "closeSendEdit",
+      "line": 4558
+    },
+    {
+      "method": "getSendCollection",
+      "line": 4564
+    },
+    {
+      "method": "sendCollectionAction",
+      "line": 4570
+    },
+    {
+      "method": "importSendCollection",
+      "line": 4584
+    },
+    {
+      "method": "exportSendCollection",
+      "line": 4590
+    },
+    {
+      "method": "clearSendCollection",
+      "line": 4596
+    },
+    {
+      "method": "saveSendEdit",
+      "line": 4603
+    },
+    {
+      "method": "startSendEdit",
+      "line": 4613
+    },
+    {
+      "method": "stopSendEdit",
+      "line": 4623
+    },
+    {
+      "method": "getSendEditProgress",
+      "line": 4630
+    },
+    {
+      "method": "addWareHouse",
+      "line": 4643
+    },
+    {
+      "method": "wareHouseListAction",
+      "line": 4649
+    },
+    {
+      "method": "importWareHouses",
+      "line": 4663
+    },
+    {
+      "method": "exportWareHouses",
+      "line": 4669
+    },
+    {
+      "method": "clearWareHouses",
+      "line": 4675
+    },
+    {
+      "method": "getAutoStoresMeta",
+      "line": 4686
+    },
+    {
+      "method": "setAutoStoresSwitch",
+      "line": 4698
+    },
+    {
+      "method": "saveAutoStores",
+      "line": 4726
+    },
+    {
+      "method": "setAutoStoresEnable",
+      "line": 4736
+    },
+    {
+      "method": "deleteAutoStores",
+      "line": 4744
+    },
+    {
+      "method": "autoStoresAction",
+      "line": 4751
+    },
+    {
+      "method": "openWareHouseEdit",
+      "line": 4773
+    },
+    {
+      "method": "getStoreRows",
+      "line": 4781
+    },
+    {
+      "method": "getStorePreviews",
+      "line": 4791
+    },
+    {
+      "method": "copyStoresHex",
+      "line": 4800
+    },
+    {
+      "method": "storesAction",
+      "line": 4807
+    },
+    {
+      "method": "storesCommand",
+      "line": 4824
+    },
+    {
+      "method": "saveWareHouseName",
+      "line": 4833
+    },
+    {
+      "method": "openPacketEdit",
+      "line": 4866
+    },
+    {
+      "method": "savePacketEdit",
+      "line": 4869
+    },
+    {
+      "method": "packetEditToFilter",
+      "line": 4878
+    },
+    {
+      "method": "packetEditToSend",
+      "line": 4883
+    },
+    {
+      "method": "startPacketSend",
+      "line": 4891
+    },
+    {
+      "method": "stopPacketSend",
+      "line": 4907
+    },
+    {
+      "method": "getPacketSendProgress",
+      "line": 4913
+    },
+    {
+      "method": "pickFolder",
+      "line": 4931
+    },
+    {
+      "method": "probeDbPath",
+      "line": 4969
+    },
+    {
+      "method": "saveInstance",
+      "line": 5037
+    },
+    {
+      "method": "minimizeWindow",
+      "line": 5085
+    },
+    {
+      "method": "toggleMaximize",
+      "line": 5091
+    },
+    {
+      "method": "closeWindow",
+      "line": 5100
+    },
+    {
+      "method": "setTopMost",
+      "line": 5117
+    },
+    {
+      "method": "startDragWindow",
+      "line": 5130
+    },
+    {
+      "method": "getSystemCheck",
+      "line": 5139
+    },
+    {
+      "method": "uiReady",
+      "line": 5222
+    }
+  ]
+}

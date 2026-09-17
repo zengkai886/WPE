@@ -54,6 +54,19 @@ int main() {
         const auto posted_before_cancel=sent.size();
         bridge.FailAllPending();
         check(cancelled==2 && bridge.PendingCount()==0 && sent.size()==posted_before_cancel);
+        WebBridge::Completion finish;
+        bridge.RegisterAsync("later",[&](const Json&,WebBridge::Completion done){finish=std::move(done);});
+        auto count=sent.size();bridge.Receive("https://app.wpe64.local/",R"({"type":"call","id":"later1","method":"later"})");
+        check(sent.size()==count);finish({{"saved",true}},{});finish(nullptr,"duplicate");
+        check(sent.size()==count+1&&sent.back()["result"]["saved"]==true);
+        bridge.Receive("https://app.wpe64.local/",R"({"type":"call","id":"later2","method":"later"})");
+        bridge.FailAllPending();count=sent.size();finish({{"saved",true}},{});check(sent.size()==count);
+        {
+            WebBridge doomed([&](const std::string& text){sent.push_back(Json::parse(text));});
+            doomed.RegisterAsync("later",[&](const Json&,WebBridge::Completion done){finish=std::move(done);});
+            doomed.Receive("https://app.wpe64.local/",R"({"type":"call","id":"destroyed","method":"later"})");
+        }
+        finish(nullptr,"after destruction");check(sent.size()==count);
         std::cout<<"PASS: five bridge message types, origins, errors, timeout, cancellation, duplicate answer and failed transport\n";
         return 0;
     }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}

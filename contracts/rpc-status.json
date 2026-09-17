@@ -1,0 +1,1530 @@
+{
+  "scope": "Registration inventory, not a functional-completion percentage. Partial and offline methods are explicitly distinguished.",
+  "originalRpcCount": 217,
+  "nativeDataRegistered": 50,
+  "nativeHostRegistered": 7,
+  "remainingUnregistered": 160,
+  "originalSource": "WinsockPacketEditor/ShellForm.cs",
+  "originalSourceSha256": "86d277408d233903ec82ffe8f06a2cd1995898617c477a1f181046ebe0f72f12",
+  "methods": [
+    {
+      "method": "getPacketDetail",
+      "originalLine": 1328,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getPrefs",
+      "originalLine": 1367,
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+    },
+    {
+      "method": "setAppearance",
+      "originalLine": 1403,
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+    },
+    {
+      "method": "getStats",
+      "originalLine": 1443,
+      "registered": true,
+      "status": "运行态部分接线",
+      "note": "当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。"
+    },
+    {
+      "method": "clearPackets",
+      "originalLine": 1506,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "openExternal",
+      "originalLine": 1549,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "setLanguage",
+      "originalLine": 1589,
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+    },
+    {
+      "method": "getFileAssoc",
+      "originalLine": 1617,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "setFileAssoc",
+      "originalLine": 1620,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "enterProxyMode",
+      "originalLine": 1649,
+      "registered": true,
+      "status": "页面入口接线",
+      "note": "进入原代理工作区并推送四个真实持久化列表；不启动代理，不建立监听。"
+    },
+    {
+      "method": "enterInjectMode",
+      "originalLine": 1675,
+      "registered": true,
+      "status": "运行态部分接线",
+      "note": "当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。"
+    },
+    {
+      "method": "injectQuick",
+      "originalLine": 1713,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getInjectProcessList",
+      "originalLine": 1732,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "pickTargetExe",
+      "originalLine": 1739,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "injectAttach",
+      "originalLine": 1760,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "injectStartHook",
+      "originalLine": 1777,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "injectStopHook",
+      "originalLine": 1802,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "pickWindow",
+      "originalLine": 1820,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "cancelPickWindow",
+      "originalLine": 1822,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getInjectStatus",
+      "originalLine": 1828,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getInjectStats",
+      "originalLine": 1842,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "startProxy",
+      "originalLine": 1883,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "stopProxy",
+      "originalLine": 1905,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "setListEnable",
+      "originalLine": 1918,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getCountryTable",
+      "originalLine": 1988,
+      "registered": true,
+      "status": "静态数据已接",
+      "note": "原国家代码字典；不是 IP 归属地数据库，归属地查询仍未接。"
+    },
+    {
+      "method": "getProxySetting",
+      "originalLine": 1992,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveProxySetting",
+      "originalLine": 2039,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "setSystemProxy",
+      "originalLine": 2147,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "exportCert",
+      "originalLine": 2169,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getListSetting",
+      "originalLine": 2218,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveListAutoClear",
+      "originalLine": 2260,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveListSetting",
+      "originalLine": 2293,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getClientConnections",
+      "originalLine": 2361,
+      "registered": true,
+      "status": "运行态部分接线",
+      "note": "当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。"
+    },
+    {
+      "method": "addIpRule",
+      "originalLine": 2367,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getFireWall",
+      "originalLine": 2418,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveFireWall",
+      "originalLine": 2429,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveIPRule",
+      "originalLine": 2467,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "deleteIPRule",
+      "originalLine": 2487,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "ipRuleAction",
+      "originalLine": 2495,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getHookSetting",
+      "originalLine": 2536,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveHookSetting",
+      "originalLine": 2562,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getSystemSetting",
+      "originalLine": 2706,
+      "registered": true,
+      "status": "设置读写已接",
+      "note": "真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。"
+    },
+    {
+      "method": "saveSystemSetting",
+      "originalLine": 2713,
+      "registered": true,
+      "status": "设置读写已接",
+      "note": "真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。"
+    },
+    {
+      "method": "saveActionColor",
+      "originalLine": 2759,
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+    },
+    {
+      "method": "getLeachSetting",
+      "originalLine": 2834,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveLeachSetting",
+      "originalLine": 2881,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getAccountPassword",
+      "originalLine": 3005,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getAccountLogins",
+      "originalLine": 3012,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveAccount",
+      "originalLine": 3018,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "deleteAccount",
+      "originalLine": 3108,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "clearAllAccounts",
+      "originalLine": 3121,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "setAccountEnable",
+      "originalLine": 3128,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "importAccounts",
+      "originalLine": 3138,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "exportAccounts",
+      "originalLine": 3144,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "previewBatchAccounts",
+      "originalLine": 3161,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveBatchAccounts",
+      "originalLine": 3198,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "exportBatchAccounts",
+      "originalLine": 3228,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "adjustAccountExpiry",
+      "originalLine": 3246,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "adjustAccountLimit",
+      "originalLine": 3261,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "exportSelectedAccounts",
+      "originalLine": 3280,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "deleteSelectedAccounts",
+      "originalLine": 3286,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "verifyEncryptPassword",
+      "originalLine": 3333,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getFilterExecute",
+      "originalLine": 3354,
+      "registered": true,
+      "status": "设置读写已接",
+      "note": "真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。"
+    },
+    {
+      "method": "getFilterEdit",
+      "originalLine": 3371,
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+    },
+    {
+      "method": "saveFilterEdit",
+      "originalLine": 3377,
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+    },
+    {
+      "method": "clipboardRead",
+      "originalLine": 3409,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "clipboardWrite",
+      "originalLine": 3423,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getExecuteTargets",
+      "originalLine": 3443,
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+    },
+    {
+      "method": "addFilter",
+      "originalLine": 3450,
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+    },
+    {
+      "method": "setFilterEnable",
+      "originalLine": 3455,
+      "registered": true,
+      "status": "启用状态已接",
+      "note": "启用标志真实保存并刷新原列表；不等于启动滤镜、发包或机器人执行。"
+    },
+    {
+      "method": "setAllFilterEnable",
+      "originalLine": 3463,
+      "registered": true,
+      "status": "启用状态已接",
+      "note": "启用标志真实保存并刷新原列表；不等于启动滤镜、发包或机器人执行。"
+    },
+    {
+      "method": "resetFilterCount",
+      "originalLine": 3472,
+      "registered": true,
+      "status": "运行态部分接线",
+      "note": "当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。"
+    },
+    {
+      "method": "filterListAction",
+      "originalLine": 3485,
+      "registered": true,
+      "status": "多分支部分接线",
+      "note": "排序、复制、删除已落库；action=5 的原版 XML 导出/文件选择未实现并返回明确错误。删除确认文字尚未完全逐语言对齐。"
+    },
+    {
+      "method": "importFilters",
+      "originalLine": 3499,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "exportFilters",
+      "originalLine": 3505,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "clearFilters",
+      "originalLine": 3511,
+      "registered": true,
+      "status": "数据清空已接",
+      "note": "经原 Vue 确认后事务清空；取消不修改数据；确认文字尚未完全逐语言对齐。"
+    },
+    {
+      "method": "getSendMeta",
+      "originalLine": 3526,
+      "registered": true,
+      "status": "运行态部分接线",
+      "note": "当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。"
+    },
+    {
+      "method": "addSend",
+      "originalLine": 3537,
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+    },
+    {
+      "method": "setSendEnable",
+      "originalLine": 3542,
+      "registered": true,
+      "status": "启用状态已接",
+      "note": "启用标志真实保存并刷新原列表；不等于启动滤镜、发包或机器人执行。"
+    },
+    {
+      "method": "setAllSendEnable",
+      "originalLine": 3549,
+      "registered": true,
+      "status": "启用状态已接",
+      "note": "启用标志真实保存并刷新原列表；不等于启动滤镜、发包或机器人执行。"
+    },
+    {
+      "method": "resetSendCount",
+      "originalLine": 3558,
+      "registered": true,
+      "status": "运行态部分接线",
+      "note": "当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。"
+    },
+    {
+      "method": "sendListAction",
+      "originalLine": 3566,
+      "registered": true,
+      "status": "多分支部分接线",
+      "note": "排序、复制、删除已落库；action=5 的原版 XML 导出/文件选择未实现并返回明确错误。删除确认文字尚未完全逐语言对齐。"
+    },
+    {
+      "method": "importSends",
+      "originalLine": 3580,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "exportSends",
+      "originalLine": 3586,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "clearSends",
+      "originalLine": 3592,
+      "registered": true,
+      "status": "数据清空已接",
+      "note": "经原 Vue 确认后事务清空；取消不修改数据；确认文字尚未完全逐语言对齐。"
+    },
+    {
+      "method": "startSendList",
+      "originalLine": 3605,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "stopSendList",
+      "originalLine": 3643,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getRobotMeta",
+      "originalLine": 3663,
+      "registered": true,
+      "status": "运行态部分接线",
+      "note": "当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。"
+    },
+    {
+      "method": "addRobot",
+      "originalLine": 3669,
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+    },
+    {
+      "method": "setRobotEnable",
+      "originalLine": 3674,
+      "registered": true,
+      "status": "启用状态已接",
+      "note": "启用标志真实保存并刷新原列表；不等于启动滤镜、发包或机器人执行。"
+    },
+    {
+      "method": "setAllRobotEnable",
+      "originalLine": 3681,
+      "registered": true,
+      "status": "启用状态已接",
+      "note": "启用标志真实保存并刷新原列表；不等于启动滤镜、发包或机器人执行。"
+    },
+    {
+      "method": "resetRobotCount",
+      "originalLine": 3688,
+      "registered": true,
+      "status": "运行态部分接线",
+      "note": "当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。"
+    },
+    {
+      "method": "robotListAction",
+      "originalLine": 3696,
+      "registered": true,
+      "status": "多分支部分接线",
+      "note": "排序、复制、删除已落库；action=5 的原版 XML 导出/文件选择未实现并返回明确错误。删除确认文字尚未完全逐语言对齐。"
+    },
+    {
+      "method": "importRobots",
+      "originalLine": 3710,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "exportRobots",
+      "originalLine": 3716,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "clearRobots",
+      "originalLine": 3722,
+      "registered": true,
+      "status": "数据清空已接",
+      "note": "经原 Vue 确认后事务清空；取消不修改数据；确认文字尚未完全逐语言对齐。"
+    },
+    {
+      "method": "startRobotList",
+      "originalLine": 3732,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "stopRobotList",
+      "originalLine": 3747,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "openRobotEdit",
+      "originalLine": 3770,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "closeRobotEdit",
+      "originalLine": 3773,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getRobotInstructions",
+      "originalLine": 3779,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "addRobotInstruction",
+      "originalLine": 3785,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "robotInstructionAction",
+      "originalLine": 3794,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveRobotEdit",
+      "originalLine": 3815,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "startRobotEdit",
+      "originalLine": 3821,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "stopRobotEdit",
+      "originalLine": 3827,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getRobotEditProgress",
+      "originalLine": 3833,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "textDuplicates",
+      "originalLine": 3843,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "transcode",
+      "originalLine": 3860,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "extractPick",
+      "originalLine": 3868,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "extractBytes",
+      "originalLine": 3872,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveExtraction",
+      "originalLine": 3880,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveServer",
+      "originalLine": 3896,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "setServerEnable",
+      "originalLine": 3909,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "serverListAction",
+      "originalLine": 3915,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "clearServers",
+      "originalLine": 3923,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getRuleTypes",
+      "originalLine": 3929,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getServerRules",
+      "originalLine": 3931,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveServerRule",
+      "originalLine": 3936,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "setServerRuleEnable",
+      "originalLine": 3947,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "serverRuleAction",
+      "originalLine": 3955,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "clearServerRules",
+      "originalLine": 3963,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveNotice",
+      "originalLine": 3969,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "noticeListAction",
+      "originalLine": 3979,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "clearNotices",
+      "originalLine": 3987,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getFilterStats",
+      "originalLine": 3997,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "resetFilterStats",
+      "originalLine": 4003,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getLogSetting",
+      "originalLine": 4040,
+      "registered": true,
+      "status": "设置读写已接",
+      "note": "真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。"
+    },
+    {
+      "method": "saveLogSetting",
+      "originalLine": 4046,
+      "registered": true,
+      "status": "设置读写已接",
+      "note": "真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。"
+    },
+    {
+      "method": "clearLogs",
+      "originalLine": 4085,
+      "registered": true,
+      "status": "运行态部分接线",
+      "note": "当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。"
+    },
+    {
+      "method": "exportLogs",
+      "originalLine": 4090,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getProcessSetting",
+      "originalLine": 4102,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getProcessRows",
+      "originalLine": 4105,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getProcessIcons",
+      "originalLine": 4116,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "addSelectProcessName",
+      "originalLine": 4154,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "removeSelectProcessName",
+      "originalLine": 4159,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "uninstallDriver",
+      "originalLine": 4164,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveProcessSetting",
+      "originalLine": 4167,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "testSocksProxy",
+      "originalLine": 4190,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getMapSetting",
+      "originalLine": 4202,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveMapSetting",
+      "originalLine": 4208,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveMapLocal",
+      "originalLine": 4216,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveMapRemote",
+      "originalLine": 4227,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "setMapEnable",
+      "originalLine": 4241,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "mapAction",
+      "originalLine": 4250,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "mapCommand",
+      "originalLine": 4261,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "pickLocalFile",
+      "originalLine": 4272,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getExtProxySetting",
+      "originalLine": 4279,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveExtProxySetting",
+      "originalLine": 4281,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getHotkeySetting",
+      "originalLine": 4296,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "registerHotkey",
+      "originalLine": 4298,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveHotkeyType",
+      "originalLine": 4305,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "exportBackup",
+      "originalLine": 4318,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "importBackup",
+      "originalLine": 4351,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getRemoteSetting",
+      "originalLine": 4384,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveRemoteSetting",
+      "originalLine": 4386,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "copyProxyHex",
+      "originalLine": 4407,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "addProxyToSend",
+      "originalLine": 4412,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "addProxyToWareHouse",
+      "originalLine": 4418,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "addProxyToFilter",
+      "originalLine": 4424,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "setSystemSocketByProxy",
+      "originalLine": 4430,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "exportProxyExcel",
+      "originalLine": 4437,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "copyPacketHex",
+      "originalLine": 4449,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "addPacketToSend",
+      "originalLine": 4454,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "addPacketToWareHouse",
+      "originalLine": 4460,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "addPacketToFilter",
+      "originalLine": 4466,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "setSystemSocketByPacket",
+      "originalLine": 4472,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "setSelectedPacket",
+      "originalLine": 4489,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "exportPacketExcel",
+      "originalLine": 4499,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "searchProxyList",
+      "originalLine": 4519,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "searchPacketList",
+      "originalLine": 4533,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "openSendEdit",
+      "originalLine": 4554,
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+    },
+    {
+      "method": "closeSendEdit",
+      "originalLine": 4558,
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+    },
+    {
+      "method": "getSendCollection",
+      "originalLine": 4564,
+      "registered": true,
+      "status": "既有数据读取已接",
+      "note": "读取编辑会话内已保存的发送子项；新增/导入/修改封包和实际发送未接。"
+    },
+    {
+      "method": "sendCollectionAction",
+      "originalLine": 4570,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "importSendCollection",
+      "originalLine": 4584,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "exportSendCollection",
+      "originalLine": 4590,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "clearSendCollection",
+      "originalLine": 4596,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveSendEdit",
+      "originalLine": 4603,
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+    },
+    {
+      "method": "startSendEdit",
+      "originalLine": 4613,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "stopSendEdit",
+      "originalLine": 4623,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getSendEditProgress",
+      "originalLine": 4630,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "addWareHouse",
+      "originalLine": 4643,
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+    },
+    {
+      "method": "wareHouseListAction",
+      "originalLine": 4649,
+      "registered": true,
+      "status": "多分支部分接线",
+      "note": "排序、复制、删除已落库；action=5 的原版 XML 导出/文件选择未实现并返回明确错误。删除确认文字尚未完全逐语言对齐。"
+    },
+    {
+      "method": "importWareHouses",
+      "originalLine": 4663,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "exportWareHouses",
+      "originalLine": 4669,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "clearWareHouses",
+      "originalLine": 4675,
+      "registered": true,
+      "status": "数据清空已接",
+      "note": "经原 Vue 确认后事务清空；取消不修改数据；确认文字尚未完全逐语言对齐。"
+    },
+    {
+      "method": "getAutoStoresMeta",
+      "originalLine": 4686,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "setAutoStoresSwitch",
+      "originalLine": 4698,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveAutoStores",
+      "originalLine": 4726,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "setAutoStoresEnable",
+      "originalLine": 4736,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "deleteAutoStores",
+      "originalLine": 4744,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "autoStoresAction",
+      "originalLine": 4751,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "openWareHouseEdit",
+      "originalLine": 4773,
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+    },
+    {
+      "method": "getStoreRows",
+      "originalLine": 4781,
+      "registered": true,
+      "status": "既有数据读取已接",
+      "note": "读取实际数据库 BLOB；原字符串预览/截断标记/CRLF 格式已对齐；采集入库、导入和条目编辑未接。"
+    },
+    {
+      "method": "getStorePreviews",
+      "originalLine": 4791,
+      "registered": true,
+      "status": "既有数据读取已接",
+      "note": "读取实际数据库 BLOB；原字符串预览/截断标记/CRLF 格式已对齐；采集入库、导入和条目编辑未接。"
+    },
+    {
+      "method": "copyStoresHex",
+      "originalLine": 4800,
+      "registered": true,
+      "status": "既有数据读取已接",
+      "note": "读取实际数据库 BLOB；原字符串预览/截断标记/CRLF 格式已对齐；采集入库、导入和条目编辑未接。"
+    },
+    {
+      "method": "storesAction",
+      "originalLine": 4807,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "storesCommand",
+      "originalLine": 4824,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveWareHouseName",
+      "originalLine": 4833,
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+    },
+    {
+      "method": "openPacketEdit",
+      "originalLine": 4866,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "savePacketEdit",
+      "originalLine": 4869,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "packetEditToFilter",
+      "originalLine": 4878,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "packetEditToSend",
+      "originalLine": 4883,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "startPacketSend",
+      "originalLine": 4891,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "stopPacketSend",
+      "originalLine": 4907,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "getPacketSendProgress",
+      "originalLine": 4913,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "pickFolder",
+      "originalLine": 4931,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "probeDbPath",
+      "originalLine": 4969,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "saveInstance",
+      "originalLine": 5037,
+      "registered": false,
+      "status": "未接线",
+      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+    },
+    {
+      "method": "minimizeWindow",
+      "originalLine": 5085,
+      "registered": true,
+      "status": "宿主入口已接",
+      "note": "原方法名连接 Win32/WebView2 宿主；首屏、置顶和消息往返有自测，其余窗口体验需人工回归。"
+    },
+    {
+      "method": "toggleMaximize",
+      "originalLine": 5091,
+      "registered": true,
+      "status": "宿主入口已接",
+      "note": "原方法名连接 Win32/WebView2 宿主；首屏、置顶和消息往返有自测，其余窗口体验需人工回归。"
+    },
+    {
+      "method": "closeWindow",
+      "originalLine": 5100,
+      "registered": true,
+      "status": "宿主入口已接",
+      "note": "原方法名连接 Win32/WebView2 宿主；首屏、置顶和消息往返有自测，其余窗口体验需人工回归。"
+    },
+    {
+      "method": "setTopMost",
+      "originalLine": 5117,
+      "registered": true,
+      "status": "宿主入口已接",
+      "note": "原方法名连接 Win32/WebView2 宿主；首屏、置顶和消息往返有自测，其余窗口体验需人工回归。"
+    },
+    {
+      "method": "startDragWindow",
+      "originalLine": 5130,
+      "registered": true,
+      "status": "宿主入口已接",
+      "note": "原方法名连接 Win32/WebView2 宿主；首屏、置顶和消息往返有自测，其余窗口体验需人工回归。"
+    },
+    {
+      "method": "getSystemCheck",
+      "originalLine": 5139,
+      "registered": true,
+      "status": "宿主自检部分接线",
+      "note": "真实数据库路径、已保存偏好、管理员及拖动状态；运行引擎未接，版本明确为 C++ DATA-dev。"
+    },
+    {
+      "method": "uiReady",
+      "originalLine": 5222,
+      "registered": true,
+      "status": "宿主入口已接",
+      "note": "原方法名连接 Win32/WebView2 宿主；首屏、置顶和消息往返有自测，其余窗口体验需人工回归。"
+    }
+  ]
+}

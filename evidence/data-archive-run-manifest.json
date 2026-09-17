@@ -1,0 +1,448 @@
+{
+  "schemaVersion": 1,
+  "testId": "CPP-DATA-WIRING-003",
+  "specificationSections": [
+    "0",
+    "2.3",
+    "3.1",
+    "3.2",
+    "3.3",
+    "4.2",
+    "4.4",
+    "9.2",
+    "9.3",
+    "13.1"
+  ],
+  "scope": "Protocol/ring, asynchronous bridge, native SQLite data RPC subset, real original Vue add/edit/enable/cancel and restart; no native pipes, injection, capture, proxy, executors or complete business acceptance",
+  "startedUtc": "2026-09-17T14:25:57.0268207Z",
+  "finishedUtc": "2026-09-17T14:26:54.7028873Z",
+  "result": "passed",
+  "runDirectory": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-data-archive-test\\run-7d6a16bcda794762ba37671bb6c6c19f",
+  "command": "E:\\codex\\2026-09-17\\bi-a\\work\\data-wire\\source-roundtrip-a12c21070d63473f81c39cb587498ea7\\build-test.ps1 -BuildRoot E:\\codex\\2026-09-17\\bi-a\\work\\cpp-data-archive-test -Architecture x64,Win32",
+  "architectures": [
+    {
+      "architecture": "x64",
+      "result": "passed",
+      "parity": "PASS: 74684 original C# vectors; 76618 assertions; 600 native packet frames. Pointer bits=64",
+      "reverse": "Original C# decoder accepted 600 native packet frames; all bytes and decoded fields match.",
+      "ring": "PASS: packet ring edges/concurrency; 6416 original state-transition vectors",
+      "artifacts": [
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-data-archive-test\\run-7d6a16bcda794762ba37671bb6c6c19f\\x64\\Release\\wpe64-parity-test.exe",
+          "sha256": "19FCE1B5C5B1AC4EC7164C22B090C08823134C3A5AD1E640FD666A8E2DC097F4"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-data-archive-test\\run-7d6a16bcda794762ba37671bb6c6c19f\\x64\\Release\\wpe64-common.lib",
+          "sha256": "6C72574B978247AD110564D603310D7C9F4D6A014E04FA0DBBE85A7BEEC50B68"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-data-archive-test\\run-7d6a16bcda794762ba37671bb6c6c19f\\x64-packets.tsv",
+          "sha256": "982050FA8F316304A79A30ED787A390BC6F2220E48E0AE40E757151F0C8EEE47"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-data-archive-test\\run-7d6a16bcda794762ba37671bb6c6c19f\\x64\\CMakeCache.txt",
+          "sha256": "48F93F1E7A783EEE094AD3FD83F5B0EB4C5E07A778BD39CB1427D11AE147909B"
+        }
+      ]
+    },
+    {
+      "architecture": "Win32",
+      "result": "passed",
+      "parity": "PASS: 74684 original C# vectors; 76618 assertions; 600 native packet frames. Pointer bits=32",
+      "reverse": "Original C# decoder accepted 600 native packet frames; all bytes and decoded fields match.",
+      "ring": "PASS: packet ring edges/concurrency; 6416 original state-transition vectors",
+      "artifacts": [
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-data-archive-test\\run-7d6a16bcda794762ba37671bb6c6c19f\\Win32\\Release\\wpe64-parity-test.exe",
+          "sha256": "F8AD1172DB51BE93E0F63689D7E702A9D27AD7D7C0C9BD401E5B8A55C14245D1"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-data-archive-test\\run-7d6a16bcda794762ba37671bb6c6c19f\\Win32\\Release\\wpe64-common.lib",
+          "sha256": "72596CFAAF94D6FB71C75033163330AC64D81EFD7CBB0174D5331AC3F9E446E6"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-data-archive-test\\run-7d6a16bcda794762ba37671bb6c6c19f\\Win32-packets.tsv",
+          "sha256": "982050FA8F316304A79A30ED787A390BC6F2220E48E0AE40E757151F0C8EEE47"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-data-archive-test\\run-7d6a16bcda794762ba37671bb6c6c19f\\Win32\\CMakeCache.txt",
+          "sha256": "AE499A6495CD7A7A7315B36A0DD4651B179877BF0F294941A5DB32FB6E883D19"
+        }
+      ]
+    }
+  ],
+  "cleanup": "Owned test processes and WebView2 controller closed. No injection, target hooks, certificates, system proxy or listening sockets. Only isolated test SQLite databases and WebView2 profiles changed; retained under the external build directory.",
+  "sourceArchiveSha256": "1F524B84621F064ACD91C3F9D764D1ADDF19AC42019E7FCEDE11BF55EA536113",
+  "specification": {
+    "activeSpec": "docs/用户提供-重写工程文档-更新版.md",
+    "sha256": "ADC3CB20083449584B4319FF68595B654DF31E995740EADC32D62331DB33AC59",
+    "supersedes": "docs/用户提供-重写工程文档.md",
+    "ui": "Original Vue3 + native C++ WebView2 host; Qt not required",
+    "updatedUtc": "2026-09-17T12:31:58.1004181Z"
+  },
+  "dependencies": {
+    "libraries": [
+      {
+        "name": "nlohmann/json",
+        "version": "3.12.0",
+        "source": "https://github.com/nlohmann/json/releases/tag/v3.12.0",
+        "license": "MIT"
+      },
+      {
+        "name": "Microsoft.Web.WebView2",
+        "version": "1.0.4191.47",
+        "source": "https://www.nuget.org/packages/Microsoft.Web.WebView2/1.0.4191.47",
+        "license": "See third_party/webview2/LICENSE.txt and NOTICE.txt",
+        "runtimeBundled": false
+      },
+      {
+        "name": "SQLite",
+        "version": "3.46.1",
+        "source": "https://www.sqlite.org/2024/sqlite-amalgamation-3460100.zip",
+        "license": "Public domain; see header of sqlite3.c"
+      }
+    ],
+    "files": [
+      {
+        "path": "third_party\\nlohmann\\json.hpp",
+        "sha256": "AAF127C04CB31C406E5B04A63F1AE89369FCCDE6D8FA7CDDA1ED4F32DFC5DE63"
+      },
+      {
+        "path": "third_party\\nlohmann\\LICENSE.MIT",
+        "sha256": "46A65CFFD1EA955132D95A8DD921640714A8D6B537D2E4E482D31145AE95B603"
+      },
+      {
+        "path": "third_party\\webview2\\include\\WebView2.h",
+        "sha256": "DFF1E3181EC7EC203A34EF6EFA966590E0EF0BA1A5C3FE3B69DA6508C2F8A02E"
+      },
+      {
+        "path": "third_party\\webview2\\LICENSE.txt",
+        "sha256": "0AF8F1B807512AAE39C2AC1AA4D0CAE65CABECB6FD554B8439A5162A0D6ECA55"
+      },
+      {
+        "path": "third_party\\webview2\\NOTICE.txt",
+        "sha256": "106423785C5B7EBA0A8E61D1837F2132E9C828E20AD530F565D981C1DF60DD90"
+      },
+      {
+        "path": "third_party\\webview2\\x64\\WebView2LoaderStatic.lib",
+        "sha256": "79723D3395C26F103275EF043062AF41B87542C2668386DDC70CDCA367720C2D"
+      },
+      {
+        "path": "third_party/sqlite/sqlite3.c",
+        "sha256": "6C35BC5F7F85EAC9C49928BACBB02BB694B547AABF69197E058CCA245AD80E83"
+      },
+      {
+        "path": "third_party/sqlite/sqlite3.h",
+        "sha256": "89B62C671C5964E137409CE034941B7B05A3AF2C9875ABA41F47F9483D0C2515"
+      }
+    ]
+  },
+  "dataOracle": {
+    "description": "120 sequential FilterEdit cases generated by original net48 assembly; no original assembly shipped or run by product",
+    "originalAssemblySha256": "76C33B88188F7F921AE5B21117533FF1D3F1861A04A723B8087DE42B17E5FEED",
+    "originalSources": [
+      {
+        "path": "Operate.cs",
+        "sha256": "CE6FD21472844CE23B63CBF27C74DB331562F7CAADA631C2C8269500CD07587F"
+      },
+      {
+        "path": "ShellForm.cs",
+        "sha256": "86D277408D233903EC82FFE8F06A2CD1995898617C477A1F181046EBE0F72F12"
+      },
+      {
+        "path": "ClassObject/Ui/FeedRows.cs",
+        "sha256": "5FE551577ACAE5DEB01DA779ACD96D27C54A7D2DC7FB4C478B899B1AE9A41887"
+      },
+      {
+        "path": "ClassObject/Ui/UiPrefs.cs",
+        "sha256": "4FFEDCBAAF075EA0BA7139BAFEE1A355713F7F518CC945155B3A7D71AFDFE653"
+      }
+    ],
+    "files": [
+      {
+        "path": "tests/fixtures/filter-edit.json",
+        "sha256": "C4A5B86B703592BD032FCAFD8286500BDA961746BBC80446C6DA07EF3A5A8779"
+      },
+      {
+        "path": "tests/data_oracle/Program.cs",
+        "sha256": "DFD5E411CEAF96C51216AD840F092BB209D8A5AD942A4DC9E579056A01930C3A"
+      },
+      {
+        "path": "tests/data_oracle/DataOracle.csproj",
+        "sha256": "8BC1DC2B4907BF27EB37EA6BDF17E39DB1C4028E7AA97DAE9A9D89018E26B84A"
+      },
+      {
+        "path": "tests/data_oracle/extract_contracts.py",
+        "sha256": "00AC25DB33BC1767FDFF606A5BFBE9396609EE3C80B76C6427AC07FB2AE5354B"
+      },
+      {
+        "path": "src/shell/data_schema.h",
+        "sha256": "774745113DB5B1A9527D5297CCF8E8BCE45F9F9A57A0321AAE5C3226E024BF00"
+      },
+      {
+        "path": "src/shell/data_l10n.h",
+        "sha256": "603AF4E59055E012005AC493059B3C38A3504F6067C74B008414E159EA2CC9BB"
+      },
+      {
+        "path": "contracts/original-schema.json",
+        "sha256": "4647470D26FD9005D2D2E85E89B5AE4F24AF77606DAD952C7E82DEA315BA017A"
+      },
+      {
+        "path": "contracts/original-rpc.json",
+        "sha256": "E806839BDD1E6CAA15F46A0570249603F0BE9A7328373F02DE50A5D46AACF987"
+      }
+    ]
+  },
+  "sourceFiles": [
+    {
+      "path": "build-test.ps1",
+      "sha256": "D416AC75C0F0BA248350E4D93CB3801D0717882D85892412E7A26CF0FBDFDB30"
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "5916FACD6014331BE892C75233AC0A753A65242252E6ABB89258CE967F6C5CD1"
+    },
+    {
+      "path": "contracts\\active-spec.json",
+      "sha256": "3349311194E103A395E21ECEF4AE9F9C0E798E8CBF6ADD360A69C33FA7591865"
+    },
+    {
+      "path": "contracts\\oracle-source.json",
+      "sha256": "292468D54D7DAB2614693E13144FCB99E38C65A793B04136586E7587634F17AE"
+    },
+    {
+      "path": "contracts\\preserved-assets.json",
+      "sha256": "90D1439E34266515024EA77D87160FFAB1C6141E5EB230555A5351BD841043D1"
+    },
+    {
+      "path": "src\\common\\ipc_codec.cpp",
+      "sha256": "DC28F7B892BEBDA92B0306AD7EB8A52CF2E1D180D943AB8BB1E2EE26676AA112"
+    },
+    {
+      "path": "src\\common\\ipc_codec.h",
+      "sha256": "274EB9D1C7BBB5FC654ABF25DC9E007A71EB6871D7BE39B48E31315094B2DD8A"
+    },
+    {
+      "path": "src\\common\\ipc_frame.cpp",
+      "sha256": "01D0A0D7DFB104495FCA9966324924ABCA8029BF326DDC3927EE3DF112B0A9E7"
+    },
+    {
+      "path": "src\\common\\ipc_frame.h",
+      "sha256": "C73344B31D8768560A98B48A17120C0D6741867A3459F6FF1314DD23080808B0"
+    },
+    {
+      "path": "src\\common\\ipc_protocol.h",
+      "sha256": "73130BBBF68F3A3F492E25EED5D68B4AB52D6F7702C6AE7203716649F11BDEA9"
+    },
+    {
+      "path": "src\\common\\packet_frame.cpp",
+      "sha256": "01425779E42E014ECBAA16DDD8E2F04ECD74ECAB77F5F86B2FB872F449DEC6DB"
+    },
+    {
+      "path": "src\\common\\packet_frame.h",
+      "sha256": "D7179E5D08EFB6732D9B07DDC241667888E277CD6A48F566F34A23BE7D0BBC50"
+    },
+    {
+      "path": "src\\common\\packet_ring.cpp",
+      "sha256": "A8B986FFC65F2E450254FE75C6F838D4980EA6D624727ECBF31CAABF205B40FD"
+    },
+    {
+      "path": "src\\common\\packet_ring.h",
+      "sha256": "C1AB68D822D7FD5E66D7E62AFD02BD4213E51CB11D7A96969789B63456F5E2C1"
+    },
+    {
+      "path": "src\\shell\\app.manifest",
+      "sha256": "0421E8F5AFA50880692F213A892B1887E1F6AB824EF9953FA6A01D4E39792987"
+    },
+    {
+      "path": "src\\shell\\data_l10n.h",
+      "sha256": "603AF4E59055E012005AC493059B3C38A3504F6067C74B008414E159EA2CC9BB"
+    },
+    {
+      "path": "src\\shell\\data_schema.h",
+      "sha256": "774745113DB5B1A9527D5297CCF8E8BCE45F9F9A57A0321AAE5C3226E024BF00"
+    },
+    {
+      "path": "src\\shell\\data_service.cpp",
+      "sha256": "F7E65B7147F2FA6420C1C48D3D6BD7A7A96359FF3E923038D3FCC0043E5BB01F"
+    },
+    {
+      "path": "src\\shell\\data_service.h",
+      "sha256": "A1F922023AF7DDE03E6146E8675BD98EE42A5D262CF1D675172E865ABD20A340"
+    },
+    {
+      "path": "src\\shell\\data_worker.cpp",
+      "sha256": "28C433CE32B24C2805FA39923848F90DF6F28F5F7F5CF3DB13E5A05A92D5A903"
+    },
+    {
+      "path": "src\\shell\\data_worker.h",
+      "sha256": "8305F6C2D27DEC262ED2FAB5CA11657EE1A0E68E513040F497EC1684718F45DA"
+    },
+    {
+      "path": "src\\shell\\database.cpp",
+      "sha256": "59588B3D08A9E721D52AD36CD7E28D406F30D4F188832DA9A54AF828C8D6FEE2"
+    },
+    {
+      "path": "src\\shell\\database.h",
+      "sha256": "B70CB5054DCC853B7445C16A596EBDC6D6946EC4644D015EA834BCFDDEA15A45"
+    },
+    {
+      "path": "src\\shell\\main.cpp",
+      "sha256": "5BD231EC9595E26134A3DC5981A73012AA70BDA1A123D417BA5AAB7EB3028A3A"
+    },
+    {
+      "path": "src\\shell\\web_bridge.cpp",
+      "sha256": "CBF638A97C366017B7F969FCD6021D2BED5317912257D9220E421229279BBB68"
+    },
+    {
+      "path": "src\\shell\\web_bridge.h",
+      "sha256": "27174D3887FED8BF15BFCEC6B107917BBBF77A88A4FB6A70305464E053245AA3"
+    },
+    {
+      "path": "tests\\codec_test.cpp",
+      "sha256": "3FD6B1AD6DE8461BE49ACF1367A24C3802A6E4E2B69A205A56F753DA67D112A7"
+    },
+    {
+      "path": "tests\\data_oracle\\DataOracle.csproj",
+      "sha256": "8BC1DC2B4907BF27EB37EA6BDF17E39DB1C4028E7AA97DAE9A9D89018E26B84A"
+    },
+    {
+      "path": "tests\\data_oracle\\extract_contracts.py",
+      "sha256": "00AC25DB33BC1767FDFF606A5BFBE9396609EE3C80B76C6427AC07FB2AE5354B"
+    },
+    {
+      "path": "tests\\data_oracle\\Program.cs",
+      "sha256": "DFD5E411CEAF96C51216AD840F092BB209D8A5AD942A4DC9E579056A01930C3A"
+    },
+    {
+      "path": "tests\\data_service_test.cpp",
+      "sha256": "EC2A61968DD5FB2A6CB67DE22B7F6884298DB06C4883836E989F633459E79E6A"
+    },
+    {
+      "path": "tests\\data_worker_test.cpp",
+      "sha256": "8A4BF3D30CE28040417CE61EE9791A383DFC67AA4BBF659D3F27D86CF71884FE"
+    },
+    {
+      "path": "tests\\fixtures\\filter-edit.json",
+      "sha256": "C4A5B86B703592BD032FCAFD8286500BDA961746BBC80446C6DA07EF3A5A8779"
+    },
+    {
+      "path": "tests\\oracle\\Oracle.csproj",
+      "sha256": "3BB0E7A8C087E84F644561B6125143D5C9B9C98DBF96005AC89D8FCA7AB54E63"
+    },
+    {
+      "path": "tests\\oracle\\Program.cs",
+      "sha256": "4D3B22D7D35B1D70923AB4A8B55B8039878025FA5D234ED5F07401F1614EA5C3"
+    },
+    {
+      "path": "tests\\oracle\\RingOracle.cs",
+      "sha256": "42C4E8822518C2C5AAA89CBEAC37FA471A8ED1684E14DF57E532F244057EB9AF"
+    },
+    {
+      "path": "tests\\oracle\\upstream\\IpcProtocol.cs",
+      "sha256": "5353DF12B2F23C716AE04F0411E8F01D5A565842EFB4B0D1427A9C369C7BA307"
+    },
+    {
+      "path": "tests\\oracle\\upstream\\PacketFrame.cs",
+      "sha256": "0AD60704D45178B13E66CC6E9F7FF72A4C29DD7B26C8B90C3B7B8AF178DDA72B"
+    },
+    {
+      "path": "tests\\oracle\\upstream\\PacketRing.cs",
+      "sha256": "C703B6A7FC1F66E3FB24C52BC4E97D4FC14DE7D20B3DB2DC9D01537F8461641C"
+    },
+    {
+      "path": "tests\\packet_ring_test.cpp",
+      "sha256": "D39692AA34170A3E77B4423BEEC740C6D52DB8FD6591928B66E5113C49FA1CF9"
+    },
+    {
+      "path": "tests\\protocol_parity_test.cpp",
+      "sha256": "AFD6CBBDABFC9AC93D3597C2DAEDCB5FBAC53387CFD935FBE90E0DE06566D856"
+    },
+    {
+      "path": "tests\\script_validation.ps1",
+      "sha256": "CE385D339BE9DFA14822DA3461966506ADBCB0D31E92634E0B22CA40C91479D5"
+    },
+    {
+      "path": "tests\\web_bridge_test.cpp",
+      "sha256": "31F7B07107E97411AE7A48A82657B8DE5463E2682A6B02EB56E65A18867A0507"
+    },
+    {
+      "path": "verify-assets.ps1",
+      "sha256": "34421F0471DD21F6188D628348CEF0BB41ADE82E79FB88BD22FD2402435EFD39"
+    }
+  ],
+  "git": {
+    "commit": null,
+    "dirty": null,
+    "available": false
+  },
+  "environment": {
+    "os": "Microsoft Windows NT 10.0.26100.0",
+    "powershell": "7.6.5",
+    "cmake": "cmake version 4.4.2",
+    "dotnetSdk": "8.0.424"
+  },
+  "oracleRuntime": [
+    "Original C# oracle: 74684 vectors generated.",
+    "Reference runtime: CLR 4.0.30319.42000; corelib mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
+  ],
+  "fixtures": {
+    "sha256": "A3A6E489E2644E582E81AC86945F0ABFADC830158B5D05F69FE3B719988CD2F9",
+    "rows": 74684
+  },
+  "ringFixtures": {
+    "sha256": "DC76B1F3E33104ECB5DC35BD942A978FA34030DB4E4FB8D3578A98B589EF1341",
+    "rows": 6416
+  },
+  "host": {
+    "frontend": {
+      "cancelledDeletionKeptData": true,
+      "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-data-archive-test\\run-7d6a16bcda794762ba37671bb6c6c19f\\webview-profile\\2.3.0\\WPE.db",
+      "modeCards": 2,
+      "negativeOffsetRoundTrip": true,
+      "ok": true,
+      "originalAddAndEnableButtons": true,
+      "originalListDom": true,
+      "persistentFilterId": "6AD85668-0518-45BC-B1C6-A23B361DD94E",
+      "titlebar": true,
+      "unsupportedRejected": true,
+      "url": "https://app.wpe64.local/index.html",
+      "windowRoundTrip": true
+    },
+    "nativeDrag": true,
+    "originalVueConfirmed": true,
+    "result": "passed",
+    "scope": "Original Vue buttons -> async native RPC -> SQLite commit -> feed -> original list DOM; cancelled delete; no capture/proxy/injection",
+    "webMessagesReceived": 34,
+    "webview2Runtime": "153.0.4234.32"
+  },
+  "hostArtifacts": [
+    {
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-data-archive-test\\run-7d6a16bcda794762ba37671bb6c6c19f\\x64\\Release\\wpe64-app.exe",
+      "sha256": "9243EB49CC452A48952B304BD0E01EDD8F30454E26B7734F41553C6CD6B2D628"
+    },
+    {
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-data-archive-test\\run-7d6a16bcda794762ba37671bb6c6c19f\\host\\host-self-test.json",
+      "sha256": "71C041A9D1E958D2C5E47245502CE7A3CF5FCE948E83A8CD050B075AFE24120D"
+    },
+    {
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-data-archive-test\\run-7d6a16bcda794762ba37671bb6c6c19f\\host\\original-vue.png",
+      "sha256": "DA2C88518098EC422A875CBDAA0DD06991246DD5A4905E4D313285F840D74148"
+    }
+  ],
+  "hostRestart": {
+    "frontend": {
+      "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-data-archive-test\\run-7d6a16bcda794762ba37671bb6c6c19f\\webview-profile\\2.3.0\\WPE.db",
+      "ok": true,
+      "originalListDom": true,
+      "persistentFilterId": "6AD85668-0518-45BC-B1C6-A23B361DD94E",
+      "restartPersistence": true
+    },
+    "nativeDrag": true,
+    "originalVueConfirmed": true,
+    "result": "passed",
+    "scope": "Original Vue buttons -> async native RPC -> SQLite commit -> feed -> original list DOM; cancelled delete; no capture/proxy/injection",
+    "webMessagesReceived": 24,
+    "webview2Runtime": "153.0.4234.32"
+  }
+}

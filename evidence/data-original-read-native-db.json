@@ -1,0 +1,52 @@
+{
+  "sourceAssemblySha256": "76C33B88188F7F921AE5B21117533FF1D3F1861A04A723B8087DE42B17E5FEED",
+  "filterRows": [
+    {
+      "Id": "116E4AF8-EAA2-4FA3-BDCE-B1E93ED2231C",
+      "Name": "'); DROP TABLE Filter; -- 中文",
+      "Mode": 1,
+      "Action": 0,
+      "StartFrom": 1,
+      "FunctionMask": 4095,
+      "AppointHeader": false,
+      "HeaderContent": "",
+      "AppointSocket": false,
+      "SocketContent": "0",
+      "AppointLength": false,
+      "LengthContent": "",
+      "AppointPort": false,
+      "PortContent": "0",
+      "IsExecute": false,
+      "ExecuteType": 2,
+      "ExecuteId": "00000000-0000-0000-0000-000000000000",
+      "IsProgressionContinuous": false,
+      "ProgressionStep": 1,
+      "IsProgressionCarry": false,
+      "ProgressionCarryNumber": 1,
+      "Search": [
+        {
+          "Index": 0,
+          "Value": "FF",
+          "Exclude": true
+        }
+      ],
+      "Modify": [
+        {
+          "Index": -1000,
+          "Value": "AA",
+          "Progression": true,
+          "Random": false
+        },
+        {
+          "Index": -1,
+          "Value": "",
+          "Progression": false,
+          "Random": true
+        }
+      ]
+    }
+  ],
+  "sendCount": 1,
+  "robotCount": 1,
+  "warehouseCount": 1
+}
