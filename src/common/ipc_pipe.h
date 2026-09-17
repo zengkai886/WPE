@@ -29,10 +29,13 @@ public:
     static PipeEndpoint ConnectClient(std::string_view session, PipeChannel channel,
                                       std::uint32_t timeout_ms);
 
-    void Accept();
+    void Accept(std::uint32_t timeout_ms = INFINITE);
     Bytes ReadFrame();
     void WriteFrame(std::span<const std::uint8_t> payload);
     void Flush();
+    // Cancels outstanding overlapped operations without destroying the handle;
+    // the owner can then join its I/O threads before calling Close.
+    void CancelPending() noexcept;
     void Close() noexcept;
 
     [[nodiscard]] HANDLE NativeHandle() const noexcept { return handle_; }

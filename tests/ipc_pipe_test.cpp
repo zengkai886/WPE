@@ -123,9 +123,12 @@ void ExerciseOutbound(const std::string& session, wpe::PipeChannel channel, std:
 
 int main() {
     try {
-        const std::string session = "01234567-89ab-cdef-0123-456789abcdef";
+        const std::string session = "0123456789abcdef0123456789abcdef";
         Check(wpe::PipeEndpoint::FullName(session, wpe::PipeChannel::Control) ==
-              L"\\\\.\\pipe\\WPE64-01234567-89ab-cdef-0123-456789abcdef-ctl", "control pipe name");
+              L"\\\\.\\pipe\\WPE64-0123456789abcdef0123456789abcdef-ctl", "original N-format control pipe name");
+        Check(wpe::PipeEndpoint::FullName("01234567-89ab-cdef-0123-456789abcdef",
+              wpe::PipeChannel::Control) ==
+              L"\\\\.\\pipe\\WPE64-01234567-89ab-cdef-0123-456789abcdef-ctl", "D-format control pipe name");
         Throws([&] { (void)wpe::PipeEndpoint::FullName("..\\escape", wpe::PipeChannel::Control); },
                "invalid session rejected");
         ExerciseControl(session);
@@ -138,6 +141,29 @@ int main() {
             static_cast<std::size_t>(wpe::IpcProtocol::MaxControlFrame) + 1)); },
             "control frame limit enforced before I/O");
         limit_server.Close();
+        auto accept_server = wpe::PipeEndpoint::CreateServer("3123456789abcdef0123456789abcdef",
+                                                             wpe::PipeChannel::Control);
+        Throws([&] { accept_server.Accept(25); }, "server accept timeout cancels overlapped operation");
+        accept_server.Close();
+        auto cancel_server = wpe::PipeEndpoint::CreateServer("4123456789abcdef0123456789abcdef",
+                                                             wpe::PipeChannel::Control);
+        std::atomic<bool> reading{false};
+        std::exception_ptr cancel_error;
+        std::thread cancelled_reader([&] {
+            try {
+                cancel_server.Accept();
+                reading.store(true);
+                Check(!cancel_server.ReadFrame().has_value(), "cancelled read becomes EOF");
+            } catch (...) { cancel_error = std::current_exception(); reading.store(true); }
+        });
+        auto cancel_client = wpe::PipeEndpoint::ConnectClient("4123456789abcdef0123456789abcdef",
+                                                              wpe::PipeChannel::Control, 2000);
+        while (!reading.load()) Sleep(1);
+        cancel_server.CancelPending();
+        cancelled_reader.join();
+        if (cancel_error) std::rethrow_exception(cancel_error);
+        cancel_client.Close();
+        cancel_server.Close();
         Throws([&] { (void)wpe::PipeEndpoint::ConnectClient(
             "21234567-89ab-cdef-0123-456789abcdef", wpe::PipeChannel::Control, 25); },
             "missing server times out");

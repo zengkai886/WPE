@@ -5,14 +5,23 @@
 #include <algorithm>
 #include <limits>
 #include <sstream>
+#include <utility>
 #include <vector>
 
 namespace wpe {
 namespace {
+class Win32ProtocolError final : public ProtocolError {
+public:
+    Win32ProtocolError(std::string message, DWORD code) : ProtocolError(std::move(message)), code_(code) {}
+    [[nodiscard]] DWORD Code() const noexcept { return code_; }
+private:
+    DWORD code_;
+};
+
 [[noreturn]] void Fail(const char* operation, DWORD error = GetLastError()) {
     std::ostringstream message;
     message << operation << " failed with Win32 error " << error;
-    throw ProtocolError(message.str());
+    throw Win32ProtocolError(message.str(), error);
 }
 
 std::wstring WidenAscii(std::string_view text) {
@@ -26,9 +35,14 @@ std::wstring WidenAscii(std::string_view text) {
 }
 
 void ValidateSession(std::string_view session) {
-    // Session IDs are generated before injection and are always canonical GUIDs.
-    // Requiring that shape also prevents callers from escaping the pipe namespace.
-    (void)Guid::Parse(session);
+    // The original ShellLink uses Guid.ToString("N") (32 hex digits). Accept the
+    // dashed "D" form as well for diagnostics, while rejecting namespace escapes.
+    if (session.size() == 36) { (void)Guid::Parse(session); return; }
+    if (session.size() != 32) throw ProtocolError("Pipe session requires a GUID");
+    for (const unsigned char c : session) {
+        if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')))
+            throw ProtocolError("Pipe session requires hexadecimal GUID digits");
+    }
 }
 
 class CurrentUserSecurity final {
@@ -74,11 +88,58 @@ private:
 
 DWORD ServerAccess(PipeChannel channel) {
     return (channel == PipeChannel::Control ? PIPE_ACCESS_DUPLEX : PIPE_ACCESS_INBOUND) |
-           FILE_FLAG_FIRST_PIPE_INSTANCE;
+           FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED;
 }
 
 DWORD ClientAccess(PipeChannel channel) {
     return channel == PipeChannel::Control ? GENERIC_READ | GENERIC_WRITE : GENERIC_WRITE;
+}
+
+class OverlappedOperation final {
+public:
+    OverlappedOperation() {
+        event_ = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+        if (!event_) Fail("CreateEventW(overlapped)");
+        value_.hEvent = event_;
+    }
+    ~OverlappedOperation() { if (event_) CloseHandle(event_); }
+    OVERLAPPED* Value() noexcept { return &value_; }
+    DWORD Complete(HANDLE handle, DWORD timeout, const char* operation) {
+        const DWORD wait = WaitForSingleObject(event_, timeout);
+        if (wait == WAIT_TIMEOUT) {
+            if (!CancelIoEx(handle, &value_) && GetLastError() != ERROR_NOT_FOUND)
+                Fail("CancelIoEx");
+            WaitForSingleObject(event_, INFINITE);
+            DWORD ignored = 0;
+            (void)GetOverlappedResult(handle, &value_, &ignored, FALSE);
+            Fail(operation, ERROR_SEM_TIMEOUT);
+        }
+        if (wait != WAIT_OBJECT_0) Fail("WaitForSingleObject(overlapped)");
+        DWORD transferred = 0;
+        if (!GetOverlappedResult(handle, &value_, &transferred, FALSE)) Fail(operation);
+        return transferred;
+    }
+private:
+    HANDLE event_{nullptr};
+    OVERLAPPED value_{};
+};
+
+DWORD ReadOverlapped(HANDLE handle, void* buffer, DWORD size) {
+    OverlappedOperation operation;
+    DWORD transferred = 0;
+    if (ReadFile(handle, buffer, size, &transferred, operation.Value())) return transferred;
+    const DWORD error = GetLastError();
+    if (error != ERROR_IO_PENDING) Fail("ReadFile(pipe)", error);
+    return operation.Complete(handle, INFINITE, "ReadFile(pipe)");
+}
+
+DWORD WriteOverlapped(HANDLE handle, const void* buffer, DWORD size) {
+    OverlappedOperation operation;
+    DWORD transferred = 0;
+    if (WriteFile(handle, buffer, size, &transferred, operation.Value())) return transferred;
+    const DWORD error = GetLastError();
+    if (error != ERROR_IO_PENDING) Fail("WriteFile(pipe)", error);
+    return operation.Complete(handle, INFINITE, "WriteFile(pipe)");
 }
 } // namespace
 
@@ -132,7 +193,7 @@ PipeEndpoint PipeEndpoint::ConnectClient(std::string_view session, PipeChannel c
     const auto deadline = GetTickCount64() + timeout_ms;
     for (;;) {
         const HANDLE handle = CreateFileW(name.c_str(), ClientAccess(channel), 0, nullptr,
-                                          OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+                                          OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, nullptr);
         if (handle != INVALID_HANDLE_VALUE) return PipeEndpoint(handle, channel, false);
         const DWORD error = GetLastError();
         if (error != ERROR_PIPE_BUSY && error != ERROR_FILE_NOT_FOUND) Fail("CreateFileW(pipe)", error);
@@ -148,10 +209,20 @@ PipeEndpoint PipeEndpoint::ConnectClient(std::string_view session, PipeChannel c
     }
 }
 
-void PipeEndpoint::Accept() {
+void PipeEndpoint::Accept(std::uint32_t timeout_ms) {
     if (!IsOpen() || !server_ || accepted_) throw ProtocolError("Pipe server is not ready to accept");
-    if (!ConnectNamedPipe(handle_, nullptr) && GetLastError() != ERROR_PIPE_CONNECTED)
-        Fail("ConnectNamedPipe");
+    OverlappedOperation operation;
+    if (ConnectNamedPipe(handle_, operation.Value())) {
+        accepted_ = true;
+        return;
+    }
+    const DWORD error = GetLastError();
+    if (error == ERROR_PIPE_CONNECTED) {
+        accepted_ = true;
+        return;
+    }
+    if (error != ERROR_IO_PENDING) Fail("ConnectNamedPipe", error);
+    (void)operation.Complete(handle_, timeout_ms, "ConnectNamedPipe");
     accepted_ = true;
 }
 
@@ -164,11 +235,12 @@ Bytes PipeEndpoint::ReadFrame() {
     return IpcFrame::Read([this](std::span<std::uint8_t> output) -> std::size_t {
         const DWORD requested = static_cast<DWORD>(std::min<std::size_t>(output.size(),
             static_cast<std::size_t>(std::numeric_limits<DWORD>::max())));
-        DWORD read = 0;
-        if (ReadFile(handle_, output.data(), requested, &read, nullptr)) return read;
-        const DWORD error = GetLastError();
-        if (error == ERROR_BROKEN_PIPE || error == ERROR_PIPE_NOT_CONNECTED) return 0;
-        Fail("ReadFile(pipe)", error);
+        try { return ReadOverlapped(handle_, output.data(), requested); }
+        catch (const Win32ProtocolError& error) {
+            if (error.Code() == ERROR_BROKEN_PIPE || error.Code() == ERROR_PIPE_NOT_CONNECTED ||
+                error.Code() == ERROR_OPERATION_ABORTED || error.Code() == ERROR_INVALID_HANDLE) return 0;
+            throw;
+        }
     }, FrameLimit());
 }
 
@@ -179,10 +251,7 @@ void PipeEndpoint::WriteFrame(std::span<const std::uint8_t> payload) {
     IpcFrame::Write([this](std::span<const std::uint8_t> frame) -> std::size_t {
         if (frame.size() > static_cast<std::size_t>(std::numeric_limits<DWORD>::max()))
             throw ProtocolError("Pipe write exceeds DWORD length");
-        DWORD written = 0;
-        if (!WriteFile(handle_, frame.data(), static_cast<DWORD>(frame.size()), &written, nullptr))
-            Fail("WriteFile(pipe)");
-        return written;
+        return WriteOverlapped(handle_, frame.data(), static_cast<DWORD>(frame.size()));
     }, payload);
 }
 
@@ -191,8 +260,13 @@ void PipeEndpoint::Flush() {
     if (!FlushFileBuffers(handle_)) Fail("FlushFileBuffers(pipe)");
 }
 
+void PipeEndpoint::CancelPending() noexcept {
+    if (IsOpen()) (void)CancelIoEx(handle_, nullptr);
+}
+
 void PipeEndpoint::Close() noexcept {
     if (!IsOpen()) return;
+    CancelPending();
     if (server_ && accepted_) DisconnectNamedPipe(handle_);
     CloseHandle(handle_);
     handle_ = INVALID_HANDLE_VALUE;
