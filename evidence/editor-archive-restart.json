@@ -1,0 +1,43 @@
+{
+  "frontend": {
+    "chooserCancelKeptData": true,
+    "chooserTest": "fixed-path seam; production Windows picker UI not automated",
+    "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\editor-archive\\run-05f5a3e5cf6a4cdcb92d583eb8030eb8\\webview-profile\\2.3.0\\WPE.db",
+    "editorCounts": [
+      2,
+      3,
+      2
+    ],
+    "editorRestartPersistence": true,
+    "importNotifications": true,
+    "ok": true,
+    "originalEditorButtons": true,
+    "originalHexViewEdited": true,
+    "originalListDom": true,
+    "persistentFilterId": "545FF424-7C28-4A32-9721-78B87B0C8091",
+    "restartPersistence": true,
+    "robotCancelKeptSavedInstructions": true,
+    "topmostProbe": "failed-background-request-not-applied"
+  },
+  "lastStage": {
+    "stage": "机器人列表"
+  },
+  "nativeDrag": true,
+  "originalVueConfirmed": true,
+  "result": "passed",
+  "scope": "Editor acceptance: original Vue/HexView, XML chooser seam, cancel and restart -> native RPC/SQLite/feed. topmostProbe is a separate non-gating window diagnostic; no picker UI automation, capture/proxy/injection/execution",
+  "topmostCalls": [
+    {
+      "on": true,
+      "style": 256,
+      "visible": false
+    },
+    {
+      "on": false,
+      "style": 256,
+      "visible": false
+    }
+  ],
+  "webMessagesReceived": 42,
+  "webview2Runtime": "153.0.4234.32"
+}

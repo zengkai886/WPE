@@ -1,7 +1,7 @@
 {
-  "checkedUtc": "2026-09-17T15:13:06.2848711Z",
-  "scope": "Owned editor-wire and cpp-editor-final test hosts/profiles",
+  "checkedUtc": "2026-09-17T15:27:17.3287055Z",
+  "scope": "Owned editor-wire/cpp-editor-final/editor-archive/editor-pkg host and WebView2 test processes",
   "leftoverCount": 0,
   "result": "passed",
-  "changes": "Only isolated test DBs and WebView2 profiles under work; retained for evidence. No injection, network listeners, certificates or system proxy changes."
+  "changes": "Only isolated test DBs and WebView2 profiles under work, retained as evidence. No injection, network listeners, certificates or system proxy changes. Native hidden probe windows destroyed before process exit."
 }
