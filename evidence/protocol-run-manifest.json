@@ -11,11 +11,11 @@
     "13.1"
   ],
   "scope": "C++ common codecs only; no native pipe transport, injection, hooks, full snapshots or GUI acceptance",
-  "startedUtc": "2026-09-17T12:33:47.7946425Z",
-  "finishedUtc": "2026-09-17T12:34:01.6863969Z",
+  "startedUtc": "2026-09-17T12:38:46.5476817Z",
+  "finishedUtc": "2026-09-17T12:38:58.3855204Z",
   "result": "passed",
-  "runDirectory": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity\\run-685697761ddb41c79b61fade0617632f",
-  "command": "E:\\codex\\2026-09-17\\bi-a\\outputs\\WPE64-Cpp\\build-test.ps1 -BuildRoot E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity -Architecture x64,Win32",
+  "runDirectory": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity-final\\run-5d0a4f4a6c964ab6b5bed684b5f316ea",
+  "command": "E:\\codex\\2026-09-17\\bi-a\\outputs\\WPE64-Cpp\\build-test.ps1 -BuildRoot E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity-final -Architecture x64,Win32",
   "architectures": [
     {
       "architecture": "x64",
@@ -24,20 +24,20 @@
       "reverse": "Original C# decoder accepted 600 native packet frames; all bytes and decoded fields match.",
       "artifacts": [
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity\\run-685697761ddb41c79b61fade0617632f\\x64\\Release\\wpe64-parity-test.exe",
-          "sha256": "57E6DCB503D255F18A304CDF2D184A59CB32946058309CC8D83A1A6022F2748A"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity-final\\run-5d0a4f4a6c964ab6b5bed684b5f316ea\\x64\\Release\\wpe64-parity-test.exe",
+          "sha256": "6B10D87197217FD093831BCEEE554C5AD0B53B291C376EFED8B4F6721975785B"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity\\run-685697761ddb41c79b61fade0617632f\\x64\\Release\\wpe64-common.lib",
-          "sha256": "04CE0E7DC4CE8EE74971327046ACE07AE0CD954B7D809CD0ADFED1EBEC4C025E"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity-final\\run-5d0a4f4a6c964ab6b5bed684b5f316ea\\x64\\Release\\wpe64-common.lib",
+          "sha256": "5391FA328F78A74F63F950F4F8A7C989883BB90C4C9E0EBAF642DF27B626EB72"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity\\run-685697761ddb41c79b61fade0617632f\\x64-packets.tsv",
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity-final\\run-5d0a4f4a6c964ab6b5bed684b5f316ea\\x64-packets.tsv",
           "sha256": "982050FA8F316304A79A30ED787A390BC6F2220E48E0AE40E757151F0C8EEE47"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity\\run-685697761ddb41c79b61fade0617632f\\x64\\CMakeCache.txt",
-          "sha256": "886199D4E7C385FA1EAF822761CDA7341DDF35EFD5CC3BD9EDFDD29B75BF304B"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity-final\\run-5d0a4f4a6c964ab6b5bed684b5f316ea\\x64\\CMakeCache.txt",
+          "sha256": "94EF6C3B07742B76A89FA2A964ED4B394BCAE3697885A1FDA5603B52ACAF80BD"
         }
       ]
     },
@@ -48,20 +48,20 @@
       "reverse": "Original C# decoder accepted 600 native packet frames; all bytes and decoded fields match.",
       "artifacts": [
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity\\run-685697761ddb41c79b61fade0617632f\\Win32\\Release\\wpe64-parity-test.exe",
-          "sha256": "8B277F0AC317AFB2D7C441931DD0CE03E912DC309B8DBBA5458A2018365EC497"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity-final\\run-5d0a4f4a6c964ab6b5bed684b5f316ea\\Win32\\Release\\wpe64-parity-test.exe",
+          "sha256": "74A072BB4AB0472FDD11609FC30870605B03EBA9F141F4BC46605321538F67AE"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity\\run-685697761ddb41c79b61fade0617632f\\Win32\\Release\\wpe64-common.lib",
-          "sha256": "25C144D3CC2D5BEE22019C65DFED3BEB143B5E47EFC0FEF5A511920549FBB4CC"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity-final\\run-5d0a4f4a6c964ab6b5bed684b5f316ea\\Win32\\Release\\wpe64-common.lib",
+          "sha256": "F5D5A5FC96267D0E50E30565402A3D0E9EB328ED81583CB02E1E51F7C16CA850"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity\\run-685697761ddb41c79b61fade0617632f\\Win32-packets.tsv",
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity-final\\run-5d0a4f4a6c964ab6b5bed684b5f316ea\\Win32-packets.tsv",
           "sha256": "982050FA8F316304A79A30ED787A390BC6F2220E48E0AE40E757151F0C8EEE47"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity\\run-685697761ddb41c79b61fade0617632f\\Win32\\CMakeCache.txt",
-          "sha256": "B085A0E9E45BF3832C7535830D1C0D0FC4B6E231BD6694B79EF47045355BCB0D"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity-final\\run-5d0a4f4a6c964ab6b5bed684b5f316ea\\Win32\\CMakeCache.txt",
+          "sha256": "0417066F8FCF014AC1E42ED02838614425DFEC602A48306ABDA620F0CB477F96"
         }
       ]
     }
@@ -78,7 +78,7 @@
   "sourceFiles": [
     {
       "path": "build-test.ps1",
-      "sha256": "3473B5AA99660D3FA6C47C6DD2F0FE3F0E3DDF275AEEF9E6A3FB42A85E938E5B"
+      "sha256": "C8E46D9B9130ECF9F960D91F29266124253D83489DF1AC10B66B81F08D763B7C"
     },
     {
       "path": "CMakeLists.txt",
@@ -146,7 +146,7 @@
     }
   ],
   "git": {
-    "commit": "63701d5063899f76a4beb257dcd925c0add754a3",
+    "commit": "79d342e8f70a4a4de66c0b9663de92c098b4523b",
     "dirty": true
   },
   "environment": {

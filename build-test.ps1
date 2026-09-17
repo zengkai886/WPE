@@ -1,9 +1,14 @@
 param(
-    [string]$BuildRoot = (Join-Path $PSScriptRoot '.build'),
-    [ValidateSet('x64','Win32')][string[]]$Architecture = @('x64','Win32')
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string]$BuildRoot,
+    [ValidateNotNullOrEmpty()][ValidateCount(1,2)][ValidateSet('x64','Win32')][string[]]$Architecture = @('x64','Win32')
 )
 $ErrorActionPreference='Stop'
 $BuildRoot=[IO.Path]::GetFullPath($BuildRoot)
+$sourceRoot=[IO.Path]::GetFullPath($PSScriptRoot).TrimEnd('\')
+if($BuildRoot.TrimEnd('\').Equals($sourceRoot,[StringComparison]::OrdinalIgnoreCase) -or $BuildRoot.StartsWith($sourceRoot+'\',[StringComparison]::OrdinalIgnoreCase)){
+    throw 'BuildRoot must be outside the source tree'
+}
+if(@($Architecture | Sort-Object -Unique).Count -ne $Architecture.Count){throw 'Architecture entries must be unique'}
 $run=Join-Path $BuildRoot ('run-'+[Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $run -Force | Out-Null
 function Hash([string]$Path) { (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash }
@@ -73,6 +78,7 @@ try {
     }
     & (Join-Path $PSScriptRoot 'verify-assets.ps1')
     if(-not $?){throw 'Preserved frontend verification failed'}
+    if($manifest.architectures.Count -eq 0 -or $manifest.architectures.Count -ne $Architecture.Count){throw 'Architecture test matrix was not completed'}
     $manifest.result='passed'
 } catch {
     $manifest.result='failed'
