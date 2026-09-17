@@ -1,0 +1,18 @@
+{
+  "frontend": {
+    "error": "Error: topmost failed",
+    "ok": false
+  },
+  "nativeDrag": true,
+  "result": "failed",
+  "scope": "Original Vue list and editor buttons, HexView typing, fixed-path XML chooser seam, cancel and restart -> native RPC/SQLite/feed; no native picker UI automation, capture/proxy/injection/execution",
+  "topmostCalls": [
+    {
+      "on": true,
+      "style": 256,
+      "visible": false
+    }
+  ],
+  "webMessagesReceived": 6,
+  "webview2Runtime": "153.0.4234.32"
+}

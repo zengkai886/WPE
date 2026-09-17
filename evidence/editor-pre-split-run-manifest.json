@@ -13,11 +13,11 @@
     "9.3",
     "13.1"
   ],
-  "scope": "Protocol/ring, native SQLite, editors, XML, original Vue/HexView and restart. topmostProbe is a separate non-gating window diagnostic. Fixed-path picker seam, no picker UI automation, injection, capture, proxy, executors or complete acceptance",
-  "startedUtc": "2026-09-17T15:20:10.2268115Z",
-  "finishedUtc": "2026-09-17T15:21:54.8083373Z",
+  "scope": "Protocol/ring, native SQLite, editor subset, XML, original Vue/HexView button/typing flows and restart. File picker uses fixed-path self-test seam; no picker UI automation, injection, capture, proxy, executors or complete business acceptance",
+  "startedUtc": "2026-09-17T15:06:31.8743533Z",
+  "finishedUtc": "2026-09-17T15:08:20.2261989Z",
   "result": "passed",
-  "runDirectory": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-1d8800d8e9f244f3a5afeee59bb36e3c",
+  "runDirectory": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-c37498b9a3ee41aea7757a2a7af64d20",
   "command": "E:\\codex\\2026-09-17\\bi-a\\outputs\\WPE64-Cpp\\build-test.ps1 -BuildRoot E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final -Architecture x64,Win32",
   "architectures": [
     {
@@ -28,20 +28,20 @@
       "ring": "PASS: packet ring edges/concurrency; 6416 original state-transition vectors",
       "artifacts": [
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-1d8800d8e9f244f3a5afeee59bb36e3c\\x64\\Release\\wpe64-parity-test.exe",
-          "sha256": "F3D1E6951999677485F50282917CBCC31C7ABC35822AF400955EBF7B19FEA609"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-c37498b9a3ee41aea7757a2a7af64d20\\x64\\Release\\wpe64-parity-test.exe",
+          "sha256": "5B93E7F8588599586D29F9AD9864570CC78CC6AD7B9F0D765B947E845A9CC3CE"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-1d8800d8e9f244f3a5afeee59bb36e3c\\x64\\Release\\wpe64-common.lib",
-          "sha256": "2539AA5BF94AEF94ED14687276F5834F0939ABEF5E428499602821157BABC361"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-c37498b9a3ee41aea7757a2a7af64d20\\x64\\Release\\wpe64-common.lib",
+          "sha256": "9EA93B103DBB999A1BB3236095A67012C44AE1A2117BCA0C2763CECEF14B83FE"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-1d8800d8e9f244f3a5afeee59bb36e3c\\x64-packets.tsv",
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-c37498b9a3ee41aea7757a2a7af64d20\\x64-packets.tsv",
           "sha256": "982050FA8F316304A79A30ED787A390BC6F2220E48E0AE40E757151F0C8EEE47"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-1d8800d8e9f244f3a5afeee59bb36e3c\\x64\\CMakeCache.txt",
-          "sha256": "242B93951FAAB12A2F3916E588ACAE1FFDC013266375E5D53D0824D243C42DF3"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-c37498b9a3ee41aea7757a2a7af64d20\\x64\\CMakeCache.txt",
+          "sha256": "BD87C978095B5855AFC6664E24749C010211892CBE7275558E16A6D42F3B3CDD"
         }
       ]
     },
@@ -53,20 +53,20 @@
       "ring": "PASS: packet ring edges/concurrency; 6416 original state-transition vectors",
       "artifacts": [
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-1d8800d8e9f244f3a5afeee59bb36e3c\\Win32\\Release\\wpe64-parity-test.exe",
-          "sha256": "0C8902A5320B172562FA3742DA7ED2FF125648E94F8799207EDDFDF9E581171E"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-c37498b9a3ee41aea7757a2a7af64d20\\Win32\\Release\\wpe64-parity-test.exe",
+          "sha256": "0E077B17C94FE370A3C582CD93FD35A2050C7BE0586CDD60EAA84254AB5D40C8"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-1d8800d8e9f244f3a5afeee59bb36e3c\\Win32\\Release\\wpe64-common.lib",
-          "sha256": "85D17D75AD40B18B7429D665FD7278FE6991DEEB0E82BE7EA85D43D0A7C353E6"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-c37498b9a3ee41aea7757a2a7af64d20\\Win32\\Release\\wpe64-common.lib",
+          "sha256": "EE51DD99C3AF80F6B7963933D260692B3AE32592BFCA10A87AD864B353170C84"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-1d8800d8e9f244f3a5afeee59bb36e3c\\Win32-packets.tsv",
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-c37498b9a3ee41aea7757a2a7af64d20\\Win32-packets.tsv",
           "sha256": "982050FA8F316304A79A30ED787A390BC6F2220E48E0AE40E757151F0C8EEE47"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-1d8800d8e9f244f3a5afeee59bb36e3c\\Win32\\CMakeCache.txt",
-          "sha256": "AADB81BDD0B738571D65071CBA957286FF3257273F16F52A6BE111B0E56BA1DC"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-c37498b9a3ee41aea7757a2a7af64d20\\Win32\\CMakeCache.txt",
+          "sha256": "46B8825A57BE8F6EF9FD14690A05795EB05C0674D0BD7D88B0612BFA1FA561AA"
         }
       ]
     }
@@ -212,7 +212,7 @@
   "sourceFiles": [
     {
       "path": "build-test.ps1",
-      "sha256": "BC0F44049A8C60B7DD687021CEFAB6592DBA03DCB7B495AD34E03DD1B02FDC46"
+      "sha256": "CDE8BFE4EB679ED9AFB1DBF6ECF73FEB8CEE698D015C52BB874D18E2337E8397"
     },
     {
       "path": "CMakeLists.txt",
@@ -320,7 +320,7 @@
     },
     {
       "path": "src\\shell\\main.cpp",
-      "sha256": "3DD864EB6D9636F6561F55080BDC51B7B5E22CD48CC84F177D5B914A271BB337"
+      "sha256": "29370A280311F9A029AD0F89E6AE5D3266EF950898B4F4ABFFF2ADD151AE2435"
     },
     {
       "path": "src\\shell\\web_bridge.cpp",
@@ -416,7 +416,7 @@
     }
   ],
   "git": {
-    "commit": "4fc917fcb3e5f8e9898e730a4dd2784c11940bb7",
+    "commit": "adfeb2271f1c1705cdff8bb8ac5ffe67f4957447",
     "dirty": true,
     "available": true
   },
@@ -443,7 +443,7 @@
       "cancelledDeletionKeptData": true,
       "chooserCancelKeptData": true,
       "chooserTest": "fixed-path seam; production Windows picker UI not automated",
-      "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-1d8800d8e9f244f3a5afeee59bb36e3c\\webview-profile\\2.3.0\\WPE.db",
+      "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-c37498b9a3ee41aea7757a2a7af64d20\\webview-profile\\2.3.0\\WPE.db",
       "editorCounts": [
         2,
         3,
@@ -458,13 +458,12 @@
       "originalEditorButtons": true,
       "originalHexViewEdited": true,
       "originalListDom": true,
-      "persistentFilterId": "C092564A-4C91-4E27-B435-EEDA02FF4B71",
+      "persistentFilterId": "BDAC32D2-4961-4CDC-826A-0E2AC09EAB6E",
       "robotCancelKeptSavedInstructions": true,
       "titlebar": true,
-      "topmostProbe": "failed-background-request-not-applied",
       "unsupportedRejected": true,
       "url": "https://app.wpe64.local/index.html",
-      "windowRoundTrip": false
+      "windowRoundTrip": true
     },
     "lastStage": {
       "stage": "机器人列表"
@@ -472,11 +471,11 @@
     "nativeDrag": true,
     "originalVueConfirmed": true,
     "result": "passed",
-    "scope": "Editor acceptance: original Vue/HexView, XML chooser seam, cancel and restart -> native RPC/SQLite/feed. topmostProbe is a separate non-gating window diagnostic; no picker UI automation, capture/proxy/injection/execution",
+    "scope": "Original Vue list and editor buttons, HexView typing, fixed-path XML chooser seam, cancel and restart -> native RPC/SQLite/feed; no native picker UI automation, capture/proxy/injection/execution",
     "topmostCalls": [
       {
         "on": true,
-        "style": 256,
+        "style": 264,
         "visible": false
       },
       {
@@ -490,23 +489,23 @@
   },
   "hostArtifacts": [
     {
-      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-1d8800d8e9f244f3a5afeee59bb36e3c\\x64\\Release\\wpe64-app.exe",
-      "sha256": "0502E4A9E4EC2AAC8FBEA769325947F683F5F335EE3CC30E099DED1D0D8E5D01"
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-c37498b9a3ee41aea7757a2a7af64d20\\x64\\Release\\wpe64-app.exe",
+      "sha256": "8A818033337B9D606F3EC2875756E65993E3C8DC30312F0A8791F25E27AB5BDE"
     },
     {
-      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-1d8800d8e9f244f3a5afeee59bb36e3c\\host\\host-self-test.json",
-      "sha256": "172901AD3E3EF2744138AE494CD48EA11ADCA7743C22769C4D8E43891621A2C0"
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-c37498b9a3ee41aea7757a2a7af64d20\\host\\host-self-test.json",
+      "sha256": "E5668FED228F619577BF445B53FD0EA8DE04B851177757DF881BC477DE7D6B20"
     },
     {
-      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-1d8800d8e9f244f3a5afeee59bb36e3c\\host\\original-vue.png",
-      "sha256": "B4E16BEF3B21984280FE37B9088734DC67859999F5A281495C309F13B46D1FEA"
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-c37498b9a3ee41aea7757a2a7af64d20\\host\\original-vue.png",
+      "sha256": "AADCE83409B6A178C7465B23B239B31B576E1D08613F3A5D6E8506F668E6C49E"
     }
   ],
   "hostRestart": {
     "frontend": {
       "chooserCancelKeptData": true,
       "chooserTest": "fixed-path seam; production Windows picker UI not automated",
-      "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-1d8800d8e9f244f3a5afeee59bb36e3c\\webview-profile\\2.3.0\\WPE.db",
+      "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-c37498b9a3ee41aea7757a2a7af64d20\\webview-profile\\2.3.0\\WPE.db",
       "editorCounts": [
         2,
         3,
@@ -518,10 +517,9 @@
       "originalEditorButtons": true,
       "originalHexViewEdited": true,
       "originalListDom": true,
-      "persistentFilterId": "C092564A-4C91-4E27-B435-EEDA02FF4B71",
+      "persistentFilterId": "BDAC32D2-4961-4CDC-826A-0E2AC09EAB6E",
       "restartPersistence": true,
-      "robotCancelKeptSavedInstructions": true,
-      "topmostProbe": "failed-background-request-not-applied"
+      "robotCancelKeptSavedInstructions": true
     },
     "lastStage": {
       "stage": "机器人列表"
@@ -529,11 +527,11 @@
     "nativeDrag": true,
     "originalVueConfirmed": true,
     "result": "passed",
-    "scope": "Editor acceptance: original Vue/HexView, XML chooser seam, cancel and restart -> native RPC/SQLite/feed. topmostProbe is a separate non-gating window diagnostic; no picker UI automation, capture/proxy/injection/execution",
+    "scope": "Original Vue list and editor buttons, HexView typing, fixed-path XML chooser seam, cancel and restart -> native RPC/SQLite/feed; no native picker UI automation, capture/proxy/injection/execution",
     "topmostCalls": [
       {
         "on": true,
-        "style": 256,
+        "style": 264,
         "visible": false
       },
       {

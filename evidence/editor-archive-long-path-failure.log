@@ -1,0 +1,81 @@
+  正在确定要还原的项目…
+  已还原 E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\WPE64-Cpp\tests\oracle\Oracle.csproj (用时 178 毫秒)。
+  Oracle -> E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\oracle\WpeProtocolOracle.exe
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:00.62
+Original C# oracle: 74684 vectors generated.
+Reference runtime: CLR 4.0.30319.42000; corelib mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+Original C# PacketRing: 6416 state-transition vectors generated.
+-- The C compiler identification is MSVC 19.44.35228.0
+-- The CXX compiler identification is MSVC 19.44.35228.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - failed
+-- Check for working C compiler: C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe
+-- Check for working C compiler: C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe - broken
+CMake Error at C:/Program Files/CMake/share/cmake-4.4/Modules/CMakeTestCCompiler.cmake:65 (message):
+  The C compiler
+
+    "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe"
+
+  is not able to compile a simple test program.
+
+  It fails with the following output:
+
+    Change Dir: 'E:/codex/2026-09-17/bi-a/work/editor-wire/source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9/build-evidence/run-d0af71f2a47d478a89abde38efda782d/x64/CMakeFiles/CMakeScratch/TryCompile-ebjdea'
+    
+    Run Build Command(s): "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_ed7a2.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
+    适用于 .NET Framework MSBuild 版本 17.14.51+25f168cee
+    生成启动时间为 2026/9/17 23:13:43。
+    
+    节点 1 上的项目“E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj”(默认目标)。
+    PrepareForBuild:
+      已启用结构化输出。编译器诊断的格式设置将反映错误层次结构。有关详细信息，请参阅 https://aka.ms/cpp/structured-output。
+      正在创建目录“E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\Debug\”。
+      正在创建目录“cmTC_ed7a2.dir\Debug\cmTC_ed7a2.tlog\”。
+    InitializeBuildStatus:
+      正在创建“cmTC_ed7a2.dir\Debug\cmTC_ed7a2.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+      正在对“cmTC_ed7a2.dir\Debug\cmTC_ed7a2.tlog\unsuccessfulbuild”执行 Touch 任务。
+    C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(203,5): error MSB4018: “GetOutOfDateItems”任务意外失败。 [E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj]
+    C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(203,5): error MSB4018: System.InvalidOperationException: 无法将项元数据“%(FullPath)”应用于路径“cmTC_ed7a2.dir\Debug\cmTC_ed7a2.tlog\ParallelCustomBuild.command.1.tlog”。路径: cmTC_ed7a2.dir\Debug\cmTC_ed7a2.tlog\ParallelCustomBuild.command.1.tlog 超过 OS 最大路径限制。完全限定的文件名必须少于 260 个字符。 [E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj]
+    C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(203,5): error MSB4018:    在 Microsoft.Build.Shared.ErrorUtilities.ThrowInvalidOperation(String resourceName, Object[] args) [E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj]
+    C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(203,5): error MSB4018:    在 Microsoft.Build.Shared.FileUtilities.ItemSpecModifiers.GetItemSpecModifier(String currentDirectory, String itemSpec, String definingProjectEscaped, String modifier, String& fullPath) [E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj]
+    C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(203,5): error MSB4018:    在 Microsoft.Build.Utilities.TaskItem.Microsoft.Build.Framework.ITaskItem2.GetMetadataValueEscaped(String metadataName) [E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj]
+    C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(203,5): error MSB4018:    在 Microsoft.Build.Utilities.TaskItem.GetMetadata(String metadataName) [E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj]
+    C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(203,5): error MSB4018:    在 Microsoft.Build.CPPTasks.GetOutOfDateItems.Execute() [E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj]
+    C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(203,5): error MSB4018:    在 Microsoft.Build.BackEnd.TaskExecutionHost.Execute() [E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj]
+    C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(203,5): error MSB4018:    在 Microsoft.Build.BackEnd.TaskBuilder.<ExecuteInstantiatedTask>d__26.MoveNext() [E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj]
+    已完成生成项目“E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj”(默认目标)的操作 - 失败。
+    
+    生成失败。
+    
+    “E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj”(默认目标) (1) ->
+    (CustomBuild 目标) -> 
+      C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(203,5): error MSB4018: “GetOutOfDateItems”任务意外失败。 [E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj]
+    C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(203,5): error MSB4018: System.InvalidOperationException: 无法将项元数据“%(FullPath)”应用于路径“cmTC_ed7a2.dir\Debug\cmTC_ed7a2.tlog\ParallelCustomBuild.command.1.tlog”。路径: cmTC_ed7a2.dir\Debug\cmTC_ed7a2.tlog\ParallelCustomBuild.command.1.tlog 超过 OS 最大路径限制。完全限定的文件名必须少于 260 个字符。 [E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj]
+    C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(203,5): error MSB4018:    在 Microsoft.Build.Shared.ErrorUtilities.ThrowInvalidOperation(String resourceName, Object[] args) [E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj]
+    C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(203,5): error MSB4018:    在 Microsoft.Build.Shared.FileUtilities.ItemSpecModifiers.GetItemSpecModifier(String currentDirectory, String itemSpec, String definingProjectEscaped, String modifier, String& fullPath) [E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj]
+    C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(203,5): error MSB4018:    在 Microsoft.Build.Utilities.TaskItem.Microsoft.Build.Framework.ITaskItem2.GetMetadataValueEscaped(String metadataName) [E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj]
+    C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(203,5): error MSB4018:    在 Microsoft.Build.Utilities.TaskItem.GetMetadata(String metadataName) [E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj]
+    C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(203,5): error MSB4018:    在 Microsoft.Build.CPPTasks.GetOutOfDateItems.Execute() [E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj]
+    C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(203,5): error MSB4018:    在 Microsoft.Build.BackEnd.TaskExecutionHost.Execute() [E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj]
+    C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(203,5): error MSB4018:    在 Microsoft.Build.BackEnd.TaskBuilder.<ExecuteInstantiatedTask>d__26.MoveNext() [E:\codex\2026-09-17\bi-a\work\editor-wire\source-roundtrip-67f3d1d94ffa41168912afb0a23c3fc9\build-evidence\run-d0af71f2a47d478a89abde38efda782d\x64\CMakeFiles\CMakeScratch\TryCompile-ebjdea\cmTC_ed7a2.vcxproj]
+    
+        0 个警告
+        1 个错误
+    
+    已用时间 00:00:00.13
+    
+    
+
+
+
+  CMake will not be able to correctly generate this project.
+Call Stack (most recent call first):
+  CMakeLists.txt:2 (project)
+
+
+-- Configuring incomplete, errors occurred!

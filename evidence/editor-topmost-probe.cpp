@@ -1,0 +1,5 @@
+#include <windows.h>
+#include <fstream>
+LRESULT CALLBACK Proc(HWND w,UINT m,WPARAM p,LPARAM l){return DefWindowProcW(w,m,p,l);}
+int main(int argc,char** argv){std::ofstream log(argv[1]);WNDCLASSW c{};c.lpfnWndProc=Proc;c.lpszClassName=L"TopmostProbe";c.hInstance=GetModuleHandleW(nullptr);RegisterClassW(&c);int failures=0;
+for(int i=0;i<5;++i){HWND w=CreateWindowW(c.lpszClassName,L"probe",WS_OVERLAPPEDWINDOW,-30000,-30000,1200,820,nullptr,nullptr,c.hInstance,nullptr);if(argc>2){SetWindowLongPtrW(w,GWL_EXSTYLE,GetWindowLongPtrW(w,GWL_EXSTYLE)|WS_EX_LAYERED|WS_EX_TOOLWINDOW);SetLayeredWindowAttributes(w,0,0,LWA_ALPHA);ShowWindow(w,SW_SHOWNOACTIVATE);ShowWindow(w,SW_SHOWNOACTIVATE);}auto before=GetWindowLongPtrW(w,GWL_EXSTYLE);auto ok=SetWindowPos(w,HWND_TOPMOST,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);auto style=GetWindowLongPtrW(w,GWL_EXSTYLE);Sleep(50);MSG m{};while(PeekMessageW(&m,nullptr,0,0,PM_REMOVE)){TranslateMessage(&m);DispatchMessageW(&m);}log<<i<<" "<<ok<<" "<<before<<" "<<style<<" "<<GetWindowLongPtrW(w,GWL_EXSTYLE)<<'\n';if(!(style&WS_EX_TOPMOST))++failures;DestroyWindow(w);}return failures;}

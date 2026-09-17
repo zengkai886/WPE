@@ -1,6 +1,6 @@
-UpdateCTestConfiguration  from :E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-c37498b9a3ee41aea7757a2a7af64d20/x64/DartConfiguration.tcl
-Parse Config file:E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-c37498b9a3ee41aea7757a2a7af64d20/x64/DartConfiguration.tcl
-Test project E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-c37498b9a3ee41aea7757a2a7af64d20/x64
+UpdateCTestConfiguration  from :E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-1d8800d8e9f244f3a5afeee59bb36e3c/x64/DartConfiguration.tcl
+Parse Config file:E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-1d8800d8e9f244f3a5afeee59bb36e3c/x64/DartConfiguration.tcl
+Test project E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-1d8800d8e9f244f3a5afeee59bb36e3c/x64
 Constructing a list of tests
 Done constructing a list of tests
 Updating test list for fixtures
@@ -10,61 +10,61 @@ Checking test dependency graph end
 test 1
     Start 1: codec-smoke
 
-1: Test command: E:\codex\2026-09-17\bi-a\work\cpp-editor-final\run-c37498b9a3ee41aea7757a2a7af64d20\x64\Release\wpe64-codec-test.exe
-1: Working Directory: E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-c37498b9a3ee41aea7757a2a7af64d20/x64
+1: Test command: E:\codex\2026-09-17\bi-a\work\cpp-editor-final\run-1d8800d8e9f244f3a5afeee59bb36e3c\x64\Release\wpe64-codec-test.exe
+1: Working Directory: E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-1d8800d8e9f244f3a5afeee59bb36e3c/x64
 1: Test timeout computed to be: 1500
 1: PASS: codec smoke (LE, null distinct from empty)
 1/7 Test #1: codec-smoke ......................   Passed    0.01 sec
 test 2
     Start 2: protocol-edge
 
-2: Test command: E:\codex\2026-09-17\bi-a\work\cpp-editor-final\run-c37498b9a3ee41aea7757a2a7af64d20\x64\Release\wpe64-parity-test.exe
-2: Working Directory: E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-c37498b9a3ee41aea7757a2a7af64d20/x64
+2: Test command: E:\codex\2026-09-17\bi-a\work\cpp-editor-final\run-1d8800d8e9f244f3a5afeee59bb36e3c\x64\Release\wpe64-parity-test.exe
+2: Working Directory: E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-1d8800d8e9f244f3a5afeee59bb36e3c/x64
 2: Test timeout computed to be: 1500
 2: PASS: 10 protocol edge assertions
 2/7 Test #2: protocol-edge ....................   Passed    0.01 sec
 test 3
     Start 3: packet-ring
 
-3: Test command: E:\codex\2026-09-17\bi-a\work\cpp-editor-final\run-c37498b9a3ee41aea7757a2a7af64d20\x64\Release\wpe64-ring-test.exe
-3: Working Directory: E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-c37498b9a3ee41aea7757a2a7af64d20/x64
+3: Test command: E:\codex\2026-09-17\bi-a\work\cpp-editor-final\run-1d8800d8e9f244f3a5afeee59bb36e3c\x64\Release\wpe64-ring-test.exe
+3: Working Directory: E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-1d8800d8e9f244f3a5afeee59bb36e3c/x64
 3: Test timeout computed to be: 1500
 3: PASS: packet ring edges/concurrency; 0 original state-transition vectors
 3/7 Test #3: packet-ring ......................   Passed    0.02 sec
 test 4
     Start 4: web-bridge
 
-4: Test command: E:\codex\2026-09-17\bi-a\work\cpp-editor-final\run-c37498b9a3ee41aea7757a2a7af64d20\x64\Release\wpe64-bridge-test.exe
-4: Working Directory: E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-c37498b9a3ee41aea7757a2a7af64d20/x64
+4: Test command: E:\codex\2026-09-17\bi-a\work\cpp-editor-final\run-1d8800d8e9f244f3a5afeee59bb36e3c\x64\Release\wpe64-bridge-test.exe
+4: Working Directory: E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-1d8800d8e9f244f3a5afeee59bb36e3c/x64
 4: Test timeout computed to be: 1500
 4: PASS: five bridge message types, origins, errors, timeout, cancellation, duplicate answer, failed transport and independent import-error completion
 4/7 Test #4: web-bridge .......................   Passed    0.03 sec
 test 5
     Start 5: native-data
 
-5: Test command: E:\codex\2026-09-17\bi-a\work\cpp-editor-final\run-c37498b9a3ee41aea7757a2a7af64d20\x64\Release\wpe64-data-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures/filter-edit.json"
-5: Working Directory: E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-c37498b9a3ee41aea7757a2a7af64d20/x64
+5: Test command: E:\codex\2026-09-17\bi-a\work\cpp-editor-final\run-1d8800d8e9f244f3a5afeee59bb36e3c\x64\Release\wpe64-data-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures/filter-edit.json"
+5: Working Directory: E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-1d8800d8e9f244f3a5afeee59bb36e3c/x64
 5: Test timeout computed to be: 1500
-5: PASS: 440 data checks; original C# fixtures, persistent SQLite, rollback, feeds, worker FIFO; isolated files: E:\codex\2026-09-17\bi-a\work\cpp-editor-final\run-c37498b9a3ee41aea7757a2a7af64d20\x64\data-test\289311752378900
-5/7 Test #5: native-data ......................   Passed    1.15 sec
+5: PASS: 440 data checks; original C# fixtures, persistent SQLite, rollback, feeds, worker FIFO; isolated files: E:\codex\2026-09-17\bi-a\work\cpp-editor-final\run-1d8800d8e9f244f3a5afeee59bb36e3c\x64\data-test\290127709278600
+5/7 Test #5: native-data ......................   Passed    1.13 sec
 test 6
     Start 6: data-worker
 
-6: Test command: E:\codex\2026-09-17\bi-a\work\cpp-editor-final\run-c37498b9a3ee41aea7757a2a7af64d20\x64\Release\wpe64-data-worker-test.exe
-6: Working Directory: E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-c37498b9a3ee41aea7757a2a7af64d20/x64
+6: Test command: E:\codex\2026-09-17\bi-a\work\cpp-editor-final\run-1d8800d8e9f244f3a5afeee59bb36e3c\x64\Release\wpe64-data-worker-test.exe
+6: Working Directory: E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-1d8800d8e9f244f3a5afeee59bb36e3c/x64
 6: Test timeout computed to be: 1500
-6: shutdownMs=981, cancelled=2
+6: shutdownMs=980, cancelled=2
 6: PASS: worker shutdown queue cancellation, emit failure isolation and completion exception isolation
 6/7 Test #6: data-worker ......................   Passed    1.09 sec
 test 7
     Start 7: editor-data
 
-7: Test command: E:\codex\2026-09-17\bi-a\work\cpp-editor-final\run-c37498b9a3ee41aea7757a2a7af64d20\x64\Release\wpe64-editor-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures"
-7: Working Directory: E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-c37498b9a3ee41aea7757a2a7af64d20/x64
+7: Test command: E:\codex\2026-09-17\bi-a\work\cpp-editor-final\run-1d8800d8e9f244f3a5afeee59bb36e3c\x64\Release\wpe64-editor-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures"
+7: Working Directory: E:/codex/2026-09-17/bi-a/work/cpp-editor-final/run-1d8800d8e9f244f3a5afeee59bb36e3c/x64
 7: Test timeout computed to be: 1500
-7: PASS: 229 editor checks; 184 original C# calls; XML, drafts, packet aliases, rollback and reopen; E:\codex\2026-09-17\bi-a\work\cpp-editor-final\run-c37498b9a3ee41aea7757a2a7af64d20\x64\editor-test\289313995077800
-7/7 Test #7: editor-data ......................   Passed    1.35 sec
+7: PASS: 229 editor checks; 184 original C# calls; XML, drafts, packet aliases, rollback and reopen; E:\codex\2026-09-17\bi-a\work\cpp-editor-final\run-1d8800d8e9f244f3a5afeee59bb36e3c\x64\editor-test\290129936067600
+7/7 Test #7: editor-data ......................   Passed    1.34 sec
 
 100% tests passed out of 7
 
-Total Test time (real) =   3.66 sec
+Total Test time (real) =   3.64 sec

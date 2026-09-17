@@ -28,3 +28,9 @@
 - `evidence/editor-archive-*`、`editor-package-*`：无 Git 源码重建与运行包复验，以实际 manifest 为准。
 
 **汇总：Standards 1 项 P2 修复；Spec 5 项 P2 修复。两轴分开报告；剩余全工程缺口没有因此消失。**
+
+最后有界 Spec 复核独立重跑此前失败的 184 条参照及当前 229 项编辑检查，均通过；证据为 `editor-spec-move-fixed.log`、`editor-spec-bounded-final.log`。Standards 复核额外验证桥销毁后迟到通知不会访问已销毁对象。
+
+发布重建第一次因临时构建路径过长，触发 MSBuild 260 字符限制，在编译器探测阶段失败。保留失败日志，改用较短的独立 BuildRoot 后重新执行完整验证；不修改系统策略或用户环境设置。
+
+后续两次发布宿主测试重现旧的后台置顶问题，导致尚未进入编辑器就停止。保留失败报告，并把该窗口诊断与本轮编辑验收拆开：`topmostProbe` 保留真实 passed/failed 状态，`windowRoundTrip` 不再硬编码成功；编辑器/持久化仍要求全部实际通过。窗口问题并未修复，不能把后续“编辑验收通过”写成“全部窗口测试通过”。
