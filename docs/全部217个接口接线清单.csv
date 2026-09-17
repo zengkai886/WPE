@@ -45,21 +45,21 @@ saveSystemSetting,2713,是,设置读写已接,真实 SQLite 设置读写；执�
 saveActionColor,2759,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
 getLeachSetting,2834,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 saveLeachSetting,2881,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-getAccountPassword,3005,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。
-getAccountLogins,3012,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。
-saveAccount,3018,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。
-deleteAccount,3108,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。
-clearAllAccounts,3121,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。
-setAccountEnable,3128,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。
-importAccounts,3138,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。
-exportAccounts,3144,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。
-previewBatchAccounts,3161,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-saveBatchAccounts,3198,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-exportBatchAccounts,3228,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-adjustAccountExpiry,3246,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。
-adjustAccountLimit,3261,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。
-exportSelectedAccounts,3280,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。
-deleteSelectedAccounts,3286,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。
+getAccountPassword,3005,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
+getAccountLogins,3012,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
+saveAccount,3018,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
+deleteAccount,3108,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
+clearAllAccounts,3121,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
+setAccountEnable,3128,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
+importAccounts,3138,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
+exportAccounts,3144,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
+previewBatchAccounts,3161,是,账号批量工作流已接,原命名规则、数量/密码长度边界、随机密码字符集和已有账号重名预览已接。
+saveBatchAccounts,3198,是,账号批量工作流已接,原草稿清洗、区分大小写重名跳过、限制与到期字段、密码映射、SQLite 事务及单条 feed:append 批量推送已接。
+exportBatchAccounts,3228,是,账号批量工作流已接,原版 .xls 的系统 ACP 制表文本、表头、到期时间、本地化、默认文件名及无 XML 密码框的保存路径已接，并与原程序集字节黄金一致。
+adjustAccountExpiry,3246,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
+adjustAccountLimit,3261,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
+exportSelectedAccounts,3280,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
+deleteSelectedAccounts,3286,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
 verifyEncryptPassword,3333,是,宿主验证已接,只验证当前原生选择授权的内容与路径；选文件前、伪造路径、取消/消费后均拒绝。
 getFilterExecute,3354,是,设置读写已接,真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。
 getFilterEdit,3371,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。

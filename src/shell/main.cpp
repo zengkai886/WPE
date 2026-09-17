@@ -336,15 +336,22 @@ void Host::PickImportFile(){
             Check(CoCreateInstance(save?CLSID_FileSaveDialog:CLSID_FileOpenDialog,nullptr,CLSCTX_INPROC_SERVER,IID_PPV_ARGS(&file_dialog_)),"Create file dialog");
             DWORD flags=0;Check(file_dialog_->GetOptions(&flags),"Get dialog flags");
             Check(file_dialog_->SetOptions(flags|FOS_FORCEFILESYSTEM|FOS_PATHMUSTEXIST|FOS_NOCHANGEDIR|(save?FOS_OVERWRITEPROMPT:FOS_FILEMUSTEXIST)),"Set dialog flags");
-            const auto pattern=Wide("*."+kind),label=Wide("WPE (*."+kind+")"),extension=Wide(kind);
+            const auto pattern=Wide("*."+kind),label=Wide(kind=="xls"?"Excel (*.xls)":"WPE (*."+kind+")"),extension=Wide(kind);
             const COMDLG_FILTERSPEC filters[]={{label.c_str(),pattern.c_str()},{L"XML 文件",L"*.xml"},{L"所有文件",L"*.*"}};
-            Check(file_dialog_->SetFileTypes(3,filters),"Set dialog filters");Check(file_dialog_->SetDefaultExtension(extension.c_str()),"Set default extension");
+            Check(file_dialog_->SetFileTypes(kind=="xls"?1:3,filters),"Set dialog filters");Check(file_dialog_->SetDefaultExtension(extension.c_str()),"Set default extension");
+            if(save&&info.contains("defaultName"))Check(file_dialog_->SetFileName(Wide(info.at("defaultName").get<std::string>()).c_str()),"Set default file name");
             Check(file_dialog_->SetTitle(Wide(info.at("title").get<std::string>()).c_str()),"Set dialog title");
             const auto hr=file_dialog_->Show(window_);if(hr!=HRESULT_FROM_WIN32(ERROR_CANCELLED)){Check(hr,"Open file dialog");ComPtr<IShellItem> item;Check(file_dialog_->GetResult(&item),"Get selected file");CoString name;Check(item->GetDisplayName(SIGDN_FILESYSPATH,&name.value),"Get file path");path=name.value;}
             file_dialog_.Reset();
         }
         if(closing_||epoch!=file_epoch_){DiscardExport(job.export_plan);job.done(nullptr,"文件选择已取消");}
         else if(path.empty()){DiscardExport(job.export_plan);if(save)job.done(job.export_plan.at("result"),{});else data_->Submit(job.method,job.args,job.done);}
+        else if(save&&job.export_plan.value("plain",false)){
+            file_prompt_pending_=true;
+            data_->Submit("__writeEditorExport",{{"plan",job.export_plan},{"_filePath",Utf8(path.wstring())},{"_password",""}},[this,job,epoch](Json value,std::string failure){
+                DiscardExport(job.export_plan);if(epoch==file_epoch_){file_prompt_pending_=false;job.done(std::move(value),std::move(failure));if(!closing_&&!file_jobs_.empty())PostMessageW(window_,app_file,0,0);}else job.done(nullptr,"导出已取消");
+            });
+        }
         else if(save){
             file_prompt_pending_=true;
             bridge_->AskResult("prompt",{{"formId","encrypt-export"},{"arg",{{"Title",job.export_plan.at("title")},{"FilePath",nullptr}}}},
@@ -419,7 +426,7 @@ void Host::BeginTest(){
         document.querySelector('[role=alertdialog] .btn.primary').click();
         await wait(()=>document.body.textContent.includes('NATIVE_BRIDGE_EVENT_OK'));
         const modeCards=document.querySelectorAll('.rack .cd').length;
-        const feeds=new Map(),notices=[];w.addEventListener('message',e=>{const m=e.data;if(m.type==='event'&&m.name==='feed:replace')feeds.set(m.data.list,m.data.rows);if(m.type==='event'&&m.name==='notify')notices.push(m.data);});
+        const feeds=new Map(),notices=[];w.addEventListener('message',e=>{const m=e.data;if(m.type==='event'&&m.name==='feed:replace')feeds.set(m.data.list,m.data.rows);else if(m.type==='event'&&m.name==='feed:append')feeds.set(m.data.list,(feeds.get(m.data.list)||[]).concat(m.data.rows||[]));if(m.type==='event'&&m.name==='notify')notices.push(m.data);});
         const dialog=kind=>[...document.querySelectorAll('[role=dialog]')].find(d=>d.querySelector('.sub')?.textContent==='Controls/'+kind);
         const input=(el,value)=>{if(!el)throw Error('editor input missing');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el,String(value));el.dispatchEvent(new Event('input',{bubbles:true}));};
         const nav=async label=>{await call('__testStage',{stage:label});const el=[...document.querySelectorAll('.side .sb-item')].find(e=>e.querySelector('.t')?.textContent.trim()===label);if(!el)throw Error('navigation missing: '+label);el.click();await wait(()=>document.querySelector('.list-page .bar .btn.primary'));};
@@ -531,17 +538,25 @@ void Host::BeginTest(){
         if(!accountNav)throw Error('original account navigation missing');accountNav.click();
         await wait(()=>document.querySelector('.list-page.acct .bar .btn.primary')&&feeds.has(5));
         const accountDialog=()=>[...document.querySelectorAll('[role=dialog]')].find(d=>d.querySelector('.sub')?.textContent==='Proxy Account');
-        if(!feeds.get(5).length){
+        if(!feeds.get(5).some(r=>r.UserName===accountName)){
           document.querySelector('.list-page.acct .bar .btn.primary').click();await wait(()=>accountDialog()?.querySelectorAll('.bd input.inp').length>=2);
           const fields=accountDialog().querySelectorAll('.bd input.inp');input(fields[0],accountName);input(fields[1],accountPassword);
           accountDialog().querySelector('.ft .btn.primary').click();
-          await wait(()=>!accountDialog()&&feeds.get(5)?.length===1&&document.querySelector('.list-page.acct .row .user')?.textContent.trim()===accountName);
-        }else{
-          if(feeds.get(5).length!==1||feeds.get(5)[0].UserName!==accountName)throw Error('account restart persistence failed');
-          await wait(()=>document.querySelector('.list-page.acct .row .user')?.textContent.trim()===accountName);
+          await wait(()=>!accountDialog()&&feeds.get(5)?.some(r=>r.UserName===accountName));
         }
-        if((await call('getAccountPassword',{id:feeds.get(5)[0].Id})).password!==accountPassword)throw Error('account password round trip failed');
+        const account=feeds.get(5).find(r=>r.UserName===accountName);if(!account||(await call('getAccountPassword',{id:account.Id})).password!==accountPassword)throw Error('account password round trip failed');
+        const batchNames=['C++批量-001','C++批量-002'];
+        if(!batchNames.every(name=>feeds.get(5).some(r=>r.UserName===name))){
+          const accountButtons=document.querySelectorAll('.list-page.acct .bar .btn');accountButtons[1].click();
+          const batchDialog=()=>[...document.querySelectorAll('[role=dialog]')].find(d=>d.querySelector('.sub')?.textContent==='Batch Create');await wait(()=>batchDialog()?.querySelectorAll('.rd').length===2);
+          const batch=batchDialog();batch.querySelectorAll('.rd')[1].click();input(batch.querySelector('input.pf'),'C++批量-');const nums=batch.querySelectorAll('input.num');input(nums[0],2);input(nums[1],8);
+          [...batch.querySelectorAll('.grp.bar .mini')].find(e=>e.textContent.includes('生成')).click();await wait(()=>batch.querySelectorAll('.drow').length===2);
+          const noticeCount=notices.length;[...batch.querySelectorAll('.grp.bar .mini')].find(e=>e.textContent.includes('导出')).click();await wait(()=>notices.length>noticeCount&&notices.at(-1).title==='导出到Excel成功');
+          batch.querySelector('.ft .btn.primary').click();await wait(()=>!batchDialog()&&batchNames.every(name=>feeds.get(5).some(r=>r.UserName===name)));
+        }
+        if(!batchNames.every(name=>feeds.get(5).some(r=>r.UserName===name)))throw Error('batch account restart persistence failed');
         const accountRoundTrip=true;
+        const batchAccountRoundTrip=true;
         const filterNav=[...document.querySelectorAll('.side .sb-item')].find(e=>e.querySelector('.t')?.textContent.trim()==='滤镜列表');
         if(!filterNav)throw Error('original filter navigation missing');filterNav.click();
         await wait(()=>document.querySelector('.list-page .bar .btn.primary'));
@@ -550,7 +565,7 @@ void Host::BeginTest(){
           const restored=(await call('getFilterEdit',{id:old[0].Id})).row;
           if(restored.Modify[0].Index!==-1||!restored.Modify[0].Progression)throw Error('restart editor persistence failed');
           await wait(()=>document.querySelector('.list-page .row .name')?.textContent==='C++ 数据闭环测试');
-          const editorResult=await editors(true);await call('__testDone',{ok:true,restartPersistence:true,firewallIpRuleRoundTrip,accountRoundTrip,originalListDom:true,persistentFilterId:old[0].Id,dbFull:info.dbFull,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',...editorResult});return;
+          const editorResult=await editors(true);await call('__testDone',{ok:true,restartPersistence:true,firewallIpRuleRoundTrip,accountRoundTrip,batchAccountRoundTrip,originalListDom:true,persistentFilterId:old[0].Id,dbFull:info.dbFull,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',...editorResult});return;
         }
         document.querySelector('.list-page .bar .btn.primary').click();
         await wait(()=>feeds.get(8)?.length===1&&document.querySelector('.list-page .row .name'));
@@ -566,7 +581,7 @@ void Host::BeginTest(){
         await wait(()=>document.querySelector('[role=alertdialog] .btn:not(.primary)'));
         document.querySelector('[role=alertdialog] .btn:not(.primary)').click();await deletion;
         if(!(await call('getFilterEdit',{id})).row)throw Error('cancelled deletion changed data');
-        const editorResult=await editors(false);await call('__testDone',{ok:true,titlebar:!!document.querySelector('.titlebar'),modeCards,unsupportedRejected:unsupported,windowRoundTrip:!!top.topMost,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',firewallIpRuleRoundTrip,accountRoundTrip,originalListDom:true,originalAddAndEnableButtons:true,negativeOffsetRoundTrip:true,cancelledDeletionKeptData:true,persistentFilterId:id,dbFull:info.dbFull,url:location.href,...editorResult});
+        const editorResult=await editors(false);await call('__testDone',{ok:true,titlebar:!!document.querySelector('.titlebar'),modeCards,unsupportedRejected:unsupported,windowRoundTrip:!!top.topMost,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',firewallIpRuleRoundTrip,accountRoundTrip,batchAccountRoundTrip,originalListDom:true,originalAddAndEnableButtons:true,negativeOffsetRoundTrip:true,cancelledDeletionKeptData:true,persistentFilterId:id,dbFull:info.dbFull,url:location.href,...editorResult});
       })().catch(error=>call('__testDone',{ok:false,error:String(error)}));
     })())JS");
 }

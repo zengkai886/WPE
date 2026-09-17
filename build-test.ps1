@@ -96,12 +96,17 @@ try {
             } finally {$process.Dispose()}
             $manifest.host=Get-Content -LiteralPath (Join-Path $hostEvidence 'host-self-test.json') -Raw | ConvertFrom-Json
             if($manifest.host.result -ne 'passed'){throw 'Native host did not pass'}
-            if(-not $manifest.host.frontend.originalExportButtons -or -not $manifest.host.frontend.originalClipboardButtons -or -not $manifest.host.frontend.encryptedExportAndImport -or -not $manifest.host.frontend.wrongPasswordRetried -or -not $manifest.host.frontend.importGrantRestricted){throw 'Export/encryption/clipboard original UI test did not pass'}
+            if(-not $manifest.host.frontend.originalExportButtons -or -not $manifest.host.frontend.originalClipboardButtons -or -not $manifest.host.frontend.encryptedExportAndImport -or -not $manifest.host.frontend.wrongPasswordRetried -or -not $manifest.host.frontend.importGrantRestricted -or -not $manifest.host.frontend.batchAccountRoundTrip){throw 'Export/encryption/clipboard/batch-account original UI test did not pass'}
             [xml]$sendExport=Get-Content -LiteralPath (Join-Path $hostEvidence 'export.sc') -Raw
             [xml]$storeExport=Get-Content -LiteralPath (Join-Path $hostEvidence 'export.whs') -Raw
             if(@($sendExport.SendCollection.Collection).Count -ne 2 -or $sendExport.SendCollection.Collection[0].Socket -ne '99' -or $sendExport.SendCollection.Collection[0].Buffer -ne 'AA FF 80 42'){throw 'Native send export content mismatch'}
             if(@($storeExport.Stores.Data).Count -ne 2 -or $storeExport.Stores.Data[0].PacketData -ne '00 FF 80'){throw 'Native warehouse export content mismatch'}
-            $manifest.exportArtifacts=@('export.sc','export.whs','encrypted-export.sc') | ForEach-Object {$path=Join-Path $hostEvidence $_;[ordered]@{path=$path;sha256=(Hash $path)}}
+            $batchExport=[IO.File]::ReadAllBytes((Join-Path $hostEvidence 'export.xls'))
+            $batchGolden=[IO.File]::ReadAllBytes((Join-Path $PSScriptRoot 'tests\fixtures\config-files\original\batch-accounts.xls'))
+            $headerEnd=-1;for($i=0;$i -lt $batchGolden.Length-1;$i++){if($batchGolden[$i] -eq 13 -and $batchGolden[$i+1] -eq 10){$headerEnd=$i+2;break}}
+            if($headerEnd -lt 2 -or $batchExport.Length -le $headerEnd){throw 'Native batch-account XLS is missing or empty'}
+            for($i=0;$i -lt $headerEnd;$i++){if($batchExport[$i] -ne $batchGolden[$i]){throw 'Native batch-account XLS header/ACP encoding mismatch'}}
+            $manifest.exportArtifacts=@('export.sc','export.whs','encrypted-export.sc','export.xls') | ForEach-Object {$path=Join-Path $hostEvidence $_;[ordered]@{path=$path;sha256=(Hash $path)}}
             $manifest.hostArtifacts=@($app,(Join-Path $hostEvidence 'host-self-test.json'),(Join-Path $hostEvidence 'original-vue.png')) | ForEach-Object {[ordered]@{path=$_;sha256=(Hash $_)}}
             $reopenEvidence=Join-Path $run 'host-reopen'
             $arguments=@('--assets',('"'+(Join-Path $PSScriptRoot 'wwwroot')+'"'),'--data-dir',('"'+(Join-Path $run 'webview-profile')+'"'),'--self-test',('"'+$reopenEvidence+'"'))
@@ -111,7 +116,7 @@ try {
                 $process.Refresh();if($process.ExitCode -ne 0){throw 'Native host restart test failed'}
             } finally {$process.Dispose()}
             $manifest.hostRestart=Get-Content -LiteralPath (Join-Path $reopenEvidence 'host-self-test.json') -Raw | ConvertFrom-Json
-            if($manifest.hostRestart.result -ne 'passed' -or -not $manifest.hostRestart.frontend.restartPersistence -or $manifest.hostRestart.frontend.persistentFilterId -ne $manifest.host.frontend.persistentFilterId){throw 'Native host did not restore the same saved data'}
+            if($manifest.hostRestart.result -ne 'passed' -or -not $manifest.hostRestart.frontend.restartPersistence -or -not $manifest.hostRestart.frontend.batchAccountRoundTrip -or $manifest.hostRestart.frontend.persistentFilterId -ne $manifest.host.frontend.persistentFilterId){throw 'Native host did not restore the same saved data'}
             if(-not $manifest.host.frontend.originalEditorButtons -or -not $manifest.hostRestart.frontend.editorRestartPersistence){throw 'Native editor UI/restart did not pass'}
         }
         $manifest.architectures += [ordered]@{

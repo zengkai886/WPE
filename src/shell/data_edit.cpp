@@ -59,6 +59,20 @@ Json DataService::PrepareExport(const std::string& method,const Json& args){
     const bool idsEmpty=args.value("ids",Json::array()).empty();Json result=selected?Json{{"ok",!idsEmpty},{"delta",0}}:Good();
     auto plan=FileInfo(kind,true);plan.update({{"send",send},{"rows",std::move(items)},{"result",result}});return plan;
 }
+std::string Utf8ToAcp(const std::string& text){
+    if(text.empty())return {};if(text.size()>static_cast<std::size_t>(INT_MAX))throw std::length_error("Excel 文本过长");
+    const int wideSize=MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,text.data(),static_cast<int>(text.size()),nullptr,0);if(!wideSize)throw std::runtime_error("Excel 文本包含无效 UTF-8");
+    std::wstring wide(static_cast<std::size_t>(wideSize),L'\0');MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,text.data(),static_cast<int>(text.size()),wide.data(),wideSize);
+    const int byteSize=WideCharToMultiByte(CP_ACP,0,wide.data(),wideSize,nullptr,0,nullptr,nullptr);if(!byteSize)throw std::runtime_error("Excel 文本不能转换到系统编码");
+    std::string bytes(static_cast<std::size_t>(byteSize),'\0');WideCharToMultiByte(CP_ACP,0,wide.data(),wideSize,bytes.data(),byteSize,nullptr,nullptr);return bytes;
+}
+std::string CultureDateTime(const std::string& value){
+    int year=0,month=0,day=0,hour=0,minute=0,second=0;if(sscanf_s(value.c_str(),"%d-%d-%d %d:%d:%d",&year,&month,&day,&hour,&minute,&second)!=6)return value;
+    SYSTEMTIME time{};time.wYear=static_cast<WORD>(year);time.wMonth=static_cast<WORD>(month);time.wDay=static_cast<WORD>(day);time.wHour=static_cast<WORD>(hour);time.wMinute=static_cast<WORD>(minute);time.wSecond=static_cast<WORD>(second);
+    const int dateSize=GetDateFormatEx(LOCALE_NAME_USER_DEFAULT,0,&time,nullptr,nullptr,0,nullptr),timeSize=GetTimeFormatEx(LOCALE_NAME_USER_DEFAULT,0,&time,nullptr,nullptr,0);if(dateSize<=1||timeSize<=1)return value;
+    std::wstring date(static_cast<std::size_t>(dateSize),L'\0'),clock(static_cast<std::size_t>(timeSize),L'\0');GetDateFormatEx(LOCALE_NAME_USER_DEFAULT,0,&time,nullptr,date.data(),dateSize,nullptr);GetTimeFormatEx(LOCALE_NAME_USER_DEFAULT,0,&time,nullptr,clock.data(),timeSize);date.pop_back();clock.pop_back();
+    const auto combined=date+L" "+clock;const int bytes=WideCharToMultiByte(CP_UTF8,0,combined.data(),static_cast<int>(combined.size()),nullptr,0,nullptr,nullptr);std::string result(static_cast<std::size_t>(bytes),'\0');WideCharToMultiByte(CP_UTF8,0,combined.data(),static_cast<int>(combined.size()),result.data(),bytes,nullptr,nullptr);return result;
+}
 Json DataService::WriteExport(Json plan,const std::string& path,const std::string& password){
     if(plan.contains("token")){
         auto entry=export_plans_.extract(S(plan,"token"));
@@ -68,6 +82,10 @@ Json DataService::WriteExport(Json plan,const std::string& path,const std::strin
     if(!path.empty()&&!plan.at("rows").empty()){
         const auto target=std::filesystem::path(std::u8string(path.begin(),path.end()));const auto kind=S(plan,"kind");
         if(kind=="sc"||kind=="whs")WriteEditorXml(target,plan.at("rows"),kind=="sc",password);
+        else if(kind=="xls"){
+            std::string text=Text("ExcelColumn.BatchAccounts","账号\t密码\t到期时间\t")+"\r\n";const auto expiry=CultureDateTime(S(plan,"expiryTime"));
+            for(const auto& row:plan.at("rows"))text+=S(row,"UserName")+'\t'+S(row,"Password")+'\t'+expiry+"\t\r\n";WriteXmlFileBytes(target,Utf8ToAcp(text));
+        }
         else if(kind=="sb"){
             XmlNode root("WPE64_BackUp");const auto& parts=plan.at("parts");if(B(parts,"systemConfig"))root.nodes.push_back(SystemConfigXml(config_));
             if(B(parts,"proxySet"))root.nodes.push_back(ProxyModeXml(proxy_config_));

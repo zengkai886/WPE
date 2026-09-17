@@ -15,9 +15,16 @@ std::filesystem::path Path(const std::string& p){return std::filesystem::path(st
 int List(const std::string& kind){const auto i=std::find(kinds.begin(),kinds.end(),kind);return i==kinds.end()?-1:8+static_cast<int>(i-kinds.begin());}
 Json BackupResult(const Json& p){return {{"language",p["language"]},{"isDark",p["isDark"]},{"themeMode",p["themeMode"]},{"scanLine",p["scanLine"]}};}
 void CheckBackupParts(const Json& args){for(const auto* key:{"proxyMapping","autoStores","wpcServer","wpcNotice"})if(B(args,key))throw std::runtime_error("尚未实现备份分组："+std::string(key)+"；已取消整次导出，不会生成缺项备份");}
+Json ExportBatchRows(const Json& args){
+    Json rows=Json::array();const auto it=args.find("rows");if(it==args.end()||!it->is_array())return rows;
+    for(const auto& source:*it){if(!source.is_object())continue;const auto user=S(source,"UserName"),password=S(source,"Password");if(!user.empty()&&!password.empty())rows.push_back({{"UserName",Trim(user)},{"Password",Trim(password)}});}return rows;
+}
+std::string ExportBatchExpiry(const Json& args){if(const auto value=DateTimeText(S(args,"expiryTime")))return *value;const auto value=AddDateTimeYears(LocalDateTime(),100);if(!value)throw std::runtime_error("批量账号过期时间超出范围");return *value;}
+std::string Today(){SYSTEMTIME now{};GetLocalTime(&now);char value[11]{};sprintf_s(value,"%04u-%02u-%02u",now.wYear,now.wMonth,now.wDay);return value;}
 }
 std::string DataService::FileKind(const std::string& method,const Json& args){
     if(method=="ipRuleAction")return B(args,"black")?"bl":"wl";
+    if(method=="exportBatchAccounts")return "xls";
     if(method=="importAccounts"||method=="exportAccounts"||method=="exportSelectedAccounts")return "pa";
     for(std::size_t i=0;i<kinds.size();++i)if(method==imports[i]||method==exports[i]||(method==actions[i]&&N(args,"action",-1)==5))return kinds[i];
     if(method=="importBackup"||method=="exportBackup")return "sb";
@@ -25,19 +32,20 @@ std::string DataService::FileKind(const std::string& method,const Json& args){
 }
 bool DataService::NeedsOpenFile(const std::string& method,const Json& args){return method=="importAccounts"||std::find(imports.begin(),imports.end(),method)!=imports.end()||method=="importBackup"||method=="importSendCollection"||(method=="storesCommand"&&N(args,"action",-1)==8)||(method=="ipRuleAction"&&N(args,"action",-1)==8);}
 bool DataService::NeedsSaveFile(const std::string& method,const Json& args){
-    return method=="exportAccounts"||method=="exportSelectedAccounts"||std::find(exports.begin(),exports.end(),method)!=exports.end()||method=="exportBackup"||method=="exportSendCollection"||((std::find(actions.begin(),actions.end(),method)!=actions.end()||method=="sendCollectionAction"||method=="storesAction"||method=="storesCommand"||method=="ipRuleAction")&&N(args,"action",-1)==5);
+    return method=="exportAccounts"||method=="exportSelectedAccounts"||method=="exportBatchAccounts"||std::find(exports.begin(),exports.end(),method)!=exports.end()||method=="exportBackup"||method=="exportSendCollection"||((std::find(actions.begin(),actions.end(),method)!=actions.end()||method=="sendCollectionAction"||method=="storesAction"||method=="storesCommand"||method=="ipRuleAction")&&N(args,"action",-1)==5);
 }
 Json DataService::FileInfo(const std::string& kind,bool save)const{
     const auto prefix=save?"Export":"Import";std::string key,name;
     if(kind=="sc"){key=std::string(prefix)+"SendCollection";name="发送集";}else if(kind=="whs"){key=std::string(prefix)+"Stores";name="仓储数据";}
     else if(kind=="sb"){key="BackUpSettingsForm."+std::string(prefix);name="系统备份";}
     else if(kind=="pa"){key=std::string(prefix)+"ProxyAccountList";name="代理账号列表";}
+    else if(kind=="xls"){key="ExcelFile";name="Excel";}
     else if(kind=="wl"||kind=="bl"){const bool black=kind=="bl";key=std::string("FireWallSetting.")+(black?"BlackListFile":"WhiteListFile")+'.'+prefix;name=black?"黑名单":"白名单";}
     else if(kind=="whp"){key="WareHouseList."+std::string(prefix);name="仓库列表";}
     else{const int list=List(kind);if(list<8)throw std::invalid_argument("未知配置文件类型");key=std::string(prefix)+tables[list-8]+"List";name=list==8?"滤镜列表":list==9?"发送列表":"机器人列表";}
     const auto fallback=std::string(save?"导出":"导入")+name;
-    auto successKey=key+".Success";if(kind=="sc"&&!save)successKey="InjectModeForm.ImportSendCollection.Success";
-    return {{"kind",kind},{"title",Text(key,fallback)},{"success",Text(successKey,fallback+"成功")}};
+    auto successKey=kind=="xls"?"ExportToExcel.Success":key+".Success";if(kind=="sc"&&!save)successKey="InjectModeForm.ImportSendCollection.Success";
+    Json info{{"kind",kind},{"title",Text(key,fallback)},{"success",Text(successKey,kind=="xls"?"导出到Excel成功":fallback+"成功")}};if(kind=="xls")info.update({{"plain",true},{"defaultName",Today()}});return info;
 }
 Json DataService::PrepareParentExport(const std::string& method,const Json& args){
     const auto kind=FileKind(method,args);auto plan=FileInfo(kind,true);plan["rows"]=Json::array();plan["result"]=Good();plan["send"]=false;
@@ -46,6 +54,7 @@ Json DataService::PrepareParentExport(const std::string& method,const Json& args
         if(!selected){emit_("toast",{{"level",3},{"text",Text("BackUpSettingsForm.NothingSelected","请先勾选要备份的内容")}});return plan;}
         plan["parts"]=args;plan["rows"].push_back(true);return plan; // Backup reads live state after the password dialog, like upstream.
     }
+    if(kind=="xls"){plan["rows"]=ExportBatchRows(args);plan["expiryTime"]=ExportBatchExpiry(args);return plan;}
     if(kind=="pa"){std::set<std::string> ids;if(method=="exportSelectedAccounts")for(const auto& id:args.value("ids",Json::array()))if(id.is_string())ids.insert(Upper(id.get<std::string>()));for(const auto& row:lists_[5])if(method!="exportSelectedAccounts"||ids.contains(Upper(S(row,"GUID"))))plan["rows"].push_back(row);return plan;}
     if(kind=="wl"||kind=="bl"){plan["rows"]=lists_[kind=="bl"?16:15];return plan;}
     const auto list=List(kind);const bool selected=method==actions[list-8];std::set<std::string> ids;

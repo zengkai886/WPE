@@ -12,6 +12,7 @@
 #include <charconv>
 #include <iomanip>
 #include <regex>
+#include <random>
 #include <sstream>
 #include <cmath>
 
@@ -19,6 +20,26 @@
 namespace wpe::shell {
 using namespace data_detail;
 namespace {
+Json BatchRows(const Json& args){
+    Json rows=Json::array();const auto it=args.find("rows");if(it==args.end()||!it->is_array())return rows;
+    for(const auto& source:*it){
+        if(!source.is_object())continue;const auto user=S(source,"UserName"),password=S(source,"Password");
+        // Upstream tests IsNullOrEmpty before Trim. Whitespace-only rows are
+        // retained here and rejected by AddBatchAccounts later.
+        if(!user.empty()&&!password.empty())rows.push_back({{"UserName",Trim(user)},{"Password",Trim(password)}});
+    }return rows;
+}
+std::string BatchExpiry(const Json& args){
+    if(const auto value=DateTimeText(S(args,"expiryTime")))return *value;
+    const auto value=AddDateTimeYears(LocalDateTime(),100);if(!value)throw std::runtime_error("批量账号过期时间超出范围");return *value;
+}
+std::string BatchPassword(int length){
+    static constexpr std::string_view chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    static std::mt19937 random([]{std::random_device source;std::seed_seq seed{source(),source(),source(),source()};return std::mt19937(seed);}());
+    std::uniform_int_distribution<std::size_t> pick(0,chars.size()-1);std::string password;password.reserve(static_cast<std::size_t>(length));
+    for(int i=0;i<length;++i)password+=chars[pick(random)];return password;
+}
+std::string BatchTimeHead(){SYSTEMTIME now{};GetLocalTime(&now);char text[7]{};sprintf_s(text,"%02u%02u%02u",now.wHour,now.wMinute,now.wSecond);return text;}
 class Winsock final{public:Winsock(){WSADATA data{};ready_=WSAStartup(MAKEWORD(2,2),&data)==0;}~Winsock(){if(ready_)WSACleanup();}explicit operator bool()const{return ready_;}private:bool ready_{};};
 Json LocalAddresses(){
     const Winsock winsock;if(!winsock)return Json::array();
@@ -96,7 +117,7 @@ std::vector<std::string> DataService::Methods(){return {
     "getPrefs","setAppearance","setLanguage","saveActionColor","getSystemSetting","saveSystemSetting","getLogSetting","saveLogSetting",
     "getProxySetting","saveProxySetting","getHookSetting","saveHookSetting","getFireWall","saveFireWall","saveListAutoClear",
     "addIpRule","saveIPRule","deleteIPRule","ipRuleAction",
-    "getAccountPassword","getAccountLogins","saveAccount","deleteAccount","clearAllAccounts","setAccountEnable","importAccounts","exportAccounts","adjustAccountExpiry","adjustAccountLimit","exportSelectedAccounts","deleteSelectedAccounts",
+    "getAccountPassword","getAccountLogins","saveAccount","deleteAccount","clearAllAccounts","setAccountEnable","importAccounts","exportAccounts","previewBatchAccounts","saveBatchAccounts","exportBatchAccounts","adjustAccountExpiry","adjustAccountLimit","exportSelectedAccounts","deleteSelectedAccounts",
     "enterProxyMode","enterInjectMode","getStats","getClientConnections","clearLogs","getCountryTable",
     "getFilterExecute","getFilterEdit","saveFilterEdit","getExecuteTargets","addFilter","setFilterEnable","setAllFilterEnable","resetFilterCount","filterListAction","clearFilters",
     "getSendMeta","addSend","setSendEnable","setAllSendEnable","resetSendCount","sendListAction","clearSends","openSendEdit","closeSendEdit","getSendCollection","saveSendEdit","exportSendCollection",
@@ -387,6 +408,24 @@ Json DataService::Call(const std::string& method,const Json& args){
     if(method=="clearAllAccounts"){SaveAccounts(Json::array());return Good();}
     if(method=="setAccountEnable"){
         const auto id=Upper(S(args,"id"));auto rows=lists_[5];const auto found=std::find_if(rows.begin(),rows.end(),[&](const Json& row){return Upper(S(row,"GUID"))==id;});if(found==rows.end())return Json{{"ok",false}};found->at("IsEnable")=B(args,"enable");SaveAccounts(rows);return Good();
+    }
+    if(method=="previewBatchAccounts"){
+        const int count=std::clamp(N(args,"count",10),1,999),rule=N(args,"rule"),passwordLength=std::clamp(N(args,"passwordLength",6),1,20);const auto prefix=Trim(S(args,"prefix"));
+        if(rule==1&&prefix.empty())return {{"ok",false},{"error",Text("BatchAccounts.Prefix.Empty","请输入用户名前缀")},{"rows",Json::array()}};
+        const auto head=rule==1?prefix:BatchTimeHead();Json rows=Json::array(),duplicates=Json::array();rows.get_ref<Json::array_t&>().reserve(static_cast<std::size_t>(count));
+        for(int i=1;i<=count;++i){std::ostringstream suffix;suffix<<std::setfill('0')<<std::setw(3)<<i;const auto user=head+suffix.str();rows.push_back({{"UserName",user},{"Password",BatchPassword(passwordLength)}});for(const auto& existing:lists_[5])if(S(existing,"UserName")==user){duplicates.push_back(user);break;}}
+        return {{"ok",true},{"error",""},{"rows",std::move(rows)},{"duplicates",std::move(duplicates)}};
+    }
+    if(method=="saveBatchAccounts"){
+        const auto draft=BatchRows(args);if(draft.empty())return {{"ok",false},{"added",0},{"skipped",0},{"error",Text("BatchAccounts.Empty","没有可保存的账号")}};
+        const bool limitLinks=B(args,"isLimitLinks"),limitDevices=B(args,"isLimitDevices"),expiry=B(args,"isExpiry");const int links=N(args,"limitLinks"),devices=N(args,"limitDevices");const auto expiryTime=BatchExpiry(args);auto rows=lists_[5];int added=0;
+        for(const auto& item:draft){const auto user=S(item,"UserName"),password=S(item,"Password");if(user.empty()||password.empty())continue;bool duplicate=false;for(const auto& row:rows)if(S(row,"UserName")==user){duplicate=true;break;}if(duplicate)continue;
+            rows.push_back({{"GUID",Guid()},{"IsEnable",true},{"UserName",user},{"PassWord",PasswordEncrypt(password)},
+                {"IsLimitLinks",limitLinks},{"LimitLinks",limitLinks?std::max(1,links):links},{"IsLimitDevices",limitDevices},{"LimitDevices",limitDevices?std::max(1,devices):devices},
+                {"IsExpiry",expiry},{"ExpiryTime",expiryTime},{"CreateTime",LocalDateTime()},{"IsOnLine",false},{"_logins",Json::array()}});++added;
+        }
+        if(added){const auto first=lists_[5].size();db_.Transaction([&]{PersistAccounts(rows);});lists_[5]=rows;auto fresh=Rows(5);fresh.erase(fresh.begin(),fresh.begin()+static_cast<Json::difference_type>(first));emit_("feed:append",{{"list",5},{"rows",std::move(fresh)}});}
+        return {{"ok",true},{"added",added},{"skipped",static_cast<int>(draft.size())-added},{"error",""}};
     }
     if(method=="adjustAccountExpiry"){
         const int hours=N(args,"hours"),addType=N(args,"addType");if(!hours)return { {"ok",false},{"count",0},{"error",Text("ExpiryTimeForm.Zero","请输入要增加的时长")} };std::set<std::string> ids;for(const auto& id:args.value("ids",Json::array()))if(id.is_string())ids.insert(Upper(id.get<std::string>()));auto rows=lists_[5];int count=0;const auto now=LocalDateTime();

@@ -17,7 +17,7 @@ int main(int argc,char** argv){
     try{
         const auto dir=fs::current_path()/"data-test"/std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());fs::create_directories(dir);
         const auto file=dir/L"中文持久化.db";std::map<int,Json> feeds;std::string id,sid,wid,accountId;
-        auto emit=[&](std::string event,Json data){if(event=="toast")return;Require(event=="feed:replace","wrong feed event");feeds[data.at("list").get<int>()]=data.at("rows");};
+        auto emit=[&](std::string event,Json data){if(event=="toast")return;const auto list=data.at("list").get<int>();if(event=="feed:replace")feeds[list]=data.at("rows");else if(event=="feed:append")for(const auto& row:data.at("rows"))feeds[list].push_back(row);else Require(false,"wrong feed event");};
         {
             DataService service(file,emit);
             auto prefs=Call(service,"getPrefs");Require(prefs["isDark"]==true&&prefs["scanLine"]==true,"fresh defaults");
@@ -43,6 +43,8 @@ int main(int argc,char** argv){
             Require(Call(service,"setAccountEnable",{{"id",accountId},{"enable",false}})["ok"]==true&&feeds[5][0]["IsEnable"]==false,"account enable");
             Require(Call(service,"adjustAccountLimit",{{"ids",Json::array({accountId})},{"devices",true},{"on",true},{"value",2}})["count"]==1&&feeds[5][0]["LimitDevices"]==2,"account device adjustment");
             Require(Call(service,"adjustAccountExpiry",{{"ids",Json::array({accountId})},{"addType",0},{"hours",25}})["count"]==1&&feeds[5][0]["ExpiryTime"]=="2030-01-03 04:04:05","account expiry adjustment");
+            Require(Call(service,"previewBatchAccounts",{{"rule",1},{"prefix","　"}})["ok"]==false,"batch empty prefix");const auto generated=Call(service,"previewBatchAccounts",{{"count",2},{"rule",1},{"prefix"," 批量-"},{"passwordLength",8}});Require(generated["rows"].size()==2&&generated["rows"][0]["UserName"]=="批量-001"&&generated["rows"][0]["Password"].get<std::string>().size()==8,"batch preview");
+            const auto batch=Call(service,"saveBatchAccounts",{{"rows",Json::array({{{"UserName","账号持久化"},{"Password","duplicate"}},{{"UserName","批量持久化"},{"Password","Batch09"}},{{"UserName"," "},{"Password","ignored"}}})},{"isLimitLinks",true},{"limitLinks",0},{"isLimitDevices",false},{"limitDevices",7},{"isExpiry",true},{"expiryTime","2031-02-03 04:05:06"}});Require(batch["ok"]==true&&batch["added"]==1&&batch["skipped"]==2&&feeds[5].size()==2,"batch save result/feed");
             id=Call(service,"addFilter")["id"].get<std::string>();Require(feeds[8].size()==1&&feeds[8][0]["Id"]==id,"new filter not pushed");
             auto row=Call(service,"getFilterEdit",{{"id",id}})["row"];
             Require(row["Name"]=="滤镜 1"&&row["FunctionMask"]==4095&&row["ExecuteType"]==2,"original new filter defaults");
@@ -81,8 +83,9 @@ int main(int argc,char** argv){
             Require(feeds[8].size()==1&&feeds[8][0]["Id"]==id,"filter restart persistence");
             Require(Call(reopened,"getFilterEdit",{{"id",id}})["row"]["Modify"][0]["Index"]==-1000,"offset persistence");
             Require(feeds[9][0]["Name"]=="序列 中文"&&feeds[11][0]["Name"]=="仓库持久化","collection persistence");
-            Require(feeds[5].size()==1&&feeds[5][0]["Id"]==accountId&&feeds[5][0]["UserName"]=="账号持久化"&&feeds[5][0]["LimitDevices"]==2,"account restart persistence");
+            Require(feeds[5].size()==2&&feeds[5][0]["Id"]==accountId&&feeds[5][0]["UserName"]=="账号持久化"&&feeds[5][0]["LimitDevices"]==2&&feeds[5][1]["UserName"]=="批量持久化"&&feeds[5][1]["LimitLinks"]==1,"account/batch restart persistence");
             Require(Call(reopened,"getAccountPassword",{{"id",accountId}})["password"]=="P@ss'中"&&Call(reopened,"getAccountLogins",{{"id",accountId}})["rows"].empty(),"account secret/login restart persistence");
+            Require(Call(reopened,"getAccountPassword",{{"id",feeds[5][1]["Id"]}})["password"]=="Batch09","batch password restart persistence");
             Require(Call(reopened,"getPrefs")["themeMode"]=="system"&&Call(reopened,"getPrefs")["scanLine"]==false,"appearance persistence");
         }
         {Database schema(file);const auto tables=schema.Query("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('ProxyAccount','ProxyAccountIPInfo')");Require(tables.size()==2,"account schema tables missing");}

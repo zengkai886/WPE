@@ -1,5 +1,5 @@
 {
-  "description": "Original net48 oracle: 120 filter edits, 184 editor calls, plaintext/shallow export; four parent-list serializers, SystemConfig plus ProxyMode/InjectMode, WhiteList/BlackList and ProxyAccountList backup settings, 56 AES cipher vectors (ACP936) including Unicode/NUL; product does not run original C#",
+  "description": "Original net48 oracle: 120 filter edits, 184 editor calls, plaintext/shallow export; four parent-list serializers, SystemConfig plus ProxyMode/InjectMode, WhiteList/BlackList and ProxyAccountList backup settings, original ACP936 batch-account XLS, 56 AES cipher vectors (ACP936) including Unicode/NUL; product does not run original C#",
   "originalAssemblySha256": "76C33B88188F7F921AE5B21117533FF1D3F1861A04A723B8087DE42B17E5FEED",
   "originalSources": [
     {
@@ -42,7 +42,7 @@
     },
     {
       "path": "tests/data_oracle/ConfigFileOracle.cs",
-      "sha256": "CF41B6D887CAA67CDDE84D811A26F8AD016CA436D4B97B040C99828FE5AAC7DC"
+      "sha256": "9C8BD46F7EDCA32318B455D2AF720653F48BAC640ACBAD94ED54A2FDCED93150"
     },
     {
       "path": "tests/data_oracle/DataOracle.csproj",
@@ -451,6 +451,10 @@
     {
       "path": "tests/fixtures/config-files/original/pa-6.encrypted",
       "sha256": "1291FE338C1538C6E99DFAC40F22DC88236536452D25AA7D669F584023F0BE06"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/batch-accounts.xls",
+      "sha256": "F768E3F92A6A5EDD7349171796FAA1992CDD2E473042D6DD9235EE470006C982"
     }
   ]
 }

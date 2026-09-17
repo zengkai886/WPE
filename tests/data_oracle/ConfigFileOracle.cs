@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Xml.Linq;
@@ -78,6 +79,11 @@ static class ConfigFileOracle
         var accountXml=Operate.ProxyConfig.Account.GetAccountList_XML(accounts);Save(Path.Combine(output,"original.pa"),accountXml);
         Save(Path.Combine(output,"accounts.sb"),new XElement("WPE64_BackUp",accountXml));
         Save(Path.Combine(output,"supported-ten.sb"),new XElement("WPE64_BackUp",system,proxy,accountXml,whiteXml,blackXml,inject,roots));
+        var batchAccounts=new BindingList<AccountInfo> {
+            new AccountInfo { UserName="batch-001",Password=Operate.SystemConfig.PassWord_Encrypt("Az09!?"),ExpiryTime=new DateTime(2030,1,2,3,4,5) },
+            new AccountInfo { UserName="批量用户002",Password=Operate.SystemConfig.PassWord_Encrypt("密码二"),ExpiryTime=new DateTime(2030,1,2,3,4,5) } };
+        var batchWriter=typeof(Operate.ProxyConfig.Account).GetMethod("SaveBatchAccountsToExcel",BindingFlags.Static|BindingFlags.NonPublic);
+        if(batchWriter==null||!(bool)batchWriter.Invoke(null,new object[]{Path.Combine(output,"batch-accounts.xls"),batchAccounts}))throw new Exception("Original batch account export failed");
         var cases=new JArray();var passwords=new[]{"compatibility-test", "密码中文测试", "emoji-\U0001F512-\U0001F600", "\u00e9\u20ac\u0416\u3042\u3000", " leading and trailing ", "x", "\0embedded\0"};
         foreach(var kind in kinds.Concat(new[]{"wl","bl","pa","sb"}))for(int i=0;i<passwords.Length;i++)
         {

@@ -1,9 +1,9 @@
 {
   "scope": "Registration inventory, not a functional-completion percentage. Partial and offline methods are explicitly distinguished.",
   "originalRpcCount": 217,
-  "nativeDataRegistered": 97,
+  "nativeDataRegistered": 100,
   "nativeHostRegistered": 10,
-  "remainingUnregistered": 110,
+  "remainingUnregistered": 107,
   "originalSource": "WinsockPacketEditor/ShellForm.cs",
   "originalSourceSha256": "86d277408d233903ec82ffe8f06a2cd1995898617c477a1f181046ebe0f72f12",
   "methods": [
@@ -334,105 +334,105 @@
       "originalLine": 3005,
       "registered": true,
       "status": "账号数据与原文件已接",
-      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。"
+      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
     },
     {
       "method": "getAccountLogins",
       "originalLine": 3012,
       "registered": true,
       "status": "账号数据与原文件已接",
-      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。"
+      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
     },
     {
       "method": "saveAccount",
       "originalLine": 3018,
       "registered": true,
       "status": "账号数据与原文件已接",
-      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。"
+      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
     },
     {
       "method": "deleteAccount",
       "originalLine": 3108,
       "registered": true,
       "status": "账号数据与原文件已接",
-      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。"
+      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
     },
     {
       "method": "clearAllAccounts",
       "originalLine": 3121,
       "registered": true,
       "status": "账号数据与原文件已接",
-      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。"
+      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
     },
     {
       "method": "setAccountEnable",
       "originalLine": 3128,
       "registered": true,
       "status": "账号数据与原文件已接",
-      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。"
+      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
     },
     {
       "method": "importAccounts",
       "originalLine": 3138,
       "registered": true,
       "status": "账号数据与原文件已接",
-      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。"
+      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
     },
     {
       "method": "exportAccounts",
       "originalLine": 3144,
       "registered": true,
       "status": "账号数据与原文件已接",
-      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。"
+      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
     },
     {
       "method": "previewBatchAccounts",
       "originalLine": 3161,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "账号批量工作流已接",
+      "note": "原命名规则、数量/密码长度边界、随机密码字符集和已有账号重名预览已接。"
     },
     {
       "method": "saveBatchAccounts",
       "originalLine": 3198,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "账号批量工作流已接",
+      "note": "原草稿清洗、区分大小写重名跳过、限制与到期字段、密码映射、SQLite 事务及单条 feed:append 批量推送已接。"
     },
     {
       "method": "exportBatchAccounts",
       "originalLine": 3228,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "账号批量工作流已接",
+      "note": "原版 .xls 实为系统 ACP 编码制表文本；表头、到期时间、本地化、默认文件名与无需 XML 密码框的保存路径已接，并与原程序集固定字节黄金一致。"
     },
     {
       "method": "adjustAccountExpiry",
       "originalLine": 3246,
       "registered": true,
       "status": "账号数据与原文件已接",
-      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。"
+      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
     },
     {
       "method": "adjustAccountLimit",
       "originalLine": 3261,
       "registered": true,
       "status": "账号数据与原文件已接",
-      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。"
+      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
     },
     {
       "method": "exportSelectedAccounts",
       "originalLine": 3280,
       "registered": true,
       "status": "账号数据与原文件已接",
-      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。"
+      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
     },
     {
       "method": "deleteSelectedAccounts",
       "originalLine": 3286,
       "registered": true,
       "status": "账号数据与原文件已接",
-      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；账号密码原映射、登录记录、单项/批量调整以及 .pa/AES/备份路径按原格式互通。批量生成三接口、真实代理认证和在线状态仍未接。"
+      "note": "ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
     },
     {
       "method": "verifyEncryptPassword",
