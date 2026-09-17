@@ -1,0 +1,1949 @@
+/* ⚠️ @import 必须排在所有其它规则之前（含 @font-face）—— 放后面浏览器会忽略它，
+ 而 Vite 构建时又会内联，于是 dev 下坏、build 出来好，最难查的那一类。 */
+@import './tokens.css';
+
+/*
+  外壳配色：与官网 WPEWeb 一致（深黑底 + 三霓虹色 + 科技等宽字体）。
+  令牌逐个抄自 WPEWeb/assets/css/cyber.css 的 :root，改配色只需要改这一处。
+
+  【字体】三个字族都是从官网搬过来的 latin 子集可变字体（assets/fonts/，SIL OFL 1.1，
+  许可证一并带着）。它们不含中文字形，中文走系统回退 —— 官网上本来就是这个表现。
+  可变字体一个文件覆盖整个字重轴，所以 font-weight 写的是范围而不是单值。
+*/
+
+@font-face {
+  font-family: "Orbitron";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("./assets/fonts/orbitron.woff2") format("woff2");
+}
+
+/*
+  ⚠️ ascent / descent 覆写（2026-09-13，100% 缩放实测定的）：
+  Share Tech Mono 自带的度量是上伸 885 / 下伸 242，而大写高 703、中文墨迹 844 ~ -78 ——
+  上下不对称，任何用它的文字在框里都<b>天生偏上</b>（10.5px 中文实测高 1.5px、英文 1px，
+  以前全靠各处零碎的 padding-top / top 补偿，缩放一变就不准）。
+  两者之和保持 112.7% 不变（line-height: normal 的行高不变），只把基线往下挪 0.046em。
+  另外两款（JetBrains Mono / Orbitron）实测本来就居中，不用动。
+*/
+@font-face {
+  font-family: "Share Tech Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/fonts/sharetechmono.woff2") format("woff2");
+  ascent-override: 93.1%;
+  descent-override: 19.6%;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("./assets/fonts/jetbrainsmono.woff2") format("woff2");
+  /*
+    同 Share Tech Mono 那条（2026-09-13 实测）：自带上伸 1020 / 下伸 300，正文 12.5px 的中文与大写
+    在固定行高里实测都高 1px；覆写成 105% / 27%（和不变）后两者落到中线，数字低约半像素。
+  */
+  ascent-override: 105%;
+  descent-override: 27%;
+}
+
+/*
+  内嵌中文字体：更纱等宽 SC（Sarasa Mono SC v1.0.41，SIL OFL 1.1，2026-09-13 加）。
+  上面三款拉丁字体都不含中文，以前中文全靠系统回退，WebView2 与别的 Chromium 会挑到不同的字体，
+  居中补偿量不准。现在中日韩 / 西里尔 / 越南文都从这里取，任何机器上字形与度量一致。
+  ⚠️ 名字叫 WPE Sarasa 而不是 Sarasa Mono SC：避免与用户机器上装的同名字体混用。
+  ⚠️ unicode-range 刻意不含基本拉丁（U+0000–007F）：英文与数字仍走上面三款。
+  ⚠️ 只带 Regular + Bold 两个文件，按字重区间分：100–599 用 Regular、600–1000 用 Bold，不做合成粗体。
+  来源与裁剪范围见 assets/fonts/Sarasa-OFL.txt。
+*/
+@font-face {
+  font-family: "WPE Sarasa";
+  font-style: normal;
+  font-weight: 100 599;
+  font-display: swap;
+  src: url("./assets/fonts/sarasa-regular.woff2") format("woff2");
+  unicode-range: U+A0-24F, U+300-36F, U+370-3FF, U+400-52F, U+1100-11FF, U+1E00-1EFF, U+2000-206F, U+2100-218F, U+2190-21FF, U+2460-24FF, U+2500-25FF, U+3000-303F, U+3040-30FF, U+3100-312F, U+3130-318F, U+31F0-31FF, U+3200-33FF, U+3400-4DBF, U+4E00-9FFF, U+AC00-D7AF, U+F900-FAFF, U+FE30-FE4F, U+FF00-FFEF;
+}
+
+@font-face {
+  font-family: "WPE Sarasa";
+  font-style: normal;
+  font-weight: 600 1000;
+  font-display: swap;
+  src: url("./assets/fonts/sarasa-bold.woff2") format("woff2");
+  unicode-range: U+A0-24F, U+300-36F, U+370-3FF, U+400-52F, U+1100-11FF, U+1E00-1EFF, U+2000-206F, U+2100-218F, U+2190-21FF, U+2460-24FF, U+2500-25FF, U+3000-303F, U+3040-30FF, U+3100-312F, U+3130-318F, U+31F0-31FF, U+3200-33FF, U+3400-4DBF, U+4E00-9FFF, U+AC00-D7AF, U+F900-FAFF, U+FE30-FE4F, U+FF00-FFEF;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/*
+  ⚠️ <b>表单控件不继承字体，要自己接回来。</b>
+
+  这是 CSS 的老规矩：<code>button / input / select / textarea</code> 的 font 来自<b>操作系统</b>，
+  不跟 body 走。所以任何一个只写了 font-size 而没写 font-family 的控件，
+  文字都会落到 <b>Arial 13.33px</b> —— 也就是「一眼看出不是这个程序画的」。
+
+  这不是某一处写漏了，是<b>一整类</b>：实测扫过注入模式全部 11 页 + 7 个设置，
+  系统日志那三个页签、数据提取的三张类型卡都栽在这儿；防火墙设置的两个页签同理。
+  与其逐个补 font-family，不如在这里接一次 —— 显式写了 var(--share) 的照旧赢。
+
+  ⚠️ <b>只接 font-family，不接 font-size。</b> 尺寸各控件本来就各写各的
+  （按钮 var(--btn-size)、正文 12.5px…），一律 inherit 反而会把没写尺寸的图标按钮
+  从 13.33px 挪到 13px，白改一批布局。
+*/
+button,
+input,
+select,
+textarea { font-family: inherit; }
+
+html,
+body,
+#app { height: 100%; }
+
+body {
+  background: var(--black);
+  color: var(--gray);
+  font-family: var(--mono);
+  font-size: var(--fs-body);
+  /* 1.68 而不是 1.7：12.5px 时正好 21px 整数行高，文字竖直位置不再落在小数像素上 —— 100% 缩放下行内的中文 / 标签实测从偏高 1px 回到中线（2026-09-13 字体度量覆写后按 100% 缩放实测重调） */
+  line-height: 1.68;
+  /* 抓包列表刷得很快，选中文本几乎总是误操作 */
+  user-select: none;
+  overflow: hidden;
+}
+
+::selection { background: rgb(var(--green-rgb) / 30%); color: var(--green); }
+
+/* 十六进制面板与报告里的文本要能选、能复制 */
+pre { user-select: text; }
+
+/*
+  焦点环。
+
+  Chromium 的默认焦点环在深色背景上是一圈白线，会压住我们自己的描边 ——
+  beta 提示那个按钮带 autofocus，弹出来就是白框，点别处失焦后才显出琥珀色，
+  看着像「边框会变色」。这里统一换成与配色一致的绿色描边。
+
+  只改 :focus-visible，不动 :focus —— 鼠标点击不该出现焦点环，键盘操作才需要。
+  焦点<b>不能直接去掉</b>：弹窗按回车确认、Tab 走查界面都依赖它。
+*/
+/*
+  写成具体元素而不是裸 :focus —— 特异性从 (0,1,0) 提到 (0,1,1)，
+  不会被第三方样式表（ant-design-vue 的 reset 等）里同级的规则压住。
+*/
+button:focus,
+a:focus,
+input:focus,
+select:focus,
+textarea:focus,
+[tabindex]:focus { outline: none; }
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+/* 官网的切角，用在需要「非直角」的容器上 */
+.clip {
+  clip-path: polygon(0 10px, 10px 0, calc(100% - 10px) 0, 100% 10px,
+      100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px));
+}
+
+/* 官网的线性图标基类 */
+.ico {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  flex-shrink: 0;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ── 全窗氛围层：网格 / CRT / 游走亮带 / 四角标记 ───────── */
+
+.pcb {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgb(var(--border-rgb) / 10%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--border-rgb) / 10%) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.scan {
+  position: fixed;
+  left: 0;
+  width: 100%;
+  height: 50%;
+  z-index: calc(var(--z-ambience) - 1);   /* 让四角标记压在亮带之上 */
+  pointer-events: none;
+  opacity: var(--beam-op);
+  background: linear-gradient(to bottom, transparent, var(--beam), transparent);
+  animation: scan 10s linear infinite;
+}
+
+/*
+  关掉游走亮带（软件设置里的开关）。
+
+  用 display: none 而不是 opacity: 0 —— 后者那条 10 秒的动画还在跑，
+  合成器每帧仍要处理这一层；display: none 是真的把它从渲染里摘掉。
+*/
+:root[data-scan="off"] .scan { display: none; }
+
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(200%); }
+}
+
+.cn {
+  position: fixed;
+  width: var(--corner-arm);
+  height: var(--corner-arm);
+  z-index: calc(var(--z-ambience) + 1);
+  pointer-events: none;
+  border-color: rgb(var(--green-rgb) / 30%);
+}
+
+/*
+  窗体本身留着 3px 的缩放内边距（ShellForm 的 Padding，等于 ResizeBorder），
+  所以 --corner-inset 是 1px 时，角标距真实窗口边缘是 4px，既不顶边也点得到边框。
+*/
+.cn.tl { top: var(--corner-inset); left: var(--corner-inset); border-top: 2px solid; border-left: 2px solid; }
+.cn.tr { top: var(--corner-inset); right: var(--corner-inset); border-top: 2px solid; border-right: 2px solid; }
+.cn.bl { bottom: var(--corner-inset); left: var(--corner-inset); border-bottom: 2px solid; border-left: 2px solid; }
+.cn.br { bottom: var(--corner-inset); right: var(--corner-inset); border-bottom: 2px solid; border-right: 2px solid; }
+
+/* 减少动效偏好：关掉扫描线（官网同样处理） */
+@media (prefers-reduced-motion: reduce) {
+  .scan { animation: none; opacity: 0; }
+}
+
+/*
+  拖动列宽时给整页统一光标并禁选。
+
+  必须写在全局表里：这两条作用在 <body> 上，而组件的 scoped 样式加了属性选择器，
+  选不中 body。类由 PacketList 的 startResize / onDragUp 增删。
+*/
+body.col-resizing,
+body.col-resizing * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--black); }
+::-webkit-scrollbar-thumb { background: var(--border); }
+::-webkit-scrollbar-thumb:hover { background: var(--border2); }
+
+/* ── 整屏页的标题块（eyebrow + 大标题）─────────────────────────
+   三屏共用：启动页（绿）· 多开设置（洋红）· 注入模式的选目标屏（绿）。
+
+   原先这套东西在 StartView 与 InstanceView 各抄了一份，而注入模式那屏<b>第三种写法</b>：
+   eyebrow 是一行裸文字、标题是 20px 的 --gray —— 并排切过去一眼就看得出不是同一个程序。
+   （`.list-page` / `.mini` / `.chk` 都是这么抄歪的，见 CLAUDE.md 里那几条。）
+
+   三行是一个整体：**eyebrow → 大标题 → 副标题**（Share Tech Mono 的一句短话 + 闪烁光标）。
+   ⚠️ 第三行是<b>一句短话</b>，不是一段说明 —— 启动页 12 字、多开设置 15 字，一行放得下。
+   写成一整段（还卡个 max-width）就与另外两屏对不上了，注入模式那屏起初正是这样。
+
+   用法：整屏的根元素加 `scrn`，标题加 `ttl`，并按本屏的模式色覆盖两个令牌：
+
+     .start { --hd: var(--green); --hd-rgb: var(--green-rgb); --ttl-size: clamp(32px, 3.6vw, 46px); }
+
+   ⚠️ `text-transform: uppercase` 与负字距<b>刻意不放进来</b> —— 那两条只对拉丁字母有意义。
+   启动页与多开设置的标题是写死的英文，各自在 scoped 里加；注入模式那句是<b>中文</b>，
+   uppercase 是空操作、负字距会把方块字挤在一起。
+   ⚠️ eyebrow 的 uppercase 留着：那三句都是 `WPE_X64 // …` 这种代号，永远是拉丁。
+──────────────────────────────────────────────────────────── */
+
+.scrn {
+  --hd: var(--green);
+  --hd-rgb: var(--green-rgb);
+  --ttl-size: clamp(28px, 3vw, 38px);
+  --hd-gap: 16px;   /* eyebrow → 标题 */
+  --hd-sub: 14px;   /* 标题 → 副标题 */
+  --hd-glow: 35%;   /* 标题辉光的浓度 */
+}
+
+.scrn .eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: var(--hd-gap); }
+
+.scrn .eyebrow .dash {
+  width: 32px;
+  height: 1px;
+  background: var(--hd);
+  box-shadow: 0 0 6px var(--hd);
+}
+
+.scrn .eyebrow .lbl {
+  /* top .3px：--fs-caption 9.5 → 10.5（2026-09-13）后重量，偏高 −0.29 → ≈0；只动绘制不动布局 */
+  position: relative;
+  top: .3px;
+  font-family: var(--share);
+  font-size: var(--fs-caption);
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--hd);
+}
+
+/*
+  副标题。⚠️ <b>不给 max-width</b> —— 它要跟着窗口走，宽屏上就该待在一行里。
+  卡一个 92ch 的话，窗口拉多大它都在同一个地方折行（注入模式那屏原来就是这毛病）。
+*/
+.scrn .subtitle {
+  margin: var(--hd-sub) 0 0;
+  font-family: var(--share);
+  font-size: var(--fs-lead);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  min-height: 1.3em;
+}
+
+/* 打字机的光标。跟着本屏的模式色走 */
+.scrn .subtitle .cur {
+  display: inline-block;
+  width: 8px;
+  height: 1em;
+  background: var(--hd);
+  box-shadow: 0 0 6px var(--hd);
+  vertical-align: -2px;
+  margin-left: 3px;
+  animation: scrn-cur 1s steps(1) infinite;
+}
+
+@keyframes scrn-cur { 50% { opacity: 0; } }
+
+.scrn .ttl {
+  margin: 0;
+  font-family: var(--orbit);
+  font-weight: 900;
+  font-size: var(--ttl-size);
+  line-height: 1.05;
+  color: var(--hd);
+  text-shadow: 0 0 26px rgb(var(--hd-rgb) / var(--hd-glow));
+  align-self: flex-start;
+}
+
+/* ── 自检终端块（.scrn 里那块「命令行输出」）───────────────────
+   启动页的「系统检测」与注入模式选方式屏的「上次注入」是同一件东西：
+   窗口栏（三颗灯 + 一个英文标识）＋ 一段等宽的树形输出。
+
+   原先两屏各抄一份，而且<b>已经抄歪了</b>：注入那份的窗口栏右内边距是 12px
+   （当年为了往栏里塞一颗按钮）、`.d` 多一句 flex: none、`.term-body` 多一句 line-height。
+   按钮 2026-09-10 挪到正文下面之后，两份再没有任何该不同的地方，收在这儿。
+
+   用法：整屏根元素本来就是 `scrn`，块本身写 `term` 即可。
+   ⚠️ **外边距留在各屏自己的 scoped 里** —— 那是「这块与上一块隔多远」，各屏不同。
+   ⚠️ `--term-py`（正文内边距）由各屏在自己那组令牌里给，矮窗口下要跟着收；本块只消费。
+   ⚠️ `--term-lh` 是可选的，不给就是 1.7（＝启动页那份原来继承到的值）。
+──────────────────────────────────────────────────────────── */
+
+.scrn .term { background: var(--sink); border: 1px solid var(--border); }
+
+.scrn .term-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: calc(var(--term-py) - 4px) 14px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.scrn .term-bar .d { flex: none; width: 10px; height: 10px; border-radius: 50%; }
+
+/*
+  窗口栏的标识。⚠️ `top: .2px` 是量出来的，别当成随手写的偏移（10px 时是 .8，2026-09-11 字号规范改成 9.5px 后重量为 .2）。
+
+  这一栏里三颗灯是<b>几何件</b>，中心正好落在栏的中线上（实测 0.00）；
+  而 Share Tech Mono 的大写字母在行盒里天生偏上 —— 实测<b>高 0.80px</b>，
+  两屏一模一样（本来就是同一份样式抄了两遍）。并排看就是「灯正、字浮」。
+
+  ⚠️ 治不了它的两条，别再试：
+    · `line-height: 1` —— 这里是 flex 项 + align-items: center，半行距<b>对称</b>分配，
+      行高取什么值都不改变墨迹中心与盒中心的关系（试过，纹丝不动）。
+    · `padding-top` —— 这个标签正是栏里最高的那一项，给它加内边距会把整条窗口栏
+      顶高（实测 17 → 18.6px，而矮窗口那一档的余量本来就紧）。
+
+  所以用 relative 偏移：**只动绘制、不动布局**（实测窗口栏高与整块高一个像素没变）。
+  这个数就是实测偏离量本身 —— relative 是整体位移，不像内边距那样只走一半。
+  ⚠️ 改字号 / 换字体栈要回来重量，量法见 CLAUDE.md「按钮里的文字与图标怎么才算居中」。
+*/
+.scrn .term-bar .lbl {
+  position: relative;
+  top: .6px;   /* 9.5px 时 .2px；10.5px（2026-09-13）重量：.2 时 −0.41，.6 时 ≈0 */
+  margin-left: 8px;
+  font-family: var(--share);
+  font-size: var(--fs-caption);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.scrn .term-body {
+  padding: var(--term-py) 16px;
+  font-size: var(--fs-body);
+  line-height: var(--term-lh, 1.7);
+  color: var(--soft);
+  overflow-x: auto;
+}
+
+.scrn .term-body .l { display: block; white-space: pre; }
+.scrn .term-body .g { color: var(--green); }
+.scrn .term-body .c { color: var(--muted); }
+.scrn .term-body .y { color: var(--cyan); }
+.scrn .term-body .a { color: var(--amber); }
+.scrn .term-body .r { color: var(--danger); }
+
+/* ── 模式状态条（代理数据页 / 注入数据页共用）───────────────────
+   两屏最上面那一条：状态灯 + 状态字 + 若干读数窗 + 右端一排动作按钮。
+
+   原先它在 `RunBar.vue` 与 `InjectBar.vue` 里各抄一份（约 110 行），而且<b>已经抄歪了</b>：
+   注入那份把「开始 / 停止」放在最左边、没有状态字、几段信息是裸文字而不是读数窗 ——
+   两屏并排切过去读出来的是两个程序。2026-09-10 收进这里，两边只留各自独有的。
+
+   ⚠️⚠️ **共用件不能叫 `.runbar`** —— `SendEdit` 与 `WareHouseEdit` 里的 `.runbar`
+   是<b>另一样东西</b>（编辑器里那条「执行 · 总发送 / 成功 / 失败」），
+   它俩的 scoped 规则只写了自己关心的那几条，全局那份会把 flex-wrap / row-gap /
+   background 一并漏进去。这是 `.mini` / `.hint` / `.sel` 那条规矩的第四次命中：
+   **往 style.css 提一个类名之前先 grep 它有没有被别处当成另一个东西用。**
+
+   用法：状态条根元素 `class="modebar"`，在跑 / 已装钩时加 `on`，出错时加 `bad`。
+   各屏 scoped 里只写自己独有的（代理是「已运行 hh:mm:ss」那段 `.meta`，
+   注入是断开时整条压暗的 `.off`）。
+──────────────────────────────────────────────────────────── */
+
+.modebar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /*
+    ⚠️ 换行 + 各项 flex: none。这一条是加了七种语言之后补的：
+    越南语的「Bắt đầu bắt」「Cài đặt ▾」比中文长一半，1280 宽的窗口里
+    刚好把中间那几段元信息挤到要用省略号 —— 而被吃掉的正是目标进程名。
+    宁可让整条状态条折成两行，也不要把它认不出来。
+  */
+  flex-wrap: wrap;
+  row-gap: 8px;
+  /*
+    ⚠️ gap 14 → 10、按钮左右内边距 15 → 12（2026-09-11）：125% 缩放的默认窗口里（1024 CSS 宽）
+    这条状态条差约 160px 放不下，右端的「清空 / 设置」被甩到第二行。这两处与代理那条
+    「HTTP 只显示 :端口」「已运行 → 表盘图标」一起，才把它收回一行。
+  */
+  padding: 9px 14px;
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+
+/* 在跑（代理起来了 / 钩子装上了）时左侧透出一层绿光，停着时不透 —— 余光里也能看出状态 */
+.modebar.on { background: linear-gradient(90deg, rgb(var(--green-rgb) / 7%), transparent 45%), var(--card); }
+
+.modebar .led { width: 9px; height: 9px; background: var(--muted); flex: none; }
+.modebar.ready .led { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+.modebar.on .led { background: var(--green); box-shadow: 0 0 8px var(--green); animation: modebar-beat 1.6s steps(1) infinite; }
+.modebar.bad .led { background: var(--danger); box-shadow: 0 0 8px var(--danger); animation: none; }
+
+/* ⚠️ 名字带前缀：scoped 里的 @keyframes 会被 Vue 改名，提到全局就是<b>全局唯一</b>的了，
+   而 `beat` 这个名字 BetaNotice.vue 也在用（那份还在 scoped 里，不冲突，但别再占用它） */
+@keyframes modebar-beat { 50% { opacity: .35; } }
+
+.modebar .st {
+  font-family: var(--orbit);
+  font-weight: 800;
+  font-size: var(--fs-lead);
+  /*
+    只补 line-height: 1 就够了（原来是默认行高，实测墨迹在 −0.73）——
+    ⚠️ 试过再加 padding-top: 1px，反而过头到 +0.32，又是「补第二遍」。
+    字号规范把它从 13 改成 13.5 之后落到 −0.55，补 .7px 回到 −0.20（2026-09-11 重量）。
+  */
+  line-height: 1;
+  padding-top: .7px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  flex: none;
+}
+
+/*
+  「就绪但还没跑」那一档：注入模式的<b>已附加</b>（连上目标了，只差点一下拦截）。
+
+  ⚠️ 它<b>不能</b>留在 `.st` 的默认灰上 —— 灰是代理那边「未启动」用的，
+  而两者正相反：那边是还没开始，这边是已经连上了。用户直接说过「灰色感觉是失败状态」。
+  按全项目的色语取青：**绿＝在跑 · 青＝就绪 · 红＝出事 · 灰＝没开始**。
+  ⚠️ `.on` 与 `.bad` 必须写在它后面（同特异度，平局时后写的赢）——
+  真跑起来 / 真断了的时候，那两档要盖过这一档。
+*/
+.modebar.ready .st { color: var(--cyan); }
+
+.modebar.on .st { color: var(--green); }
+.modebar.bad .st { color: var(--danger); }
+
+/*
+  ── 读数窗 ──────────────────────────────────────────
+
+  一块块「标签 + 值」的小窗（照启动页模式卡上 .last 那条读数条的路数）：
+  左边是 Share Tech Mono 的标签、右边是等宽字体的值，外面一圈发丝框 + 内嵌底。
+  比裸文字多出来的是<b>可扫性</b> —— 几块并排时眼睛沿着标签那一列往下扫就行，不用逐字读。
+
+  代理装的是两个监听端口，注入装的是目标 / 窗口 / WinSock / 速率 / 丢弃。
+
+  ⚠️ 整组包在 .ports 里当<b>一个</b> flex 项：这条状态条是 flex-wrap 的，
+  不包的话换行点可能正好落在两块中间，后一块会被甩到第二行去挨着不相干的东西
+  （与「勾选框和它的条数框要包一层 .pair」是同一条教训）。
+*/
+/*
+  ⚠️ **不能写 `flex: none`。**
+
+  那样它的基准宽度就是 max-content，里面的东西<b>永远不会被压缩</b> ——
+  整组超过一行宽度之后既不折行也不截断，直接从右边被<b>裁掉</b>
+  （2026-09-10 用户截图里 WinSock 那块就被切了一半，而它右边什么都没有了）。
+
+  现在是「能收缩、装不下就在自己内部折行」：几块读数窗仍然贴在一起
+  （外层的换行点不会落在两块中间，那是包成一组的初衷），但不会再裁。
+*/
+.modebar .ports {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 1 auto;
+  min-width: 0;
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.modebar .port {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  min-width: 0;
+  padding: 3px 9px;
+  border: 1px solid rgb(var(--border-rgb) / 70%);
+  background: rgb(var(--inset-rgb) / 30%);
+}
+
+/* 在跑时读数窗的边框跟着透一点绿 —— 与左边那盏灯是同一件事的两种说法 */
+.modebar.on .port { border-color: rgb(var(--green-rgb) / 30%); }
+
+.modebar .pk {
+  font-family: var(--share);
+  font-size: var(--fs-caption);
+  /* 行高 1 + 上补 1px：Share Tech Mono 的字形在 em 框里偏上，实测这一档补 1 就落在中线上 */
+  line-height: 1;
+  /* 9.5px 时是 1.3px（−0.21）；10.5px（2026-09-13）重量：1.3px 时 +0.51 偏低，去掉后 −0.14 */
+  padding-top: 0;
+  letter-spacing: .14em;
+  font-weight: 400;
+  color: var(--dim3);
+  white-space: nowrap;
+  flex: none;
+}
+
+.modebar .pv {
+  font-family: var(--mono);
+  font-size: var(--fs-body);
+  /* 与 .pk 同一个理由：行高 1 之后仍差半像素，补 1px 落到与按钮同一条线上（实测 −0.84 → −0.34）*/
+  line-height: 1;
+  padding-top: .3px;    /* 12 → 12.5px 后重量：1px 时 +0.09，.3px 时 −0.26 */
+  letter-spacing: .02em;
+  color: var(--cyan);
+  white-space: nowrap;
+}
+
+/* 值后面跟一小段附注（#pid · x64 / 40 条）—— 次要，不抢主值的青 */
+.modebar .px {
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  line-height: 1;
+  padding-top: .2px;    /* 11 → 11.5px 后重量：1px 时 +0.16，.2px 时 −0.24 */
+  color: var(--muted);
+  white-space: nowrap;
+  flex: none;
+}
+
+
+/* 没启用：整块压暗，值那一格退回次要色 —— 别用红，它不是错误，是「你没开」 */
+.modebar .port.off { border-color: rgb(var(--border-rgb) / 45%); }
+.modebar .port.off .pk,
+.modebar .port.off .pv { color: var(--dim3); }
+
+/* 真出事的那一块（注入的「丢弃 N」）：环满时目标丢的是最旧的包，无声丢包比阻塞更糟 */
+.modebar .port.bad { border-color: rgb(var(--danger-rgb) / 40%); background: rgb(var(--danger-rgb) / 8%); }
+.modebar .port.bad .pv { color: var(--danger); }
+
+.modebar .grow { flex: 1; }
+
+/*
+  右端那一排动作按钮。⚠️ 与 `.list-page .btn` 是两套：这里的按钮更高（10/15）、
+  带图标、还有 go / stop 两种语义色，而列表页那套是 9/13 的纯文字按钮。
+*/
+.modebar .tb {
+  flex: none;
+  padding: 10.5px 12px 9.5px;   /* 上多半像素：100% 缩放下「开始代理 / 清空」实测偏高 1px（2026-09-13 字体度量覆写后按 100% 缩放实测重调）。   /* 上下<b>对称</b>：line-height: 1 已经把字形偏上治好了，再补 1px 是补第二遍。左右 15 → 12 见 .modebar 那段 */
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--gray);
+  font-family: var(--share);
+  font-size: var(--btn-size);
+  /* 显式 1：Share Tech Mono 在 line-height: normal 下会把行距全压在字的下面，字号一大就明显偏上（实测） */
+  line-height: 1;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  transition: .15s;
+}
+
+.modebar .tb .ico { width: 13px; height: 13px; }
+.modebar .tb:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+.modebar .tb:disabled { opacity: .45; cursor: default; }
+.modebar .tb:focus-visible { outline-offset: -2px; }
+
+/* ⚠️ 悬停要把边框与字色<b>一起</b>写上：上面那条通用的 .tb:hover 是 (0,3,0)，
+   压得过 .tb.go 的 (0,2,0)，不写的话点完一瞬间（鼠标还停在按钮上）绿 / 红按钮会变成青色 */
+.modebar .tb.go { border-color: rgb(var(--green-rgb) / 45%); color: var(--green); }
+.modebar .tb.go:hover:not(:disabled) { background: rgb(var(--green-rgb) / 10%); border-color: var(--green); color: var(--green); }
+.modebar .tb.go:focus-visible { outline-color: var(--green); }
+
+.modebar .tb.stop { border-color: rgb(var(--danger-rgb) / 45%); color: var(--danger); }
+.modebar .tb.stop:hover:not(:disabled) { background: rgb(var(--danger-rgb) / 12%); border-color: var(--danger); color: var(--danger); }
+.modebar .tb.stop:focus-visible { outline-color: var(--danger); }
+
+/* 「设置 ▾」开着菜单时的高亮；菜单本身是共用的 ContextMenu */
+.modebar .tb.on { border-color: var(--cyan); color: var(--cyan); }
+
+
+/* ── 封包数据页的骨架（代理数据页 / 注入数据页共用）─────────────
+   两屏是同一个东西的两种数据源：**状态条 + 统计格 + 封包表 + 下半部**四层竖着摞。
+
+   工具条那一套（`.gtool` / `.search` / `.chk` / `.num` / `.tb`）早就在 style.css 里了，
+   但外面这层骨架 2026-09-10 之前<b>还是各抄一份</b> —— 而且照例抄歪了：
+   `.st-c .z` 一个 10px 一个 10.5px、`.list` 少一句 border-radius、
+   注入那份干脆没有滤镜配色图例。现在收在这儿，各屏只留自己独有的
+   （代理是 Dev 那两条，注入是断开提示条 `.lostbar`）。
+
+   用法：根元素 `class="datapage"`。
+   ⚠️ **不叫 `.page`** —— `ClientList` 与 `SystemLog` 也各有一个 `.page`，
+   那是它俩自己的整页容器（另一套内边距与布局），提成全局会当场压坏。
+──────────────────────────────────────────────────────────── */
+
+.datapage {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  /*
+    兜底：收到最紧还是装不下时让它能滚。
+    原来是 visible，装不下就被 body 的 overflow: hidden 裁掉 —— 那一截既看不见也滚不到。
+  */
+  overflow-y: auto;
+}
+
+/* 统计：7 列 × 2 行，1px 发丝线分隔 */
+.datapage .stats {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+
+.datapage .st-c { background: var(--card); padding: 6px 11px; min-width: 0; }
+
+.datapage .st-c .k {
+  font-family: var(--share);
+  font-size: var(--fs-caption);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  /*
+    与 .v / .z 同样的兜底：格子只有七分之一屏宽，标题长了宁可截断 ——
+    折成两行会把整块统计格顶高一行，那是<b>固定高度</b>的一块，
+    顶高就直接吃掉封包列表的可见行数。
+  */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+  ⚠️ 上下那 2px / 3px 是<b>行间距</b>，不是随手加的装饰。
+
+  这一格是「标题 / 数字 / 说明」三行摞在 62px 里，原来三行是贴着的 ——
+  用户直接说「行间距是不是有点小」。加完之后单格 62 → 67、整块统计格 126 → 136。
+
+  ⚠️ 那 10px 是从<b>封包列表的可见行数</b>里出的（这一屏是四层竖着摞的，见下面
+  `.grid` 那两档媒体查询）。所以别再往上加了 —— 真要更松就该重新排这一格，
+  而不是继续吃列表的高度。
+*/
+.datapage .st-c .v {
+  font-family: var(--orbit);
+  font-weight: 800;
+  font-size: var(--fs-num);
+  line-height: 1.25;
+  margin: 2px 0 3px;
+  color: var(--green);
+  /* 数字每 500ms 变一次，等宽才不会让整格宽度抖动 */
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.datapage .st-c .v.c { color: var(--cyan); }
+.datapage .st-c .v.a { color: var(--amber); }
+
+.datapage .st-c .z {
+  font-size: var(--fs-caption);
+  color: var(--muted);
+  line-height: 1.3;
+  /* 与 .v 同样的兜底：格子只有七分之一屏宽，宁可截断也不要把网格顶变形 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+  数据表。与下半部按 <b>3 : 1</b> 分高度 —— 窗口放大时两边一起长，
+  而不是像原来那样「封包列表独吞、下半部永远 208px」。
+
+  写 flex: 3 1 0 而不是 flex: 3（后者的 basis 是 0%，在这里等价，
+  但显式写出来才看得出比例是按<b>整个高度</b>分的，不是按剩余空间）。
+  min-height 是地板：窗口压到很矮时先保证表头 + 几行可见。
+*/
+.datapage .grid {
+  flex: 3 1 0;
+  min-height: 220px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.datapage .list { flex: 1; min-height: 0; border: 0; border-radius: 0; }
+
+/*
+  行底色图例。工具条上一段，<b>不参与收缩</b>（flex: none）——
+  搜索框是 flex: 1，窗口一窄就该由它让位，图例被压扁会让色块变形、字被截断。
+
+  色块<b>直接用行的配色画</b>（底色 + 文字色），而不是「小方块 + 说明文字」——
+  这样看到的就是行本身的样子，不用在脑子里再做一次映射。
+  ⚠️ 配色必须取自 `getPrefs`（那 4 组是用户可配的），不能写死十六进制。
+*/
+.datapage .plegend { flex: none; display: flex; align-items: center; gap: 6px; }
+
+/* 色块是按钮：点开就改这一组的配色。边框清掉，只留纯色块 */
+.datapage .plegend .lg {
+  /*
+    ⚠️ 行高要显式写 1：原来继承 normal，而 normal 行高会把<b>中文回退字体（更纱）</b>的上下伸也算进行盒，
+    基线被挤得偏上，100% 缩放下「替换 / 拦截」这几个字实测高 1.2px。
+    2026-09-13 按要求放大：17 → 24px 高、字号 10.5 → 11.5。上 5.75 / 下 6.75 与左 11 / 右 10 都是量出来的 ——
+    上下对称时 11.5px 的字在 100% 缩放下偏低 1.7px；右边少 1px 抵掉 letter-spacing 在最后一个字后面留的尾隙。
+    100% 与 125% 缩放下实测竖直偏差 ≤0.78px、水平 ≤0.47px。
+  */
+  padding: 5.75px 10px 6.75px 11px;
+  line-height: 1;
+  border: 0;
+  cursor: pointer;
+  font-family: var(--share);
+  font-size: var(--fs-small);
+  letter-spacing: .1em;
+  white-space: nowrap;
+}
+
+/* 悬停给一道浅描边 —— 不动底色，底色本身就是要展示的东西 */
+.datapage .plegend .lg:hover { box-shadow: inset 0 0 0 1px rgb(var(--tint-rgb) / 45%); }
+.datapage .plegend .lg:focus-visible { outline-offset: 1px; }
+
+/*
+  下半部：快捷面板 + 十六进制。占上半部的 1/3（见 .grid 那段）。
+
+  原来是写死的 208px：窗口拉高时它一动不动，十六进制永远只看得见那么几行。
+  min-height 180 是地板 —— 再矮的话四个页签加上表头就没有内容区了。
+
+  横向：快捷面板从 360 收到 320 —— 它只放「勾选 + 规则名 + 标记」三段，320 绰绰有余，
+  省下的给十六进制（那边每行字节数是按宽度跳档的，多几十像素常常正好够跨过一档）。
+  改成 minmax(300px, 22%) 之后它也跟着窗口长，但涨得比十六进制慢，
+  宽屏下多出来的宽度主要还是给十六进制 —— 那才是真正吃宽度的一侧。
+*/
+.datapage .lower {
+  flex: 1 1 0;
+  min-height: 180px;
+  display: grid;
+  grid-template-columns: minmax(300px, 22%) 1fr;
+  gap: 8px;
+}
+
+/*
+  ── 矮窗口下的收缩 ───────────────────────────────────────────
+
+  这一屏是<b>四层竖着摞</b>的：状态条 54 + 统计格 126 + 封包表(min 220) + 下半部(min 180)，
+  加上间距与内边距一共要 <b>626px</b>。而窗口给的高度是 100vh − 46(标题栏) − 30(状态栏)。
+
+  ⚠️ <b>默认窗口 ClientSize 1280×800 是设备像素</b>，页面拿到的是 CSS 像素 = 设备像素 ÷ 缩放比：
+  100% 缩放下有 800、125% 只剩 640、150% 只剩 533 —— 再扣掉 76，
+  125% 下这一屏只有约 564px 可用，而它要 626px。
+  差的那 60px 原来<b>直接被裁掉</b>（.page 是 overflow: visible，body 又 hidden），
+  快捷面板与十六进制面板的下半截既看不见也滚不到。
+
+  两个动作：
+    ① 窗口矮下来时把两块地板收紧（下面两档）—— 这一屏是「一眼看全」的，能收就别让它滚；
+    ② `.datapage` 补一个 overflow-y: auto 当<b>兜底</b>。收到最紧还是装不下时，
+       至少内容是<b>能滚到</b>的，而不是被裁掉。
+
+  ⚠️ **统计格一个像素都不动。** 一度也收过它（padding 6→3、数字 17→15px），
+  按要求撤销了 —— 那两行数字是这一屏的仪表盘，挤在一起就不像样了。
+  省下的那 30px 从<b>封包列表的可见行数</b>里出。
+
+  为什么不是「直接上滚动条了事」：抓包时下半部的十六进制面板与封包表要<b>同时</b>看，
+  一滚就等于把正在看的那半屏推走了。滚动条只配当地板，不配当方案。
+*/
+@media (max-height: 760px) {
+  .datapage .grid { min-height: 150px; }
+  .datapage .lower { min-height: 140px; }
+}
+
+@media (max-height: 660px) {
+  .datapage .grid { min-height: 120px; }
+  .datapage .lower { min-height: 120px; }
+}
+
+
+/* ── 列表页的共用外观 ─────────────────────────────────────────
+   账号 / 滤镜 / 发送（往后还有机器人 / 仓库）这几屏结构相同：
+   工具条 + 定高虚拟滚动表 + 勾选框 + 行内操作按钮。
+
+   这些规则原先在每个 .vue 里各抄一份，结果就是抄着抄着就不一样了 ——
+   禁用透明度 .35 / .4、选中行有没有那条左边线、表头字色、操作按钮有没有边框，
+   三份各不相同。放在这里是<b>唯一真源</b>：新做一屏只要给根元素加 list-page。
+
+   ⚠️ 这里不写 grid-template-columns、gap、以及各列的语义配色 ——
+   那些每屏都不一样，留在各自的 <style scoped> 里。
+
+   ⚠️⚠️ <b>平局时是这个文件赢，不是 scoped 赢。</b>
+   main.ts 里 `import App from './App.vue'` 排在 `import './style.css'` 前面，
+   所以打包出来组件的 scoped 样式在前、这个文件在后 —— 特异度相同时后者生效。
+   scoped 的 `.head` 编译成 `.head[data-v-x]`，与 `.list-page .head` 都是 (0,2,0)，
+   正好是平局。要在某一屏覆盖这里的规则，得<b>提高特异度</b>（例如 `.tbl .head`），
+   照着写一条同名规则是不管用的。
+   （真栽过：发送编辑那张表的表头比内容右移 4px，就是 14px 输给不了 10px。）
+   ────────────────────────────────────────────────────────── */
+
+/* 工具条 */
+.list-page .bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /*
+    ⚠️ 换行。加了六种语言之后补的：俄语的
+    「Новая учётная запись / Массовое создание / Сбросить счётчики / Очистить всё」
+    横过来比中文长将近一倍，1280 宽的窗口里最后一颗按钮会被切掉半个字。
+    折成两行比切掉一颗按钮强 —— 下面那张表本来就是弹性高度。
+  */
+  flex-wrap: wrap;
+  row-gap: 6px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+
+.list-page .grow { flex: 1; }
+
+/* 取账号 / 滤镜两屏原本一致的那份值，不是我另起的 */
+/*
+  小按钮（.mini）—— 弹窗里那种「生成 / 导入 / 导出 / 清空 / 跳到」的一排。
+
+  ⚠️ 这一份以前<b>在 7 个组件的 scoped 里各抄一遍</b>，而且抄歪了：
+  字色 --muted(4) / --gray(2) / --cyan(1)、内边距 8/10/6 四份、8/11/6、8/12/6、9/13/7 各一份，
+  三份的 hover 写成 :hover 而不是 :hover:not(:disabled)（<b>禁用了还会跟着变色</b>），
+  另有三份根本没写 :disabled（<b>禁用了不压暗</b>）。
+  而注入模式的「选目标」屏是唯一<b>一份都没抄</b>的 —— 那两颗按钮一直是浏览器原生外观。
+
+  取值取多数派（8px 10px 6px / --muted）。ProxySetting 那份原是 9/13/7 + --cyan，
+  那其实就是 .btn，不是 .mini —— 统一之后它变成和别处一样的小按钮。
+*/
+.mini {
+  padding: 7px 10px 7px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: var(--share);
+  font-size: var(--btn-size);
+  line-height: 1;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* ⚠️ 一律 :not(:disabled) —— 禁用的按钮不该对鼠标有反应 */
+.mini:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+.mini:disabled { opacity: .35; cursor: default; }
+
+.mini.danger:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
+.mini.warn { border-color: rgb(var(--amber-rgb) / 45%); color: var(--amber); }
+.mini.warn:hover:not(:disabled) { background: rgb(var(--amber-rgb) / 10%); border-color: var(--amber); color: var(--amber); }
+
+.list-page .btn {
+  flex: none;
+  /* 上 8.25 / 下 7.75：高度不变、文字下移四分之一像素 —— 100% 缩放下原来偏高约 1px，8.5 / 7.5 又会让 125% 缩放偏低 1px，取中间（2026-09-13 字体度量覆写后按 100% 缩放实测重调） */
+  padding: 8.25px 13px 7.75px;   /* 上下<b>对称</b>：line-height: 1 已经把字形偏上治好了，再补 1px 是补第二遍（2026-09-09 撤过 34 处）*/
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--gray);
+  font-family: var(--share);
+  font-size: var(--btn-size);
+  /* 显式 1：Share Tech Mono 在 line-height: normal 下会把行距全压在字的下面，字号一大就明显偏上（实测） */
+  line-height: 1;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.list-page .btn:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+.list-page .btn:disabled { opacity: .35; cursor: default; }
+
+.list-page .btn.primary { border-color: rgb(var(--green-rgb) / 45%); color: var(--green); }
+
+.list-page .btn.primary:hover:not(:disabled) {
+  background: rgb(var(--green-rgb) / 10%);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+/* 琥珀 = 提醒：用在「会让东西自动发生」的入口上（仓库列表的自动入库），与绿的主动作、红的破坏动作区分开 */
+.list-page .btn.warn { border-color: rgb(var(--amber-rgb) / 45%); color: var(--amber); }
+
+.list-page .btn.warn:hover:not(:disabled) {
+  background: rgb(var(--amber-rgb) / 10%);
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.list-page .btn.danger { border-color: rgb(var(--danger-rgb) / 30%); color: var(--danger); }
+
+.list-page .btn.danger:hover:not(:disabled) {
+  background: rgb(var(--danger-rgb) / 12%);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+/*
+  ══ 列表页的「执行顺序」说明条（.ordbar）══
+
+  滤镜 / 发送 / 机器人三张表都有这么一条：它们的<b>行序就是执行序</b>
+  （DoWork 按列表下标循环），而「顺序意味着什么」还取决于各自的执行模式 ——
+  这两层界面上不说就没人知道。三处原先各写各的（滤镜是青色描边条 + 徽标，
+  发送 / 机器人是一条灰色左边线的裸文字），并排看就是两种东西。
+
+  ⚠️⚠️ <b>刻意不叫 .hint。</b> 那个类名在本项目里是「一段灰色说明文字」，
+  十几个组件当段落用（style.css 里的 .setf .hint 就是那一种）；而 AccountList
+  与 TextCompare 这两个<b>同样挂着 .list-page</b> 的屏各自把它当成另一样东西
+  （琥珀警示条 / 居中的空态面板）—— 提成 .list-page .hint 会当场压坏那两屏。
+  「往 style.css 提一个类名之前先 grep 它有没有被别处当成另一个东西用」，
+  .mini 那次的教训。
+
+  两种配色：默认青色是常态；<b>.alt 是「顺序不按你以为的那样起作用」那一档</b> ——
+  滤镜的「优先原则」（后面的滤镜根本不跑）、发送 / 机器人的「同时执行」
+  （顺序不决定先后）。琥珀把它和常态分开，一眼看得出这一屏的行序此刻不管用。
+*/
+.list-page .ordbar {
+  flex: none;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 0;
+  padding: 6px 12px;
+  border: 1px solid rgb(var(--cyan-rgb) / 22%);
+  background: rgb(var(--cyan-rgb) / 5%);
+  font-size: var(--fs-small);
+  color: var(--muted);
+}
+
+.list-page .ordbar.alt {
+  border-color: rgb(var(--amber-rgb) / 30%);
+  background: rgb(var(--amber-rgb) / 6%);
+}
+
+/*
+  模式徽标。用户报的就是这枚：「按顺序执行」那几个字在框里没居中。两步治它 ——
+
+  ① <b>line-height: 1</b>。不写的话它继承 1.7（10px 字 → 17px 行盒），
+     多出来的 7px 行距按字体的 ascent/descent 分，字形整体<b>偏上</b>：
+     实测墨迹上沿距盒顶 4.88、下沿距盒底 6.60，偏高 <b>0.86px</b>。
+     写死 line-height 之后降到 0.56px。
+
+  ② <b>再补 0.4px 的下压</b>（4.4 / 3.6，上下之和仍是 8，盒高不变）。
+     ⚠️ 这一步与「2026-09-09 把 34 处按钮的『上 +1 下 −1』全撤掉」<b>不矛盾</b>：
+     那条撤的是「line-height:1 已经治好了还再补第二遍」；这里补的是
+     line-height:1 <b>之后仍然存在</b>的字形天然残差，与 .hx-meta.mode
+     那枚胶囊（3.6/1.4，同样是量出来的）是同一类。
+
+  ⚠️⚠️ <b>残差随语言变，一个值补不平所有语言。</b> 同一个盒子、同一套样式、只换文字，
+  实测（补偿前 → 补 0.4 之后，负号＝偏高）：
+
+      中 按顺序执行  −0.56 → <b>−0.16</b>      俄 ПО ОЧЕРЕДИ  −0.38 → <b>+0.02</b>
+      日 順番        −0.63 → <b>−0.23</b>      英 IN SEQUENCE −0.13 → <b>+0.27</b>
+      韩 순서대로    −0.81 → <b>−0.41</b>      越 TUẦN TỰ     −0.81 → <b>−0.41</b>
+
+  中日韩走系统回退字体、拉丁走 Share Tech Mono，两者在 em 框里的位置本就不同；
+  越南语还带上加符号（Ầ 的墨迹比别的字高出一截）。0.4 取的是这个区间的中点附近 ——
+  <b>最好的单值也只能把最大偏差压到 0.34</b>（0.47 时），与 0.4 差不多，
+  所以没有再去磨那 0.07。
+
+  ⚠️ <b>别按某一种语言调到 0</b>：照中文补到 0 要 +0.56，那时英文会变成 +0.43，
+  等于把偏差从一头挪到另一头。真正要紧的是<b>简体这一档从 0.86 降到 0.16</b>
+  （可见的上下空隙差 1.72px → 0.33px），那正是用户看出来的那一处。
+
+  换字号、换字体栈、或给徽标加一种新语言的文案，都要回来重量一遍这六个数。
+*/
+.list-page .ordbar .mk {
+  flex: none;
+  /*
+    ⚠️ 右内边距比左边少 1px，那不是笔误 —— letter-spacing 在<b>最后一个字后面也加一份</b>，
+    这 1px 尾隙算进排版宽里（实测每个字的盒子 11.4px = 字身 + 1px 尾隙，整段左右各留 7.8px、
+    <b>排版是对称的</b>），可墨迹在尾隙之前就结束了，于是真实文字比盒中心偏左 0.5px。
+    右边收 1px 正好把盒中心左移 0.5px 与之对齐。字号 / 字距一改就要回来重算这 1px。
+  */
+  padding: 4.5px 6px 3.5px 7px;   /* 9.5px 时 4.8 / 3.2；10.5px 雅黑时 4.05 / 3.95；换成内嵌更纱等宽 SC 后（2026-09-13）重量：4.05/3.95 偏高约 0.46px。上下之和不变 */
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  font-family: var(--share);
+  font-size: var(--fs-caption);
+  line-height: 1;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.list-page .ordbar.alt .mk { border-color: var(--amber); color: var(--amber); }
+.list-page .ordbar .tx { color: var(--gray); }
+.list-page .ordbar .note { color: var(--dim); }
+
+/* 表 */
+.list-page .body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--border);
+  background: var(--sink);
+  /* 滚动时不做像素级平滑，直接跳，帧内工作量更可控 */
+  overflow-anchor: none;
+}
+
+.list-page .spacer { position: relative; }
+
+.list-page .win {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  will-change: transform;
+}
+
+.list-page .empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--fs-body);
+  line-height: 1.8;
+}
+
+.list-page .head,
+.list-page .row {
+  display: grid;
+  align-items: center;
+  padding: 0 14px;
+  font-size: var(--fs-body);
+}
+
+.list-page .head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: var(--th-h);
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--share);
+  font-size: var(--th-size);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  /*
+    var(--th-fg) 而不是 var(--muted)：后者在 --panel 上只有 3.85:1，
+    小字 + 大字距下确实看不清（这是用户提过的），换成 7.8:1。
+  */
+  color: var(--th-fg);
+  white-space: nowrap;
+}
+
+/*
+  六张 .list-page 表共用。
+  表头每格与数据格同名（对齐规则靠这个），于是数据列的字体 / 字号 / 颜色
+  （.notes 12px、.ad / .dt 等宽字、.cnt 青色……）会一并漏进表头，看着就是「备注」「数据」比别的表头大。
+  这里按格子把它们收回来：表头只认表头自己那一份。(0,2,1) 压得过任何单类名的列规则。
+*/
+.list-page .head > span {
+  /*
+    表头字形偏上 2px（像素级实测：Share Tech Mono 10.5px 在 30px 表头里，中文 / 英文的墨迹中心都在盒中心上方约 2px）。
+    格子是 grid / flex 项，内边距只在上面补 4px 就把内容框中心压下 2px，对文本与 flex 居中的格子都成立。
+    改字号 / 字体 / 表头高度后要重新量（SVG foreignObject 逐行扫像素那套；量尺页 dev-headers.html 已于 2.1.9 随开发工具删除，要用从 git 历史取回）。
+  */
+  padding-top: 4px;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+
+  /*
+    与行格同一条：长了就省略号，不换行。
+    表头高度是写死的 var(--th-h)，一格折成两行会把整条表头顶高，
+    而列宽是按中文的字数定的 —— 「状态」两个字换成「Состояние」就是九个。
+  */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── 可排序的表头格（useSort.ts）─────────────────────────────
+   四张表在用：客户端列表 / 账号列表 / 进程设置 / 防火墙名单。
+   <b>不是每一格都可点</b>，所以样式挂在 .so 这个类上而不是所有 span 上 ——
+   可点与不可点必须一眼分得出，否则用户会一个个去试。
+
+   这几条也给弹窗里的小表用（进程设置、防火墙名单不在 .list-page 下），
+   所以选择器不带 .list-page 前缀，只认 .so 本身。
+   ────────────────────────────────────────────────────────── */
+.so { cursor: pointer; user-select: none; }
+.so:hover { color: var(--gray); }
+
+/* 排序中的那一列点亮，箭头跟着它 —— 只靠一个箭头在一排大写小字里太容易看漏 */
+.so.on { color: var(--cyan); }
+
+/*
+  箭头用 em 定宽占位：不占位的话，点一下表头这一格会变宽，
+  整行列宽是 grid 定死的，于是标题会左右跳一下。
+*/
+.so .ar {
+  display: inline-block;
+  width: 1em;
+  margin-left: 2px;
+  /*
+    ⚠️ 箭头字形<b>不走 --mono / --share</b>（2026-09-15 用户报「排序箭头变形了」）：
+    Share Tech Mono 没有 ↑↓，而内嵌的 WPE Sarasa 的 unicode-range 含 U+2190–21FF，
+    于是箭头落到等宽中文字体上 —— 那一套箭头是全角比例，缩到 10px 表头里又瘦又长。
+    WPE 只跑在 Windows 上，Segoe UI Symbol 必有，比例正常。
+  */
+  font-family: "Segoe UI Symbol", "Segoe UI", sans-serif;
+  /* ⚠️ 箭头挂在 <i> 上，浏览器默认 italic；Segoe UI Symbol 没有斜体字形，于是被合成斜体硬掰成歪的 —— 这才是「变形」的主因 */
+  font-style: normal;
+  letter-spacing: 0;
+}
+
+.list-page .row {
+  height: 34px;   /* 必须与各屏的 ROW_H 常量一致，对不上滚动位置会线性漂移 */
+  border-bottom: 1px solid rgb(var(--border-rgb) / 45%);
+  color: var(--soft);
+  cursor: default;
+}
+
+.list-page .row:hover { background: rgb(var(--tint-rgb) / 4%); }
+
+/*
+  ⚠️ 行里的每一格都<b>不许换行</b>，长了就省略号。
+
+  这几张表是定高虚拟滚动：行高必须与各屏的 ROW_H 常量逐像素一致，一格折成两行
+  就把整行顶高、后面所有行的滚动位置跟着漂。中文写得下的词换成别的语言常常长一倍
+  （「仅显示」→「Только показать」），加了六种语言之后这一条才显形。
+
+  勾选框与操作按钮那两格是 flex 容器、没有文本，这条规则对它们无害。
+*/
+.list-page .row > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 选中的行给一条左边线 + 淡底，滚动时一眼能看出还剩哪些选着 */
+.list-page .row.sel { background: rgb(var(--cyan-rgb) / 6%); box-shadow: inset 2px 0 0 var(--cyan); }
+.list-page .row.sel:hover { background: rgb(var(--cyan-rgb) / 10%); }
+
+/*
+  禁用的行压暗，<b>但勾选框那几格除外</b>。
+
+  它们是这一行仅有的操作入口 —— 尤其「启用」那个，正是用来把这一行重新点亮的控件。
+  跟着一起暗下去等于把出口也藏了：空框本来就只有一圈发丝线，再乘 45% 在黑底上几乎看不见。
+  所以按格子压暗，不对整行用 opacity。
+*/
+.list-page .row.off > span:not(.ck) { opacity: .45; }
+
+/* 勾选框那格用 flex —— inline-flex 按基线对齐会被字体下降部顶高 1px */
+.list-page .head > span.ck,
+.list-page .row > span.ck { display: flex; align-items: center; justify-content: center; }
+
+/* 勾选框 —— 基样式在下面「勾选框 / 单选框」那一节，这里只补这一屏独有的 */
+.list-page .chk:hover i { border-color: var(--muted); }
+
+/*
+  这里原先还有一套青色的「选中框」（.chk.sel / .half）。
+  各列表的多选已经全部改成按键（单击 / Ctrl / Shift，见 src/usePick.ts），
+  勾选框列一律撤掉 —— 它和「启用」开关长得一模一样，摆在一起分不出哪个是哪个，
+  而点错的代价不对称：一个只是选中，另一个会立刻让某条规则生效或失效。
+  所以这一套样式连同它的半选态一起删了。<b>剩下的 .chk 只表示「启用」，一律是绿的。</b>
+*/
+
+/* 行内操作按钮 */
+.list-page .ops { display: flex; align-items: center; justify-content: center; gap: 2px; }
+
+.list-page .op {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.list-page .op:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+.list-page .op.del:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
+.list-page .op:focus-visible { outline-offset: -2px; }
+.list-page .op.del:focus-visible { outline-color: var(--danger); }
+.list-page .op:disabled { opacity: .35; cursor: default; }
+.list-page .op .ico { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; }
+
+/* ── 大编辑器弹窗的外壳 ───────────────────────────────────────
+   滤镜编辑 / 发送编辑（往后还有机器人编辑）共用。以<b>滤镜编辑</b>为准：
+   宽 1180、四角标记 7px 实心青。
+
+   这些原先在两个 .vue 里各抄一份，于是宽度 1180 / 1080、角标 7px / 11px、
+   角标颜色实心 / 45% 透明各不相同 —— 从一个编辑器切到另一个，弹窗会跳一下。
+
+   ⚠️ 内边距的两个数不是随手写的：上 52 给自绘标题栏（44px）让位，
+   下 40 给状态栏（30px + 1px 上边框）让位，两头都是「控件高度 + 约 8px 余量」。
+   底下这条曾经是 20px，弹窗底边正压在状态栏上。
+   ────────────────────────────────────────────────────────── */
+
+.editor-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgb(var(--scrim-rgb) / 78%);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 52px 20px 40px;
+}
+
+/*
+  给一个目标高度而不是让它按内容撑：这几屏的主体都是表格 / 格子，
+  不给高度的话弹窗只有内容那么高，表永远只有它自己那点尺寸，拉窗口也不长。
+  min(...) 保证矮屏幕下不会顶出可用区。
+*/
+.editor-mask > .dlg {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(1180px, 100%);
+  height: min(860px, 100%);
+  max-height: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 18px 50px rgb(var(--shadow-rgb) / 60%);
+}
+
+.editor-mask .mk { position: absolute; width: 7px; height: 7px; border: 1px solid var(--cyan); }
+.editor-mask .mk.tl { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+.editor-mask .mk.tr { top: -1px; right: -1px; border-left: 0; border-bottom: 0; }
+.editor-mask .mk.bl { bottom: -1px; left: -1px; border-right: 0; border-top: 0; }
+.editor-mask .mk.br { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+
+/*
+  ── 设置弹窗里的表单件（进程 / 映射 / 外部代理 / 快捷键 / 备份 / 远程管理 + WPC 的几个编辑弹窗共用）──
+  早先做的几个设置页各自 scoped 了一份同样的规则；从这一批起收到这里，弹窗根元素挂 setf 即可。
+  弹窗里的小表叫 .tbl / .tr（不叫 .row —— .setf .row 是表单行）。
+*/
+.setf .grp { padding: 10px 20px 4px; font-family: var(--share); font-size: var(--fs-label); letter-spacing: .14em; text-transform: uppercase; color: var(--cyan); }
+/*
+  标签列宽默认 112px；标签长的弹窗（系统 / 拦截设置那几个）在 setf 元素上用 --setf-k 覆盖。
+
+  ⚠️ 再乘一个 --setf-kx：那八个数是按<b>中文</b>的字数定的（「滤镜执行模式」六个字 = 132px），
+  换成俄语的「При нескольких совпадениях」要长一倍，固定宽度下标签会在列里折成两行、
+  行高参差不齐。乘数由 App.vue 按语言给（方块字 1，拉丁 / 西里尔 1.3），
+  这样八个弹窗各自的比例还在，只是整体宽一档 —— 比逐个去改那八个数可靠。
+*/
+.setf .row { display: grid; grid-template-columns: calc(var(--setf-k, 112px) * var(--setf-kx, 1)) 1fr; align-items: center; gap: 12px; padding: 5px 20px; min-height: 32px; }
+.setf .row > .k { font-size: var(--fs-body); color: var(--muted); }
+.setf .row > .v { display: flex; align-items: center; gap: 10px; min-width: 0; flex-wrap: wrap; }
+.setf .row.off > .k, .setf .row.off > .v { opacity: .45; }
+.setf .hint { padding: 0 20px; margin: 4px 0 6px; font-size: var(--fs-small); color: var(--dim2); line-height: 1.5; }
+.setf .hint.warn { color: var(--amber); }
+
+/* ══════════════════════════════════════════════════════════════
+   设置弹窗的「分区卡」（.sec）—— 2026-09-10 起 11 个设置屏共用
+
+   改造前每一屏是「一条青色小标题 + 几行表单」平铺下来，组与组之间只靠
+   那条小标题的间距分隔 —— 项目里别的地方（启动页的机架、进程设置的四张步骤卡、
+   代理数据页的统计格）早就是<b>有边框的块</b>了，只有设置弹窗还停在纯文本分节上，
+   一打开就像另一个程序的窗口。
+
+   现在每一组装进一张卡：抬头是「编号 + 组名 + 一道渐隐的发丝线」，卡身是原来的表单行。
+   ⚠️ <b>组里的 markup 一行都不用改</b>，只要在 .grp 外面套一层 .sec —— 这是刻意的：
+   11 屏各自去画一套的下场，见「.list-page 抄了三份」。
+
+   ── 三条设计约束 ──────────────────────────────────
+   ① <b>编号是 CSS counter 生成的，不进 markup、不进字典。</b>
+      加一组、删一组、调顺序都不用回来重编号；七种语言也不必各译一遍
+      （与启动页 `Mode 01` / `Ready` 保持英文字面量是同一条口径）。
+   ② <b>左沿色轨只在 :focus-within 时点亮。</b> 静态时它是 22% 的青，
+      一圈卡片不会糊成一片霓虹；键盘走到哪一组，哪一组亮 —— 这是<b>功能</b>不是装饰。
+   ③ <b>卡内的行用 14px 内边距，不是外面那 20px。</b> 卡片自己已经有一圈边框，
+      再留 20px 会让内容缩成窄窄一条。
+   ══════════════════════════════════════════════════════════════ */
+.setf { counter-reset: sec; }
+
+.setf .sec {
+  position: relative;
+  margin: 10px 20px 12px;
+  padding-bottom: 8px;
+  border: 1px solid rgb(var(--border-rgb) / 80%);
+  background: rgb(var(--inset-rgb) / 16%);
+}
+
+/* 左沿色轨。用 ::before 而不是 border-left：卡片自己那圈边框要保持均匀 */
+.setf .sec::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: -1px;
+  bottom: -1px;
+  width: 2px;
+  background: rgb(var(--cyan-rgb) / 22%);
+  transition: .15s;
+}
+
+.setf .sec:focus-within::before { background: var(--cyan); box-shadow: 0 0 8px rgb(var(--cyan-rgb) / 45%); }
+
+/* 整组不可用时（例如防火墙关着的那几组）压暗，色轨也跟着退回去 */
+.setf .sec.off { opacity: .5; }
+.setf .sec.off::before { background: rgb(var(--border-rgb) / 60%); }
+
+/*
+  抬头。⚠️ 这里把基样式里那条 .setf .grp 的 uppercase / letter-spacing / 青色<b>全覆盖掉</b> ——
+  组名是中文，大写与 .14em 的字距对方块字没有意义，反而把字撑散。
+*/
+.setf .sec > .grp {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 14px 8px;
+  border-bottom: 1px solid rgb(var(--border-rgb) / 60%);
+  /*
+    ⚠️ 用 <b>--panel</b>，别用 rgb(var(--chrome-rgb) / N%) 那种半透明叠加。
+    浅色下 --chrome-rgb 是往<b>亮</b>里走的（见它的定义），叠在 --card(#fff) 上等于纯白 ——
+    编号那枚青色徽标实测掉到 <b>2.77</b>（深色 11.74）。换成与弹窗标题同一个面之后
+    深 13.6 / 浅 5.19，两套都过线。这与进程设置那次「步号别跟状态变色」是同一个坑。
+  */
+  background: var(--panel);
+  font-family: inherit;
+  font-size: var(--fs-body);
+  letter-spacing: .02em;
+  text-transform: none;
+  color: var(--soft);
+}
+
+/* 编号：01 / 02 / 03…… 自动生成 */
+.setf .sec > .grp::before {
+  counter-increment: sec;
+  content: counter(sec, decimal-leading-zero);
+  flex: none;
+  min-width: 21px;
+  /* 上 2.2 / 下 2.8：--fs-caption 提到 10.5px（2026-09-13）后重排，原 3 / 2 下数字偏低约 0.7px；上下之和不变 */
+  padding: 2.2px 4px 2.8px;
+  border: 1px solid rgb(var(--cyan-rgb) / 40%);
+  font-family: var(--share);
+  font-size: var(--fs-caption);
+  line-height: 1;
+  letter-spacing: .1em;
+  text-align: center;
+  color: var(--cyan);
+}
+
+/* 组名右边那道渐隐的发丝线，把抬头拉满整宽 */
+.setf .sec > .grp::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgb(var(--border-rgb) / 90%), transparent);
+}
+
+/* 卡内：行与说明各收 6px 内边距，第一行离抬头留一口气 */
+.setf .sec .row { padding: 5px 14px; }
+.setf .sec .hint { padding: 0 14px; }
+/*
+  ⚠️ 别写成 .sec > .row:first-of-type —— .grp 也是 div，:first-of-type 会命中<b>它</b>，
+  这条就落在抬头上、什么都不做。抬头自己往下让一口气才是对的写法。
+*/
+.setf .sec > .grp { margin-bottom: 4px; }
+
+/*
+  ⚠️ 卡内的小表<b>通栏</b>，不跟着卡的 14px 内边距缩进。
+
+  防火墙名单那几张表的列宽是按「弹窗宽度 − 40」算好的（见「防火墙名单表默认就横向溢出」）——
+  套进卡片后如果再各让 14px，等于凭空少 28px，实测中文的「客户端地」当场被省略号截掉、
+  俄语更是整块横向溢出 703/646。左右边框也去掉，让它读成卡里的一条带而不是「卡中卡」。
+*/
+.setf .sec .tbl {
+  margin: 6px 0 0;
+  border-left: 0;
+  border-right: 0;
+}
+
+/*
+  ── 总开关条（.swb）─────────────────────────────────
+
+  外部代理 / 远程管理 / 快捷键这三屏，开头有一段<b>不属于任何分组</b>的东西：
+  一个总开关（或「作用于哪份列表」），它管着下面所有卡片。
+
+  把它也塞进一张 .sec 卡是错的 —— 那样它读起来就成了「第 01 组」，与它管着
+  02、03 的事实相反；而放着不管又会显得像掉在外面的一行。所以给它一条自己的形态：
+  <b>贴着弹窗上沿的一条带</b>，左沿一道实心色轨，比卡片更"上位"。
+
+  ⚠️ 它<b>不参与编号</b>（counter 只在 .sec > .grp 上自增），所以下面的卡片仍然从 01 开始。
+*/
+.setf .swb {
+  position: relative;
+  margin: 0 0 4px;
+  padding: 4px 0 8px;
+  border-bottom: 1px solid rgb(var(--border-rgb) / 60%);
+  background: rgb(var(--chrome-rgb) / 12%);
+}
+
+.setf .swb::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: -1px;
+  width: 3px;
+  background: var(--cyan);
+}
+
+/* 带里的行与说明跟着弹窗的 20px 走（它是通栏的，不像卡片那样自己有边框） */
+.setf .swb .row { padding: 6px 20px; }
+.setf .swb .hint { margin: 2px 0 0; }
+
+/*
+  基样式在下面「勾选框 / 单选框」那一节。设置弹窗里勾选框是成片出现的，
+  所以用压暗的 --chk-on 而不是主色 --green —— 理由见该 token 的注释。
+*/
+.setf .chk { --chk-fill: var(--chk-on); --chk-fill-rgb: var(--chk-on-rgb); --chk-tint: 14%; }
+
+/* ══════════════════════════════════════════════════════════════
+   勾选框 / 单选框（.chk / .rd）—— 全项目一份
+
+   ⚠️ <b>盒子 12px 与 inset 2px 是一对，别单独改。</b>
+
+   2026-09-13 恢复成原来的 12px：字体度量覆写、行高改成整数之后，用无界面 Edge 在真实页面上
+   把两个程序里全部勾选框 / 单选框（47~74 个）红框绿心逐个量了质心偏差 ——
+   12px / inset 2 在 100% 与 150% 缩放下最大 0.01 / 0.18 设备像素，125% 下平均 0.09，
+   与 16px / inset 4 同一档。下面这段是 2026-09-09 当时的推演与实测，留作换尺寸时的参考：
+
+   内块（那个绿方块）用 `inset` 从<b>内边距盒</b>起算，所以它到盒子外沿的距离
+   是「边框的计算宽度 + inset」。而<b>边框的计算宽度会随缩放变</b> ——
+   Chromium 把 1px 的边按整设备像素画，125% 下它的计算值是 <b>0.8px</b>。
+
+   于是 inset 取 2px 时，这个距离是 (0.8 + 2) × 1.25 = <b>3.5 设备像素</b>，
+   一个取整平局。平局永远朝同一边破，所以左右必然一个 3 一个 4 ——
+   <b>绿方块每一个都偏心</b>，而且相邻两个常常朝相反方向偏，并排看格外明显。
+   （实测 2026-09-09：125% 下 12px 的框 99% 的位置都偏，175% 同样；
+   100% / 150% / 200% 反而是准的 —— 所以在 100% 的机器上看不出来。）
+
+   inset 取 <b>4px</b> 就没有平局：(0.8+4) × 1.25 = 6，
+   1.0 / 1.25 / 1.5 / 1.75 / 2.0 五档全部落在整设备像素上。
+   盒子跟着取 16px，内块才有原来那个粗细（125% 下 6.4px，与旧版一样）。
+
+   ⚠️ <b>要换尺寸就重跑一遍取整验算</b>：inset 必须是 4 的倍数，
+   否则 125% / 175% 两档必偏，而且在 100% 的开发机上完全看不出来。
+
+   颜色走三个变量，各处只覆盖自己那一条（原先是 12 份手抄，抄出了三种分歧：
+   框线 --border/--dim、勾选色 --green/--chk-on、禁用透明度 .35/.4/.45/.5）：
+
+     --chk-ring          未勾时的框线
+     --chk-fill / -rgb   勾上之后的方块与文字
+     --chk-tint          框内那层很淡的底
+   ══════════════════════════════════════════════════════════════ */
+
+.chk, .rd {
+  --chk-ring: var(--dim);
+  --chk-fill: var(--green);
+  --chk-fill-rgb: var(--green-rgb);
+  --chk-tint: 18%;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  font-size: var(--fs-body);
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.chk i, .rd i { width: 12px; height: 12px; border: 1px solid var(--chk-ring); position: relative; flex: none; }
+
+.chk.on { color: var(--chk-fill); }
+.chk.on i { border-color: var(--chk-fill); background: rgb(var(--chk-fill-rgb) / var(--chk-tint)); }
+.chk.on i::after { content: ""; position: absolute; inset: 2px; background: var(--chk-fill); }
+
+.rd i { border-radius: 50%; }
+.rd.on { color: var(--cyan); }
+.rd.on i { border-color: var(--cyan); }
+.rd.on i::after { content: ""; position: absolute; inset: 2px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 5px var(--cyan); }
+
+.chk:disabled, .rd:disabled { cursor: default; opacity: .5; }
+.chk:focus-visible, .rd:focus-visible { outline-offset: 2px; }
+.rd:focus-visible { outline-color: var(--cyan); }
+
+/* ══════════════════════════════════════════════════════════════
+   输入框（.inp）—— 全项目一份
+
+   ⚠️ 这一段以前<b>只有 .setf .inp</b>（设置弹窗那一套），于是不在弹窗里的页面
+   各自在 scoped 里抄一份基样式 —— 一共抄了 <b>14 份</b>，并且已经抄歪了：
+   禁用态透明度 .4 / .5 各半、字号 12.5 / 13、高度 26 / 28 / 30 / 46 都有。
+   （2026-09-08 重做文本对比页时我顺手把那份删了，两个框当场退回浏览器原生外观，
+   就是被这条坑出来的。）
+
+   现在基样式在这儿，组件里<b>只留自己真正不同的那几条</b>（多半是 flex / min-width
+   这类布局，不是外观）。⚠️ <b>flex 与 min-width 刻意不进这里</b> ——
+   那是「这个框在它那一行里占多宽」，各屏不同，放进来会把没设过的那几屏挤变形。
+
+   两处刻意<b>没有</b>并进来，它们不是同一个控件：
+     · EncryptPassword 的密码框（30px 高、右边留 34px 给眼睛图标、13px 字、带字距）
+     · InstanceView 的路径条（46px 高、无边框只有左边一道线、聚焦是底色不是边框色）
+   ══════════════════════════════════════════════════════════════ */
+
+.inp {
+  height: 28px;
+  padding: 0 10px;
+  background: rgb(var(--inset-rgb) / 30%);
+  border: 1px solid var(--border);
+  color: var(--gray);
+  font-family: var(--mono);
+  font-size: var(--fs-body);
+  outline: none;
+  /* body 上是 user-select: none，输入框里的内容要能选中复制 */
+  user-select: text;
+}
+
+/*
+  ⚠️ <b>焦点只用边框表示，不再叠一圈 outline。</b>
+
+  上面那条全局 `input:focus-visible { outline: 2px solid var(--green) }` 是给
+  「没有别的办法表示焦点」的控件用的（按钮 / 菜单项 / 卡片）。输入框本来就有边框可用，
+  两个一起上就是<b>外圈绿、内圈青</b> —— 一个控件两层两色，用户直接提了。
+
+  ⚠️ 而且这一层躲不掉：`:focus-visible` 对文本输入框<b>鼠标点击也会命中</b>（规范如此），
+  所以全局那条注释里「鼠标点击不该出现焦点环」的意图，在输入框上本来就没成立过。
+
+  「输入框获得焦点 = 边框转青」全项目已经有五处这么写（`.gtool .num`、`.gtool .search`、
+  `SystemLog` 的 `.keep`、`CyberSelect` 的 `.cs-btn`），这里把 `.inp` 也统一过去。
+  特异度 (0,2,0) 压得过全局的 (0,1,1)，不依赖顺序。
+
+  ⚠️ <b>没有自己边框的文本域</b>（`.ta` / `HiliteArea` 的 `.ha-ta`）走另一条：
+  由它外面那层带边框的容器 `:focus-within` 转青，语言一致。别给它们单独加边框。
+*/
+.inp:focus,
+.inp:focus-visible { border-color: var(--cyan); outline: none; }
+.inp:disabled { opacity: .5; }
+.inp::placeholder { color: var(--dim); }
+
+/* 设置弹窗里的只差「占满这一行」这一条，外观全走上面那份 */
+.setf .inp { flex: 1; min-width: 0; }
+.setf .inp.bad { border-color: var(--danger); }
+.setf .inp.num { flex: none; width: 90px; text-align: center; }
+.setf .inp.sm { flex: none; width: 160px; }
+.setf .inp.cap-key { cursor: pointer; caret-color: transparent; }
+.setf .inp.cap-key:focus { border-color: var(--green); box-shadow: inset 0 0 0 1px rgb(var(--green-rgb) / 25%); }
+.setf textarea.inp { height: 84px; padding: 6px 10px; resize: vertical; line-height: 1.5; }
+
+.setf .sbtn { flex: none; padding: 7px 11px 7px; background: transparent; border: 1px solid var(--border); color: var(--gray); font-family: var(--share); font-size: var(--btn-size); line-height: 1; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
+.setf .sbtn:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+.setf .sbtn:disabled { opacity: .35; cursor: default; }
+.setf .sbtn.primary { border-color: rgb(var(--green-rgb) / 45%); color: var(--green); }
+.setf .sbtn.primary:hover:not(:disabled) { background: rgb(var(--green-rgb) / 10%); border-color: var(--green); color: var(--green); }
+.setf .sbtn.danger { border-color: rgb(var(--danger-rgb) / 30%); color: var(--danger); }
+.setf .sbtn.danger:hover:not(:disabled) { background: rgb(var(--danger-rgb) / 12%); border-color: var(--danger); color: var(--danger); }
+.setf .sbtn.warn { border-color: rgb(var(--amber-rgb) / 45%); color: var(--amber); }
+.setf .sbtn.warn:hover:not(:disabled) { background: rgb(var(--amber-rgb) / 10%); border-color: var(--amber); color: var(--amber); }
+
+.setf .tg { flex: none; padding: 4px 7px 4px; border: 1px solid; font-family: var(--share); font-size: var(--fs-label); line-height: 1; letter-spacing: .06em; }
+.setf .tg.ok { border-color: rgb(var(--green-rgb) / 35%); color: var(--green); }
+.setf .tg.bad { border-color: rgb(var(--danger-rgb) / 30%); color: var(--danger); }
+.setf .tg.dim { border-color: var(--border); color: var(--dim); }
+.setf .link { color: var(--cyan); font-family: var(--mono); font-size: var(--fs-body); cursor: pointer; text-decoration: underline dotted; }
+.setf .link:hover { color: var(--green); }
+
+/* 弹窗里的小表：表头借 .list-page（根元素同时挂 list-page 类），行是 .tr */
+.setf .tbl { margin: 4px 20px 8px; border: 1px solid var(--border); background: var(--sink); display: flex; flex-direction: column; }
+.setf .tbl .tbar { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-bottom: 1px solid var(--border); background: var(--card); }
+.setf .tbl .tbar .grow { flex: 1; }
+.setf .tbl .tbody { max-height: 260px; overflow-y: auto; }
+.setf .tbl .empty { padding: 22px; text-align: center; color: var(--muted); font-size: var(--fs-body); line-height: 1.6; }
+/*
+  ⚠️ 表头借的是 `.list-page .head`（那一对 head/row 都<b>没有</b> gap，所以大列表页自洽），
+  而这里的数据行 `.tr` 有 gap: 8px —— 不补这一句，弹窗小表的表头就比行少 N-1 个 8px，
+  而且那点差额全被弹性列吞掉，越往右错得越多（规则集实测差 40px）。
+
+  ⚠️⚠️ 必须写成 `.tbody > .head`，别图省事写 `.setf .tbl .head`：全项目还有两处同名不同物的
+  `.head`，它们各有自己的 gap，一律命中就是把好的弄坏 ——
+    · `AccountBatch` 的表头是 `.tbl > .head`（直接子，与 `.drow` 配对，自己的 gap 是 10px）
+    · `AutoStoresSetting` 的 `span.head` 是「包头」<b>那一格</b>，长在 `.trow` 里面
+  这一条命中的只有「`.tbody` 里与 `.tr` 并排」的那三张：规则集 · 进程设置 · 映射设置。
+*/
+.setf .tbl .tbody > .head { gap: 8px; }
+.setf .tbl .tr { display: grid; align-items: center; gap: 8px; padding: 0 14px; height: 34px; border-bottom: 1px solid rgb(var(--border-rgb) / 45%); font-size: var(--fs-body); color: var(--soft); cursor: default; }
+.setf .tbl .tr:hover { background: rgb(var(--tint-rgb) / 4%); }
+.setf .tbl .tr.sel { background: rgb(var(--cyan-rgb) / 6%); box-shadow: inset 2px 0 0 var(--cyan); }
+.setf .tbl .tr > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.setf .tbl .tr.off > span:not(.ck) { opacity: .45; }
+.setf .tbl .tr > span.ck, .setf .tbl .tr > span.ops { display: flex; align-items: center; justify-content: center; gap: 4px; }
+
+
+/* ══════════════════════════════════════════════════════════════
+   分段按钮（.hx-seg / .hx-segb）—— 「二选一」的那种控件
+
+   ⚠️ <b>二选一不要做成勾选框。</b> 这一段是被用户问出来的：查找框旁边那个
+   「文本 / 十六进制」原先是<b>一个 .chk 勾选框，标签跟着自己的状态变</b> ——
+   勾上是绿的、写着「十六进制」，点一下变成没勾、写着「文本」。
+   于是它读起来是「『文本』这一项没有勾选」，而那根本不是一个可以不勾的东西。
+   勾选框表达的是「这一项开还是关」，标签必须是<b>不变</b>的；
+   两个互斥的取值该用分段按钮，两格都摆出来、亮着的那格就是当前值。
+
+   两格<b>各有各的色相</b>，未选中时也带着自己的颜色 —— 原来两格同色、
+   只有底色深浅之别，扫一眼分不出正在看哪一份，非得读标签不可。
+   现在按颜色就能认：<b>绿 = 十六进制 / 改写后</b>，<b>青 = 文本 / 改写前</b>。
+   （改写前刻意不用琥珀：琥珀已经是正文里「这一位被改过」的标记色。）
+
+   .after / .before 是<b>颜色槽</b>（绿 / 青），不是「后 / 前」的意思 ——
+   十六进制面板拿它们同时表达了「改写后 / 改写前」与「十六进制 / 文本」两对。
+
+   原先 HexPanel 与 PacketModification 各抄了一份（padding 相同、颜色一份写死
+   一份用令牌、hover 与焦点环只有一份有），这里合成一份。
+   ⚠️ 未选中态一定要用令牌：写死的 #5aa080 / #5b93a6 是<b>深色那一档的值</b>，
+   浅色下不会跟着变 —— 那正是「组件里写死的弱化色」这一类的老毛病。
+   ══════════════════════════════════════════════════════════════ */
+
+.hx-seg { display: flex; border: 1px solid var(--border); }
+
+/* 靠右端 —— 与左边那些计数分开，读起来是两组东西 */
+.hx-seg.right { margin-left: auto; }
+
+.hx-segb {
+  padding: 6.5px 10px 5.5px;   /* 上 +1 下 -1：字形在 em 框里偏上 1px（上伸 9 / 下伸 3，实测），补回来 */
+  background: transparent;
+  border: 0;
+  font-family: var(--share);
+  font-size: var(--btn-size);
+  /* 显式 1：Share Tech Mono 在 line-height: normal 下会把行距全压在字的下面，字号一大就明显偏上（实测） */
+  line-height: 1;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* 中缝：只给后一格加左边框，两格之间才是一条线而不是两条 */
+.hx-segb + .hx-segb { border-left: 1px solid var(--border); }
+
+.hx-segb.after { color: var(--green-soft); }
+.hx-segb.before { color: var(--cyan-soft2); }
+
+.hx-segb.after:hover { color: var(--green); }
+.hx-segb.before:hover { color: var(--cyan); }
+
+.hx-segb.after.on { color: var(--green); background: rgb(var(--green-rgb) / 12%); }
+.hx-segb.before.on { color: var(--cyan); background: rgb(var(--cyan-rgb) / 12%); }
+
+.hx-segb:focus-visible { outline-offset: -2px; }
+
+/* ══════════════════════════════════════════════════════════════
+   封包表的工具条（.gtool）—— 代理数据页与注入封包页共用
+
+   两屏的工具条结构一模一样：查找框 + 文本/十六进制 + 查找下一个 +
+   自动滚动 / 自动清理。原先整套规则长在 ProxyData 的 scoped 里，
+   注入那屏再抄一份的下场，参考 .list-page 那三份手抄抄歪的教训。
+
+   全部规则都挂在 .gtool 下，不会漏到别处（.search 这个类名在
+   .list-page 的工具条里另有一套，那边是 .list-page .search，特异度相同、
+   但两者永远不会作用在同一个元素上）。
+   ══════════════════════════════════════════════════════════════ */
+
+.gtool {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /*
+    ⚠️ 允许换行。这一条是加了六种语言之后补的：俄语的
+    「Замена / Подмена / Блокировка / Только показать」四个图例加上
+    「Найти далее」「Искать с начала」，横过来比中文长将近一倍，
+    窗口一窄就把搜索框挤成只剩放大镜。换行之后工具条变成两行，
+    比把唯一的输入框压没了强 —— 下面那张表本来就是弹性高度。
+  */
+  flex-wrap: wrap;
+  row-gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+
+/*
+  除了搜索框，工具条上的东西一律不许被压缩。
+
+  这一条是加完查找那几个控件之后补的：flex 项默认可以缩到内容宽度以下，
+  窗口一窄，「查找下一个」就会被挤成半个字。
+  该让位的只有搜索框（它有 flex: 1 + min-width: 0，缩到只剩图标也还看得懂）。
+*/
+.gtool > .tb,
+.gtool > .chk,
+.gtool > .hx-seg,
+.gtool > .num,
+.gtool > .lbl,
+.gtool > .pair,
+.gtool > .plegend { flex: none; white-space: nowrap; }
+
+/*
+  自绘的悬停提示（`tooltip.ts` 在用，全项目一个实例）。
+
+  ⚠️ <b>必须 pointer-events: none</b> —— 它是贴着目标画的，一旦吃鼠标事件，
+  盖住目标的那一刻就等于「鼠标离开了目标」，提示会当场开始闪。
+
+  z-index 1600：压得过右键菜单（1500）与弹窗遮罩（999），
+  低于氛围层（2000，那两层本来就 pointer-events: none）。
+  提示要能盖在右键菜单上 —— 菜单项自己也可能带 title。
+
+  与 .cm 同一套外观（panel 底 + 1px 边 + 同一条阴影），
+  外加左边一道青色细线，让它一眼看出是「说明」不是「菜单」。
+*/
+.tipbox {
+  position: fixed;
+  z-index: 1600;
+  display: none;
+  max-width: 340px;
+  padding: 6px 10px 5px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--cyan);
+  box-shadow: 0 6px 22px rgb(var(--shadow-rgb) / 55%);
+  color: var(--gray);
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  /* 长句要能折行；换行符照原样显示（有几条文案是分行写的） */
+  white-space: pre-wrap;
+  pointer-events: none;
+}
+
+/*
+  ⚠️ <b>勾选框与它后面那个条数框要一起换行。</b>
+  工具条是 flex-wrap 的，两者各自是一个 flex 项 ——
+  正好卡在换行点上时，条数框会被甩到第二行、挨着不相干的东西
+  （实测 799px 宽时它落到了 Dev 那一排旁边），看着像个孤零零的输入框。
+  包一层 .pair 就把它们变成同一个换行单位。
+*/
+.gtool .pair {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/*
+  搜索框吃掉工具条的剩余空间 —— 它后面的勾选框因此自动靠右，
+  不再需要一根占位撑杆。min-width: 0 是必须的：flex 项的默认最小宽度是内容宽度。
+*/
+/* 与旁边的 .tb 齐高：.tb 是 padding 8px …… 6px，分段按钮默认 7 / 5，补这 2px */
+.gtool .hx-segb { padding-top: 7px; padding-bottom: 7px; }
+
+/* 同理，与 .list-page .btn（padding 9 / 7）齐高 —— 差 4px 的话一排控件高低不齐，一眼就看得出 */
+.list-page .bar .hx-segb { padding-top: 8px; padding-bottom: 8px; }
+
+.gtool .search {
+  flex: 1;
+  /*
+    ⚠️ **这个下限是量出来的，别凭手感往回调。**
+
+    工具条上除它以外的东西加起来约 640px（图例 170 · 十六进制/文本 114 ·
+    查找下一个 80 · 自动滚动 69 · 自动清理那一对 157，再加 gap）。
+    而 <b>125% 缩放的默认窗口</b>只有 1024 CSS 宽 —— 扣掉侧栏 196 与内边距，
+    这条工具条只剩约 802px，留给搜索框的就是 160 上下。
+    原来写 200 时它挤不进去，于是「自动清理」那一对被甩到第二行
+    （用户报的就是这个），而工具条一折行就直接吃掉封包列表两行可见高度。
+
+    130px 还能显示约 13 个字符 + 图标 + 清除叉，够看清自己敲了什么；
+    再往下就只剩图标了，那才是真的没法用。
+    ⚠️ 150% 缩放（853 CSS 宽）下仍然会折 —— 那时别的项本身就超了，
+    压搜索框已经救不回来，折行在那一档是认下的地板。
+
+    2026-09-11 再收到 120：繁体的「十六進位制」比简体「十六进制」多一个字（+13px），
+    130 时繁体差 2px 就折行。120 仍装得下约 12 个字符。
+    同一轮把代理数据页那两个 Dev 按钮挪进了「设置 ▾」菜单 —— 它们原来独占这条工具条的第二行。
+  */
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  background: rgb(var(--inset-rgb) / 30%);
+  color: var(--muted);
+  font-size: var(--fs-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gtool .search .ico { width: 13px; height: 13px; stroke: currentColor; stroke-width: 2; fill: none; flex: none; }
+
+/* 有内容时整个框提亮一档：扫一眼就知道当前列表是不是正被一个查找条件盯着 */
+.gtool .search:focus-within { border-color: var(--cyan); color: var(--cyan); }
+.gtool .search.busy { border-color: var(--amber); color: var(--amber); }
+
+/*
+  输入框本身不画边框 —— 边框在外面那个 .search 上，
+  图标 / 输入 / 清除按钮共用同一个盒子，看起来才是一个控件而不是三个。
+*/
+.gtool .sinp {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--gray);
+  font-family: Consolas, monospace;
+  /*
+    ⚠️ 跟着同一行的按钮走（`--btn-size`），别自己定一档。
+    原来写死 12px，而这条工具条上其余全是 9.5~11px —— 搜索框成了全场最大的那个，
+    用户直接说「输入框里的提示文字明显比其它文字大」。
+    ⚠️ 设置弹窗里的 `.inp` <b>不要跟着改</b>：那是 12.5px，与旁边的标签同档，本来就不突兀。
+    工具页（文本对比 / 异或计算）工具条上的那几个 2026-09-11 已按要求跟过来了 —— 它们同样是
+    「一排小按钮中间夹着一个大字输入框」。
+  */
+  font-size: var(--btn-size);
+  outline: none;
+}
+
+.gtool .sinp::placeholder { color: var(--muted); }
+
+.gtool .sx {
+  flex: none;
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.gtool .sx:hover { color: var(--danger); }
+
+.gtool .chk {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  font-family: var(--share);
+  font-size: var(--btn-size);
+  /* 显式 1：Share Tech Mono 在 line-height: normal 下会把行距全压在字的下面，字号一大就明显偏上（实测） */
+  line-height: 1;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.gtool .chk { --chk-ring: var(--border); }
+.gtool .chk:focus-visible { outline-offset: 2px; }
+
+/*
+  自动清理的条数框（代理数据页 / 注入数据页共用）。
+
+  2026-09-07 之前它是个<b>只读按钮</b>，点了跳去「列表设置」弹窗；
+  现在设置就在这儿，它成了真的 <input>。
+
+  ⚠️ <b>上下箭头（spin button）保留，别去 appearance: none 它。</b>
+  这一条写错过一次，理由是「系统画的浅色控件，与自绘件对不上」——
+  不成立：本文件顶上设了 color-scheme（深色 dark / 浅色 light），
+  Chromium 的原生箭头会<b>跟着主题走</b>。而且全项目 43 个 type="number"
+  里，原先<b>一个都没关</b>过箭头（「列表设置」里那个前身也有），
+  关掉反而成了唯一的异类 —— 用户一眼就看出少了东西。
+
+  宽度按「6 位数字 + 箭头」定死 —— 跟着内容伸缩的话，
+  从 5000 改成 20000 时它右边的东西会整体挪一下。
+  居中对齐照 .setf .inp.num 那个前身：右对齐会让数字紧贴着箭头。
+*/
+/* 与上面同一条口径：这一行的字号只有 --btn-size 一档（图例那 9.5px 是刻意更小的角标）*/
+.gtool .num {
+  width: 80px;
+  padding: 3px 2px 3px 6px;
+  background: rgb(var(--inset-rgb) / 30%);
+  border: 1px solid var(--border);
+  color: var(--gray);
+  font-family: var(--mono);
+  font-size: var(--btn-size);
+  text-align: center;
+}
+
+.gtool .num:focus { outline: none; border-color: var(--cyan); }
+.gtool .num:disabled { opacity: .45; cursor: not-allowed; }
+.gtool .num.bad { border-color: var(--danger); color: var(--danger); }
+
+.gtool .tb {
+  padding: 7px 10px 7px;   /* 上 +1 下 -1：字形在 em 框里偏上 1px（上伸 9 / 下伸 3，实测），补回来 */
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: var(--share);
+  font-size: var(--btn-size);
+  /* 显式 1：同上，Share Tech Mono 在默认行高下字形明显偏上 */
+  line-height: 1;
+  letter-spacing: .1em;
+  cursor: pointer;
+}
+
+.gtool .tb:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+.gtool .tb:disabled { opacity: .4; cursor: default; }
+
+

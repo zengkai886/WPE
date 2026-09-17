@@ -1,0 +1,2781 @@
+{
+  "sourceArchiveSha256": "1F524B84621F064ACD91C3F9D764D1ADDF19AC42019E7FCEDE11BF55EA536113",
+  "vueFiles": 70,
+  "files": [
+    {
+      "path": "remote-web/CCProxy/cn_acclistadmin.htm",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/Web/CCProxy/cn_acclistadmin.htm",
+      "sha256": "6F3A73B4FCD7E8A97FDE56C194B819E4B1F18955B70CC122192EF1B37E693616"
+    },
+    {
+      "path": "remote-web/ProxyAccount.html",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/Web/ProxyAccount.html",
+      "sha256": "95738DDAD54011C12E3D04D2D57D5BFB967BFE6FEA0BC389B6585B750400C993"
+    },
+    {
+      "path": "remote-web/SystemLog.html",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/Web/SystemLog.html",
+      "sha256": "1BDD90E89B485A81A5D1FEFD11CD9619CC1428AC56A70B7280C5A5F3309D2339"
+    },
+    {
+      "path": "remote-web/fonts/OFL.txt",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/Web/fonts/OFL.txt",
+      "sha256": "9FFF2CF7B8500AECDB78E2D9951819E0BC284F3166E6F79361DC09381B3FCCF6"
+    },
+    {
+      "path": "remote-web/fonts/jetbrainsmono.woff2",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/Web/fonts/jetbrainsmono.woff2",
+      "sha256": "83C005D49D8A6A50474C73A5A36AC0468076E9C4A29DA7BDB14995D80560A5BE"
+    },
+    {
+      "path": "remote-web/fonts/orbitron.woff2",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/Web/fonts/orbitron.woff2",
+      "sha256": "C25A9F9DA5D9F3DB1BF2A01474722DC9B377675B7BBAB6D0DFDA6902794FD1ED"
+    },
+    {
+      "path": "remote-web/fonts/sharetechmono.woff2",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/Web/fonts/sharetechmono.woff2",
+      "sha256": "41E6B9F297F7D9A2DF2AAA274092F76D2F72711A15CA455F7F4F4F92CAF16B72"
+    },
+    {
+      "path": "remote-web/index.html",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/Web/index.html",
+      "sha256": "E445B28ED6F69F4E952CD6548AD01D26685C6C4380368F8C01DC417A2A8C817F"
+    },
+    {
+      "path": "remote-web/wpe.css",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/Web/wpe.css",
+      "sha256": "13D86D99FA10776E1455BDA389B14074263601F2C356B3AE41EC5B345E122E05"
+    },
+    {
+      "path": "remote-web/wpe.ico",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/Web/wpe.ico",
+      "sha256": "87D4B9EFB49BBD9D84E00665C259C157AFEB0DD9EAD9D5F867979E118734AC4C"
+    },
+    {
+      "path": "remote-web/wpe.js",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/Web/wpe.js",
+      "sha256": "3E3CE0AA324A6D3CBF0917834CB27B089101ED92325F02CED83304F799FC39F7"
+    },
+    {
+      "path": "frontend/.claude/launch.json",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/.claude/launch.json",
+      "sha256": "B1459597FFF085BC626022476928BF99860CB5D15BEA2EA383D1EB4C6D6152B2"
+    },
+    {
+      "path": "frontend/.gitignore",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/.gitignore",
+      "sha256": "49412FAF5D9891051A129AB8D8FBDC57BF1F370E73D4D024DCF84347838E000C"
+    },
+    {
+      "path": "frontend/index.html",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/index.html",
+      "sha256": "25371D753C191321FD734FE1F4137ACC71241FAB8E6D1B8E37B3DE4374B8E808"
+    },
+    {
+      "path": "frontend/package-lock.json",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/package-lock.json",
+      "sha256": "47E4FF77D3AB293A94BBF59CB26948F6ABB55C78CEC13BCAEFC7C5CC7C01F0DC"
+    },
+    {
+      "path": "frontend/package.json",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/package.json",
+      "sha256": "FEFED83B59D9B1EFA621E5459B86DD5927694B04C67B2C81172798B22B74B199"
+    },
+    {
+      "path": "frontend/public/flags/Flag_Local.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/Flag_Local.png",
+      "sha256": "693D341799AC61467558ABAC65328667C4CF59409BB758CE78B884AD748484B4"
+    },
+    {
+      "path": "frontend/public/flags/ad.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ad.png",
+      "sha256": "D9E2F49EF37A73C4ED156ACE3F80ADA362EBCB1A145E9606FC8FB54C3FFEE54D"
+    },
+    {
+      "path": "frontend/public/flags/ae.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ae.png",
+      "sha256": "492023F8A12956C0B0770EFAE8A6BC3E5052DF52AA9AF8438C0432240EB38650"
+    },
+    {
+      "path": "frontend/public/flags/af.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/af.png",
+      "sha256": "34C3B54C1D001FC21428107A0963693C166D35429F2DED3A4ABFEE4257116A27"
+    },
+    {
+      "path": "frontend/public/flags/ag.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ag.png",
+      "sha256": "790CE4183BFE961EB7013376DF00DBCA33F8E8A8F35A39D1AA64B157E1AB1558"
+    },
+    {
+      "path": "frontend/public/flags/al.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/al.png",
+      "sha256": "9ACF50C6DCE126D55DDEE3F9BE9E52E656CAADC5918A517727A84543DC84915E"
+    },
+    {
+      "path": "frontend/public/flags/am.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/am.png",
+      "sha256": "1A49E17ACA7D42A3BC19C225267FEA55A6A2EEC561B4A39002FEB707BD110098"
+    },
+    {
+      "path": "frontend/public/flags/ao.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ao.png",
+      "sha256": "D46026846E6DDB63CFB95427F0D52205214D2B64DAA486813A144013B32265B4"
+    },
+    {
+      "path": "frontend/public/flags/ar.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ar.png",
+      "sha256": "5A5A4657B902C2CCCA12EBD47CBF632DE8EC4996A929901D0464D1BFBAAFBABD"
+    },
+    {
+      "path": "frontend/public/flags/arab.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/arab.png",
+      "sha256": "0B9436DD098F7A28D44F6B57BC2EB131D3D647CA4546C4FDD28F6DE127FC5994"
+    },
+    {
+      "path": "frontend/public/flags/at.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/at.png",
+      "sha256": "7A599CCDF810E782292115A24477F9D2BB53DB51649E39D3E32D893E20750EF1"
+    },
+    {
+      "path": "frontend/public/flags/au.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/au.png",
+      "sha256": "CD57E6AAC6CE782848A5F3F866E3A3BF0276E187B3E69DD6FBAA5A353BF5D36B"
+    },
+    {
+      "path": "frontend/public/flags/az.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/az.png",
+      "sha256": "ABA998E9786C572D9824E6BF544AEA8B34C58605DC91A8111B170FDCB610887D"
+    },
+    {
+      "path": "frontend/public/flags/ba.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ba.png",
+      "sha256": "4C3CB11A496BD65E5700095374D574AC3B87C143900FE4CA1C147AD2523E2520"
+    },
+    {
+      "path": "frontend/public/flags/bb.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/bb.png",
+      "sha256": "9FC7B7CDFE9DD464556279BCB8773E9A65CE11C815CFAA0A958EFC826C835A59"
+    },
+    {
+      "path": "frontend/public/flags/bd.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/bd.png",
+      "sha256": "955C6DC70D87930B0993A83B396CFF875077E47EB2E0AFFB112EB79BD509F101"
+    },
+    {
+      "path": "frontend/public/flags/be.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/be.png",
+      "sha256": "3A19B5DA6E64D94DD08209F2C92D6ADEB3894B87B85B671414C6EA542B12132A"
+    },
+    {
+      "path": "frontend/public/flags/bf.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/bf.png",
+      "sha256": "14B08559FEACF6FDBBC30E727717F6A0A4489CA70EE2DAD41950E9A51A29C4DA"
+    },
+    {
+      "path": "frontend/public/flags/bg.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/bg.png",
+      "sha256": "3BA63A809FCC1EDB208E71C391E2DF4EFFB697C8CD5C918B4F682C22B9E6713B"
+    },
+    {
+      "path": "frontend/public/flags/bh.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/bh.png",
+      "sha256": "4C508165692DC1E2F265A1C2ED5E713CBC124373FB43F170FFCB2C6A8A2E2E8E"
+    },
+    {
+      "path": "frontend/public/flags/bi.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/bi.png",
+      "sha256": "4201BA86B26DDC8537D09923A5A42694A842B2DBA2D74D440762C8BFD65BFBA3"
+    },
+    {
+      "path": "frontend/public/flags/bj.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/bj.png",
+      "sha256": "4126451728FA5D8297E4F2FC0DCA31E3C2A4760460F3C85C41031906051DEEFF"
+    },
+    {
+      "path": "frontend/public/flags/bn.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/bn.png",
+      "sha256": "85E73CFFDFA570C882A4033F3B92B6681A20947FDFECCE65BB879485948D329B"
+    },
+    {
+      "path": "frontend/public/flags/bo.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/bo.png",
+      "sha256": "F6526E2A3D244BA1DF231A144C039DFA2EAAEBAE5754A45535EC86CB62326CA8"
+    },
+    {
+      "path": "frontend/public/flags/br.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/br.png",
+      "sha256": "1B9BE8E6854E0B2A559420BF512DCA5F5A7F77D273C79A039C7FBEC47971CD64"
+    },
+    {
+      "path": "frontend/public/flags/bs.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/bs.png",
+      "sha256": "6FE386FF56095B29515F798F562A3BA96EADA70998248CD5D492AF264A9FAE8B"
+    },
+    {
+      "path": "frontend/public/flags/bt.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/bt.png",
+      "sha256": "C088413F60F25393A3F7A6C404057E5BEDAE014A3000E254C97AE2B2EDE95599"
+    },
+    {
+      "path": "frontend/public/flags/bw.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/bw.png",
+      "sha256": "61C67862DB90B6F5B7A65F5D1A1C2D11A99027E2E87F86DDF0B7234C859E0813"
+    },
+    {
+      "path": "frontend/public/flags/by.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/by.png",
+      "sha256": "FBA95462C47BE054B9BFDA00B612F47ACDC22E9C69C9FF219543138B7487BEF9"
+    },
+    {
+      "path": "frontend/public/flags/bz.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/bz.png",
+      "sha256": "56744FFBAF8069AF9C7F6F39F552829B14181AFD82861A834210E91DB388E9E1"
+    },
+    {
+      "path": "frontend/public/flags/ca.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ca.png",
+      "sha256": "82BE1A1783FC03287F3C3BFD98C61BCD8DC2929CE88F296D8750B0EE16B83F78"
+    },
+    {
+      "path": "frontend/public/flags/cd.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/cd.png",
+      "sha256": "59B6F8E7E43011381417BE879BCEDF91717CFDA449E59496C07D22BE6BD42EC7"
+    },
+    {
+      "path": "frontend/public/flags/cf.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/cf.png",
+      "sha256": "CDDEF2EC7ED93F8B5772FA08D6E11846762116B0772D9CF768E1CC889AA2CD2A"
+    },
+    {
+      "path": "frontend/public/flags/cg.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/cg.png",
+      "sha256": "56B15BE99AB1C2D9B0CBE9C7B6CB5B860C632BDA03CE7225E8A9ED6B3FF6CCE9"
+    },
+    {
+      "path": "frontend/public/flags/ch.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ch.png",
+      "sha256": "B57AC564B72CDDF11FD538136F11DB51D215955E3762818D8BB6153E5B29202A"
+    },
+    {
+      "path": "frontend/public/flags/ci.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ci.png",
+      "sha256": "D468908DC4A78234B0AA343DB4D1250315BD348BB5C58505F694DD5F7818551A"
+    },
+    {
+      "path": "frontend/public/flags/cl.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/cl.png",
+      "sha256": "3FCD6AFAC5D8E3E873E64B8C54F9C6071EC400AB521E4556C5E1A16F3942120B"
+    },
+    {
+      "path": "frontend/public/flags/cm.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/cm.png",
+      "sha256": "12BD4AB2BCC21E9D5DBF58F97C42069973D36F7D5098F93F4B5D8B29B9320F38"
+    },
+    {
+      "path": "frontend/public/flags/cn.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/cn.png",
+      "sha256": "DBE8FC35FFC97475BFE009F4BD6DDC75BD88936825925E0AE81EB886CD708D54"
+    },
+    {
+      "path": "frontend/public/flags/co.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/co.png",
+      "sha256": "6DB5D9522C9B4F2F6AD43D6D0BA3698A330767F0B9C30671E58E47D11EC7BAF7"
+    },
+    {
+      "path": "frontend/public/flags/cr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/cr.png",
+      "sha256": "EE3B4CE91157DB63555E410EBDA670A9A31AE8BD87218150173B27A8D3C7F513"
+    },
+    {
+      "path": "frontend/public/flags/cu.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/cu.png",
+      "sha256": "0E2BF005A67EED83BC51226CBF2631028097B1B2B5DD1E5E422B3E175DE8F6A3"
+    },
+    {
+      "path": "frontend/public/flags/cv.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/cv.png",
+      "sha256": "6DE35B76552D464830BB617E81B80EDA7140A6D4463D3DB588B761E052110ED6"
+    },
+    {
+      "path": "frontend/public/flags/cy.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/cy.png",
+      "sha256": "ED5654E5DA7144EAF6658CA124F446E82EDF48EAF71A2CE2140F32095C193052"
+    },
+    {
+      "path": "frontend/public/flags/cz.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/cz.png",
+      "sha256": "68F3235F9AFCB63F63B2F5910E0B7E5665AA25A3539768B0801349CDF2E0170C"
+    },
+    {
+      "path": "frontend/public/flags/de.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/de.png",
+      "sha256": "081E8FD1A85F0464C1A430DA4A491D24807F58D0E922D70834FBE4A2ACB1DCFD"
+    },
+    {
+      "path": "frontend/public/flags/dj.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/dj.png",
+      "sha256": "76F64D0E474A7AA623B77CE672321106A4F84C0847073A6E9A556498273AE35A"
+    },
+    {
+      "path": "frontend/public/flags/dk.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/dk.png",
+      "sha256": "E20473B8B8823969018D64A91D1EAACBDC8A836DA5E1E2208946E2E8EF23CE28"
+    },
+    {
+      "path": "frontend/public/flags/dm.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/dm.png",
+      "sha256": "BCD26C4D92D7632F49A8C7080C1C9A496B31AA7967C8CA63D49B09E88DA57E10"
+    },
+    {
+      "path": "frontend/public/flags/do.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/do.png",
+      "sha256": "CCF5A5302A604AB798EE414A359619E89928EC3AA783EE57DC6DC90C47DDB293"
+    },
+    {
+      "path": "frontend/public/flags/dz.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/dz.png",
+      "sha256": "55AF0D790F02A3758B4B5CD0D7E5AFDC9C047F7611F5D94D51162CFD93A1B681"
+    },
+    {
+      "path": "frontend/public/flags/ec.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ec.png",
+      "sha256": "D6232ED2B0094C67CE3C33D66C499128600653F06065BFC757AB59FC456707DF"
+    },
+    {
+      "path": "frontend/public/flags/ee.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ee.png",
+      "sha256": "C58E80FF86324AECB6F613EB4083639334E7C96D271B6C531C2FD60C4E651177"
+    },
+    {
+      "path": "frontend/public/flags/eg.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/eg.png",
+      "sha256": "67DEEA10965813882F72C7AEBB711A9B6FEDECAE0BEDD2A50E8ECD506F75F99E"
+    },
+    {
+      "path": "frontend/public/flags/er.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/er.png",
+      "sha256": "3757F11A964358556AE8D79F22DEBC14701D254A784329699C542F73907B2F72"
+    },
+    {
+      "path": "frontend/public/flags/es.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/es.png",
+      "sha256": "628F934F47F2CCC15E079F1D691F2134CCEC9A35311FD624F7CD1DAC76CDE86A"
+    },
+    {
+      "path": "frontend/public/flags/et.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/et.png",
+      "sha256": "8038E23216E579C3509D25F56F6874CDFDE6F292FE2AC31D691FFDBD748B4C3C"
+    },
+    {
+      "path": "frontend/public/flags/eu.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/eu.png",
+      "sha256": "9ECF57F5E632010F364A94AFD6D37D790B0B8C4352013F970B8C7F522ECC9E42"
+    },
+    {
+      "path": "frontend/public/flags/fi.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/fi.png",
+      "sha256": "5BE666EDC97F6B003232BD6B7F70F822287CE8B51CBA33B43341C21E5B72911B"
+    },
+    {
+      "path": "frontend/public/flags/fj.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/fj.png",
+      "sha256": "146FDD9849D5D2F98BF56CBDA4902E79EBC67019A0CE7251C46C0668327B2E07"
+    },
+    {
+      "path": "frontend/public/flags/fm.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/fm.png",
+      "sha256": "F3DC1B72C91750D8DAD7169A371D62D25C70D484BBFEECFE02A35EDEC1D60295"
+    },
+    {
+      "path": "frontend/public/flags/fr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/fr.png",
+      "sha256": "A18E0B58634C4BB9CEF81A3FF74B7162F5D473BDC6B448E28A119BFDD6DF17D1"
+    },
+    {
+      "path": "frontend/public/flags/ga.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ga.png",
+      "sha256": "7DB4697DD2C11C563061ED843B43BD63167B9E6C41977BF139D1FA92C1922EFE"
+    },
+    {
+      "path": "frontend/public/flags/gb.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/gb.png",
+      "sha256": "9EE40CBF4E06CA8F2265E119F91DC1849E8C3A1582416917EAA2F7663297DB4C"
+    },
+    {
+      "path": "frontend/public/flags/gd.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/gd.png",
+      "sha256": "394F25F8A70604D7CEEAA724E5C1690CCA7987D400CFEF47DEE443CDD9F39316"
+    },
+    {
+      "path": "frontend/public/flags/ge.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ge.png",
+      "sha256": "EA61D061E5B769A9E59D3EA9D46521BA8E27C2313CF8C2B88C99FB87CE81C993"
+    },
+    {
+      "path": "frontend/public/flags/gh.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/gh.png",
+      "sha256": "361DD9E857C771A24ABD9143D60F2E5053E702CCCF61A93123D6E7613F3DE290"
+    },
+    {
+      "path": "frontend/public/flags/gl.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/gl.png",
+      "sha256": "1C1A1B04DC62BAC6254DD69286D256816191494B68398C09E81A2AB01E0D1800"
+    },
+    {
+      "path": "frontend/public/flags/gm.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/gm.png",
+      "sha256": "A7B8F2CBAA1D9788C6FE1FBF2284C512C5E2254038341402C3EE394AEE9465D1"
+    },
+    {
+      "path": "frontend/public/flags/gn.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/gn.png",
+      "sha256": "F73A46980BB34114C138BB84CB36E8E7D73B681049E51FE4997246968690D3CB"
+    },
+    {
+      "path": "frontend/public/flags/gq.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/gq.png",
+      "sha256": "0F69814D7B75C0B5770F8F8B5EF4E944540F6678B77CAA3F0DED707AE5C84172"
+    },
+    {
+      "path": "frontend/public/flags/gr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/gr.png",
+      "sha256": "4C8E5AF7AFD3E72DC7BFA223CFA5A35BF03D0F78968B2DA14C0856509265FD15"
+    },
+    {
+      "path": "frontend/public/flags/gt.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/gt.png",
+      "sha256": "BDE3470F89307E7FC56599F3549F8C134BDC453CCB266DB8FD793861744EEBFB"
+    },
+    {
+      "path": "frontend/public/flags/gu.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/gu.png",
+      "sha256": "97886979AC0B2DA30F1D0CE2CA2335CC02CAE625EEF166AAF48C76D1F855B58E"
+    },
+    {
+      "path": "frontend/public/flags/gw.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/gw.png",
+      "sha256": "0BE239D181184B8FE4D0E5AD8B8190E5058C8F9EF621B20B80BC9019C2EC3B66"
+    },
+    {
+      "path": "frontend/public/flags/gy.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/gy.png",
+      "sha256": "FAB929712DAAF000A13C03BBC73CD2734BA4CDEF5D2109F71C48B0B876949A7C"
+    },
+    {
+      "path": "frontend/public/flags/hk.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/hk.png",
+      "sha256": "BBC62A465261806985075D0465FD1277C3B2D3ABBFB5A580570B2CCED380CD87"
+    },
+    {
+      "path": "frontend/public/flags/hn.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/hn.png",
+      "sha256": "C40EC1D2B436B5CA3D352C35A3D48AFCC83D07C78BCD7CEE8D3E97254DCFD863"
+    },
+    {
+      "path": "frontend/public/flags/hr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/hr.png",
+      "sha256": "8E43BF34C5944E6EE83838B9D8DBA7D7C9F452DF76C60F64CD32715D67F0A5CF"
+    },
+    {
+      "path": "frontend/public/flags/ht.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ht.png",
+      "sha256": "62BEE34852F27A738B77750AC2F1CBA183475AE8BBC59FBC7C93B31C4C026EC4"
+    },
+    {
+      "path": "frontend/public/flags/hu.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/hu.png",
+      "sha256": "9DCD519DCB99873E94DCD6312D177D4DB50BF3F23F999D00E55243E4DFAC2C6E"
+    },
+    {
+      "path": "frontend/public/flags/id.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/id.png",
+      "sha256": "680A02B7E1E04B5169DE2FBBE9A650D8DDCC5B7A7F7BAD560291F53BC5EC9812"
+    },
+    {
+      "path": "frontend/public/flags/ie.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ie.png",
+      "sha256": "FA4D62E4D22BA36AD670EC073D0DC926DCE23406158AE04DBD33C08BF66FCCA4"
+    },
+    {
+      "path": "frontend/public/flags/il.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/il.png",
+      "sha256": "AC7393F23C5E4B2024EFD43A81B738AC9374BBFB63840F4B0FB105AA36709D52"
+    },
+    {
+      "path": "frontend/public/flags/in.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/in.png",
+      "sha256": "1B3A4F600DCD8995EE5182AC952013F479B3DB67805CAACAE37AEFB10A3FA7E8"
+    },
+    {
+      "path": "frontend/public/flags/iq.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/iq.png",
+      "sha256": "4ACCC9575F3603420F58D72681F2C1B84F4096C43718C12B91BA6088CAEB16BA"
+    },
+    {
+      "path": "frontend/public/flags/ir.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ir.png",
+      "sha256": "9D8D11AD7C2C0B219A7C740B94F963FF0C827D0B742E2DE9EB3DF6815C618CE8"
+    },
+    {
+      "path": "frontend/public/flags/is.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/is.png",
+      "sha256": "474BE47CF5C65A261E51C91DEDCE8FC2FF717A3E688C8AEA60FDFFABADC07A14"
+    },
+    {
+      "path": "frontend/public/flags/it.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/it.png",
+      "sha256": "B4F27D2B7AAEED31215361EB75D7B44F8A3E650C5C1C5C22FD034848A181C73A"
+    },
+    {
+      "path": "frontend/public/flags/jm.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/jm.png",
+      "sha256": "41A77264B1E36D09C08DF50FE53AEE0F25DF36AB80A0A9AE351404854BC29F33"
+    },
+    {
+      "path": "frontend/public/flags/jo.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/jo.png",
+      "sha256": "ABE11932B7C24EDCFEFBEA375D1115B40CC1D4D9D1330494DFD93B89F792FD34"
+    },
+    {
+      "path": "frontend/public/flags/jp.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/jp.png",
+      "sha256": "4F1FD9E572B8EF5B826D3CD64515E957B986F310184A9297171EA1789B252183"
+    },
+    {
+      "path": "frontend/public/flags/ke.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ke.png",
+      "sha256": "F3DFA51E531330F57505BAB0455436706AF4667DE0F220F733B3928414B63756"
+    },
+    {
+      "path": "frontend/public/flags/kg.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/kg.png",
+      "sha256": "054F80464E83A24BF2C9213FF76C564EBE15B84A3E41153CBC70F88C49170E07"
+    },
+    {
+      "path": "frontend/public/flags/kh.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/kh.png",
+      "sha256": "4389262520B95A9CACE92EF2DFF353E606D48DB0867D764245BC068910DFB48C"
+    },
+    {
+      "path": "frontend/public/flags/ki.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ki.png",
+      "sha256": "6C637D0B73D0BEBBA25F86724B46A13BC7C6579013B6C85CF30383313838A7EA"
+    },
+    {
+      "path": "frontend/public/flags/km.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/km.png",
+      "sha256": "703A000E53C69C13E4729A9643B632B9DA94B5FC9ACFFE248B97991222B3D775"
+    },
+    {
+      "path": "frontend/public/flags/kn.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/kn.png",
+      "sha256": "10A18AD89B5AD58E0A15ECB40D0C5C50B04B04C364B987A43D7454F14C994789"
+    },
+    {
+      "path": "frontend/public/flags/kp.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/kp.png",
+      "sha256": "82DBD246893CB6928958C7362C41E0515665581C7DC80153BEA2673DBECF5A75"
+    },
+    {
+      "path": "frontend/public/flags/kr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/kr.png",
+      "sha256": "7C557C4B870D63851FA9C741B77FF3F7AFF17252FCA7DB8734C2B79B66F14C95"
+    },
+    {
+      "path": "frontend/public/flags/kw.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/kw.png",
+      "sha256": "01A4082E44C7C7DF8B4052B05161E28680FE2C08BA8F056E87D91B62F887BE6C"
+    },
+    {
+      "path": "frontend/public/flags/kz.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/kz.png",
+      "sha256": "F9BEA5B9B6F21B67AEEABBE4DD5A445D64BFD0A5CDCD312EED77AB3C428E02B4"
+    },
+    {
+      "path": "frontend/public/flags/la.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/la.png",
+      "sha256": "783C5C3458A4C1B4A00CAA6854B3D9E5E968B14A9C36A6EF3BAAEA8945E0BDA1"
+    },
+    {
+      "path": "frontend/public/flags/lb.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/lb.png",
+      "sha256": "F2665DA843A1CD412E4B74E965D3782406BC7053546BE9A4F3E1F698ABA77B12"
+    },
+    {
+      "path": "frontend/public/flags/lc.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/lc.png",
+      "sha256": "22FF74670859C252F365E8714982352E282146716B2B9FDC2B13C9A2798D809E"
+    },
+    {
+      "path": "frontend/public/flags/li.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/li.png",
+      "sha256": "C2E2AB890CC21EE521B4DC02B34068ECB19065E8A5960DECDA43655839346F1F"
+    },
+    {
+      "path": "frontend/public/flags/lk.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/lk.png",
+      "sha256": "02EDC658A0946BAAEA09DD8C48AF6AD24B33F63D21C6BF3C2315E3637755BBFB"
+    },
+    {
+      "path": "frontend/public/flags/lr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/lr.png",
+      "sha256": "C4CE3C36F88C44214873E5228C4BE875E324B44BC47562FCC02D0A9EE6994ECA"
+    },
+    {
+      "path": "frontend/public/flags/ls.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ls.png",
+      "sha256": "70FD562AFF1A7CF4F54951E26CB59C30E866A0A7FD2063467F5ABD474834983B"
+    },
+    {
+      "path": "frontend/public/flags/lt.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/lt.png",
+      "sha256": "C612823F1A4D05D4209C553744A72E534100F8D8B8F582D5759E5E2A8CCDD299"
+    },
+    {
+      "path": "frontend/public/flags/lu.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/lu.png",
+      "sha256": "7E207898F2DE447EE877C93ABBE8C18AECB651FEA717DF0CF07833AE7C6572D8"
+    },
+    {
+      "path": "frontend/public/flags/lv.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/lv.png",
+      "sha256": "CE8F04AAB811E1BD75D886C51D288F41B589F14C2579656DE07868A74C8CA164"
+    },
+    {
+      "path": "frontend/public/flags/ly.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ly.png",
+      "sha256": "3BC582983B7AD7D8F61115A812D1B7FA88564CB9BB7117396A26800DC762444F"
+    },
+    {
+      "path": "frontend/public/flags/ma.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ma.png",
+      "sha256": "E205352F10F7663139A161AED1D2847838733D70E3E12FF746C928C4810D34DD"
+    },
+    {
+      "path": "frontend/public/flags/mc.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/mc.png",
+      "sha256": "36CBD1E3803E8E2B9CD560969E1AD792FFF52B3ADA2F53905F395F15CFAB7C9F"
+    },
+    {
+      "path": "frontend/public/flags/md.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/md.png",
+      "sha256": "7159CD520CEE1A1453268D5870BDFAF96BD8199FA8BCB4FE3D94B127159DC6F4"
+    },
+    {
+      "path": "frontend/public/flags/me.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/me.png",
+      "sha256": "E94435D356521B65A0ABDCA19174B2D22BFFC06A11049ED0D127BF2CF25DFC16"
+    },
+    {
+      "path": "frontend/public/flags/mg.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/mg.png",
+      "sha256": "4175450349642DED543BE4487A48F058BCB6AD59C878C298495DE497E9C642D1"
+    },
+    {
+      "path": "frontend/public/flags/mh.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/mh.png",
+      "sha256": "4BA7FA621F062B3553A2E43BF7DAEDC56373CEF907D6F3EC496FAFDABDD7DD7D"
+    },
+    {
+      "path": "frontend/public/flags/mk.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/mk.png",
+      "sha256": "48553E1EE5D812AAACF63936B36EE975C0CB2D7483C1B5332921224F407A8FE4"
+    },
+    {
+      "path": "frontend/public/flags/ml.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ml.png",
+      "sha256": "398A608AE04D681FDAC5323A3E89518BF567D1A8E29BC88938269F6D1E7227A2"
+    },
+    {
+      "path": "frontend/public/flags/mm.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/mm.png",
+      "sha256": "8651353DAB77C73717189ED493AF54D05CD87AB178FA860ECE4726AD087C955F"
+    },
+    {
+      "path": "frontend/public/flags/mn.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/mn.png",
+      "sha256": "D3B687ADC5366F0405823423FFC9C307B622A3D14BC483ABEEE8CBCC2D860101"
+    },
+    {
+      "path": "frontend/public/flags/mo.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/mo.png",
+      "sha256": "9ED479C9477BAAE838968272D9FB789FA3345DF1A11BB7573CB15FA9CB07DB3D"
+    },
+    {
+      "path": "frontend/public/flags/mr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/mr.png",
+      "sha256": "B46FB4A110738A0CA75A48B94EA640A9D7A0C26B3BF81F729836A186CBD2055A"
+    },
+    {
+      "path": "frontend/public/flags/mt.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/mt.png",
+      "sha256": "106A725CBB323F3D6740ABE612DBC381D2BAF5D91C4CB82C9E75A539A7E69BFC"
+    },
+    {
+      "path": "frontend/public/flags/mu.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/mu.png",
+      "sha256": "1C22768A73280963E95D25F00AA9DE3B753812E49F544F4238F1F59AA347267C"
+    },
+    {
+      "path": "frontend/public/flags/mv.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/mv.png",
+      "sha256": "D095F1A7CA1B40C703F03825BD7ED01833990EF55568AF2E120278A1F4608777"
+    },
+    {
+      "path": "frontend/public/flags/mw.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/mw.png",
+      "sha256": "0BB703EC61A89A1925FF4A603B47730448637CB1F327290A2D06FA5B7D020142"
+    },
+    {
+      "path": "frontend/public/flags/mx.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/mx.png",
+      "sha256": "0D38D8E40D277770B405BB037054C44E5585F6BEB292CBA0E9A9E65C47CA4E9B"
+    },
+    {
+      "path": "frontend/public/flags/my.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/my.png",
+      "sha256": "F2718CA7EE8FE05B3C11E9DC06CDEE2FF9B8B428A385957ABD341FB501793E76"
+    },
+    {
+      "path": "frontend/public/flags/mz.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/mz.png",
+      "sha256": "0DFB5079EBD372D6D9C3F2EAABBDEFFD43467BAA4D9F2158C207794FD0B29CF9"
+    },
+    {
+      "path": "frontend/public/flags/na.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/na.png",
+      "sha256": "74F0B474551427301FD925E8B66F99A01523C41908355CC56A8AE8B3B9D433E7"
+    },
+    {
+      "path": "frontend/public/flags/nc.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/nc.png",
+      "sha256": "440836AA867BFEF0FF9B2623E3471F49C8540EA152D9912BD9424883B02BEF0E"
+    },
+    {
+      "path": "frontend/public/flags/ne.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ne.png",
+      "sha256": "CE49AF303F4CF7C4554014F0F8EEFC605BC52B70E209EE059282D18555D37879"
+    },
+    {
+      "path": "frontend/public/flags/ng.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ng.png",
+      "sha256": "80F7B7DD1C9F8029058E8C658DB0EA2A1FFAEF87AA314D5053976CB168945229"
+    },
+    {
+      "path": "frontend/public/flags/ni.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ni.png",
+      "sha256": "116C3745F97EB89CE61C80641081BDE8273C90018385996006B8EFF82BD8ECCD"
+    },
+    {
+      "path": "frontend/public/flags/nl.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/nl.png",
+      "sha256": "460E85D9F1D752387F1258C048BF63F8E2FDAA3A0BFEC8CA7345BB36FC8DCD78"
+    },
+    {
+      "path": "frontend/public/flags/no.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/no.png",
+      "sha256": "F556A47DE9FAB436D08D492161749D8BD716370A6FE5A3BA8F16620CAC555ACA"
+    },
+    {
+      "path": "frontend/public/flags/np.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/np.png",
+      "sha256": "2B45995BE82F18F0915F36E875F958E65E70E5298C3E5987196D25A9AF92DC4D"
+    },
+    {
+      "path": "frontend/public/flags/nr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/nr.png",
+      "sha256": "1F71AE6DB93967F7AF2202A76A7146992DC0C7C64C7EEE54515F4851BC39AF59"
+    },
+    {
+      "path": "frontend/public/flags/nz.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/nz.png",
+      "sha256": "D5D9D00882385EB149E2728CF62E86D5643D0E9049759E81A57863600CBEA688"
+    },
+    {
+      "path": "frontend/public/flags/om.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/om.png",
+      "sha256": "3109AC537B517CE2D45C03A83C3405FA19EBDAE2CE783C31A8A60ACEC91AAEA0"
+    },
+    {
+      "path": "frontend/public/flags/pa.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/pa.png",
+      "sha256": "B71A5193D1E71A83F0C93BC3FDB3FD40DF3E16CAA389316E8B87AA6604F10D84"
+    },
+    {
+      "path": "frontend/public/flags/pe.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/pe.png",
+      "sha256": "9EB22C033136DE9E3D38FD363EAC8996FAB431C949E88F2278CCA6BC86C451CA"
+    },
+    {
+      "path": "frontend/public/flags/pf.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/pf.png",
+      "sha256": "D77B2DA5906A1B47C800DFD411EA02C81CEA2CD4A977D543C8043D8BE63F4D77"
+    },
+    {
+      "path": "frontend/public/flags/pg.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/pg.png",
+      "sha256": "6979464B7410D33FA073B9492B6127E6EE86B31C3FE3296EFAE51740A5ED53EB"
+    },
+    {
+      "path": "frontend/public/flags/ph.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ph.png",
+      "sha256": "A45C8834823DF5494D6C63B7FDA6C5C69B202381F01E57837E19309F992FCBB8"
+    },
+    {
+      "path": "frontend/public/flags/pk.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/pk.png",
+      "sha256": "7DD56032E99D52AB8DBF74A0379179FA78DC6FC6C2483243701DCF9089B3C8ED"
+    },
+    {
+      "path": "frontend/public/flags/pl.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/pl.png",
+      "sha256": "C951B3390E773B76F8ACA9408C6C72467AFFE0EB42632AD64B7FF5717E6A013C"
+    },
+    {
+      "path": "frontend/public/flags/pr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/pr.png",
+      "sha256": "E3D23F4E5C5BC486D25A88A6AFB5ECA78C3FE5A409A3FBE6F4245C36E9038CBF"
+    },
+    {
+      "path": "frontend/public/flags/ps.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ps.png",
+      "sha256": "725529F943206AC852F35255BB5054785C621472EEBA1CA02473752154DE5759"
+    },
+    {
+      "path": "frontend/public/flags/pt.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/pt.png",
+      "sha256": "D534C717D58758C5C1C4A386EC428FAFC497205989C7C22B667A8EAF3366D5B9"
+    },
+    {
+      "path": "frontend/public/flags/pw.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/pw.png",
+      "sha256": "F975A8D664A60562DE2C96480E7EEC62075665ACDB784C8479EB7077782BAAAB"
+    },
+    {
+      "path": "frontend/public/flags/py.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/py.png",
+      "sha256": "16D7FDAF608EC174211736E5E7776902FE0ACAC1629072ED52A1F3A8A4C6F0F7"
+    },
+    {
+      "path": "frontend/public/flags/qa.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/qa.png",
+      "sha256": "9A091A8B0E1393AC6B58A5489591A8385B3BBE015A2F0F2DDCD25C484505702A"
+    },
+    {
+      "path": "frontend/public/flags/ro.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ro.png",
+      "sha256": "41BC2FD7DA38F80768C392918F10F98467C3C0F1E6445E1420446400765FB26E"
+    },
+    {
+      "path": "frontend/public/flags/rs.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/rs.png",
+      "sha256": "FDD93AC2B300C81638984B195B4473A561BB5B38CA3E21776A0E52ADC147E601"
+    },
+    {
+      "path": "frontend/public/flags/ru.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ru.png",
+      "sha256": "2F5AAE51CB297CCD9DD845289F35950D2ABE7D4C76EE4DAF77F1DDA9E616E923"
+    },
+    {
+      "path": "frontend/public/flags/rw.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/rw.png",
+      "sha256": "17F3AF7251F2BAF263C52EB244072FE642CFA84665CB04ADE10145B5FE404791"
+    },
+    {
+      "path": "frontend/public/flags/sa.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/sa.png",
+      "sha256": "461CBC94E96F7675F2DE7A1DB04C10A86395F70CA4FCB6DCCC682F7692A41DA3"
+    },
+    {
+      "path": "frontend/public/flags/sb.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/sb.png",
+      "sha256": "13EB0BFF893A8B7F5CA1C6A95FFC566A46E23104837B7F5101DBD918EBC6DA8B"
+    },
+    {
+      "path": "frontend/public/flags/sc.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/sc.png",
+      "sha256": "46D358A437AE29D70964BE1B5E30F21CF3E08A49AD51B8A416319E395AC9D59C"
+    },
+    {
+      "path": "frontend/public/flags/sd.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/sd.png",
+      "sha256": "9489C2D5B508AE7CA5B2FB016E4A21A19E9AF32F64BB25AE7CF8813AC4DEF724"
+    },
+    {
+      "path": "frontend/public/flags/se.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/se.png",
+      "sha256": "1E4D339BC010C82FBC2EF753937A5E5533061330162C50F2AEDF665557ACF838"
+    },
+    {
+      "path": "frontend/public/flags/sg.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/sg.png",
+      "sha256": "4BDAFEBCA5B0A0E595B01CFA61474B5D7C50CCB5C2135B4BE6E4C894BC987B06"
+    },
+    {
+      "path": "frontend/public/flags/si.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/si.png",
+      "sha256": "32AAFE8C4A90B3F516C9C004FA0B96C6F6F6FE61FE24BDBCF8D72E4FE39DD86F"
+    },
+    {
+      "path": "frontend/public/flags/sk.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/sk.png",
+      "sha256": "739B957CF0EC922F9B1F4A580FBD6768EABD42F902FD8C8B013DD5882E5B60DC"
+    },
+    {
+      "path": "frontend/public/flags/sl.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/sl.png",
+      "sha256": "90D0EAB103ED2C29886EB1E41C5BAA7C139E2549F548C16697E86325C0CD4BD7"
+    },
+    {
+      "path": "frontend/public/flags/sm.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/sm.png",
+      "sha256": "1ACA8A56AE5FC5CAF37EF37F0A75B5C94E88C0F6F76F54C73B3DC5D7DE0046AD"
+    },
+    {
+      "path": "frontend/public/flags/sn.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/sn.png",
+      "sha256": "CDFE9EE09FA0A7A80124AB13481B651FE973CCB191BA2B06590EFE4AC1330352"
+    },
+    {
+      "path": "frontend/public/flags/so.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/so.png",
+      "sha256": "2FDF753D438A0C65A79C0E9B9DF206CCB2F1ACF74D3C162B4D28DD33CF6C3C12"
+    },
+    {
+      "path": "frontend/public/flags/sr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/sr.png",
+      "sha256": "65813A48EDFB721F52E97E7E623A6DD39D1B9E427E8829B01F04BF35D1AA7DD8"
+    },
+    {
+      "path": "frontend/public/flags/ss.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ss.png",
+      "sha256": "3E8331F79395249C8DB6C583FBBFE25CC033D2DBD54AB372657D28E2588A8985"
+    },
+    {
+      "path": "frontend/public/flags/st.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/st.png",
+      "sha256": "BC9BDB6B8A2B32EA5E7F05F3BF95742A6AC64ECFAC01AF0E1D514DA99ABE9965"
+    },
+    {
+      "path": "frontend/public/flags/sv.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/sv.png",
+      "sha256": "A4150F67EAA8B863E0C70E6A0180D7AECDBE77AC7ED79E6CACC113376F47D920"
+    },
+    {
+      "path": "frontend/public/flags/sy.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/sy.png",
+      "sha256": "5CD6FC515EC3F1F13E66B8C8B8E0915A473F22983A047E4177342CA8129D00FA"
+    },
+    {
+      "path": "frontend/public/flags/sz.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/sz.png",
+      "sha256": "529809F045517B583F79C832570107BE2FF6BA422703E1235D7A98F69DBC21C5"
+    },
+    {
+      "path": "frontend/public/flags/td.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/td.png",
+      "sha256": "394CDDD0A80215F08B44B551F1C5E11DBA4DB6F1312E408D3DF18A60E5148A36"
+    },
+    {
+      "path": "frontend/public/flags/tg.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/tg.png",
+      "sha256": "30D889FBB0CECFA0305DBA6686911346A7BEC666970CCB9AEDFE64C869B96E28"
+    },
+    {
+      "path": "frontend/public/flags/th.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/th.png",
+      "sha256": "D07784F5FAF6FA0CF95F6F82318CD99533C622C4D29F6E55DD4F36B471C4F936"
+    },
+    {
+      "path": "frontend/public/flags/tj.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/tj.png",
+      "sha256": "C09782FCA46F862F4A5CEEF359E5F30A07174BD667CE9D2044204EA68E5C9B2D"
+    },
+    {
+      "path": "frontend/public/flags/tl.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/tl.png",
+      "sha256": "541437234E936FA9B43715EF04DCE2646BBE49D0B506B1C273B98A8F274EF44B"
+    },
+    {
+      "path": "frontend/public/flags/tm.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/tm.png",
+      "sha256": "B6BD857F9E4FE504F6E828CC2FA91C901EEFF24130855BF026DE3B450941EEA0"
+    },
+    {
+      "path": "frontend/public/flags/tn.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/tn.png",
+      "sha256": "D4DDF4142B1E62E1BA6AF439B4E9D97C6A55908D06758916FC7F8F45C2EB7D78"
+    },
+    {
+      "path": "frontend/public/flags/to.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/to.png",
+      "sha256": "93458E6D91D776B08A94B605DC8E5B73C135BA07D0E03A890EB420D5F2E54336"
+    },
+    {
+      "path": "frontend/public/flags/tr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/tr.png",
+      "sha256": "B9D31026F5569AD17D62A5162282236108877A1A7B2C9651811CAC733A663352"
+    },
+    {
+      "path": "frontend/public/flags/tt.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/tt.png",
+      "sha256": "577900E1DCEDA180BB11FE295E1B1A010893721C4E91DEEA614219F67F5ABF11"
+    },
+    {
+      "path": "frontend/public/flags/tv.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/tv.png",
+      "sha256": "12CDB2D01626633B7EA2B657C88C0622DDE7A8698D050DF80C42D48AE4D76704"
+    },
+    {
+      "path": "frontend/public/flags/tw.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/tw.png",
+      "sha256": "00FE007B4E24C5BE5F585601C4D967713896E58353972C0838AD77B4F1EC5AEE"
+    },
+    {
+      "path": "frontend/public/flags/tz.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/tz.png",
+      "sha256": "12DAD4AB6D7757D58888924EFDA39E0CE28C265ECE3F8C7DE004DC4924E5FD96"
+    },
+    {
+      "path": "frontend/public/flags/ua.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ua.png",
+      "sha256": "6590B8C83876CDEF9ACD37A82FAE49997F7D8C202E50F90215BF46086CA795C3"
+    },
+    {
+      "path": "frontend/public/flags/ug.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ug.png",
+      "sha256": "D70A4EA8764596E05D40518C66857276BCE339F9508D9B9769DC5EDC46537232"
+    },
+    {
+      "path": "frontend/public/flags/un.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/un.png",
+      "sha256": "8FB64293AE451F2FC8D2A5778F5F0DBC03729E77D4AE9EDDF6636C1ECF590A43"
+    },
+    {
+      "path": "frontend/public/flags/us.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/us.png",
+      "sha256": "FCAEF9A9329C59EB2B99D20BDFAD3D445D47AF4E564EF85B694B9DF424477993"
+    },
+    {
+      "path": "frontend/public/flags/uy.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/uy.png",
+      "sha256": "77864F00DAE590F17CF87C230638F27C5C19B2A04E769057D6FA4B63D2B34965"
+    },
+    {
+      "path": "frontend/public/flags/uz.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/uz.png",
+      "sha256": "270187183DAC6ACC50BFFA3714345D1BA86CA1B2992436B872D2873F960DE91B"
+    },
+    {
+      "path": "frontend/public/flags/va.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/va.png",
+      "sha256": "AD600341870907A6501C1E9476A0C6F3892EE3027F48D0EFA4929C8BCD041BE0"
+    },
+    {
+      "path": "frontend/public/flags/vc.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/vc.png",
+      "sha256": "FA36BC1D8B36D537D2B1F5789E20447116D630DAD472CF9764585CFC96418ACA"
+    },
+    {
+      "path": "frontend/public/flags/ve.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ve.png",
+      "sha256": "6EC7B3BC7D641BA9B1783574FFE46ED8DDB23CF9B135FC5CE0B1A14B3EE73FB0"
+    },
+    {
+      "path": "frontend/public/flags/vn.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/vn.png",
+      "sha256": "183FD2F58ADBF66DE54ED0A87838420E292FEAC7CFCA37C40053786C8DE82434"
+    },
+    {
+      "path": "frontend/public/flags/vu.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/vu.png",
+      "sha256": "1E2A35C4F7A9B8F20883345CEB24DD5307CD6191293FB249D533CB11D3F7A6F3"
+    },
+    {
+      "path": "frontend/public/flags/ws.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ws.png",
+      "sha256": "17F17BDAC90DB21D2DDA3CA50777010F672D7097E368217FF36783CDF7B4008B"
+    },
+    {
+      "path": "frontend/public/flags/ye.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/ye.png",
+      "sha256": "CF0D625C06C4CD742392AC81484680F2226991B1C43C3026EC297EDB4090008C"
+    },
+    {
+      "path": "frontend/public/flags/za.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/za.png",
+      "sha256": "87D9EC522A03954A2BECAF089D117FD1BA2527A32840FEA7E0230E01DDD87342"
+    },
+    {
+      "path": "frontend/public/flags/zm.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/zm.png",
+      "sha256": "E8456CFF995AF4C13F0F7C0F27575CE0A338C8B6FD4E9ECE873646A86DA4337A"
+    },
+    {
+      "path": "frontend/public/flags/zw.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/public/flags/zw.png",
+      "sha256": "B771AD332A74BCEA22F7D7E34314B1981108D928797C2DBE5E30980379F76073"
+    },
+    {
+      "path": "frontend/src/App.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/App.vue",
+      "sha256": "03293A53B3F250FAB4C8FDE547FFA3B5E2B7D8E0993141727DC9BF172ABBDB06"
+    },
+    {
+      "path": "frontend/src/assets/fonts/OFL.txt",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/assets/fonts/OFL.txt",
+      "sha256": "9FFF2CF7B8500AECDB78E2D9951819E0BC284F3166E6F79361DC09381B3FCCF6"
+    },
+    {
+      "path": "frontend/src/assets/fonts/Sarasa-OFL.txt",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/assets/fonts/Sarasa-OFL.txt",
+      "sha256": "6DB463598DBBD2442D450AD8A7A2D9B41793FAE400AE9F7035082E6853DB4B02"
+    },
+    {
+      "path": "frontend/src/assets/fonts/jetbrainsmono.woff2",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/assets/fonts/jetbrainsmono.woff2",
+      "sha256": "83C005D49D8A6A50474C73A5A36AC0468076E9C4A29DA7BDB14995D80560A5BE"
+    },
+    {
+      "path": "frontend/src/assets/fonts/orbitron.woff2",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/assets/fonts/orbitron.woff2",
+      "sha256": "C25A9F9DA5D9F3DB1BF2A01474722DC9B377675B7BBAB6D0DFDA6902794FD1ED"
+    },
+    {
+      "path": "frontend/src/assets/fonts/sarasa-bold.woff2",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/assets/fonts/sarasa-bold.woff2",
+      "sha256": "E538B9A4A2D9D658D4E6A2EC96C61F57124B8E61FD02D39DBB6D781178A1AA46"
+    },
+    {
+      "path": "frontend/src/assets/fonts/sarasa-regular.woff2",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/assets/fonts/sarasa-regular.woff2",
+      "sha256": "71A76AB7BDB03DBDF58D336D3CB681D56E335FCDCA0428264CC865FB8A5C0FEE"
+    },
+    {
+      "path": "frontend/src/assets/fonts/sharetechmono.woff2",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/assets/fonts/sharetechmono.woff2",
+      "sha256": "41E6B9F297F7D9A2DF2AAA274092F76D2F72711A15CA455F7F4F4F92CAF16B72"
+    },
+    {
+      "path": "frontend/src/bridge/host.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/bridge/host.ts",
+      "sha256": "788787764AED4FE6100D8C91DCE4749B41D26972ABFFF4A613509FA8565B0992"
+    },
+    {
+      "path": "frontend/src/bridge/index.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/bridge/index.ts",
+      "sha256": "E702FD76261F3899E94C97939EAB4B9E3B28FECDB3312B326F36623707013353"
+    },
+    {
+      "path": "frontend/src/bridge/types.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/bridge/types.ts",
+      "sha256": "7AFD5D8E56FD7EABC5CCE3C64A9E2A50EACEDF4B0FA56F8F1E71608CE6E06995"
+    },
+    {
+      "path": "frontend/src/components/AppSetting.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/AppSetting.vue",
+      "sha256": "C79FC1108C2FB25A710151B220E9B79F15BC1291888B9F281DE4D8680BE2B664"
+    },
+    {
+      "path": "frontend/src/components/BetaNotice.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/BetaNotice.vue",
+      "sha256": "75A1DD599A20BB3485BAEEAABF3AE5BD83AFCB4D7F96DBC0F85B21F3FE8FE6EF"
+    },
+    {
+      "path": "frontend/src/components/BusyMask.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/BusyMask.vue",
+      "sha256": "DCBB3FE8D901696E8B96B62EC41C0E636512947F2B9AAC40C8040A089CA1DD6A"
+    },
+    {
+      "path": "frontend/src/components/ConfirmDialog.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/ConfirmDialog.vue",
+      "sha256": "DDBC6705F81676C0E3BD2E98225A6376206E829E3DA9649FD8AF71C5C53062E3"
+    },
+    {
+      "path": "frontend/src/components/ContextMenu.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/ContextMenu.vue",
+      "sha256": "5AF02A668E48ED65B88769DE5D8562B4E3B9D39CE12D756613BF2CAC1851C2ED"
+    },
+    {
+      "path": "frontend/src/components/CyberSelect.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/CyberSelect.vue",
+      "sha256": "8580D3E2000C4153A8A57245FCEDF32BE6F471D502CE0845F0258605C4A4E948"
+    },
+    {
+      "path": "frontend/src/components/EncryptPassword.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/EncryptPassword.vue",
+      "sha256": "7ADEBB35E0DC39883B971FDF458475C473B70D66E56500BAE2FE02B013EB7E61"
+    },
+    {
+      "path": "frontend/src/components/HexPanel.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/HexPanel.vue",
+      "sha256": "86F5507FDB78D7A4D691B2D266676D7FDC420D899639CE638F54BB21610A848C"
+    },
+    {
+      "path": "frontend/src/components/HexView.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/HexView.vue",
+      "sha256": "B6445A5248BC1E0B5CD14105990121D7E2BB37BE942691457FE7CE962A7B5835"
+    },
+    {
+      "path": "frontend/src/components/HiliteArea.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/HiliteArea.vue",
+      "sha256": "28E9039D045C362C727AFBC8D4C53806AFFB08D10A5F4D45E74939F6DA9EBDBB"
+    },
+    {
+      "path": "frontend/src/components/InjectView.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/InjectView.vue",
+      "sha256": "1C19A37428AED92BA634E009218E4060F7CEE846757B9BD8D2A5D8E34B178DC3"
+    },
+    {
+      "path": "frontend/src/components/InstanceView.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/InstanceView.vue",
+      "sha256": "2C09824A9275628CE9360F959474A54277022000859EE8DA537D2FE1E2761C9E"
+    },
+    {
+      "path": "frontend/src/components/PacketList.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/PacketList.vue",
+      "sha256": "A63FE0EC5B589EEF4F955022B71A99F1792802CBFD72E4B0EEFB84F06DC1EC7D"
+    },
+    {
+      "path": "frontend/src/components/ProxyView.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/ProxyView.vue",
+      "sha256": "D86928EEF2C85F4A447E3DD15BF1BA671B58D3346865489FB597A50F761E717C"
+    },
+    {
+      "path": "frontend/src/components/StartView.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/StartView.vue",
+      "sha256": "E2E7EDB3B74297DEA84B4B2B0405F16BC0D99B68FA99DBD9CAF1101B65D198CE"
+    },
+    {
+      "path": "frontend/src/components/ToastStack.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/ToastStack.vue",
+      "sha256": "4F9365540BB80C3C1000B6B1C5D98F359D779F634B94290258AC2C02831C7D64"
+    },
+    {
+      "path": "frontend/src/components/inject/InjectBar.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/inject/InjectBar.vue",
+      "sha256": "A7443B76860946BEC19A048095EAC5FF5FBD1BBB192D6753ECECCB8CD69EAB25"
+    },
+    {
+      "path": "frontend/src/components/inject/InjectData.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/inject/InjectData.vue",
+      "sha256": "25AA22254F660E5267A1AEF6F8D77C408B1600897B5A64476A89531BB3841435"
+    },
+    {
+      "path": "frontend/src/components/menu.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/menu.ts",
+      "sha256": "6010D595126AE2C7AA098B159B3B4902E03B03BB6A45F320DF8A0CECE82E1014"
+    },
+    {
+      "path": "frontend/src/components/proxy/AccountAdjust.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/AccountAdjust.vue",
+      "sha256": "0E6326E471A5ECCDE25A85BBD8C5482110FFBFD586582C04E84ED6DC2AF1EE9A"
+    },
+    {
+      "path": "frontend/src/components/proxy/AccountBatch.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/AccountBatch.vue",
+      "sha256": "B298E4D4A60FE84647D82D617DB302A0DF14D9BC4F29066FEECE0278526B75A7"
+    },
+    {
+      "path": "frontend/src/components/proxy/AccountEdit.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/AccountEdit.vue",
+      "sha256": "C9217E1B77B6347838A17A0EA8FE1E1397FC4CB366D10475B5661BE5A32457AC"
+    },
+    {
+      "path": "frontend/src/components/proxy/AccountList.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/AccountList.vue",
+      "sha256": "2376F909E0A5F06739617926110BAD16E952F3F3488C3B3BFF76D62D13CFA481"
+    },
+    {
+      "path": "frontend/src/components/proxy/AccountLogins.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/AccountLogins.vue",
+      "sha256": "3DFE19068E3DEFD204F9E6515E6C1270D9468A06BE9684C1EFF57DFA7F01A7CC"
+    },
+    {
+      "path": "frontend/src/components/proxy/ActionColor.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/ActionColor.vue",
+      "sha256": "EF081985EB984B43C21B691853EA9F57B7353E540ECA9305D01A7C462502F1D9"
+    },
+    {
+      "path": "frontend/src/components/proxy/AutoStoresEdit.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/AutoStoresEdit.vue",
+      "sha256": "56E5E7B838C515E3AC252A7E5CDF77D70F1AFAA89522D088583E476F8A7AF5AE"
+    },
+    {
+      "path": "frontend/src/components/proxy/AutoStoresSetting.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/AutoStoresSetting.vue",
+      "sha256": "0AD0810893FAB51B3C38C60BED6C00A35EBF22A156D2710578CE8AB4D7EDC6A5"
+    },
+    {
+      "path": "frontend/src/components/proxy/BackupSetting.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/BackupSetting.vue",
+      "sha256": "CB45140688ED944373F5934D5D00888060530C12578799C006EE280FB913BD7E"
+    },
+    {
+      "path": "frontend/src/components/proxy/ClientList.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/ClientList.vue",
+      "sha256": "ED4DB0FB0FA9BB4567667BA5BE54F2143CA6B0B214B33D20D3EF77E8CE2A0CDE"
+    },
+    {
+      "path": "frontend/src/components/proxy/DiffMap.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/DiffMap.vue",
+      "sha256": "18CECE5DD10654B1A9E4B10C344B83F14D8B3EFA8492BFB2F02DFE6D4354AB92"
+    },
+    {
+      "path": "frontend/src/components/proxy/DiffView.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/DiffView.vue",
+      "sha256": "F26FD09740753EFB67E70AEB86AF47872245CCBD18E6351C9AE9DE4A51DD73F4"
+    },
+    {
+      "path": "frontend/src/components/proxy/ExtProxySetting.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/ExtProxySetting.vue",
+      "sha256": "3099E09F8BF5C5E15D3373E6B986429874B9C68EF61379670D48F35CD3A21342"
+    },
+    {
+      "path": "frontend/src/components/proxy/ExtractData.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/ExtractData.vue",
+      "sha256": "072F398ACF66C0E5637057F9760E021B0B3661C5733E1676F8BC98B4680D7522"
+    },
+    {
+      "path": "frontend/src/components/proxy/FilterEdit.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/FilterEdit.vue",
+      "sha256": "12D8079E589565700ED7D784036AA27AAF61ADAD7D5166C8AFBBD82193C79B83"
+    },
+    {
+      "path": "frontend/src/components/proxy/FilterList.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/FilterList.vue",
+      "sha256": "EC26D9F346B858481BC6575A763B982D2B8D419545BD13E24BF4967378259E74"
+    },
+    {
+      "path": "frontend/src/components/proxy/FireWallSetting.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/FireWallSetting.vue",
+      "sha256": "7A7A2971D32A7EB98675B449D0FE5EC1C1D977E1F12527BDD2F03C61612B07AB"
+    },
+    {
+      "path": "frontend/src/components/proxy/HookSetting.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/HookSetting.vue",
+      "sha256": "FD569B030459224A89B4369162C904899ED3FF58457E5B4420A743D74D32C3DD"
+    },
+    {
+      "path": "frontend/src/components/proxy/HotkeySetting.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/HotkeySetting.vue",
+      "sha256": "236EBCF0B0EA8F08FFBAB4F76B1BC298B85D76D6B20C5F610D7FA8265E6121C3"
+    },
+    {
+      "path": "frontend/src/components/proxy/IPRuleEdit.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/IPRuleEdit.vue",
+      "sha256": "5CF93B8A1F0F27A8B817A28DD3C5455DCD13487C02143EB57ED475FBE446FE95"
+    },
+    {
+      "path": "frontend/src/components/proxy/LeachSetting.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/LeachSetting.vue",
+      "sha256": "D12C6E8B7A7DEA21D885D83EC0C3A229B14DFF1BC38946610DCBACAE75599238"
+    },
+    {
+      "path": "frontend/src/components/proxy/ListSetting.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/ListSetting.vue",
+      "sha256": "AD9C5E09A3D78F25561AD6151381D5BE9F4C8AEC75674A9FE03C1EF70C54A67C"
+    },
+    {
+      "path": "frontend/src/components/proxy/MapLocalEdit.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/MapLocalEdit.vue",
+      "sha256": "F8BAAD9BAB91BBB308A3926325132E784799B7890E3BB4849B9517EB1FA5323B"
+    },
+    {
+      "path": "frontend/src/components/proxy/MapRemoteEdit.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/MapRemoteEdit.vue",
+      "sha256": "7603AE249A11236CA8063FB23A7870726B1BDCEA3F33F83B0EB2E2D75BD54263"
+    },
+    {
+      "path": "frontend/src/components/proxy/MapSetting.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/MapSetting.vue",
+      "sha256": "A7884D3927223BC8C0593F49401CA208AB01C244E8EA9E7177F5007D001C02CE"
+    },
+    {
+      "path": "frontend/src/components/proxy/NoticeEdit.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/NoticeEdit.vue",
+      "sha256": "F2E72B6D1C35F2FB819DBBEEEF9DA44C52189327A4943DEAB665832B6085239B"
+    },
+    {
+      "path": "frontend/src/components/proxy/PacketEdit.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/PacketEdit.vue",
+      "sha256": "259686B4A636ADCEC107FEC035321532EC666326D672505C7617C2A51C783EC4"
+    },
+    {
+      "path": "frontend/src/components/proxy/PacketModification.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/PacketModification.vue",
+      "sha256": "3FB804A157F32A0F4E0EB2DD6736F29C2C89C39F5EDC39CA3FE138A3A8D3C1F4"
+    },
+    {
+      "path": "frontend/src/components/proxy/ProcessSetting.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/ProcessSetting.vue",
+      "sha256": "FE2C84AE8702A45ACC5C543AE1653ABF1233D6D56E0E17343A3D506DAEFCE525"
+    },
+    {
+      "path": "frontend/src/components/proxy/ProxyData.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/ProxyData.vue",
+      "sha256": "6226FBFE123BA62A538BD917FB3221AC7E5050044560A429FE7C8AAD79BBF7ED"
+    },
+    {
+      "path": "frontend/src/components/proxy/ProxySetting.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/ProxySetting.vue",
+      "sha256": "7161E327CE801373DA8424EB6C1C46165212D265F8FE5DADA3CE5A40B7BA6846"
+    },
+    {
+      "path": "frontend/src/components/proxy/ProxySide.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/ProxySide.vue",
+      "sha256": "F9DE8351323294FFE747B9FE3EDC976D8BA74E02A548B591BC55C4D3E2EF5491"
+    },
+    {
+      "path": "frontend/src/components/proxy/QuickPanel.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/QuickPanel.vue",
+      "sha256": "435CBBB7C19588B9A8BF1B70622B56888FB89F70FAAAB87DD57049BE73B7A84B"
+    },
+    {
+      "path": "frontend/src/components/proxy/RemoteSetting.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/RemoteSetting.vue",
+      "sha256": "4648ED8CD0B039B43A023D4F7A9FFB7691F6947AAE7F096F755246527778FBE1"
+    },
+    {
+      "path": "frontend/src/components/proxy/RobotEdit.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/RobotEdit.vue",
+      "sha256": "BB0579BC182E912819E70B532EDD4C272002523091A493E91D5D4A0064BC309D"
+    },
+    {
+      "path": "frontend/src/components/proxy/RobotList.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/RobotList.vue",
+      "sha256": "0048BD29AEF42FB1E3EABBF5CCDFE4E13D01C90E54171E94B2C56630ECDF99B1"
+    },
+    {
+      "path": "frontend/src/components/proxy/RuleList.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/RuleList.vue",
+      "sha256": "B044FFD32008D2EC4555850EF8C0F5E5406C2C2314E00CE3B4BB79DBC41F6B34"
+    },
+    {
+      "path": "frontend/src/components/proxy/RunBar.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/RunBar.vue",
+      "sha256": "02E9E9F8B04F17BFEE48BE14E1712822579EA7F35DAA6F6A1E80A9206527DFA4"
+    },
+    {
+      "path": "frontend/src/components/proxy/SendEdit.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/SendEdit.vue",
+      "sha256": "C8CA328510538602A3F513A8B144CF610F9675E17F22DEFF39210E138A50E83A"
+    },
+    {
+      "path": "frontend/src/components/proxy/SendList.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/SendList.vue",
+      "sha256": "D0BF645033E9B1048CD0CC0AD53CFA995ACB858859715E9A709C4B48323FAEE4"
+    },
+    {
+      "path": "frontend/src/components/proxy/ServerEdit.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/ServerEdit.vue",
+      "sha256": "E7837CB1C4FA91F3A0D9E090225E192E4B7B5C652D6B09661343B1A897BFCE0B"
+    },
+    {
+      "path": "frontend/src/components/proxy/SettingsModal.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/SettingsModal.vue",
+      "sha256": "441F2A4551EEDC15D756F249D04CD3E5808D5E07C123F46B196E0773174F7756"
+    },
+    {
+      "path": "frontend/src/components/proxy/StatData.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/StatData.vue",
+      "sha256": "B3BE69144E12F666A6FCE8C6DE6567142AEA47F8251939C984ABB8985DFE5D49"
+    },
+    {
+      "path": "frontend/src/components/proxy/SystemLog.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/SystemLog.vue",
+      "sha256": "C7482A167A6898D680EBDD6B6D284F522C83C7CEEA9851CB3C7A679BB8662E72"
+    },
+    {
+      "path": "frontend/src/components/proxy/SystemSetting.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/SystemSetting.vue",
+      "sha256": "162DFEE47B64DEF818CCC890092AE3F10B96E674E1A4035417263695D9EC1240"
+    },
+    {
+      "path": "frontend/src/components/proxy/TextCompare.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/TextCompare.vue",
+      "sha256": "387D94A7CC002065EE4749F0BCA2A0578BC3BE418C35563BCF46DFDCBF1E2EB5"
+    },
+    {
+      "path": "frontend/src/components/proxy/Transcode.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/Transcode.vue",
+      "sha256": "9D23F36CB9B0231CEC14E135763C66610D272968CAA4D84C993D154FF360AE28"
+    },
+    {
+      "path": "frontend/src/components/proxy/WareHouseEdit.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/WareHouseEdit.vue",
+      "sha256": "065B93B9D8C9F624C75914E35FE6F8DFE1F0AFB1CC32789A4A25FCE8DC34FF29"
+    },
+    {
+      "path": "frontend/src/components/proxy/WareHouseList.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/WareHouseList.vue",
+      "sha256": "AFA59E90998EDE4A4733B25408D1985B93B31D585F7935A5E5D3193416090F1F"
+    },
+    {
+      "path": "frontend/src/components/proxy/WpcConfig.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/WpcConfig.vue",
+      "sha256": "C27D87F50E19CB9BE1F4C9501CEE0879D18F10E0ECB073E6E67C5DB184CA8AC4"
+    },
+    {
+      "path": "frontend/src/components/proxy/XorCalc.vue",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/XorCalc.vue",
+      "sha256": "C8C3353171EA12234E94EEF787020AF4D92E254D68C74742B33D4C4CCF3D78B3"
+    },
+    {
+      "path": "frontend/src/components/proxy/pages.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/pages.ts",
+      "sha256": "99670C0F61DCCC1F8D8BBC2F173D82EE28795C73719B92590CF4471A0644CCB3"
+    },
+    {
+      "path": "frontend/src/components/proxy/settings.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/settings.ts",
+      "sha256": "C15BE9A02B76843060AB63749F8357CFD6AB0B5FD6480455079BFA174C77221D"
+    },
+    {
+      "path": "frontend/src/diff.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/diff.ts",
+      "sha256": "E3B1107D016D84847988F245F56F8E81F27B5DFE1360153F286FE983B08E120C"
+    },
+    {
+      "path": "frontend/src/flags.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/flags.ts",
+      "sha256": "B1A88F03443BA38BE1EACF2B94EBAFCF8B4E409F9B0238536AF437469747058C"
+    },
+    {
+      "path": "frontend/src/hex.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/hex.ts",
+      "sha256": "63F738370468AAF258B3D39D530BC35220ADCFF507ABBE1986080FA0B53700F8"
+    },
+    {
+      "path": "frontend/src/i18n.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/i18n.ts",
+      "sha256": "21CA17E7538F8AD39870FDB180E61D8EAD8DD031D50D85EB32D8A7EE6CAF2CBA"
+    },
+    {
+      "path": "frontend/src/i18n/base.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/i18n/base.ts",
+      "sha256": "4F8CCD9DF7BACAF78C7CF4F3CBFD44F504062D2868EB60B7225934FA25D39245"
+    },
+    {
+      "path": "frontend/src/i18n/ja.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/i18n/ja.ts",
+      "sha256": "8B6B77FF943744C7D0AB1358CF08B3BA2C9C3A6D61D2BA6AC25517B3B4C31423"
+    },
+    {
+      "path": "frontend/src/i18n/ko.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/i18n/ko.ts",
+      "sha256": "4450B93C769DAE410225BF73E1984EE621DE6A29CE8BC7F5D971BE3C5206631F"
+    },
+    {
+      "path": "frontend/src/i18n/langs.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/i18n/langs.ts",
+      "sha256": "0CADD8CDC9611A3B012F8787C5B6E3ACEA849336ED29A1898DF1B786A77B6991"
+    },
+    {
+      "path": "frontend/src/i18n/ru.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/i18n/ru.ts",
+      "sha256": "A2093B48083FF7ACB9D8327B67AA1A9BEFE04935584B1540D2C540A5E7675A53"
+    },
+    {
+      "path": "frontend/src/i18n/tw.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/i18n/tw.ts",
+      "sha256": "99B40822CEDACA28D12379F27042EF2A58637561B9EC95BE450938372D320E85"
+    },
+    {
+      "path": "frontend/src/i18n/vi.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/i18n/vi.ts",
+      "sha256": "D99346F47FC9CDA9E725D78D5B63FC7AB3B3465DECFB7E4B386577DCB66B3C3F"
+    },
+    {
+      "path": "frontend/src/keys.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/keys.ts",
+      "sha256": "E463B8881DDC25667040EC2E5072F60A123A1C2862BF2809A5CC477425C09EF6"
+    },
+    {
+      "path": "frontend/src/main.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/main.ts",
+      "sha256": "21263BD0F1C064982086AD91FBE45FAD69F66BE863D2E1A63CD7C613C6504750"
+    },
+    {
+      "path": "frontend/src/reset.css",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/reset.css",
+      "sha256": "BDC78762FCD5E89F51B07F9C1371C945A2FB64D3D4E2EC3ED440E86C88D0EC5B"
+    },
+    {
+      "path": "frontend/src/shims-vue.d.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/shims-vue.d.ts",
+      "sha256": "BBFD5BEC11C492E63845B2A086832FB35150847F2105014CB9C70AB1FB0183E8"
+    },
+    {
+      "path": "frontend/src/stores/inject.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/stores/inject.ts",
+      "sha256": "14D8DF27CFE18A9A417471108DADEA5DC20F28A61A2F9C66E467B3665FAB4E4F"
+    },
+    {
+      "path": "frontend/src/stores/lists.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/stores/lists.ts",
+      "sha256": "01D387E83FD38FDFBD860BE9A30E877EE22A964CDED7F33B95A3325609A81CA0"
+    },
+    {
+      "path": "frontend/src/stores/logs.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/stores/logs.ts",
+      "sha256": "902EC10860262DFE23E654DBA4E4C6EA07DBD0A8E33BF597B25A6607B4988700"
+    },
+    {
+      "path": "frontend/src/stores/packets.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/stores/packets.ts",
+      "sha256": "93AF26B3491FC5B38B9401E12BAA250AB9FFB20CE6FC7FB0E80DBBA2B730EEB6"
+    },
+    {
+      "path": "frontend/src/stores/runtime.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/stores/runtime.ts",
+      "sha256": "4345B46F244707E2671ADAFC06A1494888455C94EA1C7EEEEAE4CD29FB3E0DBE"
+    },
+    {
+      "path": "frontend/src/stores/theme.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/stores/theme.ts",
+      "sha256": "42D30A27F377531F299A62692C6C74E038370AD48D3937BAA3F6CC110606CEA4"
+    },
+    {
+      "path": "frontend/src/stores/toast.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/stores/toast.ts",
+      "sha256": "6DEE09DA2C4F6DC5361B81891B4FC6F10F329B6C893B40AF0C72140C2E5B5CCB"
+    },
+    {
+      "path": "frontend/src/stores/tools.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/stores/tools.ts",
+      "sha256": "391D70057B5BD33B028E2924F1B2F688AEE16B74667787FF8905B604FB451605"
+    },
+    {
+      "path": "frontend/src/style.css",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/style.css",
+      "sha256": "28BA9A819924F611B0B020121DBC8C789FA4DD865FE128E7384468A473264B5F"
+    },
+    {
+      "path": "frontend/src/tokens.css",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/tokens.css",
+      "sha256": "B4CA8808ED1580A43452DA5A6E95A937398DB639EFE49DA10F825049CD84FAFC"
+    },
+    {
+      "path": "frontend/src/tooltip.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/tooltip.ts",
+      "sha256": "12C1F415954A8B8B8234B80F8EECAFC6EA6497169BD374D74168363F02A62152"
+    },
+    {
+      "path": "frontend/src/useModal.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/useModal.ts",
+      "sha256": "4286F52C0C36FEE4CBD30A32723342CF855AA79A564B034AD5BF199DDDA34E45"
+    },
+    {
+      "path": "frontend/src/usePick.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/usePick.ts",
+      "sha256": "2D8A418F81D771B83D623A1BCFD47B8D4B5ACEB8A68A16B25382C578694CA0B9"
+    },
+    {
+      "path": "frontend/src/useScrollGutter.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/useScrollGutter.ts",
+      "sha256": "EF8F40CCC15D0A6C616BC0166573C563C15C9AD74817536916B2F503371B1E80"
+    },
+    {
+      "path": "frontend/src/useSort.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/useSort.ts",
+      "sha256": "BF4852AD2261DF3A8BF2BD4FE85026982C2671DC39B86B368F8E0FAAC12ECE3B"
+    },
+    {
+      "path": "frontend/tools/check-font-sizes.mjs",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/tools/check-font-sizes.mjs",
+      "sha256": "C876287A4F20B2BAB42D301378145980C788899FAD111FCCC70A1FED4349806D"
+    },
+    {
+      "path": "frontend/tsconfig.json",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/tsconfig.json",
+      "sha256": "701A9C7B5A220978F2EF85C8B51A6923C5F66147834A892C34AFA6465C06F185"
+    },
+    {
+      "path": "frontend/tsconfig.node.json",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/tsconfig.node.json",
+      "sha256": "84BD850E347FF7CAD2191F082F4ACB1858783C486CC703F92542AC9649EFC6B0"
+    },
+    {
+      "path": "frontend/vite.config.ts",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/vite.config.ts",
+      "sha256": "469CC117A5234C8207D300B8D71A45C84F62E57C017AAA34D96D9AF9696FB0B9"
+    },
+    {
+      "path": "wwwroot/assets/index-DYMd62G4.css",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/assets/index-DYMd62G4.css",
+      "sha256": "D8320AEB41384369E7D3C81AE94EC097B656128C28E523DE9FD148F5B993CA80"
+    },
+    {
+      "path": "wwwroot/assets/index-X8fm-tcZ.js",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/assets/index-X8fm-tcZ.js",
+      "sha256": "6C571B58D645734F0036E93560F6E75C74ABE4C5EC05A6576E51DB7524030D48"
+    },
+    {
+      "path": "wwwroot/assets/jetbrainsmono-6fWv1k7M.woff2",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/assets/jetbrainsmono-6fWv1k7M.woff2",
+      "sha256": "83C005D49D8A6A50474C73A5A36AC0468076E9C4A29DA7BDB14995D80560A5BE"
+    },
+    {
+      "path": "wwwroot/assets/orbitron-Du7j2Vp2.woff2",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/assets/orbitron-Du7j2Vp2.woff2",
+      "sha256": "C25A9F9DA5D9F3DB1BF2A01474722DC9B377675B7BBAB6D0DFDA6902794FD1ED"
+    },
+    {
+      "path": "wwwroot/assets/sarasa-bold-CL1w772o.woff2",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/assets/sarasa-bold-CL1w772o.woff2",
+      "sha256": "E538B9A4A2D9D658D4E6A2EC96C61F57124B8E61FD02D39DBB6D781178A1AA46"
+    },
+    {
+      "path": "wwwroot/assets/sarasa-regular-B_HjCbWg.woff2",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/assets/sarasa-regular-B_HjCbWg.woff2",
+      "sha256": "71A76AB7BDB03DBDF58D336D3CB681D56E335FCDCA0428264CC865FB8A5C0FEE"
+    },
+    {
+      "path": "wwwroot/assets/sharetechmono-CCqdbj5z.woff2",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/assets/sharetechmono-CCqdbj5z.woff2",
+      "sha256": "41E6B9F297F7D9A2DF2AAA274092F76D2F72711A15CA455F7F4F4F92CAF16B72"
+    },
+    {
+      "path": "wwwroot/flags/Flag_Local.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/Flag_Local.png",
+      "sha256": "693D341799AC61467558ABAC65328667C4CF59409BB758CE78B884AD748484B4"
+    },
+    {
+      "path": "wwwroot/flags/ad.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ad.png",
+      "sha256": "D9E2F49EF37A73C4ED156ACE3F80ADA362EBCB1A145E9606FC8FB54C3FFEE54D"
+    },
+    {
+      "path": "wwwroot/flags/ae.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ae.png",
+      "sha256": "492023F8A12956C0B0770EFAE8A6BC3E5052DF52AA9AF8438C0432240EB38650"
+    },
+    {
+      "path": "wwwroot/flags/af.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/af.png",
+      "sha256": "34C3B54C1D001FC21428107A0963693C166D35429F2DED3A4ABFEE4257116A27"
+    },
+    {
+      "path": "wwwroot/flags/ag.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ag.png",
+      "sha256": "790CE4183BFE961EB7013376DF00DBCA33F8E8A8F35A39D1AA64B157E1AB1558"
+    },
+    {
+      "path": "wwwroot/flags/al.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/al.png",
+      "sha256": "9ACF50C6DCE126D55DDEE3F9BE9E52E656CAADC5918A517727A84543DC84915E"
+    },
+    {
+      "path": "wwwroot/flags/am.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/am.png",
+      "sha256": "1A49E17ACA7D42A3BC19C225267FEA55A6A2EEC561B4A39002FEB707BD110098"
+    },
+    {
+      "path": "wwwroot/flags/ao.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ao.png",
+      "sha256": "D46026846E6DDB63CFB95427F0D52205214D2B64DAA486813A144013B32265B4"
+    },
+    {
+      "path": "wwwroot/flags/ar.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ar.png",
+      "sha256": "5A5A4657B902C2CCCA12EBD47CBF632DE8EC4996A929901D0464D1BFBAAFBABD"
+    },
+    {
+      "path": "wwwroot/flags/arab.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/arab.png",
+      "sha256": "0B9436DD098F7A28D44F6B57BC2EB131D3D647CA4546C4FDD28F6DE127FC5994"
+    },
+    {
+      "path": "wwwroot/flags/at.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/at.png",
+      "sha256": "7A599CCDF810E782292115A24477F9D2BB53DB51649E39D3E32D893E20750EF1"
+    },
+    {
+      "path": "wwwroot/flags/au.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/au.png",
+      "sha256": "CD57E6AAC6CE782848A5F3F866E3A3BF0276E187B3E69DD6FBAA5A353BF5D36B"
+    },
+    {
+      "path": "wwwroot/flags/az.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/az.png",
+      "sha256": "ABA998E9786C572D9824E6BF544AEA8B34C58605DC91A8111B170FDCB610887D"
+    },
+    {
+      "path": "wwwroot/flags/ba.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ba.png",
+      "sha256": "4C3CB11A496BD65E5700095374D574AC3B87C143900FE4CA1C147AD2523E2520"
+    },
+    {
+      "path": "wwwroot/flags/bb.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/bb.png",
+      "sha256": "9FC7B7CDFE9DD464556279BCB8773E9A65CE11C815CFAA0A958EFC826C835A59"
+    },
+    {
+      "path": "wwwroot/flags/bd.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/bd.png",
+      "sha256": "955C6DC70D87930B0993A83B396CFF875077E47EB2E0AFFB112EB79BD509F101"
+    },
+    {
+      "path": "wwwroot/flags/be.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/be.png",
+      "sha256": "3A19B5DA6E64D94DD08209F2C92D6ADEB3894B87B85B671414C6EA542B12132A"
+    },
+    {
+      "path": "wwwroot/flags/bf.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/bf.png",
+      "sha256": "14B08559FEACF6FDBBC30E727717F6A0A4489CA70EE2DAD41950E9A51A29C4DA"
+    },
+    {
+      "path": "wwwroot/flags/bg.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/bg.png",
+      "sha256": "3BA63A809FCC1EDB208E71C391E2DF4EFFB697C8CD5C918B4F682C22B9E6713B"
+    },
+    {
+      "path": "wwwroot/flags/bh.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/bh.png",
+      "sha256": "4C508165692DC1E2F265A1C2ED5E713CBC124373FB43F170FFCB2C6A8A2E2E8E"
+    },
+    {
+      "path": "wwwroot/flags/bi.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/bi.png",
+      "sha256": "4201BA86B26DDC8537D09923A5A42694A842B2DBA2D74D440762C8BFD65BFBA3"
+    },
+    {
+      "path": "wwwroot/flags/bj.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/bj.png",
+      "sha256": "4126451728FA5D8297E4F2FC0DCA31E3C2A4760460F3C85C41031906051DEEFF"
+    },
+    {
+      "path": "wwwroot/flags/bn.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/bn.png",
+      "sha256": "85E73CFFDFA570C882A4033F3B92B6681A20947FDFECCE65BB879485948D329B"
+    },
+    {
+      "path": "wwwroot/flags/bo.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/bo.png",
+      "sha256": "F6526E2A3D244BA1DF231A144C039DFA2EAAEBAE5754A45535EC86CB62326CA8"
+    },
+    {
+      "path": "wwwroot/flags/br.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/br.png",
+      "sha256": "1B9BE8E6854E0B2A559420BF512DCA5F5A7F77D273C79A039C7FBEC47971CD64"
+    },
+    {
+      "path": "wwwroot/flags/bs.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/bs.png",
+      "sha256": "6FE386FF56095B29515F798F562A3BA96EADA70998248CD5D492AF264A9FAE8B"
+    },
+    {
+      "path": "wwwroot/flags/bt.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/bt.png",
+      "sha256": "C088413F60F25393A3F7A6C404057E5BEDAE014A3000E254C97AE2B2EDE95599"
+    },
+    {
+      "path": "wwwroot/flags/bw.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/bw.png",
+      "sha256": "61C67862DB90B6F5B7A65F5D1A1C2D11A99027E2E87F86DDF0B7234C859E0813"
+    },
+    {
+      "path": "wwwroot/flags/by.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/by.png",
+      "sha256": "FBA95462C47BE054B9BFDA00B612F47ACDC22E9C69C9FF219543138B7487BEF9"
+    },
+    {
+      "path": "wwwroot/flags/bz.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/bz.png",
+      "sha256": "56744FFBAF8069AF9C7F6F39F552829B14181AFD82861A834210E91DB388E9E1"
+    },
+    {
+      "path": "wwwroot/flags/ca.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ca.png",
+      "sha256": "82BE1A1783FC03287F3C3BFD98C61BCD8DC2929CE88F296D8750B0EE16B83F78"
+    },
+    {
+      "path": "wwwroot/flags/cd.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/cd.png",
+      "sha256": "59B6F8E7E43011381417BE879BCEDF91717CFDA449E59496C07D22BE6BD42EC7"
+    },
+    {
+      "path": "wwwroot/flags/cf.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/cf.png",
+      "sha256": "CDDEF2EC7ED93F8B5772FA08D6E11846762116B0772D9CF768E1CC889AA2CD2A"
+    },
+    {
+      "path": "wwwroot/flags/cg.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/cg.png",
+      "sha256": "56B15BE99AB1C2D9B0CBE9C7B6CB5B860C632BDA03CE7225E8A9ED6B3FF6CCE9"
+    },
+    {
+      "path": "wwwroot/flags/ch.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ch.png",
+      "sha256": "B57AC564B72CDDF11FD538136F11DB51D215955E3762818D8BB6153E5B29202A"
+    },
+    {
+      "path": "wwwroot/flags/ci.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ci.png",
+      "sha256": "D468908DC4A78234B0AA343DB4D1250315BD348BB5C58505F694DD5F7818551A"
+    },
+    {
+      "path": "wwwroot/flags/cl.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/cl.png",
+      "sha256": "3FCD6AFAC5D8E3E873E64B8C54F9C6071EC400AB521E4556C5E1A16F3942120B"
+    },
+    {
+      "path": "wwwroot/flags/cm.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/cm.png",
+      "sha256": "12BD4AB2BCC21E9D5DBF58F97C42069973D36F7D5098F93F4B5D8B29B9320F38"
+    },
+    {
+      "path": "wwwroot/flags/cn.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/cn.png",
+      "sha256": "DBE8FC35FFC97475BFE009F4BD6DDC75BD88936825925E0AE81EB886CD708D54"
+    },
+    {
+      "path": "wwwroot/flags/co.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/co.png",
+      "sha256": "6DB5D9522C9B4F2F6AD43D6D0BA3698A330767F0B9C30671E58E47D11EC7BAF7"
+    },
+    {
+      "path": "wwwroot/flags/cr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/cr.png",
+      "sha256": "EE3B4CE91157DB63555E410EBDA670A9A31AE8BD87218150173B27A8D3C7F513"
+    },
+    {
+      "path": "wwwroot/flags/cu.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/cu.png",
+      "sha256": "0E2BF005A67EED83BC51226CBF2631028097B1B2B5DD1E5E422B3E175DE8F6A3"
+    },
+    {
+      "path": "wwwroot/flags/cv.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/cv.png",
+      "sha256": "6DE35B76552D464830BB617E81B80EDA7140A6D4463D3DB588B761E052110ED6"
+    },
+    {
+      "path": "wwwroot/flags/cy.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/cy.png",
+      "sha256": "ED5654E5DA7144EAF6658CA124F446E82EDF48EAF71A2CE2140F32095C193052"
+    },
+    {
+      "path": "wwwroot/flags/cz.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/cz.png",
+      "sha256": "68F3235F9AFCB63F63B2F5910E0B7E5665AA25A3539768B0801349CDF2E0170C"
+    },
+    {
+      "path": "wwwroot/flags/de.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/de.png",
+      "sha256": "081E8FD1A85F0464C1A430DA4A491D24807F58D0E922D70834FBE4A2ACB1DCFD"
+    },
+    {
+      "path": "wwwroot/flags/dj.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/dj.png",
+      "sha256": "76F64D0E474A7AA623B77CE672321106A4F84C0847073A6E9A556498273AE35A"
+    },
+    {
+      "path": "wwwroot/flags/dk.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/dk.png",
+      "sha256": "E20473B8B8823969018D64A91D1EAACBDC8A836DA5E1E2208946E2E8EF23CE28"
+    },
+    {
+      "path": "wwwroot/flags/dm.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/dm.png",
+      "sha256": "BCD26C4D92D7632F49A8C7080C1C9A496B31AA7967C8CA63D49B09E88DA57E10"
+    },
+    {
+      "path": "wwwroot/flags/do.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/do.png",
+      "sha256": "CCF5A5302A604AB798EE414A359619E89928EC3AA783EE57DC6DC90C47DDB293"
+    },
+    {
+      "path": "wwwroot/flags/dz.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/dz.png",
+      "sha256": "55AF0D790F02A3758B4B5CD0D7E5AFDC9C047F7611F5D94D51162CFD93A1B681"
+    },
+    {
+      "path": "wwwroot/flags/ec.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ec.png",
+      "sha256": "D6232ED2B0094C67CE3C33D66C499128600653F06065BFC757AB59FC456707DF"
+    },
+    {
+      "path": "wwwroot/flags/ee.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ee.png",
+      "sha256": "C58E80FF86324AECB6F613EB4083639334E7C96D271B6C531C2FD60C4E651177"
+    },
+    {
+      "path": "wwwroot/flags/eg.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/eg.png",
+      "sha256": "67DEEA10965813882F72C7AEBB711A9B6FEDECAE0BEDD2A50E8ECD506F75F99E"
+    },
+    {
+      "path": "wwwroot/flags/er.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/er.png",
+      "sha256": "3757F11A964358556AE8D79F22DEBC14701D254A784329699C542F73907B2F72"
+    },
+    {
+      "path": "wwwroot/flags/es.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/es.png",
+      "sha256": "628F934F47F2CCC15E079F1D691F2134CCEC9A35311FD624F7CD1DAC76CDE86A"
+    },
+    {
+      "path": "wwwroot/flags/et.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/et.png",
+      "sha256": "8038E23216E579C3509D25F56F6874CDFDE6F292FE2AC31D691FFDBD748B4C3C"
+    },
+    {
+      "path": "wwwroot/flags/eu.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/eu.png",
+      "sha256": "9ECF57F5E632010F364A94AFD6D37D790B0B8C4352013F970B8C7F522ECC9E42"
+    },
+    {
+      "path": "wwwroot/flags/fi.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/fi.png",
+      "sha256": "5BE666EDC97F6B003232BD6B7F70F822287CE8B51CBA33B43341C21E5B72911B"
+    },
+    {
+      "path": "wwwroot/flags/fj.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/fj.png",
+      "sha256": "146FDD9849D5D2F98BF56CBDA4902E79EBC67019A0CE7251C46C0668327B2E07"
+    },
+    {
+      "path": "wwwroot/flags/fm.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/fm.png",
+      "sha256": "F3DC1B72C91750D8DAD7169A371D62D25C70D484BBFEECFE02A35EDEC1D60295"
+    },
+    {
+      "path": "wwwroot/flags/fr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/fr.png",
+      "sha256": "A18E0B58634C4BB9CEF81A3FF74B7162F5D473BDC6B448E28A119BFDD6DF17D1"
+    },
+    {
+      "path": "wwwroot/flags/ga.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ga.png",
+      "sha256": "7DB4697DD2C11C563061ED843B43BD63167B9E6C41977BF139D1FA92C1922EFE"
+    },
+    {
+      "path": "wwwroot/flags/gb.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/gb.png",
+      "sha256": "9EE40CBF4E06CA8F2265E119F91DC1849E8C3A1582416917EAA2F7663297DB4C"
+    },
+    {
+      "path": "wwwroot/flags/gd.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/gd.png",
+      "sha256": "394F25F8A70604D7CEEAA724E5C1690CCA7987D400CFEF47DEE443CDD9F39316"
+    },
+    {
+      "path": "wwwroot/flags/ge.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ge.png",
+      "sha256": "EA61D061E5B769A9E59D3EA9D46521BA8E27C2313CF8C2B88C99FB87CE81C993"
+    },
+    {
+      "path": "wwwroot/flags/gh.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/gh.png",
+      "sha256": "361DD9E857C771A24ABD9143D60F2E5053E702CCCF61A93123D6E7613F3DE290"
+    },
+    {
+      "path": "wwwroot/flags/gl.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/gl.png",
+      "sha256": "1C1A1B04DC62BAC6254DD69286D256816191494B68398C09E81A2AB01E0D1800"
+    },
+    {
+      "path": "wwwroot/flags/gm.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/gm.png",
+      "sha256": "A7B8F2CBAA1D9788C6FE1FBF2284C512C5E2254038341402C3EE394AEE9465D1"
+    },
+    {
+      "path": "wwwroot/flags/gn.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/gn.png",
+      "sha256": "F73A46980BB34114C138BB84CB36E8E7D73B681049E51FE4997246968690D3CB"
+    },
+    {
+      "path": "wwwroot/flags/gq.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/gq.png",
+      "sha256": "0F69814D7B75C0B5770F8F8B5EF4E944540F6678B77CAA3F0DED707AE5C84172"
+    },
+    {
+      "path": "wwwroot/flags/gr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/gr.png",
+      "sha256": "4C8E5AF7AFD3E72DC7BFA223CFA5A35BF03D0F78968B2DA14C0856509265FD15"
+    },
+    {
+      "path": "wwwroot/flags/gt.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/gt.png",
+      "sha256": "BDE3470F89307E7FC56599F3549F8C134BDC453CCB266DB8FD793861744EEBFB"
+    },
+    {
+      "path": "wwwroot/flags/gu.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/gu.png",
+      "sha256": "97886979AC0B2DA30F1D0CE2CA2335CC02CAE625EEF166AAF48C76D1F855B58E"
+    },
+    {
+      "path": "wwwroot/flags/gw.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/gw.png",
+      "sha256": "0BE239D181184B8FE4D0E5AD8B8190E5058C8F9EF621B20B80BC9019C2EC3B66"
+    },
+    {
+      "path": "wwwroot/flags/gy.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/gy.png",
+      "sha256": "FAB929712DAAF000A13C03BBC73CD2734BA4CDEF5D2109F71C48B0B876949A7C"
+    },
+    {
+      "path": "wwwroot/flags/hk.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/hk.png",
+      "sha256": "BBC62A465261806985075D0465FD1277C3B2D3ABBFB5A580570B2CCED380CD87"
+    },
+    {
+      "path": "wwwroot/flags/hn.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/hn.png",
+      "sha256": "C40EC1D2B436B5CA3D352C35A3D48AFCC83D07C78BCD7CEE8D3E97254DCFD863"
+    },
+    {
+      "path": "wwwroot/flags/hr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/hr.png",
+      "sha256": "8E43BF34C5944E6EE83838B9D8DBA7D7C9F452DF76C60F64CD32715D67F0A5CF"
+    },
+    {
+      "path": "wwwroot/flags/ht.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ht.png",
+      "sha256": "62BEE34852F27A738B77750AC2F1CBA183475AE8BBC59FBC7C93B31C4C026EC4"
+    },
+    {
+      "path": "wwwroot/flags/hu.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/hu.png",
+      "sha256": "9DCD519DCB99873E94DCD6312D177D4DB50BF3F23F999D00E55243E4DFAC2C6E"
+    },
+    {
+      "path": "wwwroot/flags/id.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/id.png",
+      "sha256": "680A02B7E1E04B5169DE2FBBE9A650D8DDCC5B7A7F7BAD560291F53BC5EC9812"
+    },
+    {
+      "path": "wwwroot/flags/ie.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ie.png",
+      "sha256": "FA4D62E4D22BA36AD670EC073D0DC926DCE23406158AE04DBD33C08BF66FCCA4"
+    },
+    {
+      "path": "wwwroot/flags/il.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/il.png",
+      "sha256": "AC7393F23C5E4B2024EFD43A81B738AC9374BBFB63840F4B0FB105AA36709D52"
+    },
+    {
+      "path": "wwwroot/flags/in.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/in.png",
+      "sha256": "1B3A4F600DCD8995EE5182AC952013F479B3DB67805CAACAE37AEFB10A3FA7E8"
+    },
+    {
+      "path": "wwwroot/flags/iq.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/iq.png",
+      "sha256": "4ACCC9575F3603420F58D72681F2C1B84F4096C43718C12B91BA6088CAEB16BA"
+    },
+    {
+      "path": "wwwroot/flags/ir.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ir.png",
+      "sha256": "9D8D11AD7C2C0B219A7C740B94F963FF0C827D0B742E2DE9EB3DF6815C618CE8"
+    },
+    {
+      "path": "wwwroot/flags/is.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/is.png",
+      "sha256": "474BE47CF5C65A261E51C91DEDCE8FC2FF717A3E688C8AEA60FDFFABADC07A14"
+    },
+    {
+      "path": "wwwroot/flags/it.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/it.png",
+      "sha256": "B4F27D2B7AAEED31215361EB75D7B44F8A3E650C5C1C5C22FD034848A181C73A"
+    },
+    {
+      "path": "wwwroot/flags/jm.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/jm.png",
+      "sha256": "41A77264B1E36D09C08DF50FE53AEE0F25DF36AB80A0A9AE351404854BC29F33"
+    },
+    {
+      "path": "wwwroot/flags/jo.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/jo.png",
+      "sha256": "ABE11932B7C24EDCFEFBEA375D1115B40CC1D4D9D1330494DFD93B89F792FD34"
+    },
+    {
+      "path": "wwwroot/flags/jp.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/jp.png",
+      "sha256": "4F1FD9E572B8EF5B826D3CD64515E957B986F310184A9297171EA1789B252183"
+    },
+    {
+      "path": "wwwroot/flags/ke.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ke.png",
+      "sha256": "F3DFA51E531330F57505BAB0455436706AF4667DE0F220F733B3928414B63756"
+    },
+    {
+      "path": "wwwroot/flags/kg.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/kg.png",
+      "sha256": "054F80464E83A24BF2C9213FF76C564EBE15B84A3E41153CBC70F88C49170E07"
+    },
+    {
+      "path": "wwwroot/flags/kh.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/kh.png",
+      "sha256": "4389262520B95A9CACE92EF2DFF353E606D48DB0867D764245BC068910DFB48C"
+    },
+    {
+      "path": "wwwroot/flags/ki.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ki.png",
+      "sha256": "6C637D0B73D0BEBBA25F86724B46A13BC7C6579013B6C85CF30383313838A7EA"
+    },
+    {
+      "path": "wwwroot/flags/km.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/km.png",
+      "sha256": "703A000E53C69C13E4729A9643B632B9DA94B5FC9ACFFE248B97991222B3D775"
+    },
+    {
+      "path": "wwwroot/flags/kn.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/kn.png",
+      "sha256": "10A18AD89B5AD58E0A15ECB40D0C5C50B04B04C364B987A43D7454F14C994789"
+    },
+    {
+      "path": "wwwroot/flags/kp.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/kp.png",
+      "sha256": "82DBD246893CB6928958C7362C41E0515665581C7DC80153BEA2673DBECF5A75"
+    },
+    {
+      "path": "wwwroot/flags/kr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/kr.png",
+      "sha256": "7C557C4B870D63851FA9C741B77FF3F7AFF17252FCA7DB8734C2B79B66F14C95"
+    },
+    {
+      "path": "wwwroot/flags/kw.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/kw.png",
+      "sha256": "01A4082E44C7C7DF8B4052B05161E28680FE2C08BA8F056E87D91B62F887BE6C"
+    },
+    {
+      "path": "wwwroot/flags/kz.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/kz.png",
+      "sha256": "F9BEA5B9B6F21B67AEEABBE4DD5A445D64BFD0A5CDCD312EED77AB3C428E02B4"
+    },
+    {
+      "path": "wwwroot/flags/la.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/la.png",
+      "sha256": "783C5C3458A4C1B4A00CAA6854B3D9E5E968B14A9C36A6EF3BAAEA8945E0BDA1"
+    },
+    {
+      "path": "wwwroot/flags/lb.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/lb.png",
+      "sha256": "F2665DA843A1CD412E4B74E965D3782406BC7053546BE9A4F3E1F698ABA77B12"
+    },
+    {
+      "path": "wwwroot/flags/lc.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/lc.png",
+      "sha256": "22FF74670859C252F365E8714982352E282146716B2B9FDC2B13C9A2798D809E"
+    },
+    {
+      "path": "wwwroot/flags/li.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/li.png",
+      "sha256": "C2E2AB890CC21EE521B4DC02B34068ECB19065E8A5960DECDA43655839346F1F"
+    },
+    {
+      "path": "wwwroot/flags/lk.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/lk.png",
+      "sha256": "02EDC658A0946BAAEA09DD8C48AF6AD24B33F63D21C6BF3C2315E3637755BBFB"
+    },
+    {
+      "path": "wwwroot/flags/lr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/lr.png",
+      "sha256": "C4CE3C36F88C44214873E5228C4BE875E324B44BC47562FCC02D0A9EE6994ECA"
+    },
+    {
+      "path": "wwwroot/flags/ls.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ls.png",
+      "sha256": "70FD562AFF1A7CF4F54951E26CB59C30E866A0A7FD2063467F5ABD474834983B"
+    },
+    {
+      "path": "wwwroot/flags/lt.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/lt.png",
+      "sha256": "C612823F1A4D05D4209C553744A72E534100F8D8B8F582D5759E5E2A8CCDD299"
+    },
+    {
+      "path": "wwwroot/flags/lu.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/lu.png",
+      "sha256": "7E207898F2DE447EE877C93ABBE8C18AECB651FEA717DF0CF07833AE7C6572D8"
+    },
+    {
+      "path": "wwwroot/flags/lv.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/lv.png",
+      "sha256": "CE8F04AAB811E1BD75D886C51D288F41B589F14C2579656DE07868A74C8CA164"
+    },
+    {
+      "path": "wwwroot/flags/ly.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ly.png",
+      "sha256": "3BC582983B7AD7D8F61115A812D1B7FA88564CB9BB7117396A26800DC762444F"
+    },
+    {
+      "path": "wwwroot/flags/ma.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ma.png",
+      "sha256": "E205352F10F7663139A161AED1D2847838733D70E3E12FF746C928C4810D34DD"
+    },
+    {
+      "path": "wwwroot/flags/mc.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/mc.png",
+      "sha256": "36CBD1E3803E8E2B9CD560969E1AD792FFF52B3ADA2F53905F395F15CFAB7C9F"
+    },
+    {
+      "path": "wwwroot/flags/md.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/md.png",
+      "sha256": "7159CD520CEE1A1453268D5870BDFAF96BD8199FA8BCB4FE3D94B127159DC6F4"
+    },
+    {
+      "path": "wwwroot/flags/me.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/me.png",
+      "sha256": "E94435D356521B65A0ABDCA19174B2D22BFFC06A11049ED0D127BF2CF25DFC16"
+    },
+    {
+      "path": "wwwroot/flags/mg.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/mg.png",
+      "sha256": "4175450349642DED543BE4487A48F058BCB6AD59C878C298495DE497E9C642D1"
+    },
+    {
+      "path": "wwwroot/flags/mh.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/mh.png",
+      "sha256": "4BA7FA621F062B3553A2E43BF7DAEDC56373CEF907D6F3EC496FAFDABDD7DD7D"
+    },
+    {
+      "path": "wwwroot/flags/mk.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/mk.png",
+      "sha256": "48553E1EE5D812AAACF63936B36EE975C0CB2D7483C1B5332921224F407A8FE4"
+    },
+    {
+      "path": "wwwroot/flags/ml.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ml.png",
+      "sha256": "398A608AE04D681FDAC5323A3E89518BF567D1A8E29BC88938269F6D1E7227A2"
+    },
+    {
+      "path": "wwwroot/flags/mm.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/mm.png",
+      "sha256": "8651353DAB77C73717189ED493AF54D05CD87AB178FA860ECE4726AD087C955F"
+    },
+    {
+      "path": "wwwroot/flags/mn.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/mn.png",
+      "sha256": "D3B687ADC5366F0405823423FFC9C307B622A3D14BC483ABEEE8CBCC2D860101"
+    },
+    {
+      "path": "wwwroot/flags/mo.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/mo.png",
+      "sha256": "9ED479C9477BAAE838968272D9FB789FA3345DF1A11BB7573CB15FA9CB07DB3D"
+    },
+    {
+      "path": "wwwroot/flags/mr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/mr.png",
+      "sha256": "B46FB4A110738A0CA75A48B94EA640A9D7A0C26B3BF81F729836A186CBD2055A"
+    },
+    {
+      "path": "wwwroot/flags/mt.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/mt.png",
+      "sha256": "106A725CBB323F3D6740ABE612DBC381D2BAF5D91C4CB82C9E75A539A7E69BFC"
+    },
+    {
+      "path": "wwwroot/flags/mu.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/mu.png",
+      "sha256": "1C22768A73280963E95D25F00AA9DE3B753812E49F544F4238F1F59AA347267C"
+    },
+    {
+      "path": "wwwroot/flags/mv.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/mv.png",
+      "sha256": "D095F1A7CA1B40C703F03825BD7ED01833990EF55568AF2E120278A1F4608777"
+    },
+    {
+      "path": "wwwroot/flags/mw.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/mw.png",
+      "sha256": "0BB703EC61A89A1925FF4A603B47730448637CB1F327290A2D06FA5B7D020142"
+    },
+    {
+      "path": "wwwroot/flags/mx.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/mx.png",
+      "sha256": "0D38D8E40D277770B405BB037054C44E5585F6BEB292CBA0E9A9E65C47CA4E9B"
+    },
+    {
+      "path": "wwwroot/flags/my.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/my.png",
+      "sha256": "F2718CA7EE8FE05B3C11E9DC06CDEE2FF9B8B428A385957ABD341FB501793E76"
+    },
+    {
+      "path": "wwwroot/flags/mz.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/mz.png",
+      "sha256": "0DFB5079EBD372D6D9C3F2EAABBDEFFD43467BAA4D9F2158C207794FD0B29CF9"
+    },
+    {
+      "path": "wwwroot/flags/na.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/na.png",
+      "sha256": "74F0B474551427301FD925E8B66F99A01523C41908355CC56A8AE8B3B9D433E7"
+    },
+    {
+      "path": "wwwroot/flags/nc.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/nc.png",
+      "sha256": "440836AA867BFEF0FF9B2623E3471F49C8540EA152D9912BD9424883B02BEF0E"
+    },
+    {
+      "path": "wwwroot/flags/ne.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ne.png",
+      "sha256": "CE49AF303F4CF7C4554014F0F8EEFC605BC52B70E209EE059282D18555D37879"
+    },
+    {
+      "path": "wwwroot/flags/ng.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ng.png",
+      "sha256": "80F7B7DD1C9F8029058E8C658DB0EA2A1FFAEF87AA314D5053976CB168945229"
+    },
+    {
+      "path": "wwwroot/flags/ni.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ni.png",
+      "sha256": "116C3745F97EB89CE61C80641081BDE8273C90018385996006B8EFF82BD8ECCD"
+    },
+    {
+      "path": "wwwroot/flags/nl.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/nl.png",
+      "sha256": "460E85D9F1D752387F1258C048BF63F8E2FDAA3A0BFEC8CA7345BB36FC8DCD78"
+    },
+    {
+      "path": "wwwroot/flags/no.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/no.png",
+      "sha256": "F556A47DE9FAB436D08D492161749D8BD716370A6FE5A3BA8F16620CAC555ACA"
+    },
+    {
+      "path": "wwwroot/flags/np.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/np.png",
+      "sha256": "2B45995BE82F18F0915F36E875F958E65E70E5298C3E5987196D25A9AF92DC4D"
+    },
+    {
+      "path": "wwwroot/flags/nr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/nr.png",
+      "sha256": "1F71AE6DB93967F7AF2202A76A7146992DC0C7C64C7EEE54515F4851BC39AF59"
+    },
+    {
+      "path": "wwwroot/flags/nz.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/nz.png",
+      "sha256": "D5D9D00882385EB149E2728CF62E86D5643D0E9049759E81A57863600CBEA688"
+    },
+    {
+      "path": "wwwroot/flags/om.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/om.png",
+      "sha256": "3109AC537B517CE2D45C03A83C3405FA19EBDAE2CE783C31A8A60ACEC91AAEA0"
+    },
+    {
+      "path": "wwwroot/flags/pa.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/pa.png",
+      "sha256": "B71A5193D1E71A83F0C93BC3FDB3FD40DF3E16CAA389316E8B87AA6604F10D84"
+    },
+    {
+      "path": "wwwroot/flags/pe.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/pe.png",
+      "sha256": "9EB22C033136DE9E3D38FD363EAC8996FAB431C949E88F2278CCA6BC86C451CA"
+    },
+    {
+      "path": "wwwroot/flags/pf.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/pf.png",
+      "sha256": "D77B2DA5906A1B47C800DFD411EA02C81CEA2CD4A977D543C8043D8BE63F4D77"
+    },
+    {
+      "path": "wwwroot/flags/pg.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/pg.png",
+      "sha256": "6979464B7410D33FA073B9492B6127E6EE86B31C3FE3296EFAE51740A5ED53EB"
+    },
+    {
+      "path": "wwwroot/flags/ph.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ph.png",
+      "sha256": "A45C8834823DF5494D6C63B7FDA6C5C69B202381F01E57837E19309F992FCBB8"
+    },
+    {
+      "path": "wwwroot/flags/pk.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/pk.png",
+      "sha256": "7DD56032E99D52AB8DBF74A0379179FA78DC6FC6C2483243701DCF9089B3C8ED"
+    },
+    {
+      "path": "wwwroot/flags/pl.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/pl.png",
+      "sha256": "C951B3390E773B76F8ACA9408C6C72467AFFE0EB42632AD64B7FF5717E6A013C"
+    },
+    {
+      "path": "wwwroot/flags/pr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/pr.png",
+      "sha256": "E3D23F4E5C5BC486D25A88A6AFB5ECA78C3FE5A409A3FBE6F4245C36E9038CBF"
+    },
+    {
+      "path": "wwwroot/flags/ps.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ps.png",
+      "sha256": "725529F943206AC852F35255BB5054785C621472EEBA1CA02473752154DE5759"
+    },
+    {
+      "path": "wwwroot/flags/pt.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/pt.png",
+      "sha256": "D534C717D58758C5C1C4A386EC428FAFC497205989C7C22B667A8EAF3366D5B9"
+    },
+    {
+      "path": "wwwroot/flags/pw.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/pw.png",
+      "sha256": "F975A8D664A60562DE2C96480E7EEC62075665ACDB784C8479EB7077782BAAAB"
+    },
+    {
+      "path": "wwwroot/flags/py.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/py.png",
+      "sha256": "16D7FDAF608EC174211736E5E7776902FE0ACAC1629072ED52A1F3A8A4C6F0F7"
+    },
+    {
+      "path": "wwwroot/flags/qa.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/qa.png",
+      "sha256": "9A091A8B0E1393AC6B58A5489591A8385B3BBE015A2F0F2DDCD25C484505702A"
+    },
+    {
+      "path": "wwwroot/flags/ro.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ro.png",
+      "sha256": "41BC2FD7DA38F80768C392918F10F98467C3C0F1E6445E1420446400765FB26E"
+    },
+    {
+      "path": "wwwroot/flags/rs.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/rs.png",
+      "sha256": "FDD93AC2B300C81638984B195B4473A561BB5B38CA3E21776A0E52ADC147E601"
+    },
+    {
+      "path": "wwwroot/flags/ru.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ru.png",
+      "sha256": "2F5AAE51CB297CCD9DD845289F35950D2ABE7D4C76EE4DAF77F1DDA9E616E923"
+    },
+    {
+      "path": "wwwroot/flags/rw.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/rw.png",
+      "sha256": "17F3AF7251F2BAF263C52EB244072FE642CFA84665CB04ADE10145B5FE404791"
+    },
+    {
+      "path": "wwwroot/flags/sa.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/sa.png",
+      "sha256": "461CBC94E96F7675F2DE7A1DB04C10A86395F70CA4FCB6DCCC682F7692A41DA3"
+    },
+    {
+      "path": "wwwroot/flags/sb.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/sb.png",
+      "sha256": "13EB0BFF893A8B7F5CA1C6A95FFC566A46E23104837B7F5101DBD918EBC6DA8B"
+    },
+    {
+      "path": "wwwroot/flags/sc.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/sc.png",
+      "sha256": "46D358A437AE29D70964BE1B5E30F21CF3E08A49AD51B8A416319E395AC9D59C"
+    },
+    {
+      "path": "wwwroot/flags/sd.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/sd.png",
+      "sha256": "9489C2D5B508AE7CA5B2FB016E4A21A19E9AF32F64BB25AE7CF8813AC4DEF724"
+    },
+    {
+      "path": "wwwroot/flags/se.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/se.png",
+      "sha256": "1E4D339BC010C82FBC2EF753937A5E5533061330162C50F2AEDF665557ACF838"
+    },
+    {
+      "path": "wwwroot/flags/sg.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/sg.png",
+      "sha256": "4BDAFEBCA5B0A0E595B01CFA61474B5D7C50CCB5C2135B4BE6E4C894BC987B06"
+    },
+    {
+      "path": "wwwroot/flags/si.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/si.png",
+      "sha256": "32AAFE8C4A90B3F516C9C004FA0B96C6F6F6FE61FE24BDBCF8D72E4FE39DD86F"
+    },
+    {
+      "path": "wwwroot/flags/sk.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/sk.png",
+      "sha256": "739B957CF0EC922F9B1F4A580FBD6768EABD42F902FD8C8B013DD5882E5B60DC"
+    },
+    {
+      "path": "wwwroot/flags/sl.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/sl.png",
+      "sha256": "90D0EAB103ED2C29886EB1E41C5BAA7C139E2549F548C16697E86325C0CD4BD7"
+    },
+    {
+      "path": "wwwroot/flags/sm.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/sm.png",
+      "sha256": "1ACA8A56AE5FC5CAF37EF37F0A75B5C94E88C0F6F76F54C73B3DC5D7DE0046AD"
+    },
+    {
+      "path": "wwwroot/flags/sn.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/sn.png",
+      "sha256": "CDFE9EE09FA0A7A80124AB13481B651FE973CCB191BA2B06590EFE4AC1330352"
+    },
+    {
+      "path": "wwwroot/flags/so.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/so.png",
+      "sha256": "2FDF753D438A0C65A79C0E9B9DF206CCB2F1ACF74D3C162B4D28DD33CF6C3C12"
+    },
+    {
+      "path": "wwwroot/flags/sr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/sr.png",
+      "sha256": "65813A48EDFB721F52E97E7E623A6DD39D1B9E427E8829B01F04BF35D1AA7DD8"
+    },
+    {
+      "path": "wwwroot/flags/ss.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ss.png",
+      "sha256": "3E8331F79395249C8DB6C583FBBFE25CC033D2DBD54AB372657D28E2588A8985"
+    },
+    {
+      "path": "wwwroot/flags/st.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/st.png",
+      "sha256": "BC9BDB6B8A2B32EA5E7F05F3BF95742A6AC64ECFAC01AF0E1D514DA99ABE9965"
+    },
+    {
+      "path": "wwwroot/flags/sv.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/sv.png",
+      "sha256": "A4150F67EAA8B863E0C70E6A0180D7AECDBE77AC7ED79E6CACC113376F47D920"
+    },
+    {
+      "path": "wwwroot/flags/sy.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/sy.png",
+      "sha256": "5CD6FC515EC3F1F13E66B8C8B8E0915A473F22983A047E4177342CA8129D00FA"
+    },
+    {
+      "path": "wwwroot/flags/sz.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/sz.png",
+      "sha256": "529809F045517B583F79C832570107BE2FF6BA422703E1235D7A98F69DBC21C5"
+    },
+    {
+      "path": "wwwroot/flags/td.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/td.png",
+      "sha256": "394CDDD0A80215F08B44B551F1C5E11DBA4DB6F1312E408D3DF18A60E5148A36"
+    },
+    {
+      "path": "wwwroot/flags/tg.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/tg.png",
+      "sha256": "30D889FBB0CECFA0305DBA6686911346A7BEC666970CCB9AEDFE64C869B96E28"
+    },
+    {
+      "path": "wwwroot/flags/th.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/th.png",
+      "sha256": "D07784F5FAF6FA0CF95F6F82318CD99533C622C4D29F6E55DD4F36B471C4F936"
+    },
+    {
+      "path": "wwwroot/flags/tj.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/tj.png",
+      "sha256": "C09782FCA46F862F4A5CEEF359E5F30A07174BD667CE9D2044204EA68E5C9B2D"
+    },
+    {
+      "path": "wwwroot/flags/tl.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/tl.png",
+      "sha256": "541437234E936FA9B43715EF04DCE2646BBE49D0B506B1C273B98A8F274EF44B"
+    },
+    {
+      "path": "wwwroot/flags/tm.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/tm.png",
+      "sha256": "B6BD857F9E4FE504F6E828CC2FA91C901EEFF24130855BF026DE3B450941EEA0"
+    },
+    {
+      "path": "wwwroot/flags/tn.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/tn.png",
+      "sha256": "D4DDF4142B1E62E1BA6AF439B4E9D97C6A55908D06758916FC7F8F45C2EB7D78"
+    },
+    {
+      "path": "wwwroot/flags/to.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/to.png",
+      "sha256": "93458E6D91D776B08A94B605DC8E5B73C135BA07D0E03A890EB420D5F2E54336"
+    },
+    {
+      "path": "wwwroot/flags/tr.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/tr.png",
+      "sha256": "B9D31026F5569AD17D62A5162282236108877A1A7B2C9651811CAC733A663352"
+    },
+    {
+      "path": "wwwroot/flags/tt.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/tt.png",
+      "sha256": "577900E1DCEDA180BB11FE295E1B1A010893721C4E91DEEA614219F67F5ABF11"
+    },
+    {
+      "path": "wwwroot/flags/tv.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/tv.png",
+      "sha256": "12CDB2D01626633B7EA2B657C88C0622DDE7A8698D050DF80C42D48AE4D76704"
+    },
+    {
+      "path": "wwwroot/flags/tw.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/tw.png",
+      "sha256": "00FE007B4E24C5BE5F585601C4D967713896E58353972C0838AD77B4F1EC5AEE"
+    },
+    {
+      "path": "wwwroot/flags/tz.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/tz.png",
+      "sha256": "12DAD4AB6D7757D58888924EFDA39E0CE28C265ECE3F8C7DE004DC4924E5FD96"
+    },
+    {
+      "path": "wwwroot/flags/ua.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ua.png",
+      "sha256": "6590B8C83876CDEF9ACD37A82FAE49997F7D8C202E50F90215BF46086CA795C3"
+    },
+    {
+      "path": "wwwroot/flags/ug.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ug.png",
+      "sha256": "D70A4EA8764596E05D40518C66857276BCE339F9508D9B9769DC5EDC46537232"
+    },
+    {
+      "path": "wwwroot/flags/un.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/un.png",
+      "sha256": "8FB64293AE451F2FC8D2A5778F5F0DBC03729E77D4AE9EDDF6636C1ECF590A43"
+    },
+    {
+      "path": "wwwroot/flags/us.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/us.png",
+      "sha256": "FCAEF9A9329C59EB2B99D20BDFAD3D445D47AF4E564EF85B694B9DF424477993"
+    },
+    {
+      "path": "wwwroot/flags/uy.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/uy.png",
+      "sha256": "77864F00DAE590F17CF87C230638F27C5C19B2A04E769057D6FA4B63D2B34965"
+    },
+    {
+      "path": "wwwroot/flags/uz.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/uz.png",
+      "sha256": "270187183DAC6ACC50BFFA3714345D1BA86CA1B2992436B872D2873F960DE91B"
+    },
+    {
+      "path": "wwwroot/flags/va.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/va.png",
+      "sha256": "AD600341870907A6501C1E9476A0C6F3892EE3027F48D0EFA4929C8BCD041BE0"
+    },
+    {
+      "path": "wwwroot/flags/vc.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/vc.png",
+      "sha256": "FA36BC1D8B36D537D2B1F5789E20447116D630DAD472CF9764585CFC96418ACA"
+    },
+    {
+      "path": "wwwroot/flags/ve.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ve.png",
+      "sha256": "6EC7B3BC7D641BA9B1783574FFE46ED8DDB23CF9B135FC5CE0B1A14B3EE73FB0"
+    },
+    {
+      "path": "wwwroot/flags/vn.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/vn.png",
+      "sha256": "183FD2F58ADBF66DE54ED0A87838420E292FEAC7CFCA37C40053786C8DE82434"
+    },
+    {
+      "path": "wwwroot/flags/vu.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/vu.png",
+      "sha256": "1E2A35C4F7A9B8F20883345CEB24DD5307CD6191293FB249D533CB11D3F7A6F3"
+    },
+    {
+      "path": "wwwroot/flags/ws.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ws.png",
+      "sha256": "17F17BDAC90DB21D2DDA3CA50777010F672D7097E368217FF36783CDF7B4008B"
+    },
+    {
+      "path": "wwwroot/flags/ye.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/ye.png",
+      "sha256": "CF0D625C06C4CD742392AC81484680F2226991B1C43C3026EC297EDB4090008C"
+    },
+    {
+      "path": "wwwroot/flags/za.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/za.png",
+      "sha256": "87D9EC522A03954A2BECAF089D117FD1BA2527A32840FEA7E0230E01DDD87342"
+    },
+    {
+      "path": "wwwroot/flags/zm.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/zm.png",
+      "sha256": "E8456CFF995AF4C13F0F7C0F27575CE0A338C8B6FD4E9ECE873646A86DA4337A"
+    },
+    {
+      "path": "wwwroot/flags/zw.png",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/flags/zw.png",
+      "sha256": "B771AD332A74BCEA22F7D7E34314B1981108D928797C2DBE5E30980379F76073"
+    },
+    {
+      "path": "wwwroot/index.html",
+      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/index.html",
+      "sha256": "277D37B15185C0C12494888DF4D9C95B631A12D8FE36E31CEBABFA7452DCCCE7"
+    }
+  ]
+}

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <!--
+        ⚠️ 旧版这里写的是 width=420 —— 定死 420px，手机上就是一张缩得看不清的图。
+        viewport-fit=cover 配合 wpe.css 里的 env(safe-area-inset-*)，
+        刘海屏上内容不会钻到状态栏和圆角底下。
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0a0a0f">
+    <!-- 管理台是内网的实时状态，不该被任何中间层缓存 -->
+    <meta http-equiv="Cache-Control" content="no-store">
+    <title>总览 · WPE x64</title>
+    <!--
+      站点图标 = <b>程序自己的那枚</b>（exe 的 ApplicationIcon）。
+      Web/wpe.ico 是 ../wpe.ico 的<b>子集</b>：只留 16/32/48 三层（浏览器用得到的），
+      源图 361KB -> 14.7KB —— 256x256 那一层单独就 270KB，是给 Explorer 大图标用的，
+      标签页图标一辈子用不到，整份带上等于每个访问者白下 361KB。
+      ⚠️ 换了源图要重新生成：见 CLAUDE.md「管理台的站点图标」。
+    -->
+    <link rel="icon" href="./wpe.ico" sizes="48x48 32x32 16x16">
+    <!-- 令牌在前、组件样式在后：tokens.css 与外壳的 Vue 界面是同一个源文件 -->
+    <link rel="stylesheet" href="./tokens.css">
+    <link rel="stylesheet" href="./wpe.css">
+    <!--
+        ⚠️ 这里<b>不能</b>加 defer。延迟脚本要等整份文档解析完才执行，
+        而页尾那段内联脚本是解析到就跑的 —— 加了 defer 就会「内联先跑、
+        wpe.js 后跑」，页面上是一片「—」加一个 poll is not defined。
+        它只有 6KB 且与页面同机，同步加载的代价可以忽略。
+    -->
+    <script src="./wpe.js"></script>
+</head>
+
+<body>
+    <div class="pcb"></div>
+    <span class="cn tl"></span><span class="cn tr"></span>
+    <span class="cn bl"></span><span class="cn br"></span>
+
+    <header class="top">
+        <div class="brand">WPE <small>x64</small></div>
+        <nav class="nav">
+            <a href="index.html">总览</a>
+            <a href="ProxyAccount.html">账号</a>
+            <a href="SystemLog.html">日志</a>
+        </nav>
+        <span class="led" id="led"></span>
+    </header>
+
+    <main class="wrap">
+        <!-- ── 系统 ───────────────────────────────── -->
+        <section class="card">
+            <div class="hd">
+                <h2>系统</h2>
+                <span class="sub">System</span>
+                <span class="grow"></span>
+                <button class="btn" id="btnPause" type="button">暂停刷新</button>
+            </div>
+            <div class="bd">
+                <div class="stats">
+                    <div class="st">
+                        <div class="k">CPU</div>
+                        <div class="v" id="cpu">—</div>
+                        <div class="bar"><i id="cpuBar"></i></div>
+                    </div>
+                    <div class="st cy">
+                        <div class="k">内存</div>
+                        <div class="v" id="mem">—</div>
+                        <div class="bar cy"><i id="memBar"></i></div>
+                    </div>
+                    <div class="st">
+                        <div class="k">运行时长</div>
+                        <div class="v" id="uptime">—</div>
+                        <div class="z" id="startAt">—</div>
+                    </div>
+                    <div class="st mg">
+                        <div class="k">当前模式</div>
+                        <div class="v" id="mode">—</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── 代理模式 ───────────────────────────── -->
+        <section class="card">
+            <div class="hd">
+                <h2>代理模式</h2>
+                <span class="sub">Proxy</span>
+                <span class="grow"></span>
+                <span class="sub" id="proxyMode">—</span>
+            </div>
+            <div class="bd">
+                <div class="stats">
+                    <div class="st"><div class="k">代理总数</div><div class="v" id="pTotal">—</div></div>
+                    <div class="st cy"><div class="k">TCP</div><div class="v" id="pTCP">—</div></div>
+                    <div class="st mg"><div class="k">UDP</div><div class="v" id="pUDP">—</div></div>
+                    <div class="st am"><div class="k">连接数</div><div class="v" id="pLinks">—</div></div>
+                    <div class="st"><div class="k">待处理</div><div class="v" id="pCache">—</div></div>
+                </div>
+
+                <div class="stats wide" style="margin-top:12px">
+                    <div class="st cy"><div class="k">在线账号</div><div class="v z" id="pOnline">—</div></div>
+                    <div class="st"><div class="k">实时速率</div><div class="v z" id="pSpeed">—</div></div>
+                    <div class="st am"><div class="k">累计流量</div><div class="v z" id="pBytes">—</div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── 注入模式 ───────────────────────────── -->
+        <section class="card">
+            <div class="hd">
+                <h2>注入模式</h2>
+                <span class="sub">Inject</span>
+                <span class="grow"></span>
+                <span class="sub" id="sMode">—</span>
+            </div>
+            <div class="bd">
+                <div class="stats">
+                    <div class="st cy"><div class="k">封包总数</div><div class="v" id="sTotal">—</div></div>
+                    <div class="st am"><div class="k">滤镜执行</div><div class="v" id="sFilter">—</div></div>
+                    <div class="st mg"><div class="k">命中封包</div><div class="v" id="sLeach">—</div></div>
+                    <div class="st"><div class="k">待处理</div><div class="v" id="sCache">—</div></div>
+                </div>
+
+                <div class="stats wide" style="margin-top:12px">
+                    <div class="st"><div class="k">目标进程</div><div class="v z" id="sProc">—</div></div>
+                    <div class="st"><div class="k">实时速率</div><div class="v z" id="sSpeed">—</div></div>
+                </div>
+
+                <p class="hint" style="margin:12px 0 8px">WinSock 各入口计数</p>
+
+                <div class="stats">
+                    <div class="st"><div class="k">Send</div><div class="v" id="hSend">—</div></div>
+                    <div class="st"><div class="k">Recv</div><div class="v" id="hRecv">—</div></div>
+                    <div class="st"><div class="k">SendTo</div><div class="v" id="hSendTo">—</div></div>
+                    <div class="st"><div class="k">RecvFrom</div><div class="v" id="hRecvFrom">—</div></div>
+                    <div class="st cy"><div class="k">WSASend</div><div class="v" id="hWSASend">—</div></div>
+                    <div class="st cy"><div class="k">WSARecv</div><div class="v" id="hWSARecv">—</div></div>
+                    <div class="st cy"><div class="k">WSASendTo</div><div class="v" id="hWSASendTo">—</div></div>
+                    <div class="st cy"><div class="k">WSARecvFrom</div><div class="v" id="hWSARecvFrom">—</div></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="foot">WPE x64 · REMOTE CONSOLE</footer>
+    <div class="toasts" id="toasts"></div>
+
+    <script>
+        'use strict';
+
+        // 启动时刻只取一次：它是个常量，没必要跟着 2 秒一拍反复要
+        var startedAt = null;
+
+        function set(id, v) {
+            var n = document.getElementById(id);
+            if (n) n.textContent = (v === null || v === undefined || v === '') ? '—' : v;
+        }
+
+        /** 百分比条。C# 给的是 "12.34%" 这种带百分号的串，先剥出数字。 */
+        function setPct(id, barId, raw) {
+            set(id, raw);
+            var bar = document.getElementById(barId);
+            if (!bar) return;
+            var n = parseFloat(String(raw || '').replace('%', ''));
+            if (!isFinite(n)) { bar.style.width = '0'; return; }
+            bar.style.width = Math.max(0, Math.min(100, n)) + '%';
+            // 吃紧了就变色 —— 手机上扫一眼颜色比读数字快
+            var wrap = bar.parentNode;
+            wrap.className = 'bar' + (n >= 90 ? ' dg' : n >= 70 ? ' am' : (barId === 'memBar' ? ' cy' : ''));
+        }
+
+        function refresh() {
+            api('SystemInfo/GetCPUAndMemory').then(function (d) {
+                setPct('cpu', 'cpuBar', d && d.Cpu);
+                setPct('mem', 'memBar', d && d.Memory);
+            }).catch(function () { });
+
+            api('SystemInfo/GetSelectMode').then(function (d) { set('mode', d); }).catch(function () { });
+
+            if (startedAt === null) {
+                api('SystemInfo/GetStartTime').then(function (d) {
+                    startedAt = d;
+                    set('startAt', dateTime(d) + ' 启动');
+                }).catch(function () { });
+            }
+            if (startedAt) set('uptime', uptime(startedAt));
+
+            /*
+                ⚠️ 这几个接口回的是<b>具名对象</b>，不是位置数组。
+                原来是 string[9] / string[15]，前端只能按下标绑（d[13]）——
+                C# 那边往中间插一个字段，后面每一格都会静默错位，
+                页面上是一排对不上的数字而不报任何错。2026-09-09 改掉了，别改回去。
+            */
+            api('ProxyInfo/GetProxyInfo').then(function (d) {
+                if (!d) return;
+                set('proxyMode', d.WorkMode);
+                set('pTotal', num(d.Total));
+                set('pTCP', num(d.TCP));
+                set('pUDP', num(d.UDP));
+                set('pCache', num(d.Queue));
+                set('pOnline', d.OnLine);
+                set('pLinks', num(d.Links));
+                set('pSpeed', d.Speed);
+                set('pBytes', d.Bytes);
+            }).catch(function () { });
+
+            api('SocketInfo/GetSocketInfo').then(function (d) {
+                if (!d) return;
+                set('sProc', d.Process);
+                set('sMode', d.WorkMode);
+                set('sTotal', num(d.Total));
+                set('sFilter', num(d.FilterExecute));
+                set('sCache', num(d.Queue));
+                set('sLeach', num(d.FilterHit));
+                set('hSend', num(d.Send));
+                set('hRecv', num(d.Recv));
+                set('hSendTo', num(d.SendTo));
+                set('hRecvFrom', num(d.RecvFrom));
+                set('hWSASend', num(d.WSASend));
+                set('hWSARecv', num(d.WSARecv));
+                set('hWSASendTo', num(d.WSASendTo));
+                set('hWSARecvFrom', num(d.WSARecvFrom));
+                set('sSpeed', d.Speed);
+            }).catch(function () { });
+        }
+
+        var timer = poll(refresh, 2000);
+
+        // 运行时长每秒自己走一格，不必为它多发一轮请求
+        setInterval(function () {
+            if (startedAt && !timer.paused && !document.hidden) set('uptime', uptime(startedAt));
+        }, 1000);
+
+        document.getElementById('btnPause').addEventListener('click', function () {
+            this.textContent = timer.toggle() ? '继续刷新' : '暂停刷新';
+        });
+    </script>
+</body>
+
+</html>

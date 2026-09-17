@@ -1,0 +1,18 @@
+-- The CXX compiler identification is MSVC 19.44.35228.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done (1.6s)
+CMake Error at CMakeLists.txt:8 (add_library):
+  Cannot find source file:
+
+    src/common/ipc_codec.cpp
+
+
+CMake Error at CMakeLists.txt:8 (add_library):
+  No SOURCES given to target: wpe64-common
+
+
+CMake Generate step failed.  Build files cannot be regenerated correctly.

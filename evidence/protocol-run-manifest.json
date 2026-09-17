@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 1,
+  "testId": "CPP-COMMON-PARITY-001",
+  "specificationSections": [
+    "0",
+    "2.3",
+    "3.1",
+    "3.2",
+    "4.2",
+    "4.4",
+    "13.1"
+  ],
+  "scope": "C++ common codecs only; no native pipe transport, injection, hooks, full snapshots or GUI acceptance",
+  "startedUtc": "2026-09-17T12:33:47.7946425Z",
+  "finishedUtc": "2026-09-17T12:34:01.6863969Z",
+  "result": "passed",
+  "runDirectory": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity\\run-685697761ddb41c79b61fade0617632f",
+  "command": "E:\\codex\\2026-09-17\\bi-a\\outputs\\WPE64-Cpp\\build-test.ps1 -BuildRoot E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity -Architecture x64,Win32",
+  "architectures": [
+    {
+      "architecture": "x64",
+      "result": "passed",
+      "parity": "PASS: 74684 original C# vectors; 76618 assertions; 600 native packet frames. Pointer bits=64",
+      "reverse": "Original C# decoder accepted 600 native packet frames; all bytes and decoded fields match.",
+      "artifacts": [
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity\\run-685697761ddb41c79b61fade0617632f\\x64\\Release\\wpe64-parity-test.exe",
+          "sha256": "57E6DCB503D255F18A304CDF2D184A59CB32946058309CC8D83A1A6022F2748A"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity\\run-685697761ddb41c79b61fade0617632f\\x64\\Release\\wpe64-common.lib",
+          "sha256": "04CE0E7DC4CE8EE74971327046ACE07AE0CD954B7D809CD0ADFED1EBEC4C025E"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity\\run-685697761ddb41c79b61fade0617632f\\x64-packets.tsv",
+          "sha256": "982050FA8F316304A79A30ED787A390BC6F2220E48E0AE40E757151F0C8EEE47"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity\\run-685697761ddb41c79b61fade0617632f\\x64\\CMakeCache.txt",
+          "sha256": "886199D4E7C385FA1EAF822761CDA7341DDF35EFD5CC3BD9EDFDD29B75BF304B"
+        }
+      ]
+    },
+    {
+      "architecture": "Win32",
+      "result": "passed",
+      "parity": "PASS: 74684 original C# vectors; 76618 assertions; 600 native packet frames. Pointer bits=32",
+      "reverse": "Original C# decoder accepted 600 native packet frames; all bytes and decoded fields match.",
+      "artifacts": [
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity\\run-685697761ddb41c79b61fade0617632f\\Win32\\Release\\wpe64-parity-test.exe",
+          "sha256": "8B277F0AC317AFB2D7C441931DD0CE03E912DC309B8DBBA5458A2018365EC497"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity\\run-685697761ddb41c79b61fade0617632f\\Win32\\Release\\wpe64-common.lib",
+          "sha256": "25C144D3CC2D5BEE22019C65DFED3BEB143B5E47EFC0FEF5A511920549FBB4CC"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity\\run-685697761ddb41c79b61fade0617632f\\Win32-packets.tsv",
+          "sha256": "982050FA8F316304A79A30ED787A390BC6F2220E48E0AE40E757151F0C8EEE47"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-parity\\run-685697761ddb41c79b61fade0617632f\\Win32\\CMakeCache.txt",
+          "sha256": "B085A0E9E45BF3832C7535830D1C0D0FC4B6E231BD6694B79EF47045355BCB0D"
+        }
+      ]
+    }
+  ],
+  "cleanup": "Synchronous test processes only. No injection, target hooks, certificates, system proxy, sockets or database changes. Build files retained.",
+  "sourceArchiveSha256": "1F524B84621F064ACD91C3F9D764D1ADDF19AC42019E7FCEDE11BF55EA536113",
+  "specification": {
+    "activeSpec": "docs/用户提供-重写工程文档-更新版.md",
+    "sha256": "ADC3CB20083449584B4319FF68595B654DF31E995740EADC32D62331DB33AC59",
+    "supersedes": "docs/用户提供-重写工程文档.md",
+    "ui": "Original Vue3 + native C++ WebView2 host; Qt not required",
+    "updatedUtc": "2026-09-17T12:31:58.1004181Z"
+  },
+  "sourceFiles": [
+    {
+      "path": "build-test.ps1",
+      "sha256": "3473B5AA99660D3FA6C47C6DD2F0FE3F0E3DDF275AEEF9E6A3FB42A85E938E5B"
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "ACF195DC13E5A3ED60BFFD87A353C24045F0E7012CC42507C7CFB316036F2884"
+    },
+    {
+      "path": "contracts\\active-spec.json",
+      "sha256": "3349311194E103A395E21ECEF4AE9F9C0E798E8CBF6ADD360A69C33FA7591865"
+    },
+    {
+      "path": "contracts\\oracle-source.json",
+      "sha256": "15712E905E033B7C9E0DC16AB1F3302877958B9894A8A901CA8A091AB714EB51"
+    },
+    {
+      "path": "src\\common\\ipc_codec.cpp",
+      "sha256": "DC28F7B892BEBDA92B0306AD7EB8A52CF2E1D180D943AB8BB1E2EE26676AA112"
+    },
+    {
+      "path": "src\\common\\ipc_codec.h",
+      "sha256": "274EB9D1C7BBB5FC654ABF25DC9E007A71EB6871D7BE39B48E31315094B2DD8A"
+    },
+    {
+      "path": "src\\common\\ipc_frame.cpp",
+      "sha256": "01D0A0D7DFB104495FCA9966324924ABCA8029BF326DDC3927EE3DF112B0A9E7"
+    },
+    {
+      "path": "src\\common\\ipc_frame.h",
+      "sha256": "C73344B31D8768560A98B48A17120C0D6741867A3459F6FF1314DD23080808B0"
+    },
+    {
+      "path": "src\\common\\ipc_protocol.h",
+      "sha256": "73130BBBF68F3A3F492E25EED5D68B4AB52D6F7702C6AE7203716649F11BDEA9"
+    },
+    {
+      "path": "src\\common\\packet_frame.cpp",
+      "sha256": "01425779E42E014ECBAA16DDD8E2F04ECD74ECAB77F5F86B2FB872F449DEC6DB"
+    },
+    {
+      "path": "src\\common\\packet_frame.h",
+      "sha256": "D7179E5D08EFB6732D9B07DDC241667888E277CD6A48F566F34A23BE7D0BBC50"
+    },
+    {
+      "path": "tests\\codec_test.cpp",
+      "sha256": "3FD6B1AD6DE8461BE49ACF1367A24C3802A6E4E2B69A205A56F753DA67D112A7"
+    },
+    {
+      "path": "tests\\oracle\\Oracle.csproj",
+      "sha256": "7C3816B02D1AFEF93B0A7AD691BDBE333B1D6344CBAD53E3DDD5218B719BFC4B"
+    },
+    {
+      "path": "tests\\oracle\\Program.cs",
+      "sha256": "8015C94967AB080211ECBA76A8978AE61BF2095FD92B865FF59272E07CE113B3"
+    },
+    {
+      "path": "tests\\oracle\\upstream\\IpcProtocol.cs",
+      "sha256": "5353DF12B2F23C716AE04F0411E8F01D5A565842EFB4B0D1427A9C369C7BA307"
+    },
+    {
+      "path": "tests\\oracle\\upstream\\PacketFrame.cs",
+      "sha256": "0AD60704D45178B13E66CC6E9F7FF72A4C29DD7B26C8B90C3B7B8AF178DDA72B"
+    },
+    {
+      "path": "tests\\protocol_parity_test.cpp",
+      "sha256": "AFD6CBBDABFC9AC93D3597C2DAEDCB5FBAC53387CFD935FBE90E0DE06566D856"
+    }
+  ],
+  "git": {
+    "commit": "63701d5063899f76a4beb257dcd925c0add754a3",
+    "dirty": true
+  },
+  "environment": {
+    "os": "Microsoft Windows NT 10.0.26100.0",
+    "powershell": "7.6.5",
+    "cmake": "cmake version 4.4.2",
+    "dotnetSdk": "8.0.424"
+  },
+  "oracleRuntime": [
+    "Original C# oracle: 74684 vectors generated.",
+    "Reference runtime: CLR 4.0.30319.42000; corelib mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
+  ],
+  "fixtures": {
+    "sha256": "A3A6E489E2644E582E81AC86945F0ABFADC830158B5D05F69FE3B719988CD2F9",
+    "rows": 74684
+  }
+}

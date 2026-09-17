@@ -1,0 +1,10 @@
+* text=auto
+*.cpp text eol=lf
+*.h text eol=lf
+*.ps1 text eol=lf
+tests/oracle/upstream/** -text
+docs/用户提供-重写工程文档.md -text
+docs/用户提供-重写工程文档-更新版.md -text
+frontend/** -text
+wwwroot/** -text
+remote-web/** -text

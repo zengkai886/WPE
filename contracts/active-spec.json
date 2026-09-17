@@ -1,0 +1,7 @@
+{
+  "activeSpec": "docs/用户提供-重写工程文档-更新版.md",
+  "sha256": "ADC3CB20083449584B4319FF68595B654DF31E995740EADC32D62331DB33AC59",
+  "supersedes": "docs/用户提供-重写工程文档.md",
+  "ui": "Original Vue3 + native C++ WebView2 host; Qt not required",
+  "updatedUtc": "2026-09-17T12:31:58.1004181Z"
+}
