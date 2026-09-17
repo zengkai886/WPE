@@ -11,53 +11,9 @@
 #include <regex>
 #include <sstream>
 
+#include "data_util.h"
 namespace wpe::shell {
-namespace {
-const std::array<std::string,4> tables={"Filter","Send","Robot","WareHouse"};
-const std::array<std::string,4> children={"","SendCollection","RobotInstruction","WareHouseData"};
-std::string S(const Json& j,const char* key,std::string fallback={}){
-    const auto it=j.find(key);if(it==j.end()||it->is_null())return fallback;
-    return it->is_string()?it->get<std::string>():it->dump();
-}
-int N(const Json& j,const char* key,int fallback=0){const auto it=j.find(key);return it==j.end()||it->is_null()?fallback:it->get<int>();}
-bool B(const Json& j,const char* key,bool fallback=false){const auto it=j.find(key);return it==j.end()||it->is_null()?fallback:it->is_boolean()?it->get<bool>():it->get<int>()!=0;}
-std::string Upper(std::string s){for(auto& c:s)if(c>='a'&&c<='z')c=static_cast<char>(c-32);return s;}
-std::string Trim(const std::string& s){
-    if(s.empty())return {};
-    if(s.size()>static_cast<std::size_t>(INT_MAX))throw std::length_error("Text exceeds Windows conversion limit");
-    const auto size=MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,s.data(),static_cast<int>(s.size()),nullptr,0);
-    if(!size)throw std::invalid_argument("Invalid UTF-8 text");
-    std::wstring text(static_cast<std::size_t>(size),L'\0');MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,s.data(),static_cast<int>(s.size()),text.data(),size);
-    // .NET Framework 4.8 Char.IsWhiteSpace, not the C locale's ASCII isspace.
-    auto space=[](wchar_t c){return (c>=9&&c<=13)||c==0x20||c==0x85||c==0xA0||c==0x1680||
-        (c>=0x2000&&c<=0x200A)||c==0x2028||c==0x2029||c==0x202F||c==0x205F||c==0x3000;};
-    std::size_t from=0,to=text.size();while(from<to&&space(text[from]))++from;while(to>from&&space(text[to-1]))--to;
-    if(from==to)return {};
-    const auto length=static_cast<int>(to-from);const auto bytes=WideCharToMultiByte(CP_UTF8,0,text.data()+from,length,nullptr,0,nullptr,nullptr);
-    std::string result(static_cast<std::size_t>(bytes),'\0');WideCharToMultiByte(CP_UTF8,0,text.data()+from,length,result.data(),bytes,nullptr,nullptr);return result;
-}
-std::string Guid(){GUID guid{};if(FAILED(CoCreateGuid(&guid)))throw std::runtime_error("GUID generation failed");wchar_t text[40]{};StringFromGUID2(guid,text,40);std::string out;for(int i=1;i<37;++i)out+=static_cast<char>(text[i]);return Upper(out);}
-const std::string zero_guid="00000000-0000-0000-0000-000000000000";
-std::string NormalGuid(const std::string& s){
-    if(std::regex_match(s,std::regex("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")))return Upper(s);
-    return zero_guid;
-}
-Json Good(){return {{"ok",true}};}
-Json Bad(const std::string& message){return {{"ok",false},{"error",message}};}
-std::vector<std::string> Split(const std::string& s,char separator){std::vector<std::string> result;std::istringstream input(s);std::string item;while(std::getline(input,item,separator))result.push_back(item);return result;}
-bool Integer(const std::string& s,int& number){const auto t=Trim(s);auto [end,ec]=std::from_chars(t.data(),t.data()+t.size(),number);return !t.empty()&&ec==std::errc{}&&end==t.data()+t.size();}
-int Mask(const std::string& s){int value=0,i=0;for(const auto& part:Split(s,':')){if(i>=12)break;if(part=="1")value|=1<<i;++i;}return value;}
-std::string Function(int mask){std::string s;for(int i=0;i<12;++i){if(i)s+=':';s+=(mask&(1<<i))?'1':'0';}return s;}
-std::string Color(const Json& j,const char* key){std::ostringstream out;out<<'#'<<std::uppercase<<std::hex<<std::setw(6)<<std::setfill('0')<<(static_cast<std::uint32_t>(N(j,key))&0xFFFFFF);return out.str();}
-std::string Hex(const Json& binary,std::size_t limit=60){
-    if(!binary.is_binary())return {};const auto& b=binary.get_binary();const char digits[]="0123456789ABCDEF";std::string out;
-    for(std::size_t i=0;i<std::min(b.size(),limit);++i){if(i)out+=' ';out+=digits[b[i]>>4];out+=digits[b[i]&15];}if(b.size()>limit)out+=" ...";return out;
-}
-std::size_t Size(const Json& binary){return binary.is_binary()?binary.get_binary().size():0;}
-Json RuntimeChildren(Json rows,int list,std::uint64_t& packet_id){
-    for(auto& child:rows)child["_id"]=list==11?Guid():std::to_string(++packet_id);return rows;
-}
-}
+using namespace data_detail;
 
 DataService::DataService(const std::filesystem::path& path,Emit emit):db_(path),emit_(std::move(emit)){
     for(auto& list:lists_)list=Json::array();
@@ -88,9 +44,12 @@ std::vector<std::string> DataService::Methods(){return {
     "getFilterExecute","getFilterEdit","saveFilterEdit","getExecuteTargets","addFilter","setFilterEnable","setAllFilterEnable","resetFilterCount","filterListAction","clearFilters",
     "getSendMeta","addSend","setSendEnable","setAllSendEnable","resetSendCount","sendListAction","clearSends","openSendEdit","closeSendEdit","getSendCollection","saveSendEdit",
     "getRobotMeta","addRobot","setRobotEnable","setAllRobotEnable","resetRobotCount","robotListAction","clearRobots",
-    "addWareHouse","wareHouseListAction","clearWareHouses","openWareHouseEdit","getStoreRows","getStorePreviews","copyStoresHex","saveWareHouseName"
+    "addWareHouse","wareHouseListAction","clearWareHouses","openWareHouseEdit","getStoreRows","getStorePreviews","copyStoresHex","saveWareHouseName",
+    "openRobotEdit","closeRobotEdit","getRobotInstructions","addRobotInstruction","robotInstructionAction","saveRobotEdit",
+    "sendCollectionAction","clearSendCollection","importSendCollection","openPacketEdit","savePacketEdit","storesAction","storesCommand"
 };}
 bool DataService::NeedsConfirmation(const std::string& method,const Json& args){
+    if(method=="clearSendCollection"||((method=="robotInstructionAction"||method=="storesCommand"||method=="sendCollectionAction")&&N(args,"action",-1)==7))return true;
     return method=="clearFilters"||method=="clearSends"||method=="clearRobots"||method=="clearWareHouses"||method=="clearLogs"||
         ((method=="filterListAction"||method=="sendListAction"||method=="robotListAction"||method=="wareHouseListAction")&&N(args,"action",-1)==6);
 }
@@ -227,7 +186,8 @@ Json DataService::ListAction(int list,const Json& args){
         if(action==4){
             row["GUID"]=Guid();if(list<11)row["IsEnable"]=false;
             auto name=Text("CopyName","{0} - 副本");const auto pos=name.find("{0}");if(pos!=name.npos)name.replace(pos,3,S(row,"Name"));row["Name"]=name;
-            if(list>8)row["_children"]=RuntimeChildren(row["_children"],list,packet_id_);rows.push_back(std::move(row));continue;
+            // Original CopySend copies the list, not its PacketInfo objects.
+            if(list>9)row["_children"]=RuntimeChildren(row["_children"],list,packet_id_);rows.push_back(std::move(row));continue;
         }
         if((action==1&&index==0)||(action==2&&index+1==rows.size()))continue;
         rows.erase(it);if(action==6)continue;
@@ -237,6 +197,7 @@ Json DataService::ListAction(int list,const Json& args){
 }
 
 Json DataService::Call(const std::string& method,const Json& args){
+    if(auto result=CallEditor(method,args))return std::move(*result);
     if(method=="getCountryTable")return Json::parse(country_codes);
     if(method=="getPrefs")return Prefs();
     if(method=="setAppearance"){
@@ -299,8 +260,9 @@ Json DataService::Call(const std::string& method,const Json& args){
         if(list>=0)for(const auto& row:lists_[list])if(S(row,"GUID")!=Upper(S(args,"excludeId")))items.push_back({{"Id",row["GUID"]},{"Name",row["Name"]}});return {{"items",items}};
     }
     if(method=="openSendEdit"){
-        auto row=Find(9,S(args,"id"));send_edit_=row?*row:Json{};
+        auto row=Find(9,S(args,"id"));
         if(!row)return {{"Id",""},{"Name",""},{"UseSystemSocket",false},{"LoopCount",0},{"LoopInterval",0},{"Notes",""},{"SystemSocket",0}};
+        send_edit_=*row;
         return {{"Id",row->at("GUID")},{"Name",row->at("Name")},{"UseSystemSocket",B(*row,"SystemSocket")},{"LoopCount",N(*row,"LoopCNT")},{"LoopInterval",N(*row,"LoopINT")},{"Notes",S(*row,"Notes")},{"SystemSocket",0}};
     }
     if(method=="closeSendEdit"){send_edit_=nullptr;return Good();}

@@ -30,6 +30,9 @@ public:
     void Receive(std::string_view source,std::string_view raw);
     std::string Ask(std::string method,Json args,Answer answer,std::chrono::milliseconds timeout=std::chrono::minutes(5));
     void PushEvent(std::string name,Json data);
+    // Optional UI notification must never prevent the RPC result. Navigation
+    // invalidates the notification along with the originating call.
+    Completion WithErrorToast(Completion done);
     void Tick(Clock::time_point now=Clock::now());
     void FailAllPending();
     std::size_t PendingCount() const noexcept{return pending_.size();}

@@ -1,0 +1,1 @@
+FAIL: C# parity case 182 addRobotInstruction; files E:\codex\2026-09-17\bi-a\work\editor-spec\editor-test\289080763263700; actual={"error":"鼠标指令不正确"} expected={"error":""}

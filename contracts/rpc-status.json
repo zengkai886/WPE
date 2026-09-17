@@ -1,9 +1,9 @@
 {
   "scope": "Registration inventory, not a functional-completion percentage. Partial and offline methods are explicitly distinguished.",
   "originalRpcCount": 217,
-  "nativeDataRegistered": 50,
+  "nativeDataRegistered": 63,
   "nativeHostRegistered": 7,
-  "remainingUnregistered": 160,
+  "remainingUnregistered": 147,
   "originalSource": "WinsockPacketEditor/ShellForm.cs",
   "originalSourceSha256": "86d277408d233903ec82ffe8f06a2cd1995898617c477a1f181046ebe0f72f12",
   "methods": [
@@ -696,44 +696,44 @@
     {
       "method": "openRobotEdit",
       "originalLine": 3770,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "指令编辑已接",
+      "note": "原九类指令校验、列表插入/移动/删除/清空、循环与引用校验、草稿取消和保存落库；不启动机器人执行。"
     },
     {
       "method": "closeRobotEdit",
       "originalLine": 3773,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "指令编辑已接",
+      "note": "原九类指令校验、列表插入/移动/删除/清空、循环与引用校验、草稿取消和保存落库；不启动机器人执行。"
     },
     {
       "method": "getRobotInstructions",
       "originalLine": 3779,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "指令编辑已接",
+      "note": "原九类指令校验、列表插入/移动/删除/清空、循环与引用校验、草稿取消和保存落库；不启动机器人执行。"
     },
     {
       "method": "addRobotInstruction",
       "originalLine": 3785,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "指令编辑已接",
+      "note": "原九类指令校验、列表插入/移动/删除/清空、循环与引用校验、草稿取消和保存落库；不启动机器人执行。"
     },
     {
       "method": "robotInstructionAction",
       "originalLine": 3794,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "指令编辑已接",
+      "note": "原九类指令校验、列表插入/移动/删除/清空、循环与引用校验、草稿取消和保存落库；不启动机器人执行。"
     },
     {
       "method": "saveRobotEdit",
       "originalLine": 3815,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "指令编辑已接",
+      "note": "原九类指令校验、列表插入/移动/删除/清空、循环与引用校验、草稿取消和保存落库；不启动机器人执行。"
     },
     {
       "method": "startRobotEdit",
@@ -1222,22 +1222,22 @@
       "method": "getSendCollection",
       "originalLine": 4564,
       "registered": true,
-      "status": "既有数据读取已接",
-      "note": "读取编辑会话内已保存的发送子项；新增/导入/修改封包和实际发送未接。"
+      "status": "发送集编辑部分接线",
+      "note": "读取、复制、移动、删除、清空发送集草稿；保存外层发送条目后落库；导出未接，实际发送未接。"
     },
     {
       "method": "sendCollectionAction",
       "originalLine": 4570,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "发送集编辑部分接线",
+      "note": "读取、复制、移动、删除、清空发送集草稿；保存外层发送条目后落库；导出未接，实际发送未接。"
     },
     {
       "method": "importSendCollection",
       "originalLine": 4584,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "明文 XML 导入已接",
+      "note": "Windows 文件选择→后台流式解析原 SendCollection/旧 SendList→编辑草稿→成功通知；加密导入/密码提示、导出尚未接。"
     },
     {
       "method": "exportSendCollection",
@@ -1249,9 +1249,9 @@
     {
       "method": "clearSendCollection",
       "originalLine": 4596,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "发送集编辑部分接线",
+      "note": "读取、复制、移动、删除、清空发送集草稿；保存外层发送条目后落库；导出未接，实际发送未接。"
     },
     {
       "method": "saveSendEdit",
@@ -1369,36 +1369,36 @@
       "method": "getStoreRows",
       "originalLine": 4781,
       "registered": true,
-      "status": "既有数据读取已接",
-      "note": "读取实际数据库 BLOB；原字符串预览/截断标记/CRLF 格式已对齐；采集入库、导入和条目编辑未接。"
+      "status": "仓库数据读取已接",
+      "note": "原 BLOB、预览/截断和 CRLF 文本，配合本轮条目动作及明文导入；系统剪贴板写入和采集入库未接。"
     },
     {
       "method": "getStorePreviews",
       "originalLine": 4791,
       "registered": true,
-      "status": "既有数据读取已接",
-      "note": "读取实际数据库 BLOB；原字符串预览/截断标记/CRLF 格式已对齐；采集入库、导入和条目编辑未接。"
+      "status": "仓库数据读取已接",
+      "note": "原 BLOB、预览/截断和 CRLF 文本，配合本轮条目动作及明文导入；系统剪贴板写入和采集入库未接。"
     },
     {
       "method": "copyStoresHex",
       "originalLine": 4800,
       "registered": true,
-      "status": "既有数据读取已接",
-      "note": "读取实际数据库 BLOB；原字符串预览/截断标记/CRLF 格式已对齐；采集入库、导入和条目编辑未接。"
+      "status": "仓库数据读取已接",
+      "note": "原 BLOB、预览/截断和 CRLF 文本，配合本轮条目动作及明文导入；系统剪贴板写入和采集入库未接。"
     },
     {
       "method": "storesAction",
       "originalLine": 4807,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "仓库条目部分接线",
+      "note": "条目移动、复制、删除、清空、明文 .whs XML 导入，事务落库后刷新数量；导出、加密导入尚未接。"
     },
     {
       "method": "storesCommand",
       "originalLine": 4824,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "仓库条目部分接线",
+      "note": "条目移动、复制、删除、清空、明文 .whs XML 导入，事务落库后刷新数量；导出、加密导入尚未接。"
     },
     {
       "method": "saveWareHouseName",
@@ -1410,16 +1410,16 @@
     {
       "method": "openPacketEdit",
       "originalLine": 4866,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "仅发送集来源已接",
+      "note": "原 Buffer Base64、Socket、HexView 编辑；仅 list=send，捕获/代理来源未接。保留原已有 PacketInfo 浅拷贝的取消行为；实际发送未接。"
     },
     {
       "method": "savePacketEdit",
       "originalLine": 4869,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "仅发送集来源已接",
+      "note": "原 Buffer Base64、Socket、HexView 编辑；仅 list=send，捕获/代理来源未接。保留原已有 PacketInfo 浅拷贝的取消行为；实际发送未接。"
     },
     {
       "method": "packetEditToFilter",

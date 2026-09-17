@@ -1,0 +1,7 @@
+{
+  "checkedUtc": "2026-09-17T15:13:06.2848711Z",
+  "scope": "Owned editor-wire and cpp-editor-final test hosts/profiles",
+  "leftoverCount": 0,
+  "result": "passed",
+  "changes": "Only isolated test DBs and WebView2 profiles under work; retained for evidence. No injection, network listeners, certificates or system proxy changes."
+}

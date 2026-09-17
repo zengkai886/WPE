@@ -89,4 +89,12 @@ void WebBridge::PushEvent(std::string name,Json data){
     if(!data.is_null())message["data"]=std::move(data);
     post_(message.dump());
 }
+WebBridge::Completion WebBridge::WithErrorToast(Completion done){
+    return [this,epoch=std::weak_ptr(call_epoch_),done=std::move(done)](Json result,std::string error){
+        if(!epoch.expired()&&!error.empty()){
+            try{PushEvent("toast",{{"level",4},{"text",error}});}catch(...){/* The RPC completion below is independent. */}
+        }
+        done(std::move(result),std::move(error));
+    };
+}
 } // namespace wpe::shell

@@ -1,0 +1,49 @@
+{
+  "frontend": {
+    "cancelledDeletionKeptData": true,
+    "chooserCancelKeptData": true,
+    "chooserTest": "fixed-path seam; production Windows picker UI not automated",
+    "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-editor-final\\run-c37498b9a3ee41aea7757a2a7af64d20\\webview-profile\\2.3.0\\WPE.db",
+    "editorCounts": [
+      2,
+      3,
+      2
+    ],
+    "editorRestartPersistence": false,
+    "importNotifications": true,
+    "modeCards": 2,
+    "negativeOffsetRoundTrip": true,
+    "ok": true,
+    "originalAddAndEnableButtons": true,
+    "originalEditorButtons": true,
+    "originalHexViewEdited": true,
+    "originalListDom": true,
+    "persistentFilterId": "BDAC32D2-4961-4CDC-826A-0E2AC09EAB6E",
+    "robotCancelKeptSavedInstructions": true,
+    "titlebar": true,
+    "unsupportedRejected": true,
+    "url": "https://app.wpe64.local/index.html",
+    "windowRoundTrip": true
+  },
+  "lastStage": {
+    "stage": "机器人列表"
+  },
+  "nativeDrag": true,
+  "originalVueConfirmed": true,
+  "result": "passed",
+  "scope": "Original Vue list and editor buttons, HexView typing, fixed-path XML chooser seam, cancel and restart -> native RPC/SQLite/feed; no native picker UI automation, capture/proxy/injection/execution",
+  "topmostCalls": [
+    {
+      "on": true,
+      "style": 264,
+      "visible": false
+    },
+    {
+      "on": false,
+      "style": 256,
+      "visible": false
+    }
+  ],
+  "webMessagesReceived": 109,
+  "webview2Runtime": "153.0.4234.32"
+}

@@ -50,6 +50,22 @@ if ($LASTEXITCODE -ne 0) { throw 'Original loader rejected native data' }
 
 这会通过原加载器验证偏好、滤镜负偏移以及发送/机器人/仓库数量。它不是任意数据库的通用校验器，也不是全 20 表兼容性认证。
 
+## 编辑器连续参照
+
+本轮新增 `EditorOracle.cs`，在相同未修改原业务程序集上实际执行 184 条连续调用：机器人九类指令校验/移动/保存/取消、发送集明文导入及封包 Base64 编辑、原浅拷贝行为、仓库导入和条目动作。包括数字参数与鼠标坐标不同的 Unicode 空白处理。
+
+```powershell
+& "$runner\WpeDataOracle.exe" editors "$scratch\fresh-editor-db" `
+  "$project\tests\fixtures" "$scratch\editor-sequence.json"
+if ($LASTEXITCODE -ne 0) { throw 'Editor reference generation failed' }
+```
+
+依赖与上述构建准备相同。生成的 GUID/运行期数字 ID 按出现顺序变成 `$idN`；只有 ID 字段与已知 GUID 引用被替换，不改 IP、Socket 或字节文本。原随机运行期 ID 不参与严格比较，其余 DTO 字段完整比较。
+
+固定明文 XML：`editor-send.sc`、`editor-stores.whs`；固定调用参照：`editor-sequence.json`。常规 C++ 构建直接读取并校验这些已提交文件，不需要原业务程序集。
+
+参照导入调用原底层加载器，绕过人工选择文件和密码提示；原 `IUiHost` 测试实现同意确认，不执行实际网络或键鼠操作。成功通知在原 Vue 和 C++ 回归中另行测试，不把仅返回值相等解释为全部界面事件已对拍。
+
 ## 原契约提取
 
 `extract_contracts.py <包含Operate.cs的原项目目录> <C++项目目录>` 从原源码重提取：217 个 RPC、20 张建表 SQL、当前使用的 8 张表头文件，以及业务翻译/国家字典。此工具会覆盖生成文件，只供明确更新契约时使用；普通构建不运行它。

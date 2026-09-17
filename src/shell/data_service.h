@@ -2,6 +2,7 @@
 #include "database.h"
 #include <array>
 #include <set>
+#include <optional>
 namespace wpe::shell {
 // Business/data seam: original RPC argument/result names and original FeedRow fields.
 // Single-worker confined; the browser has no access to SQL, paths or model mutation.
@@ -14,7 +15,14 @@ public:
     void PublishAll();
     Json Prefs() const;
     static bool NeedsConfirmation(const std::string& method,const Json& args);
+    static bool NeedsOpenFile(const std::string& method,const Json& args);
 private:
+    std::optional<Json> CallEditor(const std::string& method,const Json& args);
+    Json InstructionRows();
+    std::string ValidateInstruction(int type,const std::string& content);
+    Json SaveRobot(const Json& args);
+    Json* EditPacket(const std::string& id);
+    void TrimStores(Json& items) const;
     Json NewRow(int list);
     Json Rows(int list) const;
     void Publish(int list);

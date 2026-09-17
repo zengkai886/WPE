@@ -67,7 +67,14 @@ int main() {
             doomed.Receive("https://app.wpe64.local/",R"({"type":"call","id":"destroyed","method":"later"})");
         }
         finish(nullptr,"after destruction");check(sent.size()==count);
-        std::cout<<"PASS: five bridge message types, origins, errors, timeout, cancellation, duplicate answer and failed transport\n";
+        std::vector<Json> imports;int toastAttempts=0;
+        WebBridge importsBridge([&](const std::string& text){auto m=Json::parse(text);if(m["type"]=="event"){++toastAttempts;throw std::runtime_error("toast transport fault");}imports.push_back(m);});
+        importsBridge.RegisterAsync("import",[&](const Json&,WebBridge::Completion done){finish=importsBridge.WithErrorToast(std::move(done));});
+        importsBridge.Receive("https://app.wpe64.local/",R"({"type":"call","id":"import1","method":"import"})");
+        finish(nullptr,"bad XML");check(toastAttempts==1&&imports.size()==1&&imports[0]["error"]=="bad XML");
+        importsBridge.Receive("https://app.wpe64.local/",R"({"type":"call","id":"import2","method":"import"})");
+        importsBridge.FailAllPending();finish(nullptr,"late XML error");check(toastAttempts==1&&imports.size()==1);
+        std::cout<<"PASS: five bridge message types, origins, errors, timeout, cancellation, duplicate answer, failed transport and independent import-error completion\n";
         return 0;
     }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 }

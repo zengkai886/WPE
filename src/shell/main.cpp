@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <shellapi.h>
+#include <shobjidl.h>
 #include <shlwapi.h>
 #include <dwmapi.h>
 #include <wrl.h>
@@ -13,6 +14,7 @@
 #include <fstream>
 #include <memory>
 #include <sstream>
+#include <deque>
 
 using Microsoft::WRL::Callback;
 using Microsoft::WRL::ComPtr;
@@ -20,7 +22,7 @@ using wpe::shell::Json;
 using wpe::shell::WebBridge;
 namespace fs=std::filesystem;
 namespace {
-constexpr UINT app_ready=WM_APP+1, app_drag=WM_APP+2, app_test=WM_APP+3, app_failure=WM_APP+4;
+constexpr UINT app_ready=WM_APP+1, app_drag=WM_APP+2, app_test=WM_APP+3, app_failure=WM_APP+4, app_file=WM_APP+5;
 constexpr wchar_t origin[]=L"https://app.wpe64.local/index.html";
 void Check(HRESULT result,const char* operation){
     if(FAILED(result)){std::ostringstream text;text<<operation<<" HRESULT=0x"<<std::hex<<static_cast<unsigned long>(result);throw std::runtime_error(text.str());}
@@ -97,6 +99,13 @@ private:
     void CaptureAndFinish();
     void Fail(const std::string& message);
     void Finish(bool success);
+    void PickImportFile();
+    void CancelFileJobs();
+    struct FileJob {std::string method;Json args;WebBridge::Completion done;};
+    std::deque<FileJob> file_jobs_;
+    ComPtr<IFileOpenDialog> file_dialog_;
+    std::uint64_t file_epoch_{};
+    bool test_cancel_file_{};
     Options options_;
     HWND window_{};
     ComPtr<ICoreWebView2Environment> environment_;
@@ -139,7 +148,7 @@ LRESULT Host::Message(UINT message,WPARAM wparam,LPARAM lparam){
     case WM_TIMER:
         if(bridge_)bridge_->Tick();
         if(data_&&bridge_&&!closing_)data_->Drain([this](std::string name,Json value){bridge_->PushEvent(std::move(name),std::move(value));});
-        if(options_.test && std::chrono::steady_clock::now()-started_>std::chrono::seconds(30))Fail("WebView2 self-test timed out");
+        if(options_.test && std::chrono::steady_clock::now()-started_>std::chrono::seconds(90))Fail("WebView2 self-test timed out");
         if(!options_.test && !revealed_ && std::chrono::steady_clock::now()-started_>std::chrono::seconds(4)){revealed_=true;ShowWindow(window_,SW_SHOW);}
         if(!options_.test && !ready_ && std::chrono::steady_clock::now()-started_>std::chrono::seconds(30))Fail("原 Vue 页面未在 30 秒内完成初始化，请检查 WebView2 Runtime 和 wwwroot 资源。");
         return 0;
@@ -148,11 +157,13 @@ LRESULT Host::Message(UINT message,WPARAM wparam,LPARAM lparam){
         return 0;
     case app_drag:ReleaseCapture();SendMessageW(window_,WM_NCLBUTTONDOWN,HTCAPTION,0);return 0;
     case app_test:CaptureAndFinish();return 0;
+    case app_file:PickImportFile();return 0;
     case app_failure:
         // Posted from WebView2 callbacks: no nested modal pump in those callbacks.
         if(!options_.test)MessageBoxW(window_,Wide(report_.value("error",std::string("Native host failed"))).c_str(),L"WPE C++ 宿主错误",MB_OK|MB_ICONERROR);
         Finish(false);return 0;
     case WM_CLOSE:
+        CancelFileJobs();
         closing_=true;if(bridge_)bridge_->FailAllPending();
         if(controller_)controller_->Close();view_.Reset();controller_.Reset();
         DestroyWindow(window_);return 0;
@@ -206,7 +217,7 @@ void Host::Configure(){
         return Guard([&]{CoString source,raw;Check(args->get_Source(&source.value),"Message source");Check(args->get_WebMessageAsJson(&raw.value),"Message JSON");++messages_;bridge_->Receive(Utf8(source.value),Utf8(raw.value));});
     }).Get(),&token),"Register web messages");
     Check(view_->add_NavigationStarting(Callback<ICoreWebView2NavigationStartingEventHandler>([this](ICoreWebView2*,ICoreWebView2NavigationStartingEventArgs* args)->HRESULT{
-        return Guard([&]{CoString uri;Check(args->get_Uri(&uri.value),"Navigation URI");if(!WebBridge::IsAllowedSource(Utf8(uri.value)))Check(args->put_Cancel(TRUE),"Block navigation");else bridge_->FailAllPending();});
+        return Guard([&]{CoString uri;Check(args->get_Uri(&uri.value),"Navigation URI");if(!WebBridge::IsAllowedSource(Utf8(uri.value)))Check(args->put_Cancel(TRUE),"Block navigation");else {CancelFileJobs();bridge_->FailAllPending();}});
     }).Get(),&token),"Register navigation");
     Check(view_->add_NewWindowRequested(Callback<ICoreWebView2NewWindowRequestedEventHandler>([](ICoreWebView2*,ICoreWebView2NewWindowRequestedEventArgs* args)->HRESULT{return args->put_Handled(TRUE);}).Get(),&token),"Block new windows");
     Check(view_->add_PermissionRequested(Callback<ICoreWebView2PermissionRequestedEventHandler>([](ICoreWebView2*,ICoreWebView2PermissionRequestedEventArgs* args)->HRESULT{return args->put_State(COREWEBVIEW2_PERMISSION_STATE_DENY);}).Get(),&token),"Block web permissions");
@@ -223,6 +234,11 @@ void Host::RegisterMethods(){
     data_=std::make_unique<wpe::shell::DataWorker>(db);
     for(const auto& method:wpe::shell::DataService::Methods()){
         bridge_->RegisterAsync(method,[this,method](const Json& args,WebBridge::Completion done){
+            if(wpe::shell::DataService::NeedsOpenFile(method,args)){
+                if(file_jobs_.size()>=8){done(nullptr,"文件选择请求过多");return;}
+                auto safe=args;safe.erase("_filePath"); // Only the native chooser may grant a file path.
+                file_jobs_.push_back({method,std::move(safe),std::move(done)});PostMessageW(window_,app_file,0,0);return;
+            }
             auto submit=[this,method,args,done]{data_->Submit(method,args,done);};
             if(wpe::shell::DataService::NeedsConfirmation(method,args)){
                 bridge_->Ask("confirm",{{"title","确认操作"},{"content","确定删除选中的数据吗？此操作不可撤销。"},{"icon",2}},
@@ -246,13 +262,44 @@ void Host::RegisterMethods(){
     bridge_->Register("closeWindow",[this](const Json&){PostMessageW(window_,WM_CLOSE,0,0);return Json{{"ok",true}};});
     bridge_->Register("setTopMost",[this](const Json& args){
         const bool on=args.value("on",false);if(!SetWindowPos(window_,on?HWND_TOPMOST:HWND_NOTOPMOST,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE))throw std::runtime_error("Cannot change window z-order");
+        if(options_.test)report_["topmostCalls"].push_back({{"on",on},{"style",GetWindowLongPtrW(window_,GWL_EXSTYLE)},{"visible",IsWindowVisible(window_)!=FALSE}});
         return Json{{"topMost",(GetWindowLongPtrW(window_,GWL_EXSTYLE)&WS_EX_TOPMOST)!=0}};});
     bridge_->Register("startDragWindow",[this](const Json&){PostMessageW(window_,app_drag,0,0);return Json{{"ok",true}};});
     if(options_.test){
+        bridge_->Register("__testStage",[this](const Json& args){report_["lastStage"]=args;return Json{{"ok",true}};});
+        bridge_->Register("__testCancelNextFile",[this](const Json&){test_cancel_file_=true;return Json{{"ok",true}};});
         bridge_->Register("__testConfirm",[this](const Json&){
             bridge_->Ask("confirm",{{"title","C++ ↔ 原 Vue 双向桥测试"},{"content","此对话框由原 Vue 渲染，自动测试将点击确定。"},{"icon",2}},[this](Json answer){report_["originalVueConfirmed"]=answer;bridge_->PushEvent("toast",{{"level",1},{"text","NATIVE_BRIDGE_EVENT_OK"}});});return Json{{"ok",true}};});
         bridge_->Register("__testDone",[this](const Json& args){report_["frontend"]=args;PostMessageW(window_,app_test,0,0);return Json{{"ok",true}};});
     }
+}
+void Host::CancelFileJobs(){
+    ++file_epoch_;if(file_dialog_)file_dialog_->Close(HRESULT_FROM_WIN32(ERROR_CANCELLED));
+    auto cancelled=std::move(file_jobs_);file_jobs_.clear();for(auto& job:cancelled)job.done(nullptr,"文件选择已取消");
+}
+void Host::PickImportFile(){
+    if(closing_||file_dialog_||file_jobs_.empty())return;
+    auto job=std::move(file_jobs_.front());file_jobs_.pop_front();const auto epoch=file_epoch_;
+    try{
+        fs::path path;const bool send=job.method=="importSendCollection";
+        if(options_.test){
+            // Test-only chooser seam; fixed files under the isolated report dir.
+            // The production Windows dialog is never replaced outside --self-test.
+            if(!test_cancel_file_)path=options_.report/(send?L"import.sc":L"import.whs");test_cancel_file_=false;
+        }else{
+            Check(CoCreateInstance(CLSID_FileOpenDialog,nullptr,CLSCTX_INPROC_SERVER,IID_PPV_ARGS(&file_dialog_)),"Create open dialog");
+            DWORD flags=0;Check(file_dialog_->GetOptions(&flags),"Get dialog flags");
+            Check(file_dialog_->SetOptions(flags|FOS_FORCEFILESYSTEM|FOS_FILEMUSTEXIST|FOS_PATHMUSTEXIST|FOS_NOCHANGEDIR),"Set dialog flags");
+            const COMDLG_FILTERSPEC filters[]={{send?L"发送集文件 (*.sc)":L"仓储数据文件 (*.whs)",send?L"*.sc":L"*.whs"},{L"XML 文件",L"*.xml"},{L"所有文件",L"*.*"}};
+            Check(file_dialog_->SetFileTypes(3,filters),"Set dialog filters");Check(file_dialog_->SetTitle(send?L"导入发送集":L"导入仓储数据"),"Set dialog title");
+            const auto hr=file_dialog_->Show(window_);if(hr!=HRESULT_FROM_WIN32(ERROR_CANCELLED)){Check(hr,"Open file dialog");ComPtr<IShellItem> item;Check(file_dialog_->GetResult(&item),"Get selected file");CoString name;Check(item->GetDisplayName(SIGDN_FILESYSPATH,&name.value),"Get file path");path=name.value;}
+            file_dialog_.Reset();
+        }
+        if(closing_||epoch!=file_epoch_)job.done(nullptr,"文件选择已取消");
+        else if(path.empty())job.done(Json{{"ok",true}},{});
+        else{job.args["_filePath"]=Utf8(path.wstring());data_->Submit(job.method,std::move(job.args),bridge_->WithErrorToast(job.done));}
+    }catch(const std::exception& e){file_dialog_.Reset();job.done(nullptr,e.what());}
+    if(!closing_&&!file_jobs_.empty())PostMessageW(window_,app_file,0,0);
 }
 void Host::Script(const std::wstring& script){
     Check(view_->ExecuteScript(script.c_str(),Callback<ICoreWebView2ExecuteScriptCompletedHandler>([this,alive=std::weak_ptr(lifetime_)](HRESULT hr,LPCWSTR)->HRESULT{
@@ -261,6 +308,10 @@ void Host::Script(const std::wstring& script){
     }).Get()),"Execute test script");
 }
 void Host::BeginTest(){
+    // Fixed inputs only for the isolated self-test chooser. No fixtures are
+    // inserted into a normal user's database or shipped runtime directory.
+    {std::ofstream f(options_.report/L"import.sc",std::ios::binary);f<<"<SendCollection><Collection><Socket>17</Socket><Type>TCP_Req</Type><IPFrom>127.0.0.1</IPFrom><IPTo>127.0.0.2</IPTo><Buffer>00 FF 80 41</Buffer></Collection><Collection><Socket>23</Socket><Type>UDP_Resp</Type><Buffer>01 02 03</Buffer></Collection></SendCollection>";if(!f)throw std::runtime_error("Cannot write send self-test fixture");}
+    {std::ofstream f(options_.report/L"import.whs",std::ios::binary);f<<"<Stores><Data><PacketData>00 FF 80</PacketData></Data><Data><PacketData>41 42</PacketData></Data></Stores>";if(!f)throw std::runtime_error("Cannot write warehouse self-test fixture");}
     Script(LR"JS((()=>{
       const w=chrome.webview; let seq=0; const pending=new Map();
       w.addEventListener('message',e=>{const m=e.data;if(m.type==='result'&&pending.has(m.id)){const p=pending.get(m.id);pending.delete(m.id);m.ok?p.resolve(m.result):p.reject(new Error(m.error));}});
@@ -279,6 +330,62 @@ void Host::BeginTest(){
         await wait(()=>document.body.textContent.includes('NATIVE_BRIDGE_EVENT_OK'));
         const modeCards=document.querySelectorAll('.rack .cd').length;
         const feeds=new Map();w.addEventListener('message',e=>{const m=e.data;if(m.type==='event'&&m.name==='feed:replace')feeds.set(m.data.list,m.data.rows);});
+        const dialog=kind=>[...document.querySelectorAll('[role=dialog]')].find(d=>d.querySelector('.sub')?.textContent==='Controls/'+kind);
+        const input=(el,value)=>{if(!el)throw Error('editor input missing');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el,String(value));el.dispatchEvent(new Event('input',{bubbles:true}));};
+        const nav=async label=>{await call('__testStage',{stage:label});const el=[...document.querySelectorAll('.side .sb-item')].find(e=>e.querySelector('.t')?.textContent.trim()===label);if(!el)throw Error('navigation missing: '+label);el.click();await wait(()=>document.querySelector('.list-page .bar .btn.primary'));};
+        const openEditor=async(kind)=>{document.querySelector('.list-page .row .ops .op:not(.del)').click();await wait(()=>dialog(kind)?.querySelector('.bd'));return dialog(kind);};
+        const closeEditor=async(kind)=>{dialog(kind).querySelector('.ft .btn:not(.primary)').click();await wait(()=>!dialog(kind));};
+        const editors=async(restart)=>{
+          await nav('发送列表');if(!restart){document.querySelector('.list-page .bar .btn.primary').click();await wait(()=>feeds.get(9)?.length===1&&document.querySelector('.list-page .row .name'));}
+          let d=await openEditor('SendEdit');
+          if(!restart){
+            input(d.querySelector('.bd > .row .v input.inp'),'C++ 发送编辑测试');
+            const imp=[...d.querySelectorAll('.runbar .btn')].find(e=>e.textContent.trim().includes('导入'));
+            if(!imp)throw Error('send import button missing');
+            await call('__testCancelNextFile');imp.click();await new Promise(r=>setTimeout(r,250));
+            if(d.querySelectorAll('.row2').length)throw Error('cancelled chooser imported data');
+            imp.click();await wait(()=>d.querySelectorAll('.row2').length===2&&document.body.textContent.includes('导入发送集成功'));
+            d.querySelector('.row2 .op:not(.del)').click();await wait(()=>dialog('PacketEdit')?.querySelector('.fields input'));
+            const p=dialog('PacketEdit');input(p.querySelector('.fields input'),99);
+            const hex=p.querySelector('.hexed [tabindex="0"]');if(!hex)throw Error('original HexView missing');
+            hex.focus();for(const key of ['A','A'])hex.dispatchEvent(new KeyboardEvent('keydown',{key,bubbles:true,cancelable:true}));
+            p.querySelector('.ft .btn.primary').click();await wait(()=>!dialog('PacketEdit')&&d.querySelector('.row2 .so')?.textContent==='99');
+            if(!d.querySelector('.row2 .dt').textContent.startsWith('AA FF'))throw Error('HexView edit not saved');
+            d.querySelector('.ft .btn.primary').click();await wait(()=>!dialog('SendEdit')&&feeds.get(9)?.[0]?.PacketCount===2);
+          }else{
+            await wait(()=>d.querySelectorAll('.row2').length===2);
+            if(d.querySelector('.bd > .row input').value!=='C++ 发送编辑测试'||d.querySelector('.row2 .so').textContent!=='99'||!d.querySelector('.row2 .dt').textContent.startsWith('AA FF'))throw Error('send editor restart data mismatch');
+            await closeEditor('SendEdit');
+          }
+    )JS" LR"JS(
+          await nav('仓库列表');if(!restart){document.querySelector('.list-page .bar .btn.primary').click();await wait(()=>feeds.get(11)?.length===1&&document.querySelector('.list-page .row .name'));}
+          d=await openEditor('WareHouseEdit');
+          if(!restart){
+            input(d.querySelector('.bd > .row input'),'C++ 仓储编辑测试');
+            [...d.querySelectorAll('.runbar .btn')].find(e=>e.textContent.trim().includes('导入')).click();
+            await wait(()=>d.querySelectorAll('.row2').length===2&&document.body.textContent.includes('导入仓储数据成功'));
+            d.querySelector('.runbar .btn.danger').click();await wait(()=>document.querySelector('[role=alertdialog] .btn:not(.primary)'));
+            document.querySelector('[role=alertdialog] .btn:not(.primary)').click();await wait(()=>!document.querySelector('[role=alertdialog]'));
+            if(d.querySelectorAll('.row2').length!==2)throw Error('cancelled store clear lost entries');
+            d.querySelector('.ft .btn.primary').click();await wait(()=>!dialog('WareHouseEdit')&&feeds.get(11)?.[0]?.Name==='C++ 仓储编辑测试');
+          }else{
+            await wait(()=>d.querySelectorAll('.row2').length===2&&d.querySelector('.row2 .dt')?.textContent==='00 FF 80');
+            if(d.querySelector('.bd > .row input').value!=='C++ 仓储编辑测试')throw Error('warehouse name restart mismatch');await closeEditor('WareHouseEdit');
+          }
+          await nav('机器人列表');if(!restart){document.querySelector('.list-page .bar .btn.primary').click();await wait(()=>feeds.get(10)?.length===1&&document.querySelector('.list-page .row .name'));}
+          d=await openEditor('RobotEdit');
+          if(!restart){
+            input(d.querySelector('.wbar input.nm'),'C++ 指令闭环测试');
+            for(const [type,value] of [[2,2],[1,25],[3,null]]){d.querySelector('.tile.c'+type).click();await wait(()=>d.querySelector('.pcfg.c'+type));if(value!==null)input(d.querySelector('.pcfg input.inp.num:not(:disabled)'),value);const before=d.querySelectorAll('.flow .blk').length;d.querySelector('.pfoot .btn.ins').click();await wait(()=>d.querySelectorAll('.flow .blk').length===before+1);}
+            d.querySelector('.ft .btn.primary').click();await wait(()=>!dialog('RobotEdit')&&feeds.get(10)?.[0]?.InstructionCount===3);
+            d=await openEditor('RobotEdit');d.querySelector('.tile.c1').click();await wait(()=>d.querySelector('.pcfg.c1'));d.querySelector('.pfoot .btn.ins').click();await wait(()=>d.querySelectorAll('.flow .blk').length===4);await closeEditor('RobotEdit');
+            d=await openEditor('RobotEdit');
+          }
+          await wait(()=>d.querySelectorAll('.flow .blk').length===3);
+          if(d.querySelector('.wbar input.nm').value!=='C++ 指令闭环测试'||!d.querySelector('.flow .blk.c1').textContent.includes('25'))throw Error('robot draft/restart mismatch');
+          return {originalEditorButtons:true,originalHexViewEdited:true,importNotifications:true,chooserCancelKeptData:true,robotCancelKeptSavedInstructions:true,editorRestartPersistence:restart,editorCounts:[feeds.get(9)[0].PacketCount,feeds.get(10)[0].InstructionCount,feeds.get(11)[0].DataCount],chooserTest:'fixed-path seam; production Windows picker UI not automated'};
+        };
+    )JS" LR"JS(
         const prefs=await call('getPrefs');if(!prefs.isDark||prefs.language!=='zh-CN')throw Error('unexpected fresh DB prefs');
         await call('setLanguage',{language:'ja-JP'});if((await call('getPrefs')).language!=='ja-JP')throw Error('language not saved');
         await call('setLanguage',{language:'zh-CN'});
@@ -292,7 +399,7 @@ void Host::BeginTest(){
           const restored=(await call('getFilterEdit',{id:old[0].Id})).row;
           if(restored.Modify[0].Index!==-1||!restored.Modify[0].Progression)throw Error('restart editor persistence failed');
           await wait(()=>document.querySelector('.list-page .row .name')?.textContent==='C++ 数据闭环测试');
-          await call('__testDone',{ok:true,restartPersistence:true,originalListDom:true,persistentFilterId:old[0].Id,dbFull:info.dbFull});return;
+          const editorResult=await editors(true);await call('__testDone',{ok:true,restartPersistence:true,originalListDom:true,persistentFilterId:old[0].Id,dbFull:info.dbFull,...editorResult});return;
         }
         document.querySelector('.list-page .bar .btn.primary').click();
         await wait(()=>feeds.get(8)?.length===1&&document.querySelector('.list-page .row .name'));
@@ -308,7 +415,7 @@ void Host::BeginTest(){
         await wait(()=>document.querySelector('[role=alertdialog] .btn:not(.primary)'));
         document.querySelector('[role=alertdialog] .btn:not(.primary)').click();await deletion;
         if(!(await call('getFilterEdit',{id})).row)throw Error('cancelled deletion changed data');
-        await call('__testDone',{ok:true,titlebar:!!document.querySelector('.titlebar'),modeCards,unsupportedRejected:unsupported,windowRoundTrip:true,originalListDom:true,originalAddAndEnableButtons:true,negativeOffsetRoundTrip:true,cancelledDeletionKeptData:true,persistentFilterId:id,dbFull:info.dbFull,url:location.href});
+        const editorResult=await editors(false);await call('__testDone',{ok:true,titlebar:!!document.querySelector('.titlebar'),modeCards,unsupportedRejected:unsupported,windowRoundTrip:true,originalListDom:true,originalAddAndEnableButtons:true,negativeOffsetRoundTrip:true,cancelledDeletionKeptData:true,persistentFilterId:id,dbFull:info.dbFull,url:location.href,...editorResult});
       })().catch(error=>call('__testDone',{ok:false,error:String(error)}));
     })())JS");
 }
@@ -330,7 +437,7 @@ void Host::Fail(const std::string& message){
 void Host::Finish(bool success){
     if(done_)return;done_=true;exit_code_=success?0:1;
     report_["result"]=success?"passed":"failed";report_["webMessagesReceived"]=messages_;report_["nativeDrag"]=native_drag_;
-    report_["scope"]="Original Vue buttons -> async native RPC -> SQLite commit -> feed -> original list DOM; cancelled delete; no capture/proxy/injection";
+    report_["scope"]="Original Vue list and editor buttons, HexView typing, fixed-path XML chooser seam, cancel and restart -> native RPC/SQLite/feed; no native picker UI automation, capture/proxy/injection/execution";
     if(options_.test){std::ofstream file(options_.report/L"host-self-test.json",std::ios::binary);file<<report_.dump(2);file.flush();if(!file)exit_code_=1;}
     PostMessageW(window_,WM_CLOSE,0,0);
 }

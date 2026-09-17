@@ -21,9 +21,9 @@ function Run([string]$Executable,[string[]]$Arguments,[string]$Log) {
 }
 $manifest=[ordered]@{
     schemaVersion=1
-    testId='CPP-DATA-WIRING-003'
+    testId='CPP-EDITOR-WIRING-004'
     specificationSections=@('0','2.3','3.1','3.2','3.3','4.2','4.4','9.2','9.3','13.1')
-    scope='Protocol/ring, asynchronous bridge, native SQLite data RPC subset, real original Vue add/edit/enable/cancel and restart; no native pipes, injection, capture, proxy, executors or complete business acceptance'
+    scope='Protocol/ring, native SQLite, editor subset, XML, original Vue/HexView button/typing flows and restart. File picker uses fixed-path self-test seam; no picker UI automation, injection, capture, proxy, executors or complete business acceptance'
     startedUtc=[DateTime]::UtcNow.ToString('o')
     finishedUtc=$null
     result='running'
@@ -90,7 +90,7 @@ try {
             $arguments=@('--assets',('"'+(Join-Path $PSScriptRoot 'wwwroot')+'"'),'--data-dir',('"'+(Join-Path $run 'webview-profile')+'"'),'--self-test',('"'+$hostEvidence+'"'))
             $process=Start-Process -FilePath $app -ArgumentList $arguments -WindowStyle Hidden -PassThru
             try {
-                if(-not $process.WaitForExit(45000)){Stop-Process -Id $process.Id -ErrorAction SilentlyContinue;throw 'Native host self-test timeout'}
+                if(-not $process.WaitForExit(105000)){Stop-Process -Id $process.Id -ErrorAction SilentlyContinue;throw 'Native host self-test timeout'}
                 $process.Refresh()
                 if($process.ExitCode -ne 0){throw "Native host failed ($($process.ExitCode)); see $hostEvidence"}
             } finally {$process.Dispose()}
@@ -101,11 +101,12 @@ try {
             $arguments=@('--assets',('"'+(Join-Path $PSScriptRoot 'wwwroot')+'"'),'--data-dir',('"'+(Join-Path $run 'webview-profile')+'"'),'--self-test',('"'+$reopenEvidence+'"'))
             $process=Start-Process -FilePath $app -ArgumentList $arguments -WindowStyle Hidden -PassThru
             try{
-                if(-not $process.WaitForExit(45000)){Stop-Process -Id $process.Id -ErrorAction SilentlyContinue;throw 'Native host restart test timeout'}
+                if(-not $process.WaitForExit(105000)){Stop-Process -Id $process.Id -ErrorAction SilentlyContinue;throw 'Native host restart test timeout'}
                 $process.Refresh();if($process.ExitCode -ne 0){throw 'Native host restart test failed'}
             } finally {$process.Dispose()}
             $manifest.hostRestart=Get-Content -LiteralPath (Join-Path $reopenEvidence 'host-self-test.json') -Raw | ConvertFrom-Json
             if($manifest.hostRestart.result -ne 'passed' -or -not $manifest.hostRestart.frontend.restartPersistence -or $manifest.hostRestart.frontend.persistentFilterId -ne $manifest.host.frontend.persistentFilterId){throw 'Native host did not restore the same saved data'}
+            if(-not $manifest.host.frontend.originalEditorButtons -or -not $manifest.hostRestart.frontend.editorRestartPersistence){throw 'Native editor UI/restart did not pass'}
         }
         $manifest.architectures += [ordered]@{
             architecture=$arch;result='passed'

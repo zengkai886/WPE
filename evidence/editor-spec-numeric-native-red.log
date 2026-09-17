@@ -1,0 +1,1 @@
+FAIL: C# parity case 179 addRobotInstruction; files E:\codex\2026-09-17\bi-a\work\editor-spec\editor-test\288753819165500; actual={"error":""} expected={"error":"系统套接字不正确"}

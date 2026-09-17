@@ -1,0 +1,5459 @@
+{
+  "originalAssemblySha256": "76C33B88188F7F921AE5B21117533FF1D3F1861A04A723B8087DE42B17E5FEED",
+  "cases": [
+    {
+      "method": "addSend",
+      "args": {},
+      "result": {
+        "id": "$id1"
+      }
+    },
+    {
+      "method": "addRobot",
+      "args": {},
+      "result": {
+        "id": "$id2"
+      }
+    },
+    {
+      "method": "addWareHouse",
+      "args": {},
+      "result": {
+        "id": "$id3"
+      }
+    },
+    {
+      "method": "addFilter",
+      "args": {},
+      "result": {
+        "id": "$id4"
+      }
+    },
+    {
+      "method": "openRobotEdit",
+      "args": {
+        "id": "$id2"
+      },
+      "result": {
+        "Id": "$id2",
+        "Name": "机器人 1"
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": []
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": -1,
+        "content": ""
+      },
+      "result": {
+        "error": "指令类型不正确"
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": []
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 9,
+        "content": ""
+      },
+      "result": {
+        "error": "指令类型不正确"
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": []
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 0,
+        "content": "$id1"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 0,
+        "content": "bad"
+      },
+      "result": {
+        "error": "发送列表不正确"
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 1,
+        "content": "　+12 "
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 1,
+        "content": "0-20"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 1,
+        "content": "20-10"
+      },
+      "result": {
+        "error": "延迟时间不正确"
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 1,
+        "content": "-1"
+      },
+      "result": {
+        "error": "延迟时间不正确"
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 1,
+        "content": "2147483648"
+      },
+      "result": {
+        "error": "延迟时间不正确"
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 2,
+        "content": "2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 2,
+        "content": "0"
+      },
+      "result": {
+        "error": "循环指令不正确"
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 3,
+        "content": "ignored"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 6,
+        "content": "ignored"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 7,
+        "content": "Customize|+17"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 7,
+        "content": "Customize|0"
+      },
+      "result": {
+        "error": "系统套接字不正确"
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 7,
+        "content": "PacketConfig.List"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 7,
+        "content": "FilterSocket"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 8,
+        "content": "Enable|SendList|$id1"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 8,
+        "content": "Disable|RobotList|$id2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 10,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 机器人 1 ]",
+            "Content": "Disable|RobotList|$id2"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 8,
+        "content": "Enable|FilterList|$id4"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 10,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 机器人 1 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 11,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 8,
+        "content": "Enable|SendList|bad"
+      },
+      "result": {
+        "error": "开关指令不正确"
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 10,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 机器人 1 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 11,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 4,
+        "content": "Press|A"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 10,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 机器人 1 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 11,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          },
+          {
+            "Index": 12,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按键 A",
+            "Content": "Press|A"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 4,
+        "content": "Down|B"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 10,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 机器人 1 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 11,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          },
+          {
+            "Index": 12,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按键 A",
+            "Content": "Press|A"
+          },
+          {
+            "Index": 13,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按下 B",
+            "Content": "Down|B"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 4,
+        "content": "Up|B"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 10,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 机器人 1 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 11,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          },
+          {
+            "Index": 12,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按键 A",
+            "Content": "Press|A"
+          },
+          {
+            "Index": 13,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按下 B",
+            "Content": "Down|B"
+          },
+          {
+            "Index": 14,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "弹起 B",
+            "Content": "Up|B"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 4,
+        "content": "Combine|Ctrl+A"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 10,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 机器人 1 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 11,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          },
+          {
+            "Index": 12,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按键 A",
+            "Content": "Press|A"
+          },
+          {
+            "Index": 13,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按下 B",
+            "Content": "Down|B"
+          },
+          {
+            "Index": 14,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "弹起 B",
+            "Content": "Up|B"
+          },
+          {
+            "Index": 15,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "组合按键 Ctrl+A",
+            "Content": "Combine|Ctrl+A"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 4,
+        "content": "Text|中文"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 10,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 机器人 1 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 11,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          },
+          {
+            "Index": 12,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按键 A",
+            "Content": "Press|A"
+          },
+          {
+            "Index": 13,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按下 B",
+            "Content": "Down|B"
+          },
+          {
+            "Index": 14,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "弹起 B",
+            "Content": "Up|B"
+          },
+          {
+            "Index": 15,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "组合按键 Ctrl+A",
+            "Content": "Combine|Ctrl+A"
+          },
+          {
+            "Index": 16,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "输入文本 中文",
+            "Content": "Text|中文"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 4,
+        "content": "Text|"
+      },
+      "result": {
+        "error": "键盘指令不正确"
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 10,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 机器人 1 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 11,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          },
+          {
+            "Index": 12,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按键 A",
+            "Content": "Press|A"
+          },
+          {
+            "Index": 13,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按下 B",
+            "Content": "Down|B"
+          },
+          {
+            "Index": 14,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "弹起 B",
+            "Content": "Up|B"
+          },
+          {
+            "Index": 15,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "组合按键 Ctrl+A",
+            "Content": "Combine|Ctrl+A"
+          },
+          {
+            "Index": 16,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "输入文本 中文",
+            "Content": "Text|中文"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 4,
+        "content": "0|A"
+      },
+      "result": {
+        "error": "键盘指令不正确"
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 10,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 机器人 1 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 11,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          },
+          {
+            "Index": 12,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按键 A",
+            "Content": "Press|A"
+          },
+          {
+            "Index": 13,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按下 B",
+            "Content": "Down|B"
+          },
+          {
+            "Index": 14,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "弹起 B",
+            "Content": "Up|B"
+          },
+          {
+            "Index": 15,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "组合按键 Ctrl+A",
+            "Content": "Combine|Ctrl+A"
+          },
+          {
+            "Index": 16,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "输入文本 中文",
+            "Content": "Text|中文"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 5,
+        "content": "LeftClick|"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 10,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 机器人 1 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 11,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          },
+          {
+            "Index": 12,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按键 A",
+            "Content": "Press|A"
+          },
+          {
+            "Index": 13,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按下 B",
+            "Content": "Down|B"
+          },
+          {
+            "Index": 14,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "弹起 B",
+            "Content": "Up|B"
+          },
+          {
+            "Index": 15,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "组合按键 Ctrl+A",
+            "Content": "Combine|Ctrl+A"
+          },
+          {
+            "Index": 16,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "输入文本 中文",
+            "Content": "Text|中文"
+          },
+          {
+            "Index": 17,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "左键单击",
+            "Content": "LeftClick|"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 5,
+        "content": "WheelUp|2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 10,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 机器人 1 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 11,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          },
+          {
+            "Index": 12,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按键 A",
+            "Content": "Press|A"
+          },
+          {
+            "Index": 13,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按下 B",
+            "Content": "Down|B"
+          },
+          {
+            "Index": 14,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "弹起 B",
+            "Content": "Up|B"
+          },
+          {
+            "Index": 15,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "组合按键 Ctrl+A",
+            "Content": "Combine|Ctrl+A"
+          },
+          {
+            "Index": 16,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "输入文本 中文",
+            "Content": "Text|中文"
+          },
+          {
+            "Index": 17,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "左键单击",
+            "Content": "LeftClick|"
+          },
+          {
+            "Index": 18,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "向上滚动 2",
+            "Content": "WheelUp|2"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 5,
+        "content": "WheelDown|0"
+      },
+      "result": {
+        "error": "鼠标指令不正确"
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 10,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 机器人 1 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 11,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          },
+          {
+            "Index": 12,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按键 A",
+            "Content": "Press|A"
+          },
+          {
+            "Index": 13,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按下 B",
+            "Content": "Down|B"
+          },
+          {
+            "Index": 14,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "弹起 B",
+            "Content": "Up|B"
+          },
+          {
+            "Index": 15,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "组合按键 Ctrl+A",
+            "Content": "Combine|Ctrl+A"
+          },
+          {
+            "Index": 16,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "输入文本 中文",
+            "Content": "Text|中文"
+          },
+          {
+            "Index": 17,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "左键单击",
+            "Content": "LeftClick|"
+          },
+          {
+            "Index": 18,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "向上滚动 2",
+            "Content": "WheelUp|2"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 5,
+        "content": "MoveTo|-1,+2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 10,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 机器人 1 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 11,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          },
+          {
+            "Index": 12,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按键 A",
+            "Content": "Press|A"
+          },
+          {
+            "Index": 13,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按下 B",
+            "Content": "Down|B"
+          },
+          {
+            "Index": 14,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "弹起 B",
+            "Content": "Up|B"
+          },
+          {
+            "Index": 15,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "组合按键 Ctrl+A",
+            "Content": "Combine|Ctrl+A"
+          },
+          {
+            "Index": 16,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "输入文本 中文",
+            "Content": "Text|中文"
+          },
+          {
+            "Index": 17,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "左键单击",
+            "Content": "LeftClick|"
+          },
+          {
+            "Index": 18,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "向上滚动 2",
+            "Content": "WheelUp|2"
+          },
+          {
+            "Index": 19,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "移动到 ( -1,+2 )",
+            "Content": "MoveTo|-1,+2"
+          }
+        ]
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 5,
+        "content": "MoveBy|2147483648,0"
+      },
+      "result": {
+        "error": "鼠标指令不正确"
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 10,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 机器人 1 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 11,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          },
+          {
+            "Index": 12,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按键 A",
+            "Content": "Press|A"
+          },
+          {
+            "Index": 13,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按下 B",
+            "Content": "Down|B"
+          },
+          {
+            "Index": 14,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "弹起 B",
+            "Content": "Up|B"
+          },
+          {
+            "Index": 15,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "组合按键 Ctrl+A",
+            "Content": "Combine|Ctrl+A"
+          },
+          {
+            "Index": 16,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "输入文本 中文",
+            "Content": "Text|中文"
+          },
+          {
+            "Index": 17,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "左键单击",
+            "Content": "LeftClick|"
+          },
+          {
+            "Index": 18,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "向上滚动 2",
+            "Content": "WheelUp|2"
+          },
+          {
+            "Index": 19,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "移动到 ( -1,+2 )",
+            "Content": "MoveTo|-1,+2"
+          }
+        ]
+      }
+    },
+    {
+      "method": "saveRobotEdit",
+      "args": {
+        "name": "　　"
+      },
+      "result": {
+        "error": "机器人名称为空",
+        "badIndex": -1
+      }
+    },
+    {
+      "method": "saveRobotEdit",
+      "args": {
+        "name": " 原机器人 "
+      },
+      "result": {
+        "error": "",
+        "badIndex": -1
+      }
+    },
+    {
+      "method": "robotInstructionAction",
+      "args": {
+        "action": 0,
+        "indexes": [
+          2,
+          0,
+          2,
+          999
+        ]
+      },
+      "result": {
+        "ok": true,
+        "delta": 0
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 1,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 10,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 原机器人 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 11,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          },
+          {
+            "Index": 12,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按键 A",
+            "Content": "Press|A"
+          },
+          {
+            "Index": 13,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按下 B",
+            "Content": "Down|B"
+          },
+          {
+            "Index": 14,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "弹起 B",
+            "Content": "Up|B"
+          },
+          {
+            "Index": 15,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "组合按键 Ctrl+A",
+            "Content": "Combine|Ctrl+A"
+          },
+          {
+            "Index": 16,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "输入文本 中文",
+            "Content": "Text|中文"
+          },
+          {
+            "Index": 17,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "左键单击",
+            "Content": "LeftClick|"
+          },
+          {
+            "Index": 18,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "向上滚动 2",
+            "Content": "WheelUp|2"
+          },
+          {
+            "Index": 19,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "移动到 ( -1,+2 )",
+            "Content": "MoveTo|-1,+2"
+          }
+        ]
+      }
+    },
+    {
+      "method": "robotInstructionAction",
+      "args": {
+        "action": 1,
+        "indexes": [
+          2,
+          0,
+          2,
+          999
+        ]
+      },
+      "result": {
+        "ok": true,
+        "delta": 0
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 10,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 原机器人 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 11,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          },
+          {
+            "Index": 12,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按键 A",
+            "Content": "Press|A"
+          },
+          {
+            "Index": 13,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按下 B",
+            "Content": "Down|B"
+          },
+          {
+            "Index": 14,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "弹起 B",
+            "Content": "Up|B"
+          },
+          {
+            "Index": 15,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "组合按键 Ctrl+A",
+            "Content": "Combine|Ctrl+A"
+          },
+          {
+            "Index": 16,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "输入文本 中文",
+            "Content": "Text|中文"
+          },
+          {
+            "Index": 17,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "左键单击",
+            "Content": "LeftClick|"
+          },
+          {
+            "Index": 18,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "向上滚动 2",
+            "Content": "WheelUp|2"
+          },
+          {
+            "Index": 19,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "移动到 ( -1,+2 )",
+            "Content": "MoveTo|-1,+2"
+          }
+        ]
+      }
+    },
+    {
+      "method": "robotInstructionAction",
+      "args": {
+        "action": 2,
+        "indexes": [
+          2,
+          0,
+          2,
+          999
+        ]
+      },
+      "result": {
+        "ok": true,
+        "delta": 0
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 2,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 3,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 10,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 原机器人 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 11,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          },
+          {
+            "Index": 12,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按键 A",
+            "Content": "Press|A"
+          },
+          {
+            "Index": 13,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按下 B",
+            "Content": "Down|B"
+          },
+          {
+            "Index": 14,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "弹起 B",
+            "Content": "Up|B"
+          },
+          {
+            "Index": 15,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "组合按键 Ctrl+A",
+            "Content": "Combine|Ctrl+A"
+          },
+          {
+            "Index": 16,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "输入文本 中文",
+            "Content": "Text|中文"
+          },
+          {
+            "Index": 17,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "左键单击",
+            "Content": "LeftClick|"
+          },
+          {
+            "Index": 18,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "向上滚动 2",
+            "Content": "WheelUp|2"
+          },
+          {
+            "Index": 19,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "移动到 ( -1,+2 )",
+            "Content": "MoveTo|-1,+2"
+          }
+        ]
+      }
+    },
+    {
+      "method": "robotInstructionAction",
+      "args": {
+        "action": 3,
+        "indexes": [
+          2,
+          0,
+          2,
+          999
+        ]
+      },
+      "result": {
+        "ok": true,
+        "delta": 0
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 1,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 2,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 3,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 4,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 5,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 7,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 8,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 原机器人 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          },
+          {
+            "Index": 10,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按键 A",
+            "Content": "Press|A"
+          },
+          {
+            "Index": 11,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按下 B",
+            "Content": "Down|B"
+          },
+          {
+            "Index": 12,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "弹起 B",
+            "Content": "Up|B"
+          },
+          {
+            "Index": 13,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "组合按键 Ctrl+A",
+            "Content": "Combine|Ctrl+A"
+          },
+          {
+            "Index": 14,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "输入文本 中文",
+            "Content": "Text|中文"
+          },
+          {
+            "Index": 15,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "左键单击",
+            "Content": "LeftClick|"
+          },
+          {
+            "Index": 16,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "向上滚动 2",
+            "Content": "WheelUp|2"
+          },
+          {
+            "Index": 17,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "移动到 ( -1,+2 )",
+            "Content": "MoveTo|-1,+2"
+          },
+          {
+            "Index": 18,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 19,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          }
+        ]
+      }
+    },
+    {
+      "method": "robotInstructionAction",
+      "args": {
+        "action": 6,
+        "indexes": [
+          2,
+          0,
+          2,
+          999
+        ]
+      },
+      "result": {
+        "ok": true,
+        "delta": -2
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 2,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 3,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 4,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 5,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 6,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 原机器人 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 7,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          },
+          {
+            "Index": 8,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按键 A",
+            "Content": "Press|A"
+          },
+          {
+            "Index": 9,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按下 B",
+            "Content": "Down|B"
+          },
+          {
+            "Index": 10,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "弹起 B",
+            "Content": "Up|B"
+          },
+          {
+            "Index": 11,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "组合按键 Ctrl+A",
+            "Content": "Combine|Ctrl+A"
+          },
+          {
+            "Index": 12,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "输入文本 中文",
+            "Content": "Text|中文"
+          },
+          {
+            "Index": 13,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "左键单击",
+            "Content": "LeftClick|"
+          },
+          {
+            "Index": 14,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "向上滚动 2",
+            "Content": "WheelUp|2"
+          },
+          {
+            "Index": 15,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "移动到 ( -1,+2 )",
+            "Content": "MoveTo|-1,+2"
+          },
+          {
+            "Index": 16,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 17,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          }
+        ]
+      }
+    },
+    {
+      "method": "closeRobotEdit",
+      "args": {},
+      "result": {
+        "ok": true
+      }
+    },
+    {
+      "method": "openRobotEdit",
+      "args": {
+        "id": "$id2"
+      },
+      "result": {
+        "Id": "$id2",
+        "Name": "原机器人"
+      }
+    },
+    {
+      "method": "getRobotInstructions",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Index": 0,
+            "Type": 0,
+            "TypeName": "发送",
+            "Text": "发送列表 - [发送 1]",
+            "Content": "$id1"
+          },
+          {
+            "Index": 1,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "+12 毫秒",
+            "Content": "+12"
+          },
+          {
+            "Index": 2,
+            "Type": 1,
+            "TypeName": "延迟",
+            "Text": "0-20 毫秒",
+            "Content": "0-20"
+          },
+          {
+            "Index": 3,
+            "Type": 2,
+            "TypeName": "循环开始",
+            "Text": "循环 2 次",
+            "Content": "2"
+          },
+          {
+            "Index": 4,
+            "Type": 3,
+            "TypeName": "循环结束",
+            "Text": "循环结束",
+            "Content": "ignored"
+          },
+          {
+            "Index": 5,
+            "Type": 6,
+            "TypeName": "发送",
+            "Text": "[封包列表] 选中的封包",
+            "Content": "ignored"
+          },
+          {
+            "Index": 6,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = +17",
+            "Content": "Customize|+17"
+          },
+          {
+            "Index": 7,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 选中封包的套接字",
+            "Content": "PacketConfig.List"
+          },
+          {
+            "Index": 8,
+            "Type": 7,
+            "TypeName": "设置",
+            "Text": "系统套接字 = 调用滤镜的套接字",
+            "Content": "FilterSocket"
+          },
+          {
+            "Index": 9,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 发送列表 [ 发送 1 ]",
+            "Content": "Enable|SendList|$id1"
+          },
+          {
+            "Index": 10,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "禁用 - 机器人列表 [ 原机器人 ]",
+            "Content": "Disable|RobotList|$id2"
+          },
+          {
+            "Index": 11,
+            "Type": 8,
+            "TypeName": "开关",
+            "Text": "启用 - 滤镜列表 [ 滤镜 1 ]",
+            "Content": "Enable|FilterList|$id4"
+          },
+          {
+            "Index": 12,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按键 A",
+            "Content": "Press|A"
+          },
+          {
+            "Index": 13,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "按下 B",
+            "Content": "Down|B"
+          },
+          {
+            "Index": 14,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "弹起 B",
+            "Content": "Up|B"
+          },
+          {
+            "Index": 15,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "组合按键 Ctrl+A",
+            "Content": "Combine|Ctrl+A"
+          },
+          {
+            "Index": 16,
+            "Type": 4,
+            "TypeName": "键盘",
+            "Text": "输入文本 中文",
+            "Content": "Text|中文"
+          },
+          {
+            "Index": 17,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "左键单击",
+            "Content": "LeftClick|"
+          },
+          {
+            "Index": 18,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "向上滚动 2",
+            "Content": "WheelUp|2"
+          },
+          {
+            "Index": 19,
+            "Type": 5,
+            "TypeName": "鼠标",
+            "Text": "移动到 ( -1,+2 )",
+            "Content": "MoveTo|-1,+2"
+          }
+        ]
+      }
+    },
+    {
+      "method": "robotInstructionAction",
+      "args": {
+        "action": 7
+      },
+      "result": {
+        "ok": true,
+        "delta": -20
+      }
+    },
+    {
+      "method": "robotInstructionAction",
+      "args": {
+        "action": 7
+      },
+      "result": {
+        "ok": true,
+        "delta": 0
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 2,
+        "content": "2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "saveRobotEdit",
+      "args": {
+        "name": "循环验证"
+      },
+      "result": {
+        "error": "指令 1: 循环指令不正确",
+        "badIndex": 0
+      }
+    },
+    {
+      "method": "robotInstructionAction",
+      "args": {
+        "action": 7
+      },
+      "result": {
+        "ok": true,
+        "delta": -1
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 3,
+        "content": "2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "saveRobotEdit",
+      "args": {
+        "name": "循环验证"
+      },
+      "result": {
+        "error": "指令 1: 循环指令不正确",
+        "badIndex": 0
+      }
+    },
+    {
+      "method": "robotInstructionAction",
+      "args": {
+        "action": 7
+      },
+      "result": {
+        "ok": true,
+        "delta": -1
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 3,
+        "content": "2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 2,
+        "content": "2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "saveRobotEdit",
+      "args": {
+        "name": "循环验证"
+      },
+      "result": {
+        "error": "指令 1: 循环指令不正确",
+        "badIndex": 0
+      }
+    },
+    {
+      "method": "robotInstructionAction",
+      "args": {
+        "action": 7
+      },
+      "result": {
+        "ok": true,
+        "delta": -2
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 2,
+        "content": "2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 2,
+        "content": "2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 3,
+        "content": "2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "saveRobotEdit",
+      "args": {
+        "name": "循环验证"
+      },
+      "result": {
+        "error": "指令 1: 循环指令不正确",
+        "badIndex": 0
+      }
+    },
+    {
+      "method": "robotInstructionAction",
+      "args": {
+        "action": 7
+      },
+      "result": {
+        "ok": true,
+        "delta": -3
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 2,
+        "content": "2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 3,
+        "content": "2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 2,
+        "content": "2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 3,
+        "content": "2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "saveRobotEdit",
+      "args": {
+        "name": "循环验证"
+      },
+      "result": {
+        "error": "",
+        "badIndex": -1
+      }
+    },
+    {
+      "method": "robotInstructionAction",
+      "args": {
+        "action": 7
+      },
+      "result": {
+        "ok": true,
+        "delta": -4
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 2,
+        "content": "2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 2,
+        "content": "2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 3,
+        "content": "2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 3,
+        "content": "2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "saveRobotEdit",
+      "args": {
+        "name": "循环验证"
+      },
+      "result": {
+        "error": "",
+        "badIndex": -1
+      }
+    },
+    {
+      "method": "closeRobotEdit",
+      "args": {},
+      "result": {
+        "ok": true
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 1,
+        "content": "2"
+      },
+      "result": {
+        "error": "这条机器人已经不在列表里了"
+      }
+    },
+    {
+      "method": "saveRobotEdit",
+      "args": {
+        "name": "gone"
+      },
+      "result": {
+        "error": "这条机器人已经不在列表里了",
+        "badIndex": -1
+      }
+    },
+    {
+      "method": "openSendEdit",
+      "args": {
+        "id": "$id1"
+      },
+      "result": {
+        "Id": "$id1",
+        "Name": "发送 1",
+        "UseSystemSocket": false,
+        "LoopCount": 1,
+        "LoopInterval": 1000,
+        "Notes": "",
+        "SystemSocket": 0
+      }
+    },
+    {
+      "method": "importSendCollection",
+      "args": {},
+      "result": {
+        "ok": true
+      }
+    },
+    {
+      "method": "getSendCollection",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Id": "$id5",
+            "Socket": 17,
+            "Type": 13,
+            "From": "127.0.0.1:1200",
+            "To": "中文 & endpoint",
+            "Len": 4,
+            "Preview": "00 FF 80 41"
+          },
+          {
+            "Id": "$id6",
+            "Socket": 23,
+            "Type": 16,
+            "From": "::1",
+            "To": "127.0.0.1:5000",
+            "Len": 3,
+            "Preview": "01 02 03"
+          },
+          {
+            "Id": "$id7",
+            "Socket": 0,
+            "Type": 0,
+            "From": "",
+            "To": "",
+            "Len": 0,
+            "Preview": ""
+          }
+        ]
+      }
+    },
+    {
+      "method": "saveSendEdit",
+      "args": {
+        "name": "发送保存",
+        "loopCount": 1,
+        "loopInterval": 1000
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "openPacketEdit",
+      "args": {
+        "list": "send",
+        "id": "$id5"
+      },
+      "result": {
+        "Id": "$id5",
+        "List": "send",
+        "Socket": 17,
+        "Type": 13,
+        "From": "127.0.0.1:1200",
+        "To": "中文 & endpoint",
+        "Buffer": "AP+AQQ==",
+        "CanSendBySession": false,
+        "SystemSocket": 0
+      }
+    },
+    {
+      "method": "savePacketEdit",
+      "args": {
+        "list": "send",
+        "id": "$id5",
+        "socket": -3,
+        "buffer": ""
+      },
+      "result": {
+        "error": "封包数据为空"
+      }
+    },
+    {
+      "method": "openPacketEdit",
+      "args": {
+        "list": "send",
+        "id": "$id5"
+      },
+      "result": {
+        "Id": "$id5",
+        "List": "send",
+        "Socket": 17,
+        "Type": 13,
+        "From": "127.0.0.1:1200",
+        "To": "中文 & endpoint",
+        "Buffer": "AP+AQQ==",
+        "CanSendBySession": false,
+        "SystemSocket": 0
+      }
+    },
+    {
+      "method": "savePacketEdit",
+      "args": {
+        "list": "send",
+        "id": "$id5",
+        "socket": -3,
+        "buffer": "????"
+      },
+      "result": {
+        "error": "封包数据为空"
+      }
+    },
+    {
+      "method": "openPacketEdit",
+      "args": {
+        "list": "send",
+        "id": "$id5"
+      },
+      "result": {
+        "Id": "$id5",
+        "List": "send",
+        "Socket": 17,
+        "Type": 13,
+        "From": "127.0.0.1:1200",
+        "To": "中文 & endpoint",
+        "Buffer": "AP+AQQ==",
+        "CanSendBySession": false,
+        "SystemSocket": 0
+      }
+    },
+    {
+      "method": "savePacketEdit",
+      "args": {
+        "list": "send",
+        "id": "$id5",
+        "socket": -3,
+        "buffer": "AA=Z"
+      },
+      "result": {
+        "error": "封包数据为空"
+      }
+    },
+    {
+      "method": "openPacketEdit",
+      "args": {
+        "list": "send",
+        "id": "$id5"
+      },
+      "result": {
+        "Id": "$id5",
+        "List": "send",
+        "Socket": 17,
+        "Type": 13,
+        "From": "127.0.0.1:1200",
+        "To": "中文 & endpoint",
+        "Buffer": "AP+AQQ==",
+        "CanSendBySession": false,
+        "SystemSocket": 0
+      }
+    },
+    {
+      "method": "savePacketEdit",
+      "args": {
+        "list": "send",
+        "id": "$id5",
+        "socket": -3,
+        "buffer": "/x=="
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "openPacketEdit",
+      "args": {
+        "list": "send",
+        "id": "$id5"
+      },
+      "result": {
+        "Id": "$id5",
+        "List": "send",
+        "Socket": -3,
+        "Type": 13,
+        "From": "127.0.0.1:1200",
+        "To": "中文 & endpoint",
+        "Buffer": "/w==",
+        "CanSendBySession": false,
+        "SystemSocket": 0
+      }
+    },
+    {
+      "method": "savePacketEdit",
+      "args": {
+        "list": "send",
+        "id": "$id5",
+        "socket": -3,
+        "buffer": "  AAEC\r\n/w== "
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "openPacketEdit",
+      "args": {
+        "list": "send",
+        "id": "$id5"
+      },
+      "result": {
+        "Id": "$id5",
+        "List": "send",
+        "Socket": -3,
+        "Type": 13,
+        "From": "127.0.0.1:1200",
+        "To": "中文 & endpoint",
+        "Buffer": "AAEC/w==",
+        "CanSendBySession": false,
+        "SystemSocket": 0
+      }
+    },
+    {
+      "method": "closeSendEdit",
+      "args": {},
+      "result": {
+        "ok": true
+      }
+    },
+    {
+      "method": "openSendEdit",
+      "args": {
+        "id": "$id1"
+      },
+      "result": {
+        "Id": "$id1",
+        "Name": "发送保存",
+        "UseSystemSocket": false,
+        "LoopCount": 1,
+        "LoopInterval": 1000,
+        "Notes": "",
+        "SystemSocket": 0
+      }
+    },
+    {
+      "method": "openPacketEdit",
+      "args": {
+        "list": "send",
+        "id": "$id5"
+      },
+      "result": {
+        "Id": "$id5",
+        "List": "send",
+        "Socket": -3,
+        "Type": 13,
+        "From": "127.0.0.1:1200",
+        "To": "中文 & endpoint",
+        "Buffer": "AAEC/w==",
+        "CanSendBySession": false,
+        "SystemSocket": 0
+      }
+    },
+    {
+      "method": "sendCollectionAction",
+      "args": {
+        "action": 4,
+        "ids": [
+          "$id6",
+          "$id5",
+          "$id5"
+        ]
+      },
+      "result": {
+        "ok": true,
+        "delta": 2
+      }
+    },
+    {
+      "method": "getSendCollection",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Id": "$id5",
+            "Socket": -3,
+            "Type": 13,
+            "From": "127.0.0.1:1200",
+            "To": "中文 & endpoint",
+            "Len": 4,
+            "Preview": "00 01 02 FF"
+          },
+          {
+            "Id": "$id6",
+            "Socket": 23,
+            "Type": 16,
+            "From": "::1",
+            "To": "127.0.0.1:5000",
+            "Len": 3,
+            "Preview": "01 02 03"
+          },
+          {
+            "Id": "$id7",
+            "Socket": 0,
+            "Type": 0,
+            "From": "",
+            "To": "",
+            "Len": 0,
+            "Preview": ""
+          },
+          {
+            "Id": "$id8",
+            "Socket": -3,
+            "Type": 13,
+            "From": "127.0.0.1:1200",
+            "To": "中文 & endpoint",
+            "Len": 4,
+            "Preview": "00 01 02 FF"
+          },
+          {
+            "Id": "$id9",
+            "Socket": 23,
+            "Type": 16,
+            "From": "::1",
+            "To": "127.0.0.1:5000",
+            "Len": 3,
+            "Preview": "01 02 03"
+          }
+        ]
+      }
+    },
+    {
+      "method": "sendCollectionAction",
+      "args": {
+        "action": 0,
+        "ids": [
+          "$id6",
+          "$id5"
+        ]
+      },
+      "result": {
+        "ok": true,
+        "delta": 0
+      }
+    },
+    {
+      "method": "getSendCollection",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Id": "$id6",
+            "Socket": 23,
+            "Type": 16,
+            "From": "::1",
+            "To": "127.0.0.1:5000",
+            "Len": 3,
+            "Preview": "01 02 03"
+          },
+          {
+            "Id": "$id5",
+            "Socket": -3,
+            "Type": 13,
+            "From": "127.0.0.1:1200",
+            "To": "中文 & endpoint",
+            "Len": 4,
+            "Preview": "00 01 02 FF"
+          },
+          {
+            "Id": "$id7",
+            "Socket": 0,
+            "Type": 0,
+            "From": "",
+            "To": "",
+            "Len": 0,
+            "Preview": ""
+          },
+          {
+            "Id": "$id8",
+            "Socket": -3,
+            "Type": 13,
+            "From": "127.0.0.1:1200",
+            "To": "中文 & endpoint",
+            "Len": 4,
+            "Preview": "00 01 02 FF"
+          },
+          {
+            "Id": "$id9",
+            "Socket": 23,
+            "Type": 16,
+            "From": "::1",
+            "To": "127.0.0.1:5000",
+            "Len": 3,
+            "Preview": "01 02 03"
+          }
+        ]
+      }
+    },
+    {
+      "method": "sendCollectionAction",
+      "args": {
+        "action": 1,
+        "ids": [
+          "$id6",
+          "$id5"
+        ]
+      },
+      "result": {
+        "ok": true,
+        "delta": 0
+      }
+    },
+    {
+      "method": "getSendCollection",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Id": "$id5",
+            "Socket": -3,
+            "Type": 13,
+            "From": "127.0.0.1:1200",
+            "To": "中文 & endpoint",
+            "Len": 4,
+            "Preview": "00 01 02 FF"
+          },
+          {
+            "Id": "$id6",
+            "Socket": 23,
+            "Type": 16,
+            "From": "::1",
+            "To": "127.0.0.1:5000",
+            "Len": 3,
+            "Preview": "01 02 03"
+          },
+          {
+            "Id": "$id7",
+            "Socket": 0,
+            "Type": 0,
+            "From": "",
+            "To": "",
+            "Len": 0,
+            "Preview": ""
+          },
+          {
+            "Id": "$id8",
+            "Socket": -3,
+            "Type": 13,
+            "From": "127.0.0.1:1200",
+            "To": "中文 & endpoint",
+            "Len": 4,
+            "Preview": "00 01 02 FF"
+          },
+          {
+            "Id": "$id9",
+            "Socket": 23,
+            "Type": 16,
+            "From": "::1",
+            "To": "127.0.0.1:5000",
+            "Len": 3,
+            "Preview": "01 02 03"
+          }
+        ]
+      }
+    },
+    {
+      "method": "sendCollectionAction",
+      "args": {
+        "action": 2,
+        "ids": [
+          "$id6",
+          "$id5"
+        ]
+      },
+      "result": {
+        "ok": true,
+        "delta": 0
+      }
+    },
+    {
+      "method": "getSendCollection",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Id": "$id5",
+            "Socket": -3,
+            "Type": 13,
+            "From": "127.0.0.1:1200",
+            "To": "中文 & endpoint",
+            "Len": 4,
+            "Preview": "00 01 02 FF"
+          },
+          {
+            "Id": "$id6",
+            "Socket": 23,
+            "Type": 16,
+            "From": "::1",
+            "To": "127.0.0.1:5000",
+            "Len": 3,
+            "Preview": "01 02 03"
+          },
+          {
+            "Id": "$id7",
+            "Socket": 0,
+            "Type": 0,
+            "From": "",
+            "To": "",
+            "Len": 0,
+            "Preview": ""
+          },
+          {
+            "Id": "$id8",
+            "Socket": -3,
+            "Type": 13,
+            "From": "127.0.0.1:1200",
+            "To": "中文 & endpoint",
+            "Len": 4,
+            "Preview": "00 01 02 FF"
+          },
+          {
+            "Id": "$id9",
+            "Socket": 23,
+            "Type": 16,
+            "From": "::1",
+            "To": "127.0.0.1:5000",
+            "Len": 3,
+            "Preview": "01 02 03"
+          }
+        ]
+      }
+    },
+    {
+      "method": "sendCollectionAction",
+      "args": {
+        "action": 3,
+        "ids": [
+          "$id6",
+          "$id5"
+        ]
+      },
+      "result": {
+        "ok": true,
+        "delta": 0
+      }
+    },
+    {
+      "method": "getSendCollection",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Id": "$id7",
+            "Socket": 0,
+            "Type": 0,
+            "From": "",
+            "To": "",
+            "Len": 0,
+            "Preview": ""
+          },
+          {
+            "Id": "$id8",
+            "Socket": -3,
+            "Type": 13,
+            "From": "127.0.0.1:1200",
+            "To": "中文 & endpoint",
+            "Len": 4,
+            "Preview": "00 01 02 FF"
+          },
+          {
+            "Id": "$id9",
+            "Socket": 23,
+            "Type": 16,
+            "From": "::1",
+            "To": "127.0.0.1:5000",
+            "Len": 3,
+            "Preview": "01 02 03"
+          },
+          {
+            "Id": "$id5",
+            "Socket": -3,
+            "Type": 13,
+            "From": "127.0.0.1:1200",
+            "To": "中文 & endpoint",
+            "Len": 4,
+            "Preview": "00 01 02 FF"
+          },
+          {
+            "Id": "$id6",
+            "Socket": 23,
+            "Type": 16,
+            "From": "::1",
+            "To": "127.0.0.1:5000",
+            "Len": 3,
+            "Preview": "01 02 03"
+          }
+        ]
+      }
+    },
+    {
+      "method": "sendCollectionAction",
+      "args": {
+        "action": 6,
+        "ids": [
+          "$id6",
+          "$id5"
+        ]
+      },
+      "result": {
+        "ok": true,
+        "delta": -2
+      }
+    },
+    {
+      "method": "getSendCollection",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Id": "$id7",
+            "Socket": 0,
+            "Type": 0,
+            "From": "",
+            "To": "",
+            "Len": 0,
+            "Preview": ""
+          },
+          {
+            "Id": "$id8",
+            "Socket": -3,
+            "Type": 13,
+            "From": "127.0.0.1:1200",
+            "To": "中文 & endpoint",
+            "Len": 4,
+            "Preview": "00 01 02 FF"
+          },
+          {
+            "Id": "$id9",
+            "Socket": 23,
+            "Type": 16,
+            "From": "::1",
+            "To": "127.0.0.1:5000",
+            "Len": 3,
+            "Preview": "01 02 03"
+          }
+        ]
+      }
+    },
+    {
+      "method": "clearSendCollection",
+      "args": {},
+      "result": {
+        "ok": true
+      }
+    },
+    {
+      "method": "getSendCollection",
+      "args": {},
+      "result": {
+        "rows": []
+      }
+    },
+    {
+      "method": "closeSendEdit",
+      "args": {},
+      "result": {
+        "ok": true
+      }
+    },
+    {
+      "method": "openSendEdit",
+      "args": {
+        "id": "$id1"
+      },
+      "result": {
+        "Id": "$id1",
+        "Name": "发送保存",
+        "UseSystemSocket": false,
+        "LoopCount": 1,
+        "LoopInterval": 1000,
+        "Notes": "",
+        "SystemSocket": 0
+      }
+    },
+    {
+      "method": "getSendCollection",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Id": "$id5",
+            "Socket": -3,
+            "Type": 13,
+            "From": "127.0.0.1:1200",
+            "To": "中文 & endpoint",
+            "Len": 4,
+            "Preview": "00 01 02 FF"
+          },
+          {
+            "Id": "$id6",
+            "Socket": 23,
+            "Type": 16,
+            "From": "::1",
+            "To": "127.0.0.1:5000",
+            "Len": 3,
+            "Preview": "01 02 03"
+          },
+          {
+            "Id": "$id7",
+            "Socket": 0,
+            "Type": 0,
+            "From": "",
+            "To": "",
+            "Len": 0,
+            "Preview": ""
+          }
+        ]
+      }
+    },
+    {
+      "method": "openSendEdit",
+      "args": {
+        "id": "missing"
+      },
+      "result": {
+        "Id": "",
+        "Name": "",
+        "UseSystemSocket": false,
+        "LoopCount": 0,
+        "LoopInterval": 0,
+        "Notes": "",
+        "SystemSocket": 0
+      }
+    },
+    {
+      "method": "getSendCollection",
+      "args": {},
+      "result": {
+        "rows": [
+          {
+            "Id": "$id5",
+            "Socket": -3,
+            "Type": 13,
+            "From": "127.0.0.1:1200",
+            "To": "中文 & endpoint",
+            "Len": 4,
+            "Preview": "00 01 02 FF"
+          },
+          {
+            "Id": "$id6",
+            "Socket": 23,
+            "Type": 16,
+            "From": "::1",
+            "To": "127.0.0.1:5000",
+            "Len": 3,
+            "Preview": "01 02 03"
+          },
+          {
+            "Id": "$id7",
+            "Socket": 0,
+            "Type": 0,
+            "From": "",
+            "To": "",
+            "Len": 0,
+            "Preview": ""
+          }
+        ]
+      }
+    },
+    {
+      "method": "storesCommand",
+      "args": {
+        "wid": "$id3",
+        "action": 8
+      },
+      "result": {
+        "ok": true
+      }
+    },
+    {
+      "method": "getStoreRows",
+      "args": {
+        "wid": "$id3"
+      },
+      "result": {
+        "rows": [
+          {
+            "Id": "$id10",
+            "Len": 3,
+            "Preview": ""
+          },
+          {
+            "Id": "$id11",
+            "Len": 2,
+            "Preview": ""
+          },
+          {
+            "Id": "$id12",
+            "Len": 0,
+            "Preview": ""
+          }
+        ]
+      }
+    },
+    {
+      "method": "getStorePreviews",
+      "args": {
+        "wid": "$id3",
+        "from": 0,
+        "count": 100
+      },
+      "result": {
+        "items": [
+          "00 FF 80",
+          "41 42",
+          ""
+        ]
+      }
+    },
+    {
+      "method": "storesAction",
+      "args": {
+        "wid": "$id3",
+        "action": 4,
+        "ids": [
+          "$id11",
+          "$id10",
+          "$id10"
+        ]
+      },
+      "result": {
+        "ok": true,
+        "delta": 2
+      }
+    },
+    {
+      "method": "getStoreRows",
+      "args": {
+        "wid": "$id3"
+      },
+      "result": {
+        "rows": [
+          {
+            "Id": "$id10",
+            "Len": 3,
+            "Preview": ""
+          },
+          {
+            "Id": "$id11",
+            "Len": 2,
+            "Preview": ""
+          },
+          {
+            "Id": "$id12",
+            "Len": 0,
+            "Preview": ""
+          },
+          {
+            "Id": "$id13",
+            "Len": 3,
+            "Preview": ""
+          },
+          {
+            "Id": "$id14",
+            "Len": 2,
+            "Preview": ""
+          }
+        ]
+      }
+    },
+    {
+      "method": "getStorePreviews",
+      "args": {
+        "wid": "$id3",
+        "from": 0,
+        "count": 100
+      },
+      "result": {
+        "items": [
+          "00 FF 80",
+          "41 42",
+          "",
+          "00 FF 80",
+          "41 42"
+        ]
+      }
+    },
+    {
+      "method": "storesAction",
+      "args": {
+        "wid": "$id3",
+        "action": 0,
+        "ids": [
+          "$id11",
+          "$id10",
+          "$id10"
+        ]
+      },
+      "result": {
+        "ok": true,
+        "delta": 0
+      }
+    },
+    {
+      "method": "getStoreRows",
+      "args": {
+        "wid": "$id3"
+      },
+      "result": {
+        "rows": [
+          {
+            "Id": "$id11",
+            "Len": 2,
+            "Preview": ""
+          },
+          {
+            "Id": "$id10",
+            "Len": 3,
+            "Preview": ""
+          },
+          {
+            "Id": "$id12",
+            "Len": 0,
+            "Preview": ""
+          },
+          {
+            "Id": "$id13",
+            "Len": 3,
+            "Preview": ""
+          },
+          {
+            "Id": "$id14",
+            "Len": 2,
+            "Preview": ""
+          }
+        ]
+      }
+    },
+    {
+      "method": "getStorePreviews",
+      "args": {
+        "wid": "$id3",
+        "from": 0,
+        "count": 100
+      },
+      "result": {
+        "items": [
+          "41 42",
+          "00 FF 80",
+          "",
+          "00 FF 80",
+          "41 42"
+        ]
+      }
+    },
+    {
+      "method": "storesAction",
+      "args": {
+        "wid": "$id3",
+        "action": 1,
+        "ids": [
+          "$id11",
+          "$id10",
+          "$id10"
+        ]
+      },
+      "result": {
+        "ok": true,
+        "delta": 0
+      }
+    },
+    {
+      "method": "getStoreRows",
+      "args": {
+        "wid": "$id3"
+      },
+      "result": {
+        "rows": [
+          {
+            "Id": "$id10",
+            "Len": 3,
+            "Preview": ""
+          },
+          {
+            "Id": "$id11",
+            "Len": 2,
+            "Preview": ""
+          },
+          {
+            "Id": "$id12",
+            "Len": 0,
+            "Preview": ""
+          },
+          {
+            "Id": "$id13",
+            "Len": 3,
+            "Preview": ""
+          },
+          {
+            "Id": "$id14",
+            "Len": 2,
+            "Preview": ""
+          }
+        ]
+      }
+    },
+    {
+      "method": "getStorePreviews",
+      "args": {
+        "wid": "$id3",
+        "from": 0,
+        "count": 100
+      },
+      "result": {
+        "items": [
+          "00 FF 80",
+          "41 42",
+          "",
+          "00 FF 80",
+          "41 42"
+        ]
+      }
+    },
+    {
+      "method": "storesAction",
+      "args": {
+        "wid": "$id3",
+        "action": 2,
+        "ids": [
+          "$id11",
+          "$id10",
+          "$id10"
+        ]
+      },
+      "result": {
+        "ok": true,
+        "delta": 0
+      }
+    },
+    {
+      "method": "getStoreRows",
+      "args": {
+        "wid": "$id3"
+      },
+      "result": {
+        "rows": [
+          {
+            "Id": "$id10",
+            "Len": 3,
+            "Preview": ""
+          },
+          {
+            "Id": "$id11",
+            "Len": 2,
+            "Preview": ""
+          },
+          {
+            "Id": "$id12",
+            "Len": 0,
+            "Preview": ""
+          },
+          {
+            "Id": "$id13",
+            "Len": 3,
+            "Preview": ""
+          },
+          {
+            "Id": "$id14",
+            "Len": 2,
+            "Preview": ""
+          }
+        ]
+      }
+    },
+    {
+      "method": "getStorePreviews",
+      "args": {
+        "wid": "$id3",
+        "from": 0,
+        "count": 100
+      },
+      "result": {
+        "items": [
+          "00 FF 80",
+          "41 42",
+          "",
+          "00 FF 80",
+          "41 42"
+        ]
+      }
+    },
+    {
+      "method": "storesAction",
+      "args": {
+        "wid": "$id3",
+        "action": 3,
+        "ids": [
+          "$id11",
+          "$id10",
+          "$id10"
+        ]
+      },
+      "result": {
+        "ok": true,
+        "delta": 0
+      }
+    },
+    {
+      "method": "getStoreRows",
+      "args": {
+        "wid": "$id3"
+      },
+      "result": {
+        "rows": [
+          {
+            "Id": "$id12",
+            "Len": 0,
+            "Preview": ""
+          },
+          {
+            "Id": "$id13",
+            "Len": 3,
+            "Preview": ""
+          },
+          {
+            "Id": "$id14",
+            "Len": 2,
+            "Preview": ""
+          },
+          {
+            "Id": "$id10",
+            "Len": 3,
+            "Preview": ""
+          },
+          {
+            "Id": "$id11",
+            "Len": 2,
+            "Preview": ""
+          }
+        ]
+      }
+    },
+    {
+      "method": "getStorePreviews",
+      "args": {
+        "wid": "$id3",
+        "from": 0,
+        "count": 100
+      },
+      "result": {
+        "items": [
+          "",
+          "00 FF 80",
+          "41 42",
+          "00 FF 80",
+          "41 42"
+        ]
+      }
+    },
+    {
+      "method": "storesAction",
+      "args": {
+        "wid": "$id3",
+        "action": 6,
+        "ids": [
+          "$id11",
+          "$id10",
+          "$id10"
+        ]
+      },
+      "result": {
+        "ok": true,
+        "delta": -2
+      }
+    },
+    {
+      "method": "getStoreRows",
+      "args": {
+        "wid": "$id3"
+      },
+      "result": {
+        "rows": [
+          {
+            "Id": "$id12",
+            "Len": 0,
+            "Preview": ""
+          },
+          {
+            "Id": "$id13",
+            "Len": 3,
+            "Preview": ""
+          },
+          {
+            "Id": "$id14",
+            "Len": 2,
+            "Preview": ""
+          }
+        ]
+      }
+    },
+    {
+      "method": "getStorePreviews",
+      "args": {
+        "wid": "$id3",
+        "from": 0,
+        "count": 100
+      },
+      "result": {
+        "items": [
+          "",
+          "00 FF 80",
+          "41 42"
+        ]
+      }
+    },
+    {
+      "method": "storesCommand",
+      "args": {
+        "wid": "$id3",
+        "action": 7
+      },
+      "result": {
+        "ok": true
+      }
+    },
+    {
+      "method": "getStoreRows",
+      "args": {
+        "wid": "$id3"
+      },
+      "result": {
+        "rows": []
+      }
+    },
+    {
+      "method": "openRobotEdit",
+      "args": {
+        "id": "$id2"
+      },
+      "result": {
+        "Id": "$id2",
+        "Name": "循环验证"
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 7,
+        "content": "Customize|　1"
+      },
+      "result": {
+        "error": "系统套接字不正确"
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 5,
+        "content": "WheelUp| 1"
+      },
+      "result": {
+        "error": "鼠标指令不正确"
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 1,
+        "content": "1 -2"
+      },
+      "result": {
+        "error": "延迟时间不正确"
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 5,
+        "content": "MoveTo|　1, 2"
+      },
+      "result": {
+        "error": ""
+      }
+    },
+    {
+      "method": "addRobotInstruction",
+      "args": {
+        "type": 5,
+        "content": "MoveBy|　1, 2"
+      },
+      "result": {
+        "error": ""
+      }
+    }
+  ]
+}
