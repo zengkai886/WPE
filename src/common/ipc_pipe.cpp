@@ -133,13 +133,13 @@ DWORD ReadOverlapped(HANDLE handle, void* buffer, DWORD size) {
     return operation.Complete(handle, INFINITE, "ReadFile(pipe)");
 }
 
-DWORD WriteOverlapped(HANDLE handle, const void* buffer, DWORD size) {
+DWORD WriteOverlapped(HANDLE handle, const void* buffer, DWORD size, DWORD timeout) {
     OverlappedOperation operation;
     DWORD transferred = 0;
     if (WriteFile(handle, buffer, size, &transferred, operation.Value())) return transferred;
     const DWORD error = GetLastError();
     if (error != ERROR_IO_PENDING) Fail("WriteFile(pipe)", error);
-    return operation.Complete(handle, INFINITE, "WriteFile(pipe)");
+    return operation.Complete(handle, timeout, "WriteFile(pipe)");
 }
 } // namespace
 
@@ -244,14 +244,14 @@ Bytes PipeEndpoint::ReadFrame() {
     }, FrameLimit());
 }
 
-void PipeEndpoint::WriteFrame(std::span<const std::uint8_t> payload) {
+void PipeEndpoint::WriteFrame(std::span<const std::uint8_t> payload, std::uint32_t timeout_ms) {
     if (!IsOpen()) throw ProtocolError("Pipe is closed");
     if (payload.size() > static_cast<std::size_t>(FrameLimit()))
         throw ProtocolError("Frame exceeds channel limit");
-    IpcFrame::Write([this](std::span<const std::uint8_t> frame) -> std::size_t {
+    IpcFrame::Write([this, timeout_ms](std::span<const std::uint8_t> frame) -> std::size_t {
         if (frame.size() > static_cast<std::size_t>(std::numeric_limits<DWORD>::max()))
             throw ProtocolError("Pipe write exceeds DWORD length");
-        return WriteOverlapped(handle_, frame.data(), static_cast<DWORD>(frame.size()));
+        return WriteOverlapped(handle_, frame.data(), static_cast<DWORD>(frame.size()), timeout_ms);
     }, payload);
 }
 

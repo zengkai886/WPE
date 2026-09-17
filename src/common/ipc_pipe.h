@@ -31,7 +31,8 @@ public:
 
     void Accept(std::uint32_t timeout_ms = INFINITE);
     Bytes ReadFrame();
-    void WriteFrame(std::span<const std::uint8_t> payload);
+    void WriteFrame(std::span<const std::uint8_t> payload,
+                    std::uint32_t timeout_ms = INFINITE);
     void Flush();
     // Cancels outstanding overlapped operations without destroying the handle;
     // the owner can then join its I/O threads before calling Close.

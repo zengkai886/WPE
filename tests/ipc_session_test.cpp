@@ -107,15 +107,17 @@ void AnyCommandRefreshesHeartbeat() {
     shell.Start();
     wpe::IpcWriter request;
     request.U8(static_cast<std::uint8_t>(wpe::IpcCommand::StopHook));
+    bool survived_ordinary_commands = true;
     for (int i = 0; i < 4; ++i) {
         Sleep(45);
         shell.CallVoid(request.ToArray());
-        Check(!target.TimedOut(), "ordinary command refreshed heartbeat deadline");
+        survived_ordinary_commands = survived_ordinary_commands && !target.TimedOut();
     }
     for (int i = 0; i < 300 && !target.TimedOut(); ++i) Sleep(1);
+    target_thread.join();
+    Check(survived_ordinary_commands, "ordinary command refreshed heartbeat deadline");
     Check(target.TimedOut(), "target times out after all shell commands stop");
     Check(timeout_callbacks.load() == 1, "timeout cleanup callback runs exactly once");
-    target_thread.join();
     shell.Stop();
 }
 
@@ -139,6 +141,55 @@ void ErrorReply() {
     shell.Detach();
     target_thread.join();
 }
+
+void CommandInProgressIsAlive() {
+    const std::string id = "f123456789abcdef0123456789abcdef";
+    wpe::ShellSessionOptions shell_options;
+    shell_options.heartbeat_interval = 2s;
+    wpe::ShellIpcSession shell(id, {}, {}, {}, shell_options);
+    wpe::TargetSessionOptions target_options;
+    target_options.heartbeat_timeout = 40ms;
+    target_options.watchdog_poll = 2ms;
+    wpe::TargetIpcSession target(id, 2000, target_options);
+    shell.Accept(2000);
+    std::atomic<int> timeouts{0};
+    std::thread target_thread([&] {
+        target.Run([](wpe::IpcCommand, wpe::IpcReader&) {
+            Sleep(90);
+            return wpe::IpcOk();
+        }, [&] { ++timeouts; });
+    });
+    shell.Start();
+    wpe::IpcWriter request;
+    request.U8(static_cast<std::uint8_t>(wpe::IpcCommand::StopHook));
+    shell.CallVoid(request.ToArray());
+    Check(!target.TimedOut() && timeouts.load() == 0,
+          "watchdog does not mistake an in-progress command for a dead shell");
+    shell.Detach();
+    target_thread.join();
+}
+
+void DetachDoesNotRaceHeartbeat() {
+    constexpr char digits[] = "0123456789abcdef";
+    for (int iteration = 0; iteration < 12; ++iteration) {
+        std::string id = "f123456789abcdef0123456789abcde";
+        id.push_back(digits[iteration]);
+        wpe::ShellSessionOptions shell_options;
+        shell_options.heartbeat_interval = 1ms;
+        wpe::ShellIpcSession shell(id, {}, {}, {}, shell_options);
+        wpe::TargetSessionOptions target_options;
+        target_options.heartbeat_timeout = 300ms;
+        target_options.watchdog_poll = 2ms;
+        wpe::TargetIpcSession target(id, 2000, target_options);
+        shell.Accept(2000);
+        std::thread target_thread([&] { target.Run({}); });
+        shell.Start();
+        Sleep(3);
+        shell.Detach();
+        target_thread.join();
+        Check(target.Detached(), "Detach wins the control gate race with heartbeat");
+    }
+}
 } // namespace
 
 int main() {
@@ -147,6 +198,8 @@ int main() {
         VersionMismatch();
         AnyCommandRefreshesHeartbeat();
         ErrorReply();
+        CommandInProgressIsAlive();
+        DetachDoesNotRaceHeartbeat();
         std::cout << "PASS: " << checks.load()
                   << " real IPC session checks; Hello/version, serialized calls, pkt/evt, heartbeat, timeout, error and Detach lifecycle\n";
         return 0;

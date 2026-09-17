@@ -45,6 +45,8 @@ public:
     [[nodiscard]] const std::string& Session() const noexcept { return session_; }
 
 private:
+    ByteBuffer CallUnlocked(std::span<const std::uint8_t> request);
+    static void ValidateVoidResponse(std::span<const std::uint8_t> response);
     void SetState(IpcLinkState state) noexcept;
     void MarkDisconnected() noexcept;
     void PacketLoop() noexcept;
@@ -81,6 +83,7 @@ class TargetIpcSession final {
 public:
     using CommandHandler = std::function<ByteBuffer(IpcCommand, IpcReader&)>;
     using TimeoutHandler = std::function<void()>;
+    using LifecycleHandler = std::function<void()>;
 
     TargetIpcSession(std::string session, std::uint32_t connect_timeout_ms,
                      TargetSessionOptions options = {});
@@ -90,7 +93,8 @@ public:
 
     // Runs the target control loop on the caller's dedicated thread. Built-ins
     // are Hello, Ping and Detach; other commands are passed to handler.
-    void Run(CommandHandler handler, TimeoutHandler timeout_handler = {});
+    void Run(CommandHandler handler, TimeoutHandler timeout_handler = {},
+             LifecycleHandler hello_handler = {}, LifecycleHandler exit_handler = {});
     void SendPacketFrame(std::span<const std::uint8_t> frame);
     void SendEventFrame(std::span<const std::uint8_t> frame);
     void Stop() noexcept;
@@ -99,7 +103,8 @@ public:
     [[nodiscard]] bool Detached() const noexcept { return detached_.load(); }
 
 private:
-    ByteBuffer Dispatch(std::span<const std::uint8_t> request, const CommandHandler& handler);
+    ByteBuffer Dispatch(std::span<const std::uint8_t> request, const CommandHandler& handler,
+                        const LifecycleHandler& hello_handler);
     void WatchdogLoop(const TimeoutHandler& timeout_handler) noexcept;
 
     PipeEndpoint control_;
@@ -111,6 +116,7 @@ private:
     std::atomic<bool> running_{false};
     std::atomic<bool> timed_out_{false};
     std::atomic<bool> detached_{false};
+    std::atomic<bool> dispatching_{false};
     std::atomic<std::uint64_t> last_command_tick_{0};
     std::thread watchdog_thread_;
 };

@@ -94,14 +94,20 @@ void ShellIpcSession::Start() {
 
 ByteBuffer ShellIpcSession::Call(std::span<const std::uint8_t> request) {
     std::lock_guard lock(control_mutex_);
+    if (State() == IpcLinkState::Disconnected ||
+        (State() == IpcLinkState::Attached && !running_.load()))
+        throw ProtocolError("IPC session is stopping");
+    return CallUnlocked(request);
+}
+
+ByteBuffer ShellIpcSession::CallUnlocked(std::span<const std::uint8_t> request) {
     control_.WriteFrame(request);
     const auto response = control_.ReadFrame();
     if (!response) throw ProtocolError("Target disconnected from control pipe");
     return *response;
 }
 
-void ShellIpcSession::CallVoid(std::span<const std::uint8_t> request) {
-    const auto response = Call(request);
+void ShellIpcSession::ValidateVoidResponse(std::span<const std::uint8_t> response) {
     IpcReader reader(response);
     const auto status = static_cast<IpcStatus>(reader.U8());
     if (status == IpcStatus::Ok) {
@@ -117,11 +123,24 @@ void ShellIpcSession::CallVoid(std::span<const std::uint8_t> request) {
     throw ProtocolError(message);
 }
 
+void ShellIpcSession::CallVoid(std::span<const std::uint8_t> request) {
+    ValidateVoidResponse(Call(request));
+}
+
 void ShellIpcSession::Detach() {
-    if (State() == IpcLinkState::Attached) {
-        IpcWriter request;
-        request.U8(static_cast<std::uint8_t>(IpcCommand::Detach));
-        try { CallVoid(request.ToArray()); } catch (...) { /* a dead target is already detached */ }
+    {
+        // Keep the control gate until running_ is cleared. Otherwise the
+        // heartbeat can slip in after the Detach reply, send Ping to a target
+        // that is already exiting, and block forever waiting for its reply.
+        std::lock_guard lock(control_mutex_);
+        if (State() == IpcLinkState::Attached) {
+            IpcWriter request;
+            request.U8(static_cast<std::uint8_t>(IpcCommand::Detach));
+            try { ValidateVoidResponse(CallUnlocked(request.ToArray())); }
+            catch (...) { /* a dead target is already detached */ }
+        }
+        running_.store(false);
+        heartbeat_wait_.notify_all();
     }
     Stop();
 }
@@ -172,7 +191,9 @@ void ShellIpcSession::HeartbeatLoop() noexcept {
         try {
             IpcWriter request;
             request.U8(static_cast<std::uint8_t>(IpcCommand::Ping));
-            CallVoid(request.ToArray());
+            std::lock_guard control_lock(control_mutex_);
+            if (!running_.load()) break;
+            ValidateVoidResponse(CallUnlocked(request.ToArray()));
         } catch (...) {
             if (running_.load()) MarkDisconnected();
             break;
@@ -211,7 +232,8 @@ TargetIpcSession::TargetIpcSession(std::string session, std::uint32_t connect_ti
 TargetIpcSession::~TargetIpcSession() { Stop(); }
 
 ByteBuffer TargetIpcSession::Dispatch(std::span<const std::uint8_t> request,
-                                      const CommandHandler& handler) {
+                                      const CommandHandler& handler,
+                                      const LifecycleHandler& hello_handler) {
     IpcReader reader(request);
     const auto command = static_cast<IpcCommand>(reader.U8());
     if (command == IpcCommand::Hello) {
@@ -225,6 +247,7 @@ ByteBuffer TargetIpcSession::Dispatch(std::span<const std::uint8_t> request,
             response.I32(options_.protocol_version);
             response.I32(static_cast<std::int32_t>(GetCurrentProcessId()));
             response.Bool(sizeof(void*) == 8);
+            if (hello_handler) hello_handler();
         }
         return response.ToArray();
     }
@@ -237,7 +260,8 @@ ByteBuffer TargetIpcSession::Dispatch(std::span<const std::uint8_t> request,
     return handler(command, reader);
 }
 
-void TargetIpcSession::Run(CommandHandler handler, TimeoutHandler timeout_handler) {
+void TargetIpcSession::Run(CommandHandler handler, TimeoutHandler timeout_handler,
+                           LifecycleHandler hello_handler, LifecycleHandler exit_handler) {
     if (running_.exchange(true)) throw ProtocolError("Target IPC loop is already running");
     timed_out_.store(false);
     detached_.store(false);
@@ -249,9 +273,12 @@ void TargetIpcSession::Run(CommandHandler handler, TimeoutHandler timeout_handle
             if (!request) break;
             last_command_tick_.store(Tick()); // every command is a heartbeat
             ByteBuffer response;
-            try { response = Dispatch(*request, handler); }
+            dispatching_.store(true);
+            try { response = Dispatch(*request, handler, hello_handler); }
             catch (const std::exception& error) { response = IpcError(error.what()); }
             catch (...) { response = IpcError("Unknown target command failure"); }
+            dispatching_.store(false);
+            last_command_tick_.store(Tick());
             control_.WriteFrame(response);
             control_.Flush();
             if (detached_.load()) {
@@ -267,18 +294,29 @@ void TargetIpcSession::Run(CommandHandler handler, TimeoutHandler timeout_handle
     }
     running_.store(false);
     if (watchdog_thread_.joinable()) watchdog_thread_.join();
+    // A producer can be blocked in an overlapped pkt/evt write after the shell
+    // has closed its reader. Cancel those writes before lifecycle cleanup joins
+    // producer threads.
+    packet_.CancelPending();
+    event_.CancelPending();
+    if (exit_handler) {
+        try { exit_handler(); } catch (...) {}
+    }
 }
 
 void TargetIpcSession::WatchdogLoop(const TimeoutHandler& timeout_handler) noexcept {
     while (running_.load()) {
         std::this_thread::sleep_for(options_.watchdog_poll);
         if (!running_.load()) break;
+        if (dispatching_.load()) continue;
         const auto elapsed = Tick() - last_command_tick_.load();
         if (elapsed <= static_cast<std::uint64_t>(options_.heartbeat_timeout.count())) continue;
         timed_out_.store(true);
         running_.store(false);
-        if (timeout_handler) { try { timeout_handler(); } catch (...) {} }
         control_.CancelPending();
+        packet_.CancelPending();
+        event_.CancelPending();
+        if (timeout_handler) { try { timeout_handler(); } catch (...) {} }
         break;
     }
 }
@@ -290,12 +328,17 @@ void TargetIpcSession::SendPacketFrame(std::span<const std::uint8_t> frame) {
 
 void TargetIpcSession::SendEventFrame(std::span<const std::uint8_t> frame) {
     std::lock_guard lock(event_mutex_);
-    event_.WriteFrame(frame);
+    // Event delivery must not pin target teardown forever after the shell has
+    // disappeared. The original stream is lossy/bounded as well; a stalled
+    // reader is therefore an event failure, not permission to hang the host.
+    event_.WriteFrame(frame, 500);
 }
 
 void TargetIpcSession::Stop() noexcept {
     running_.store(false);
     control_.CancelPending();
+    packet_.CancelPending();
+    event_.CancelPending();
     if (watchdog_thread_.joinable() && watchdog_thread_.get_id() != std::this_thread::get_id())
         watchdog_thread_.join();
     control_.Close();

@@ -21,9 +21,9 @@ function Run([string]$Executable,[string[]]$Arguments,[string]$Log) {
 }
 $manifest=[ordered]@{
     schemaVersion=1
-    testId='CPP-EXCHANGE-WIRING-008'
-    specificationSections=@('0','2.3','3.1','3.2','3.3','4.1','4.2','4.3','4.4','5.5','9.2','9.3','13.1')
-    scope='Protocol/ring, real three-channel Windows named-pipe transport with current-user ACL, and shell/target session lifecycle including Hello, heartbeat, pkt/evt receive, timeout and Detach; native SQLite, editors, plaintext XML export, private-station OS clipboard, original Vue/HexView/export/clipboard buttons and restart. UI clipboard uses a memory seam; file picker uses a fixed-path seam. topmostProbe is non-gating; no picker UI automation, injection, hooks, capture, proxy, executors or complete acceptance'
+    testId='CPP-EXCHANGE-WIRING-009'
+    specificationSections=@('0','2.3','3.1','3.2','3.3','4.1','4.2','4.3','4.4','4.5','5.4','5.5','9.2','9.3','13.1')
+    scope='Protocol/ring, real three-channel Windows named-pipe transport with current-user ACL, shell/target session lifecycle, and target headless command core with all five configuration snapshots, exact Stats/HookState/Fatal events, reset masks and controller cleanup; native SQLite, editors, plaintext XML export, private-station OS clipboard, original Vue/HexView/export/clipboard buttons and restart. The target-core hook controller is exercised by a stateful test double; there is still no injector, hook DLL, Winsock detour, real capture, proxy/executor engine or complete acceptance'
     startedUtc=[DateTime]::UtcNow.ToString('o')
     finishedUtc=$null
     result='running'
@@ -124,7 +124,7 @@ try {
             parity=(Get-Content -LiteralPath (Join-Path $run "$arch-parity.log"))
             reverse=(Get-Content -LiteralPath (Join-Path $run "$arch-reverse.log"))
             ring=(Get-Content -LiteralPath (Join-Path $run "$arch-ring.log"))
-            artifacts=@($test,(Join-Path $build 'Release\wpe64-pipe-test.exe'),(Join-Path $build 'Release\wpe64-session-test.exe'),(Join-Path $build 'Release\wpe64-common.lib'),$packets,(Join-Path $build 'CMakeCache.txt')) | ForEach-Object {[ordered]@{path=$_;sha256=(Hash $_)}}
+            artifacts=@($test,(Join-Path $build 'Release\wpe64-pipe-test.exe'),(Join-Path $build 'Release\wpe64-session-test.exe'),(Join-Path $build 'Release\wpe64-headless-core-test.exe'),(Join-Path $build 'Release\wpe64-common.lib'),(Join-Path $build 'Release\wpe64-target-core.lib'),$packets,(Join-Path $build 'CMakeCache.txt')) | ForEach-Object {[ordered]@{path=$_;sha256=(Hash $_)}}
         }
     }
     & (Join-Path $PSScriptRoot 'verify-assets.ps1')
