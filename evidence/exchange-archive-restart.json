@@ -1,0 +1,47 @@
+{
+  "frontend": {
+    "chooserCancelKeptData": true,
+    "chooserTest": "fixed-path seam; production Windows picker UI not automated",
+    "clipboardTest": "UI uses isolated memory clipboard; real OS clipboard tested separately in private window station",
+    "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-archive\\run-00f614c059d64e5087dd6ae0e772cbc8\\webview-profile\\2.3.0\\WPE.db",
+    "editorCounts": [
+      2,
+      3,
+      2
+    ],
+    "editorRestartPersistence": true,
+    "encryptedExportRejected": false,
+    "importNotifications": true,
+    "ok": true,
+    "originalClipboardButtons": false,
+    "originalEditorButtons": true,
+    "originalExportButtons": false,
+    "originalHexViewEdited": true,
+    "originalListDom": true,
+    "persistentFilterId": "DFC52EBF-AE86-4978-B437-63262CF476C1",
+    "restartPersistence": true,
+    "robotCancelKeptSavedInstructions": true,
+    "topmostProbe": "passed"
+  },
+  "lastStage": {
+    "stage": "机器人列表"
+  },
+  "nativeDrag": true,
+  "originalVueConfirmed": true,
+  "result": "passed",
+  "scope": "Exchange/editor acceptance: original Vue/HexView/export/copy/paste -> native RPC/SQLite/files. UI clipboard uses isolated memory; OS clipboard verified separately on private station. File chooser fixed-path seam. topmostProbe non-gating; no picker UI automation, capture/proxy/injection/execution",
+  "topmostCalls": [
+    {
+      "on": true,
+      "style": 264,
+      "visible": false
+    },
+    {
+      "on": false,
+      "style": 256,
+      "visible": false
+    }
+  ],
+  "webMessagesReceived": 42,
+  "webview2Runtime": "153.0.4234.32"
+}

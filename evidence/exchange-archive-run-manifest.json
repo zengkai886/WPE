@@ -1,0 +1,630 @@
+{
+  "schemaVersion": 1,
+  "testId": "CPP-EXCHANGE-WIRING-005",
+  "specificationSections": [
+    "0",
+    "2.3",
+    "3.1",
+    "3.2",
+    "3.3",
+    "4.2",
+    "4.4",
+    "9.2",
+    "9.3",
+    "13.1"
+  ],
+  "scope": "Protocol/ring, native SQLite, editors, plaintext XML export, private-station OS clipboard, original Vue/HexView/export/clipboard buttons and restart. UI clipboard uses a memory seam; file picker uses a fixed-path seam. topmostProbe is non-gating; no picker UI automation, injection, capture, proxy, executors or complete acceptance",
+  "startedUtc": "2026-09-17T16:14:54.5101483Z",
+  "finishedUtc": "2026-09-17T16:17:07.3864078Z",
+  "result": "passed",
+  "runDirectory": "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-archive\\run-00f614c059d64e5087dd6ae0e772cbc8",
+  "command": "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-src-c5ee4c94\\build-test.ps1 -BuildRoot E:\\codex\\2026-09-17\\bi-a\\work\\exchange-archive -Architecture x64,Win32",
+  "architectures": [
+    {
+      "architecture": "x64",
+      "result": "passed",
+      "parity": "PASS: 74684 original C# vectors; 76618 assertions; 600 native packet frames. Pointer bits=64",
+      "reverse": "Original C# decoder accepted 600 native packet frames; all bytes and decoded fields match.",
+      "ring": "PASS: packet ring edges/concurrency; 6416 original state-transition vectors",
+      "artifacts": [
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-archive\\run-00f614c059d64e5087dd6ae0e772cbc8\\x64\\Release\\wpe64-parity-test.exe",
+          "sha256": "1441C1E0F50E814424E9A85F53DC0D786A69631A3D8E536BB989DFD5D850C803"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-archive\\run-00f614c059d64e5087dd6ae0e772cbc8\\x64\\Release\\wpe64-common.lib",
+          "sha256": "687E95D801BEDDE654264C0A578DBC6093567584C74BA0E3F4221A2A9B7D94FB"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-archive\\run-00f614c059d64e5087dd6ae0e772cbc8\\x64-packets.tsv",
+          "sha256": "982050FA8F316304A79A30ED787A390BC6F2220E48E0AE40E757151F0C8EEE47"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-archive\\run-00f614c059d64e5087dd6ae0e772cbc8\\x64\\CMakeCache.txt",
+          "sha256": "326E43D2B1E87A7EAC4A2FE825847CBD77EE79A389A25D6DB18F1B64DFAA7752"
+        }
+      ]
+    },
+    {
+      "architecture": "Win32",
+      "result": "passed",
+      "parity": "PASS: 74684 original C# vectors; 76618 assertions; 600 native packet frames. Pointer bits=32",
+      "reverse": "Original C# decoder accepted 600 native packet frames; all bytes and decoded fields match.",
+      "ring": "PASS: packet ring edges/concurrency; 6416 original state-transition vectors",
+      "artifacts": [
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-archive\\run-00f614c059d64e5087dd6ae0e772cbc8\\Win32\\Release\\wpe64-parity-test.exe",
+          "sha256": "99D0C1BE11AEBD48C3FC881E790C0E11A937EE3580FD96242978B130E4A189DB"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-archive\\run-00f614c059d64e5087dd6ae0e772cbc8\\Win32\\Release\\wpe64-common.lib",
+          "sha256": "60B3446715B87989B7E5FE6327F2EAF1BAACEB480F5952C68C10E351B47440B8"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-archive\\run-00f614c059d64e5087dd6ae0e772cbc8\\Win32-packets.tsv",
+          "sha256": "982050FA8F316304A79A30ED787A390BC6F2220E48E0AE40E757151F0C8EEE47"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-archive\\run-00f614c059d64e5087dd6ae0e772cbc8\\Win32\\CMakeCache.txt",
+          "sha256": "28597ABDE39065807DF70C60352F51369F9644C30F6F4DBD89E02516F754C456"
+        }
+      ]
+    }
+  ],
+  "cleanup": "Owned test processes and WebView2 controller closed. No injection, target hooks, certificates, system proxy or listening sockets. Only isolated test SQLite databases and WebView2 profiles changed; retained under the external build directory.",
+  "sourceArchiveSha256": "1F524B84621F064ACD91C3F9D764D1ADDF19AC42019E7FCEDE11BF55EA536113",
+  "specification": {
+    "activeSpec": "docs/用户提供-重写工程文档-更新版.md",
+    "sha256": "ADC3CB20083449584B4319FF68595B654DF31E995740EADC32D62331DB33AC59",
+    "supersedes": "docs/用户提供-重写工程文档.md",
+    "ui": "Original Vue3 + native C++ WebView2 host; Qt not required",
+    "updatedUtc": "2026-09-17T12:31:58.1004181Z"
+  },
+  "dependencies": {
+    "libraries": [
+      {
+        "name": "nlohmann/json",
+        "version": "3.12.0",
+        "source": "https://github.com/nlohmann/json/releases/tag/v3.12.0",
+        "license": "MIT"
+      },
+      {
+        "name": "Microsoft.Web.WebView2",
+        "version": "1.0.4191.47",
+        "source": "https://www.nuget.org/packages/Microsoft.Web.WebView2/1.0.4191.47",
+        "license": "See third_party/webview2/LICENSE.txt and NOTICE.txt",
+        "runtimeBundled": false
+      },
+      {
+        "name": "SQLite",
+        "version": "3.46.1",
+        "source": "https://www.sqlite.org/2024/sqlite-amalgamation-3460100.zip",
+        "license": "Public domain; see header of sqlite3.c"
+      }
+    ],
+    "files": [
+      {
+        "path": "third_party\\nlohmann\\json.hpp",
+        "sha256": "AAF127C04CB31C406E5B04A63F1AE89369FCCDE6D8FA7CDDA1ED4F32DFC5DE63"
+      },
+      {
+        "path": "third_party\\nlohmann\\LICENSE.MIT",
+        "sha256": "46A65CFFD1EA955132D95A8DD921640714A8D6B537D2E4E482D31145AE95B603"
+      },
+      {
+        "path": "third_party\\webview2\\include\\WebView2.h",
+        "sha256": "DFF1E3181EC7EC203A34EF6EFA966590E0EF0BA1A5C3FE3B69DA6508C2F8A02E"
+      },
+      {
+        "path": "third_party\\webview2\\LICENSE.txt",
+        "sha256": "0AF8F1B807512AAE39C2AC1AA4D0CAE65CABECB6FD554B8439A5162A0D6ECA55"
+      },
+      {
+        "path": "third_party\\webview2\\NOTICE.txt",
+        "sha256": "106423785C5B7EBA0A8E61D1837F2132E9C828E20AD530F565D981C1DF60DD90"
+      },
+      {
+        "path": "third_party\\webview2\\x64\\WebView2LoaderStatic.lib",
+        "sha256": "79723D3395C26F103275EF043062AF41B87542C2668386DDC70CDCA367720C2D"
+      },
+      {
+        "path": "third_party/sqlite/sqlite3.c",
+        "sha256": "6C35BC5F7F85EAC9C49928BACBB02BB694B547AABF69197E058CCA245AD80E83"
+      },
+      {
+        "path": "third_party/sqlite/sqlite3.h",
+        "sha256": "89B62C671C5964E137409CE034941B7B05A3AF2C9875ABA41F47F9483D0C2515"
+      }
+    ]
+  },
+  "dataOracle": {
+    "description": "120 FilterEdit, 184 sequential editor calls, plaintext XML serializer and shallow-export dialog oracle from unchanged original net48 assembly; no original assembly shipped or run by product",
+    "originalAssemblySha256": "76C33B88188F7F921AE5B21117533FF1D3F1861A04A723B8087DE42B17E5FEED",
+    "originalSources": [
+      {
+        "path": "Operate.cs",
+        "sha256": "CE6FD21472844CE23B63CBF27C74DB331562F7CAADA631C2C8269500CD07587F"
+      },
+      {
+        "path": "ShellForm.cs",
+        "sha256": "86D277408D233903EC82FFE8F06A2CD1995898617C477A1F181046EBE0F72F12"
+      },
+      {
+        "path": "ClassObject/Ui/FeedRows.cs",
+        "sha256": "5FE551577ACAE5DEB01DA779ACD96D27C54A7D2DC7FB4C478B899B1AE9A41887"
+      },
+      {
+        "path": "ClassObject/Ui/UiPrefs.cs",
+        "sha256": "4FFEDCBAAF075EA0BA7139BAFEE1A355713F7F518CC945155B3A7D71AFDFE653"
+      }
+    ],
+    "files": [
+      {
+        "path": "tests/fixtures/filter-edit.json",
+        "sha256": "C4A5B86B703592BD032FCAFD8286500BDA961746BBC80446C6DA07EF3A5A8779"
+      },
+      {
+        "path": "tests/data_oracle/Program.cs",
+        "sha256": "882A44E8A4C74AB803979134D8D36CA69E81A893A22A5E4C48E47F8C45AB11EB"
+      },
+      {
+        "path": "tests/data_oracle/DataOracle.csproj",
+        "sha256": "8BC1DC2B4907BF27EB37EA6BDF17E39DB1C4028E7AA97DAE9A9D89018E26B84A"
+      },
+      {
+        "path": "tests/data_oracle/extract_contracts.py",
+        "sha256": "00AC25DB33BC1767FDFF606A5BFBE9396609EE3C80B76C6427AC07FB2AE5354B"
+      },
+      {
+        "path": "src/shell/data_schema.h",
+        "sha256": "774745113DB5B1A9527D5297CCF8E8BCE45F9F9A57A0321AAE5C3226E024BF00"
+      },
+      {
+        "path": "src/shell/data_l10n.h",
+        "sha256": "603AF4E59055E012005AC493059B3C38A3504F6067C74B008414E159EA2CC9BB"
+      },
+      {
+        "path": "contracts/original-schema.json",
+        "sha256": "4647470D26FD9005D2D2E85E89B5AE4F24AF77606DAD952C7E82DEA315BA017A"
+      },
+      {
+        "path": "contracts/original-rpc.json",
+        "sha256": "E806839BDD1E6CAA15F46A0570249603F0BE9A7328373F02DE50A5D46AACF987"
+      },
+      {
+        "path": "tests/data_oracle/EditorOracle.cs",
+        "sha256": "ED0B0DAA3CE794E06417ED970E8D307A88ECBCEF728F278801302E034C8B9655"
+      },
+      {
+        "path": "tests/fixtures/editor-sequence.json",
+        "sha256": "9D27D72746813522569622DD4D6BF32156A3710F038897F2A68AA1CEC87B342B"
+      },
+      {
+        "path": "tests/fixtures/editor-send.sc",
+        "sha256": "D5B1943B1C6CF287C17368A4D536EBBDD81BA334965E4AB481FC132675ADE453"
+      },
+      {
+        "path": "tests/fixtures/editor-stores.whs",
+        "sha256": "8DBDF3F7808576945353995974801731FC3D168F8FD91B6C1E8962234CB95507"
+      },
+      {
+        "path": "tests/data_oracle/ExportOracle.cs",
+        "sha256": "CC2D0A3074D0750C18D9139D1CA70BDE893BDF5C00552328D8E2EC031AB1C5A8"
+      },
+      {
+        "path": "tests/data_oracle/ExportSnapshotOracle.cs",
+        "sha256": "F6AAF7CA21473AD545A1EFC2F6EB8CD4AAA29335015D1F63C9A179DE7BA31976"
+      },
+      {
+        "path": "tests/fixtures/export-original.sc",
+        "sha256": "186093792C83A0874BAA4B4DF0B2723A737BD7C18533FE4F9F5457EBA0C0443C"
+      },
+      {
+        "path": "tests/fixtures/export-original.whs",
+        "sha256": "A1C740E783FCBD0B1CFC5BDA9EA716857FE1C04D11A82188D7EDD5796195A51D"
+      },
+      {
+        "path": "tests/fixtures/export-edge/editor-send.sc",
+        "sha256": "51D89A68F81A08EF2D8004917ECCC103B5715C54821C78EDC8A1F2598FE9BD67"
+      },
+      {
+        "path": "tests/fixtures/export-edge/editor-stores.whs",
+        "sha256": "8DBDF3F7808576945353995974801731FC3D168F8FD91B6C1E8962234CB95507"
+      },
+      {
+        "path": "tests/fixtures/export-edge/export-original.sc",
+        "sha256": "05957E8906EF0BD277124434CA9574C569E858371F615E71DCF41CAA5AEA64A9"
+      },
+      {
+        "path": "tests/fixtures/export-edge/export-original.whs",
+        "sha256": "A1C740E783FCBD0B1CFC5BDA9EA716857FE1C04D11A82188D7EDD5796195A51D"
+      }
+    ]
+  },
+  "sourceFiles": [
+    {
+      "path": "build-test.ps1",
+      "sha256": "B948BDC66088527E1DD9C1208E452DD4F280E0B54896865D194724C5EBE04A73"
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "64CCB2EE9A241F9A43AF989E3387AC8A5D54EDB33EFF765AF27E3C1476174A99"
+    },
+    {
+      "path": "contracts\\active-spec.json",
+      "sha256": "3349311194E103A395E21ECEF4AE9F9C0E798E8CBF6ADD360A69C33FA7591865"
+    },
+    {
+      "path": "contracts\\oracle-source.json",
+      "sha256": "292468D54D7DAB2614693E13144FCB99E38C65A793B04136586E7587634F17AE"
+    },
+    {
+      "path": "contracts\\preserved-assets.json",
+      "sha256": "90D1439E34266515024EA77D87160FFAB1C6141E5EB230555A5351BD841043D1"
+    },
+    {
+      "path": "src\\common\\ipc_codec.cpp",
+      "sha256": "DC28F7B892BEBDA92B0306AD7EB8A52CF2E1D180D943AB8BB1E2EE26676AA112"
+    },
+    {
+      "path": "src\\common\\ipc_codec.h",
+      "sha256": "274EB9D1C7BBB5FC654ABF25DC9E007A71EB6871D7BE39B48E31315094B2DD8A"
+    },
+    {
+      "path": "src\\common\\ipc_frame.cpp",
+      "sha256": "01D0A0D7DFB104495FCA9966324924ABCA8029BF326DDC3927EE3DF112B0A9E7"
+    },
+    {
+      "path": "src\\common\\ipc_frame.h",
+      "sha256": "C73344B31D8768560A98B48A17120C0D6741867A3459F6FF1314DD23080808B0"
+    },
+    {
+      "path": "src\\common\\ipc_protocol.h",
+      "sha256": "73130BBBF68F3A3F492E25EED5D68B4AB52D6F7702C6AE7203716649F11BDEA9"
+    },
+    {
+      "path": "src\\common\\packet_frame.cpp",
+      "sha256": "01425779E42E014ECBAA16DDD8E2F04ECD74ECAB77F5F86B2FB872F449DEC6DB"
+    },
+    {
+      "path": "src\\common\\packet_frame.h",
+      "sha256": "D7179E5D08EFB6732D9B07DDC241667888E277CD6A48F566F34A23BE7D0BBC50"
+    },
+    {
+      "path": "src\\common\\packet_ring.cpp",
+      "sha256": "A8B986FFC65F2E450254FE75C6F838D4980EA6D624727ECBF31CAABF205B40FD"
+    },
+    {
+      "path": "src\\common\\packet_ring.h",
+      "sha256": "C1AB68D822D7FD5E66D7E62AFD02BD4213E51CB11D7A96969789B63456F5E2C1"
+    },
+    {
+      "path": "src\\shell\\app.manifest",
+      "sha256": "0421E8F5AFA50880692F213A892B1887E1F6AB824EF9953FA6A01D4E39792987"
+    },
+    {
+      "path": "src\\shell\\clipboard_worker.cpp",
+      "sha256": "B8BEA0A8DAB9F2AE7897B2E1ED8C40BC7CC7A78F88247649C53407AC599EAA95"
+    },
+    {
+      "path": "src\\shell\\clipboard_worker.h",
+      "sha256": "A71D5A3715114D52E75BDE66DCC461E004D859BB527B43EDB6EB41BB0B5838B2"
+    },
+    {
+      "path": "src\\shell\\clipboard.cpp",
+      "sha256": "FB1D060FF3CCAC4F72F99B6EEA5CE18101A9F5F7E265A8AFFB1CF7F9CE590465"
+    },
+    {
+      "path": "src\\shell\\clipboard.h",
+      "sha256": "4F21796DCE0B071D6FAEFC359B3D58DD233762258EA5453352BD6851038028F1"
+    },
+    {
+      "path": "src\\shell\\data_edit.cpp",
+      "sha256": "85F17FCC96934674C55312854BA28BC6D6DC3B3DBCDA5D6BBEA00BCE0FB6671A"
+    },
+    {
+      "path": "src\\shell\\data_l10n.h",
+      "sha256": "603AF4E59055E012005AC493059B3C38A3504F6067C74B008414E159EA2CC9BB"
+    },
+    {
+      "path": "src\\shell\\data_schema.h",
+      "sha256": "774745113DB5B1A9527D5297CCF8E8BCE45F9F9A57A0321AAE5C3226E024BF00"
+    },
+    {
+      "path": "src\\shell\\data_service.cpp",
+      "sha256": "07ADA2F1D1AC64BC57616955C83D1423D0CA57306B7B3139656AE035F6DBB55E"
+    },
+    {
+      "path": "src\\shell\\data_service.h",
+      "sha256": "D1820191E032B8B86B9B326E1874515D2E3D39C34C07E4494B9F9BB1E62C112F"
+    },
+    {
+      "path": "src\\shell\\data_util.h",
+      "sha256": "8FEE0866785A01CE379B28DA11ACA4262A12C07F6C65BCB292E94016C105B152"
+    },
+    {
+      "path": "src\\shell\\data_worker.cpp",
+      "sha256": "CBC3B54EB9A5A1583373154C1B62B3783AB20650A8387D21A09CC9C939ABDF4F"
+    },
+    {
+      "path": "src\\shell\\data_worker.h",
+      "sha256": "E3F80D98B903CD8F55ACEBC5B6D1912F1D519778FBA969B28FD937AAF9892F1D"
+    },
+    {
+      "path": "src\\shell\\database.cpp",
+      "sha256": "59588B3D08A9E721D52AD36CD7E28D406F30D4F188832DA9A54AF828C8D6FEE2"
+    },
+    {
+      "path": "src\\shell\\database.h",
+      "sha256": "B70CB5054DCC853B7445C16A596EBDC6D6946EC4644D015EA834BCFDDEA15A45"
+    },
+    {
+      "path": "src\\shell\\editor_xml.cpp",
+      "sha256": "D4C347837640FD135030250EA19C8E2C23FDD2B4267A1F8136B89343468BEC44"
+    },
+    {
+      "path": "src\\shell\\editor_xml.h",
+      "sha256": "449B4972CC500CCD8344EA5C1A24EE3CC35C10C0FF78A497A20C0297C22A7E5F"
+    },
+    {
+      "path": "src\\shell\\main.cpp",
+      "sha256": "6635C75380831F7DF3EEB84A9D607986014EC55F6186891893B1301F9B16BFF4"
+    },
+    {
+      "path": "src\\shell\\web_bridge.cpp",
+      "sha256": "9C5FEBC5C62679DFD318530F73384280036BB226D603BCE9DAD59DBD26B49321"
+    },
+    {
+      "path": "src\\shell\\web_bridge.h",
+      "sha256": "29D81B281D10C0E903D774EC93856946225A8BAA3F029519DD9C83DB84DDED99"
+    },
+    {
+      "path": "tests\\clipboard_test.cpp",
+      "sha256": "F59DB5E4DED120D3DA0673F93AAB532F7088356C2DB790C94F18EAD3DF729474"
+    },
+    {
+      "path": "tests\\codec_test.cpp",
+      "sha256": "3FD6B1AD6DE8461BE49ACF1367A24C3802A6E4E2B69A205A56F753DA67D112A7"
+    },
+    {
+      "path": "tests\\data_oracle\\DataOracle.csproj",
+      "sha256": "8BC1DC2B4907BF27EB37EA6BDF17E39DB1C4028E7AA97DAE9A9D89018E26B84A"
+    },
+    {
+      "path": "tests\\data_oracle\\EditorOracle.cs",
+      "sha256": "ED0B0DAA3CE794E06417ED970E8D307A88ECBCEF728F278801302E034C8B9655"
+    },
+    {
+      "path": "tests\\data_oracle\\ExportOracle.cs",
+      "sha256": "CC2D0A3074D0750C18D9139D1CA70BDE893BDF5C00552328D8E2EC031AB1C5A8"
+    },
+    {
+      "path": "tests\\data_oracle\\ExportSnapshotOracle.cs",
+      "sha256": "F6AAF7CA21473AD545A1EFC2F6EB8CD4AAA29335015D1F63C9A179DE7BA31976"
+    },
+    {
+      "path": "tests\\data_oracle\\extract_contracts.py",
+      "sha256": "00AC25DB33BC1767FDFF606A5BFBE9396609EE3C80B76C6427AC07FB2AE5354B"
+    },
+    {
+      "path": "tests\\data_oracle\\Program.cs",
+      "sha256": "882A44E8A4C74AB803979134D8D36CA69E81A893A22A5E4C48E47F8C45AB11EB"
+    },
+    {
+      "path": "tests\\data_service_test.cpp",
+      "sha256": "EC2A61968DD5FB2A6CB67DE22B7F6884298DB06C4883836E989F633459E79E6A"
+    },
+    {
+      "path": "tests\\data_worker_test.cpp",
+      "sha256": "A8F5DF09A9288FAFE093FA987A9C3F700ABD8735F088B85EE3ADF097722FD702"
+    },
+    {
+      "path": "tests\\editor_test.cpp",
+      "sha256": "833E13F65E0F98A4C0E3AB95111591DCC64ACC63E9B5332A88FEF47765CB21B6"
+    },
+    {
+      "path": "tests\\export_test.cpp",
+      "sha256": "E09A15E465DDF958E979084B4FECF3C265A28692A1FAE0AB2F79AACB4B88F753"
+    },
+    {
+      "path": "tests\\fixtures\\editor-sequence.json",
+      "sha256": "9D27D72746813522569622DD4D6BF32156A3710F038897F2A68AA1CEC87B342B"
+    },
+    {
+      "path": "tests\\fixtures\\filter-edit.json",
+      "sha256": "C4A5B86B703592BD032FCAFD8286500BDA961746BBC80446C6DA07EF3A5A8779"
+    },
+    {
+      "path": "tests\\oracle\\Oracle.csproj",
+      "sha256": "3BB0E7A8C087E84F644561B6125143D5C9B9C98DBF96005AC89D8FCA7AB54E63"
+    },
+    {
+      "path": "tests\\oracle\\Program.cs",
+      "sha256": "4D3B22D7D35B1D70923AB4A8B55B8039878025FA5D234ED5F07401F1614EA5C3"
+    },
+    {
+      "path": "tests\\oracle\\RingOracle.cs",
+      "sha256": "42C4E8822518C2C5AAA89CBEAC37FA471A8ED1684E14DF57E532F244057EB9AF"
+    },
+    {
+      "path": "tests\\oracle\\upstream\\IpcProtocol.cs",
+      "sha256": "5353DF12B2F23C716AE04F0411E8F01D5A565842EFB4B0D1427A9C369C7BA307"
+    },
+    {
+      "path": "tests\\oracle\\upstream\\PacketFrame.cs",
+      "sha256": "0AD60704D45178B13E66CC6E9F7FF72A4C29DD7B26C8B90C3B7B8AF178DDA72B"
+    },
+    {
+      "path": "tests\\oracle\\upstream\\PacketRing.cs",
+      "sha256": "C703B6A7FC1F66E3FB24C52BC4E97D4FC14DE7D20B3DB2DC9D01537F8461641C"
+    },
+    {
+      "path": "tests\\packet_ring_test.cpp",
+      "sha256": "D39692AA34170A3E77B4423BEEC740C6D52DB8FD6591928B66E5113C49FA1CF9"
+    },
+    {
+      "path": "tests\\protocol_parity_test.cpp",
+      "sha256": "AFD6CBBDABFC9AC93D3597C2DAEDCB5FBAC53387CFD935FBE90E0DE06566D856"
+    },
+    {
+      "path": "tests\\script_validation.ps1",
+      "sha256": "CE385D339BE9DFA14822DA3461966506ADBCB0D31E92634E0B22CA40C91479D5"
+    },
+    {
+      "path": "tests\\web_bridge_test.cpp",
+      "sha256": "3E01589B4404A73BCC79E94FF931DB4E3B1B878C6E2701B8282690E1FDC96B1C"
+    },
+    {
+      "path": "verify-assets.ps1",
+      "sha256": "34421F0471DD21F6188D628348CEF0BB41ADE82E79FB88BD22FD2402435EFD39"
+    }
+  ],
+  "git": {
+    "commit": null,
+    "dirty": null,
+    "available": false
+  },
+  "environment": {
+    "os": "Microsoft Windows NT 10.0.26100.0",
+    "powershell": "7.6.5",
+    "cmake": "cmake version 4.4.2",
+    "dotnetSdk": "8.0.424"
+  },
+  "oracleRuntime": [
+    "Original C# oracle: 74684 vectors generated.",
+    "Reference runtime: CLR 4.0.30319.42000; corelib mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
+  ],
+  "fixtures": {
+    "sha256": "A3A6E489E2644E582E81AC86945F0ABFADC830158B5D05F69FE3B719988CD2F9",
+    "rows": 74684
+  },
+  "ringFixtures": {
+    "sha256": "DC76B1F3E33104ECB5DC35BD942A978FA34030DB4E4FB8D3578A98B589EF1341",
+    "rows": 6416
+  },
+  "host": {
+    "frontend": {
+      "cancelledDeletionKeptData": true,
+      "chooserCancelKeptData": true,
+      "chooserTest": "fixed-path seam; production Windows picker UI not automated",
+      "clipboardTest": "UI uses isolated memory clipboard; real OS clipboard tested separately in private window station",
+      "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-archive\\run-00f614c059d64e5087dd6ae0e772cbc8\\webview-profile\\2.3.0\\WPE.db",
+      "editorCounts": [
+        2,
+        3,
+        2
+      ],
+      "editorRestartPersistence": false,
+      "encryptedExportRejected": true,
+      "importNotifications": true,
+      "modeCards": 2,
+      "negativeOffsetRoundTrip": true,
+      "ok": true,
+      "originalAddAndEnableButtons": true,
+      "originalClipboardButtons": true,
+      "originalEditorButtons": true,
+      "originalExportButtons": true,
+      "originalHexViewEdited": true,
+      "originalListDom": true,
+      "persistentFilterId": "DFC52EBF-AE86-4978-B437-63262CF476C1",
+      "robotCancelKeptSavedInstructions": true,
+      "titlebar": true,
+      "topmostProbe": "passed",
+      "unsupportedRejected": true,
+      "url": "https://app.wpe64.local/index.html",
+      "windowRoundTrip": true
+    },
+    "lastStage": {
+      "stage": "机器人列表"
+    },
+    "nativeDrag": true,
+    "originalVueConfirmed": true,
+    "result": "passed",
+    "scope": "Exchange/editor acceptance: original Vue/HexView/export/copy/paste -> native RPC/SQLite/files. UI clipboard uses isolated memory; OS clipboard verified separately on private station. File chooser fixed-path seam. topmostProbe non-gating; no picker UI automation, capture/proxy/injection/execution",
+    "topmostCalls": [
+      {
+        "on": true,
+        "style": 264,
+        "visible": false
+      },
+      {
+        "on": false,
+        "style": 256,
+        "visible": false
+      }
+    ],
+    "webMessagesReceived": 139,
+    "webview2Runtime": "153.0.4234.32"
+  },
+  "exportArtifacts": [
+    {
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-archive\\run-00f614c059d64e5087dd6ae0e772cbc8\\host\\export.sc",
+      "sha256": "9B59B331B4BD141934A05D4F570D1D121E32A88C899CEA6E6CA80E573BB81DF5"
+    },
+    {
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-archive\\run-00f614c059d64e5087dd6ae0e772cbc8\\host\\export.whs",
+      "sha256": "5F36873E382E83CA3A238F19BB762E10854EB8136DAEB839708A1896E6628EA8"
+    }
+  ],
+  "hostArtifacts": [
+    {
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-archive\\run-00f614c059d64e5087dd6ae0e772cbc8\\x64\\Release\\wpe64-app.exe",
+      "sha256": "3EC40FC68495DAE16F6CE123A83232DBC8D155823B285E6358B2F64402C10586"
+    },
+    {
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-archive\\run-00f614c059d64e5087dd6ae0e772cbc8\\host\\host-self-test.json",
+      "sha256": "E810ECA5C927184D516EA7A1D1F1840CADB9DC9050D9039D4705C58E61DCB8D6"
+    },
+    {
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-archive\\run-00f614c059d64e5087dd6ae0e772cbc8\\host\\original-vue.png",
+      "sha256": "A3704F6897B199D7A697C342D90035F194F03784D332F918FB11A9BFD73F3505"
+    }
+  ],
+  "hostRestart": {
+    "frontend": {
+      "chooserCancelKeptData": true,
+      "chooserTest": "fixed-path seam; production Windows picker UI not automated",
+      "clipboardTest": "UI uses isolated memory clipboard; real OS clipboard tested separately in private window station",
+      "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-archive\\run-00f614c059d64e5087dd6ae0e772cbc8\\webview-profile\\2.3.0\\WPE.db",
+      "editorCounts": [
+        2,
+        3,
+        2
+      ],
+      "editorRestartPersistence": true,
+      "encryptedExportRejected": false,
+      "importNotifications": true,
+      "ok": true,
+      "originalClipboardButtons": false,
+      "originalEditorButtons": true,
+      "originalExportButtons": false,
+      "originalHexViewEdited": true,
+      "originalListDom": true,
+      "persistentFilterId": "DFC52EBF-AE86-4978-B437-63262CF476C1",
+      "restartPersistence": true,
+      "robotCancelKeptSavedInstructions": true,
+      "topmostProbe": "passed"
+    },
+    "lastStage": {
+      "stage": "机器人列表"
+    },
+    "nativeDrag": true,
+    "originalVueConfirmed": true,
+    "result": "passed",
+    "scope": "Exchange/editor acceptance: original Vue/HexView/export/copy/paste -> native RPC/SQLite/files. UI clipboard uses isolated memory; OS clipboard verified separately on private station. File chooser fixed-path seam. topmostProbe non-gating; no picker UI automation, capture/proxy/injection/execution",
+    "topmostCalls": [
+      {
+        "on": true,
+        "style": 264,
+        "visible": false
+      },
+      {
+        "on": false,
+        "style": 256,
+        "visible": false
+      }
+    ],
+    "webMessagesReceived": 42,
+    "webview2Runtime": "153.0.4234.32"
+  }
+}

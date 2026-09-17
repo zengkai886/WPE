@@ -1,0 +1,15 @@
+{
+  "verifiedUtc": "2026-09-17T16:19:51.3630855Z",
+  "result": "passed",
+  "ownedTestProcessesRemaining": [],
+  "exportTemporaryFilesRemaining": [],
+  "testRoots": [
+    "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-final\\run-3c72d62a45a44314b03139e3ea07bd7c",
+    "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-archive\\run-00f614c059d64e5087dd6ae0e772cbc8",
+    "E:\\codex\\2026-09-17\\bi-a\\work\\exchange-package-ba333eb1"
+  ],
+  "originalBusinessAssemblySha256": "76C33B88188F7F921AE5B21117533FF1D3F1861A04A723B8087DE42B17E5FEED",
+  "clipboard": "Native clipboard tests used a separately created private window station; test processes exited, releasing station/desktop/window handles. UI self-test used memory, not the user clipboard.",
+  "systemChanges": "No target injection, hooks, listeners, certificate changes, system proxy changes or user database mutation were implemented or executed.",
+  "retained": "Isolated test SQLite databases, WebView profiles and logs retained under work for traceability. No test runtime/database/cache in release folder."
+}

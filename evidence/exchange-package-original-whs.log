@@ -1,0 +1,2 @@
+Original loader read 2 native store entries
+PASS: native file -> original loader -> original serializer, byte-for-byte equality
