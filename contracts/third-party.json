@@ -1,0 +1,43 @@
+{
+  "libraries": [
+    {
+      "name": "nlohmann/json",
+      "version": "3.12.0",
+      "source": "https://github.com/nlohmann/json/releases/tag/v3.12.0",
+      "license": "MIT"
+    },
+    {
+      "name": "Microsoft.Web.WebView2",
+      "version": "1.0.4191.47",
+      "source": "https://www.nuget.org/packages/Microsoft.Web.WebView2/1.0.4191.47",
+      "license": "See third_party/webview2/LICENSE.txt and NOTICE.txt",
+      "runtimeBundled": false
+    }
+  ],
+  "files": [
+    {
+      "path": "third_party\\nlohmann\\json.hpp",
+      "sha256": "AAF127C04CB31C406E5B04A63F1AE89369FCCDE6D8FA7CDDA1ED4F32DFC5DE63"
+    },
+    {
+      "path": "third_party\\nlohmann\\LICENSE.MIT",
+      "sha256": "46A65CFFD1EA955132D95A8DD921640714A8D6B537D2E4E482D31145AE95B603"
+    },
+    {
+      "path": "third_party\\webview2\\include\\WebView2.h",
+      "sha256": "DFF1E3181EC7EC203A34EF6EFA966590E0EF0BA1A5C3FE3B69DA6508C2F8A02E"
+    },
+    {
+      "path": "third_party\\webview2\\LICENSE.txt",
+      "sha256": "0AF8F1B807512AAE39C2AC1AA4D0CAE65CABECB6FD554B8439A5162A0D6ECA55"
+    },
+    {
+      "path": "third_party\\webview2\\NOTICE.txt",
+      "sha256": "106423785C5B7EBA0A8E61D1837F2132E9C828E20AD530F565D981C1DF60DD90"
+    },
+    {
+      "path": "third_party\\webview2\\x64\\WebView2LoaderStatic.lib",
+      "sha256": "79723D3395C26F103275EF043062AF41B87542C2668386DDC70CDCA367720C2D"
+    }
+  ]
+}

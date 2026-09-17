@@ -8,3 +8,4 @@ docs/用户提供-重写工程文档-更新版.md -text
 frontend/** -text
 wwwroot/** -text
 remote-web/** -text
+third_party/** -text

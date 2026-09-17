@@ -1,6 +1,6 @@
 # WPE64 C++ 重写工程
 
-**当前是公共协议库的可测试开发增量，不是已完成的抓包软件。** 尚未交付 WebView2 宿主、注入 DLL、滤镜、代理或完整业务桥，不能把测试程序当作产品启动器。
+**当前是 C++ 宿主、双向消息桥、公共协议库和封包队列的开发增量，不是完整抓包软件。** 原 Vue 已在原生 WebView2 宿主中运行；注入 DLL、滤镜、代理和完整业务接口尚未实现。版本栏明确标为 `C++ M0-dev`，未实现的方法返回错误，不伪造抓包结果。
 
 ## 当前开发依据
 
@@ -19,10 +19,28 @@
 | v4 命令/事件/状态/配置类别编号、管道命名 | 已实现并对拍；不是命令处理器 |
 | 长度前缀分帧、分片读取、EOF/畸形长度边界 | 已实现并对拍；不是 Windows 管道传输实现 |
 | 封包帧原始/修改缓冲区及同内容省略位 | 已实现并双向对拍 |
+| PacketRing 丢旧包/累计丢弃/批量预算/清空/唤醒 | 已实现；每架构通过 6,416 条原 C# 队列状态对拍及并发守恒测试 |
+| C++ WebView2 宿主加载原 wwwroot | 已构建 x64 exe，原 Vue 启动及真实消息往返测试通过 |
+| call/result/ask/answer/event 消息桥 | 已实现消息路由、来源检查、超时、取消和错误路径；不等于已实现全部业务方法 |
+| 窗口最小化、最大化、关闭、置顶、拖动 | 已接原前端的方法名；自动化实测置顶开关，其他窗口操作仍需人工体验回归 |
 | 原 Vue/TypeScript/语言/静态资源及远程页面 | 从原 ZIP 提取，555 文件哈希校验通过，其中 70 个 Vue 文件 |
-| 两端真实管道、心跳/卸钩、配置快照、环形队列、注入、滤镜、代理、GUI、数据及发布 | 后续实现，尚未验收 |
+| 两端真实管道、心跳/卸钩、配置快照、注入、滤镜、代理、完整 GUI 业务、数据及发布 | 后续实现，尚未验收 |
 
-M0 仍在进行：公共库已开始落地，但文档要求的桌面 hello 外壳与其余 common 模块尚未完成。**没有把 M0～M8 标记为完成。**
+M0 的桌面启动和基础库已有可运行实现；注入 DLL/测试靶子等工程目标及后续 M1～M8 仍未完成。**没有把整套工程或全功能 GUI 标记为完成。**
+
+## 启动宿主联调版
+
+构建完成后，使用 x64 输出目录里的 `wpe64-app.exe`。发布的宿主联调 ZIP 已将原 `wwwroot` 放在 exe 旁，解压后可以直接双击。不要把它当成最终产品：目前注入/代理业务按钮会返回“尚未实现”，数据库/归属地未加载，语言主题设置也尚未接入持久化。
+
+需要 Windows WebView2 Runtime。仅 SDK 的 x64 loader 静态链接进 exe，**浏览器 Runtime 没有打进 exe**。本机自动化测试使用 Runtime `153.0.4234.32`。宿主目前使用普通权限，不会在联调阶段强制提权；目标注入权限属于后续模块。
+
+可显式指定资源和浏览器数据目录：
+
+```powershell
+& '完整路径\wpe64-app.exe' --assets '完整路径\wwwroot' --data-dir '完整路径\browser-data'
+```
+
+宿主的 `--self-test '结果目录'` 会在隐藏窗口中加载真正的原 Vue，测试首屏、窗口置顶、未知方法拒绝、C++ 提问/原 Vue 对话框回答、通知事件，然后写 JSON 与实际渲染截图并退出；它不会执行注入、抓包或代理。自测方法仅在该模式下注册。默认浏览器缓存放在 exe 旁的 `runtime`，联调包没有包含测试缓存。
 
 ## 一键构建和原版对拍
 
@@ -39,16 +57,22 @@ M0 仍在进行：公共库已开始落地，但文档要求的桌面 hello 外�
 
 最近一次完整结果：**每个架构 74,684 条原 C# 参照数据、76,618 条断言通过；每个架构输出的 600 个封包又由原 C# 解码器验证通过。** 编译启用 `/W4 /WX`，两个架构均无编译警告。
 
+本轮另增加每架构 **6,416 条队列状态对拍**、四项 CTest（codec、frame、queue、bridge），以及 x64 原 Vue 宿主自测。证据见 `evidence/host-ring-run-manifest.json`、`evidence/host-ring-full.log`、`evidence/host-self-test.json`、`evidence/original-vue.png`。
+
 原版参考文件的哈希每次执行前检查；测试证据记录新文档哈希、源码哈希、构建环境、产物哈希和测试范围。参见 `evidence/protocol-run-manifest.json`、`evidence/build-test.log`。
 
 ## 目录
 
 - `src/common`：C++ 公共协议库。
+- `src/shell`：Win32/WebView2 宿主与 JSON 消息桥。
 - `tests`：公共接口测试和原 C# 对照运行器。
 - `frontend`：原 `WebUI`，未改动。
 - `wwwroot`：原包内预构建前端，未改动。
 - `remote-web`：原远程管理静态页面，未删除。
 - `contracts`：当前文档、源文件、界面资源的校验清单。
+- `third_party`：固定版本 JSON 头文件、WebView2 SDK 头文件/x64 loader 及许可证；全部有 SHA-256 清单。
 - `docs/实施校核.md`：文档差异、必须修正的示例和后续验收边界。
 
-`wwwroot` 是原压缩包里的产物。本次没有重新构建前端，也没有声称原预构建资源与重新构建产物相同。后续宿主接入需要检查资源路由、完整双向桥接、窗口操作和业务响应，保留文件不等于已完成功能验收。
+`wwwroot` 是原压缩包里的产物。本次没有重新构建前端，也没有声称原预构建资源与重新构建产物相同。已测试原页面加载和真实双向桥；完整窗口体验、全部业务方法、七语言持久化及十万包列表性能仍需单独验收。
+
+实现参考：[Microsoft 本地资源映射](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2_3)、[Microsoft WebView2 安全建议](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/security)、[nlohmann/json 3.12.0](https://github.com/nlohmann/json/releases/tag/v3.12.0)。宿主限定原页面来源、拒绝跨域导航/新窗口/网页权限，使用原生 `PostWebMessageAsJson`，不通过拼接脚本传递业务 JSON。

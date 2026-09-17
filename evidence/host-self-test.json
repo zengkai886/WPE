@@ -1,0 +1,16 @@
+{
+  "frontend": {
+    "modeCards": 2,
+    "ok": true,
+    "titlebar": true,
+    "unsupportedRejected": true,
+    "url": "https://app.wpe64.local/index.html",
+    "windowRoundTrip": true
+  },
+  "nativeDrag": true,
+  "originalVueConfirmed": true,
+  "result": "passed",
+  "scope": "Original Vue startup, window RPC, native ask/Vue answer and event; no capture/proxy/injection",
+  "webMessagesReceived": 10,
+  "webview2Runtime": "153.0.4234.32"
+}

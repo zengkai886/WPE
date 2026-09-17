@@ -1,0 +1,16 @@
+CMake is re-running because E:/codex/2026-09-17/bi-a/work/cpp-m0-dev/CMakeFiles/generate.stamp is out-of-date.
+  the file 'E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt'
+  is newer than 'E:/codex/2026-09-17/bi-a/work/cpp-m0-dev/CMakeFiles/generate.stamp.depend'
+  result='-1'
+-- Configuring done (0.1s)
+CMake Error at CMakeLists.txt:17 (add_library):
+  Cannot find source file:
+
+    src/shell/web_bridge.cpp
+
+
+CMake Error at CMakeLists.txt:17 (add_library):
+  No SOURCES given to target: wpe64-bridge
+
+
+CMake Generate step failed.  Build files cannot be regenerated correctly.

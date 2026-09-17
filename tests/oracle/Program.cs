@@ -15,6 +15,7 @@ internal static class Program
     {
         try
         {
+            if (args.Length == 2 && args[0] == "generate-ring") { RingOracle.Generate(args[1]); return 0; }
             if (args.Length == 2 && args[0] == "generate")
             {
                 Generate();

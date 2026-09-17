@@ -1,0 +1,119 @@
+  正在确定要还原的项目…
+  已还原 E:\codex\2026-09-17\bi-a\outputs\WPE64-Cpp\tests\oracle\Oracle.csproj (用时 176 毫秒)。
+  Oracle -> E:\codex\2026-09-17\bi-a\work\cpp-m0-full\run-a9d6f93fd58a4bd99211ef3394949940\oracle\WpeProtocolOracle.exe
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:01.04
+Original C# oracle: 74684 vectors generated.
+Reference runtime: CLR 4.0.30319.42000; corelib mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+Original C# PacketRing: 6416 state-transition vectors generated.
+-- The CXX compiler identification is MSVC 19.44.35228.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done (1.4s)
+-- Generating done (0.1s)
+-- Build files have been written to: E:/codex/2026-09-17/bi-a/work/cpp-m0-full/run-a9d6f93fd58a4bd99211ef3394949940/x64
+适用于 .NET Framework MSBuild 版本 17.14.51+25f168cee
+
+  1>Checking Build System
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  ipc_codec.cpp
+  web_bridge.cpp
+  ipc_frame.cpp
+  packet_frame.cpp
+  packet_ring.cpp
+  正在生成代码...
+  wpe64-common.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-full\run-a9d6f93fd58a4bd99211ef3394949940\x64\Release\wpe64-common.lib
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  wpe64-bridge.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-full\run-a9d6f93fd58a4bd99211ef3394949940\x64\Release\wpe64-bridge.lib
+  codec_test.cpp
+  packet_ring_test.cpp
+  protocol_parity_test.cpp
+  wpe64-codec-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-full\run-a9d6f93fd58a4bd99211ef3394949940\x64\Release\wpe64-codec-test.exe
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  main.cpp
+  wpe64-parity-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-full\run-a9d6f93fd58a4bd99211ef3394949940\x64\Release\wpe64-parity-test.exe
+  web_bridge_test.cpp
+  wpe64-ring-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-full\run-a9d6f93fd58a4bd99211ef3394949940\x64\Release\wpe64-ring-test.exe
+  wpe64-app.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-full\run-a9d6f93fd58a4bd99211ef3394949940\x64\Release\wpe64-app.exe
+  wpe64-bridge-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-full\run-a9d6f93fd58a4bd99211ef3394949940\x64\Release\wpe64-bridge-test.exe
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+Test project E:/codex/2026-09-17/bi-a/work/cpp-m0-full/run-a9d6f93fd58a4bd99211ef3394949940/x64
+    Start 1: codec-smoke
+1/4 Test #1: codec-smoke ......................   Passed    0.01 sec
+    Start 2: protocol-edge
+2/4 Test #2: protocol-edge ....................   Passed    0.01 sec
+    Start 3: packet-ring
+3/4 Test #3: packet-ring ......................   Passed    0.02 sec
+    Start 4: web-bridge
+4/4 Test #4: web-bridge .......................   Passed    0.01 sec
+
+100% tests passed out of 4
+
+Total Test time (real) =   0.05 sec
+PASS: 74684 original C# vectors; 76618 assertions; 600 native packet frames. Pointer bits=64
+Original C# decoder accepted 600 native packet frames; all bytes and decoded fields match.
+PASS: packet ring edges/concurrency; 6416 original state-transition vectors
+-- The CXX compiler identification is MSVC 19.44.35228.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x86/cl.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done (1.4s)
+-- Generating done (0.1s)
+-- Build files have been written to: E:/codex/2026-09-17/bi-a/work/cpp-m0-full/run-a9d6f93fd58a4bd99211ef3394949940/Win32
+适用于 .NET Framework MSBuild 版本 17.14.51+25f168cee
+
+  1>Checking Build System
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  web_bridge.cpp
+  ipc_codec.cpp
+  ipc_frame.cpp
+  packet_frame.cpp
+  packet_ring.cpp
+  正在生成代码...
+  wpe64-common.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-full\run-a9d6f93fd58a4bd99211ef3394949940\Win32\Release\wpe64-common.lib
+  wpe64-bridge.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-full\run-a9d6f93fd58a4bd99211ef3394949940\Win32\Release\wpe64-bridge.lib
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  web_bridge_test.cpp
+  codec_test.cpp
+  packet_ring_test.cpp
+  protocol_parity_test.cpp
+  wpe64-ring-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-full\run-a9d6f93fd58a4bd99211ef3394949940\Win32\Release\wpe64-ring-test.exe
+  wpe64-codec-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-full\run-a9d6f93fd58a4bd99211ef3394949940\Win32\Release\wpe64-codec-test.exe
+  wpe64-parity-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-full\run-a9d6f93fd58a4bd99211ef3394949940\Win32\Release\wpe64-parity-test.exe
+  wpe64-bridge-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-full\run-a9d6f93fd58a4bd99211ef3394949940\Win32\Release\wpe64-bridge-test.exe
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+Test project E:/codex/2026-09-17/bi-a/work/cpp-m0-full/run-a9d6f93fd58a4bd99211ef3394949940/Win32
+    Start 1: codec-smoke
+1/4 Test #1: codec-smoke ......................   Passed    0.01 sec
+    Start 2: protocol-edge
+2/4 Test #2: protocol-edge ....................   Passed    0.01 sec
+    Start 3: packet-ring
+3/4 Test #3: packet-ring ......................   Passed    0.02 sec
+    Start 4: web-bridge
+4/4 Test #4: web-bridge .......................   Passed    0.01 sec
+
+100% tests passed out of 4
+
+Total Test time (real) =   0.07 sec
+PASS: 74684 original C# vectors; 76618 assertions; 600 native packet frames. Pointer bits=32
+Original C# decoder accepted 600 native packet frames; all bytes and decoded fields match.
+PASS: packet ring edges/concurrency; 6416 original state-transition vectors
+PASS: 555 original assets preserved; 70 Vue files.
+PASS: requested architectures completed; evidence: E:\codex\2026-09-17\bi-a\work\cpp-m0-full\run-a9d6f93fd58a4bd99211ef3394949940

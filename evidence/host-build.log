@@ -1,0 +1,18 @@
+CMake is re-running because E:/codex/2026-09-17/bi-a/work/cpp-m0-dev/CMakeFiles/generate.stamp is out-of-date.
+  the file 'E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt'
+  is newer than 'E:/codex/2026-09-17/bi-a/work/cpp-m0-dev/CMakeFiles/generate.stamp.depend'
+  result='-1'
+-- Configuring done (0.1s)
+-- Generating done (0.1s)
+-- Build files have been written to: E:/codex/2026-09-17/bi-a/work/cpp-m0-dev
+适用于 .NET Framework MSBuild 版本 17.14.51+25f168cee
+
+  wpe64-bridge.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-dev\Release\wpe64-bridge.lib
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  main.cpp
+  wpe64-app.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-dev\Release\wpe64-app.exe
+  wpe64-bridge-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-dev\Release\wpe64-bridge-test.exe
+  wpe64-common.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-dev\Release\wpe64-common.lib
+  wpe64-codec-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-dev\Release\wpe64-codec-test.exe
+  wpe64-parity-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-dev\Release\wpe64-parity-test.exe
+  wpe64-ring-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\cpp-m0-dev\Release\wpe64-ring-test.exe

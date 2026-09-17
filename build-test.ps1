@@ -21,16 +21,16 @@ function Run([string]$Executable,[string[]]$Arguments,[string]$Log) {
 }
 $manifest=[ordered]@{
     schemaVersion=1
-    testId='CPP-COMMON-PARITY-001'
-    specificationSections=@('0','2.3','3.1','3.2','4.2','4.4','13.1')
-    scope='C++ common codecs only; no native pipe transport, injection, hooks, full snapshots or GUI acceptance'
+    testId='CPP-HOST-RING-002'
+    specificationSections=@('0','2.3','3.1','3.2','3.3','4.2','4.4','9.2','9.3','13.1')
+    scope='Common protocol/ring, bridge transport and original Vue startup; no native pipes, injection, capture, proxy, complete business handlers or full UI acceptance'
     startedUtc=[DateTime]::UtcNow.ToString('o')
     finishedUtc=$null
     result='running'
     runDirectory=$run
     command="$PSCommandPath -BuildRoot $BuildRoot -Architecture $($Architecture -join ',')"
     architectures=@()
-    cleanup='Synchronous test processes only. No injection, target hooks, certificates, system proxy, sockets or database changes. Build files retained.'
+    cleanup='Owned test processes and WebView2 controller closed. No injection, target hooks, certificates, system proxy, listening sockets or database changes. Build files and isolated WebView2 profile retained.'
 }
 try {
     $lock=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'contracts\oracle-source.json') -Raw | ConvertFrom-Json
@@ -43,8 +43,11 @@ try {
     $spec=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'contracts\active-spec.json') -Raw | ConvertFrom-Json
     if((Hash (Join-Path $PSScriptRoot $spec.activeSpec)) -ne $spec.sha256){throw 'Active user spec hash mismatch'}
     $manifest.specification=$spec
-    $files=@(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'src'),(Join-Path $PSScriptRoot 'tests') -File -Recurse | Where-Object {$_.Extension -in '.cpp','.h','.cs','.csproj' -and $_.FullName -notmatch '[\\/](obj|bin)[\\/]'})
-    $files+=Get-Item -LiteralPath $PSCommandPath,(Join-Path $PSScriptRoot 'CMakeLists.txt'),(Join-Path $PSScriptRoot 'contracts\oracle-source.json'),(Join-Path $PSScriptRoot 'contracts\active-spec.json')
+    $deps=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'contracts\third-party.json') -Raw | ConvertFrom-Json
+    foreach($dependency in $deps.files){if((Hash (Join-Path $PSScriptRoot $dependency.path)) -ne $dependency.sha256){throw "Dependency hash mismatch: $($dependency.path)"}}
+    $manifest.dependencies=$deps
+    $files=@(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'src'),(Join-Path $PSScriptRoot 'tests') -File -Recurse | Where-Object {$_.Extension -in '.cpp','.h','.cs','.csproj','.ps1','.manifest' -and $_.FullName -notmatch '[\\/](obj|bin)[\\/]'})
+    $files+=Get-Item -LiteralPath $PSCommandPath,(Join-Path $PSScriptRoot 'CMakeLists.txt'),(Join-Path $PSScriptRoot 'contracts\oracle-source.json'),(Join-Path $PSScriptRoot 'contracts\active-spec.json'),(Join-Path $PSScriptRoot 'contracts\preserved-assets.json'),(Join-Path $PSScriptRoot 'verify-assets.ps1')
     $manifest.sourceFiles=@($files | Sort-Object FullName | ForEach-Object {[ordered]@{path=$_.FullName.Substring($PSScriptRoot.Length+1);sha256=(Hash $_.FullName)}})
     $revision=& git -C $PSScriptRoot rev-parse HEAD
     if($LASTEXITCODE -ne 0){throw 'Cannot read Git revision'}
@@ -60,6 +63,9 @@ try {
     Run $oracleExe @('generate',$vectors) (Join-Path $run 'oracle-generate.log')
     $manifest.oracleRuntime=Get-Content -LiteralPath (Join-Path $run 'oracle-generate.log')
     $manifest.fixtures=[ordered]@{sha256=(Hash $vectors);rows=(Get-Content -LiteralPath $vectors).Count}
+    $ringVectors=Join-Path $run 'ring-vectors.tsv'
+    Run $oracleExe @('generate-ring',$ringVectors) (Join-Path $run 'oracle-ring.log')
+    $manifest.ringFixtures=[ordered]@{sha256=(Hash $ringVectors);rows=(Get-Content -LiteralPath $ringVectors).Count}
     foreach($arch in $Architecture){
         $build=Join-Path $run $arch
         Run 'cmake' @('-S',$PSScriptRoot,'-B',$build,'-G','Visual Studio 17 2022','-A',$arch) (Join-Path $run "$arch-configure.log")
@@ -69,10 +75,26 @@ try {
         $packets=Join-Path $run "$arch-packets.tsv"
         Run $test @($vectors,$packets) (Join-Path $run "$arch-parity.log")
         Run $oracleExe @('verify-native',$vectors,$packets) (Join-Path $run "$arch-reverse.log")
+        Run (Join-Path $build 'Release\wpe64-ring-test.exe') @($ringVectors) (Join-Path $run "$arch-ring.log")
+        if($arch -eq 'x64'){
+            $hostEvidence=Join-Path $run 'host'
+            $app=Join-Path $build 'Release\wpe64-app.exe'
+            $arguments=@('--assets',('"'+(Join-Path $PSScriptRoot 'wwwroot')+'"'),'--data-dir',('"'+(Join-Path $run 'webview-profile')+'"'),'--self-test',('"'+$hostEvidence+'"'))
+            $process=Start-Process -FilePath $app -ArgumentList $arguments -WindowStyle Hidden -PassThru
+            try {
+                if(-not $process.WaitForExit(45000)){Stop-Process -Id $process.Id -ErrorAction SilentlyContinue;throw 'Native host self-test timeout'}
+                $process.Refresh()
+                if($process.ExitCode -ne 0){throw "Native host failed ($($process.ExitCode)); see $hostEvidence"}
+            } finally {$process.Dispose()}
+            $manifest.host=Get-Content -LiteralPath (Join-Path $hostEvidence 'host-self-test.json') -Raw | ConvertFrom-Json
+            if($manifest.host.result -ne 'passed'){throw 'Native host did not pass'}
+            $manifest.hostArtifacts=@($app,(Join-Path $hostEvidence 'host-self-test.json'),(Join-Path $hostEvidence 'original-vue.png')) | ForEach-Object {[ordered]@{path=$_;sha256=(Hash $_)}}
+        }
         $manifest.architectures += [ordered]@{
             architecture=$arch;result='passed'
             parity=(Get-Content -LiteralPath (Join-Path $run "$arch-parity.log"))
             reverse=(Get-Content -LiteralPath (Join-Path $run "$arch-reverse.log"))
+            ring=(Get-Content -LiteralPath (Join-Path $run "$arch-ring.log"))
             artifacts=@($test,(Join-Path $build 'Release\wpe64-common.lib'),$packets,(Join-Path $build 'CMakeCache.txt')) | ForEach-Object {[ordered]@{path=$_;sha256=(Hash $_)}}
         }
     }

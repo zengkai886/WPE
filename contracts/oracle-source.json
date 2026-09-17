@@ -8,6 +8,10 @@
     {
       "path": "tests/oracle/upstream/PacketFrame.cs",
       "sha256": "0AD60704D45178B13E66CC6E9F7FF72A4C29DD7B26C8B90C3B7B8AF178DDA72B"
+    },
+    {
+      "path": "tests/oracle/upstream/PacketRing.cs",
+      "sha256": "C703B6A7FC1F66E3FB24C52BC4E97D4FC14DE7D20B3DB2DC9D01537F8461641C"
     }
   ]
 }
