@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Stores>
+  <Data>
+    <PacketData>00 FF 80</PacketData>
+  </Data>
+  <Data>
+    <PacketData>41 42</PacketData>
+  </Data>
+  <Data>
+    <PacketData></PacketData>
+  </Data>
+</Stores>

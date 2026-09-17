@@ -1,0 +1,92 @@
+UpdateCTestConfiguration  from :E:/codex/2026-09-17/bi-a/work/exchange-wire/build/DartConfiguration.tcl
+Parse Config file:E:/codex/2026-09-17/bi-a/work/exchange-wire/build/DartConfiguration.tcl
+Test project E:/codex/2026-09-17/bi-a/work/exchange-wire/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: codec-smoke
+
+1: Test command: E:\codex\2026-09-17\bi-a\work\exchange-wire\build\Release\wpe64-codec-test.exe
+1: Working Directory: E:/codex/2026-09-17/bi-a/work/exchange-wire/build
+1: Test timeout computed to be: 1500
+1: PASS: codec smoke (LE, null distinct from empty)
+1/9 Test #1: codec-smoke ......................   Passed    0.01 sec
+test 2
+    Start 2: protocol-edge
+
+2: Test command: E:\codex\2026-09-17\bi-a\work\exchange-wire\build\Release\wpe64-parity-test.exe
+2: Working Directory: E:/codex/2026-09-17/bi-a/work/exchange-wire/build
+2: Test timeout computed to be: 1500
+2: PASS: 10 protocol edge assertions
+2/9 Test #2: protocol-edge ....................   Passed    0.01 sec
+test 3
+    Start 3: packet-ring
+
+3: Test command: E:\codex\2026-09-17\bi-a\work\exchange-wire\build\Release\wpe64-ring-test.exe
+3: Working Directory: E:/codex/2026-09-17/bi-a/work/exchange-wire/build
+3: Test timeout computed to be: 1500
+3: PASS: packet ring edges/concurrency; 0 original state-transition vectors
+3/9 Test #3: packet-ring ......................   Passed    0.02 sec
+test 4
+    Start 4: web-bridge
+
+4: Test command: E:\codex\2026-09-17\bi-a\work\exchange-wire\build\Release\wpe64-bridge-test.exe
+4: Working Directory: E:/codex/2026-09-17/bi-a/work/exchange-wire/build
+4: Test timeout computed to be: 1500
+4: PASS: five bridge message types, origins, errors, timeout, cancellation, duplicate answer, failed transport and independent import-error completion
+4/9 Test #4: web-bridge .......................   Passed    0.03 sec
+test 5
+    Start 5: native-data
+
+5: Test command: E:\codex\2026-09-17\bi-a\work\exchange-wire\build\Release\wpe64-data-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures/filter-edit.json"
+5: Working Directory: E:/codex/2026-09-17/bi-a/work/exchange-wire/build
+5: Test timeout computed to be: 1500
+5: PASS: 440 data checks; original C# fixtures, persistent SQLite, rollback, feeds, worker FIFO; isolated files: E:\codex\2026-09-17\bi-a\work\exchange-wire\build\data-test\291680505132300
+5/9 Test #5: native-data ......................   Passed    1.14 sec
+test 6
+    Start 6: data-worker
+
+6: Test command: E:\codex\2026-09-17\bi-a\work\exchange-wire\build\Release\wpe64-data-worker-test.exe
+6: Working Directory: E:/codex/2026-09-17/bi-a/work/exchange-wire/build
+6: Test timeout computed to be: 1500
+6: shutdownMs=980, cancelled=2
+6: PASS: worker shutdown queue cancellation, emit failure isolation and completion exception isolation
+6/9 Test #6: data-worker ......................   Passed    1.09 sec
+test 7
+    Start 7: editor-data
+
+7: Test command: E:\codex\2026-09-17\bi-a\work\exchange-wire\build\Release\wpe64-editor-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures"
+7: Working Directory: E:/codex/2026-09-17/bi-a/work/exchange-wire/build
+7: Test timeout computed to be: 1500
+7: PASS: 229 editor checks; 184 original C# calls; XML, drafts, packet aliases, rollback and reopen; E:\codex\2026-09-17\bi-a\work\exchange-wire\build\editor-test\291682736947700
+7/9 Test #7: editor-data ......................   Passed    1.35 sec
+test 8
+    Start 8: editor-export
+
+8: Test command: E:\codex\2026-09-17\bi-a\work\exchange-wire\build\Release\wpe64-export-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures"
+8: Working Directory: E:/codex/2026-09-17/bi-a/work/exchange-wire/build
+8: Test timeout computed to be: 1500
+8: PASS: 22 export checks; original byte golden, snapshot, selected/all, cancel, replacement failure; E:\codex\2026-09-17\bi-a\work\exchange-wire\build\export-test\291684085129500
+8/9 Test #8: editor-export ....................   Passed    0.10 sec
+test 9
+    Start 9: native-clipboard
+
+9: Test command: E:\codex\2026-09-17\bi-a\work\exchange-wire\build\Release\wpe64-clipboard-test.exe
+9: Working Directory: E:/codex/2026-09-17/bi-a/work/exchange-wire/build
+9: Test timeout computed to be: 1500
+9: FAIL: Cannot create isolated window station; interactive clipboard was NOT touched; Win32=5
+9/9 Test #9: native-clipboard .................***Failed    0.01 sec
+
+89% tests passed, 1 tests failed out of 9
+
+Total Test time (real) =   3.77 sec
+
+The following tests FAILED:
+	  9 - native-clipboard (Failed)
+Errors while running CTest
+Output from these tests are in: E:/codex/2026-09-17/bi-a/work/exchange-wire/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

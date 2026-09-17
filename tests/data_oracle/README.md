@@ -69,3 +69,19 @@ if ($LASTEXITCODE -ne 0) { throw 'Editor reference generation failed' }
 ## 原契约提取
 
 `extract_contracts.py <包含Operate.cs的原项目目录> <C++项目目录>` 从原源码重提取：217 个 RPC、20 张建表 SQL、当前使用的 8 张表头文件，以及业务翻译/国家字典。此工具会覆盖生成文件，只供明确更新契约时使用；普通构建不运行它。
+
+## 明文导出原版参照
+
+同一 DataOracle 构建新增三个命令（路径仍替换为独立测试目录）：
+
+```powershell
+& "$runner\WpeDataOracle.exe" exports "$project\tests\fixtures" "$scratch\export-golden"
+& "$runner\WpeDataOracle.exe" exports "$project\tests\fixtures\export-edge" "$scratch\export-edge"
+& "$runner\WpeDataOracle.exe" verify-export 'C++测试产生的完整路径\native.sc' "$scratch\original-roundtrip.sc"
+& "$runner\WpeDataOracle.exe" verify-export 'C++测试产生的完整路径\native.whs' "$scratch\original-roundtrip.whs"
+& "$runner\WpeDataOracle.exe" export-snapshot "$scratch\original-snapshot.sc"
+```
+
+exports 用未修改原加载器和保存器生成 XML 黄金。verify-export 通过原版读取 C++ 文件再保存并比较字节。export-snapshot 真调用原 SaveSendCollection_Dialog，在 PickSaveAsync 回调修改同一 PacketInfo，断言导出 Socket=99、Buffer=AA BB。不是本地重写序列化代码当作对照。
+
+export-edge 覆盖 CR/LF/CRLF、Tab、中文、emoji、XML 特殊字符与未知负枚举。XML 回读的行尾归一化与原版相同；比较导出字节，不误要求回读字段保留原 CR。产品仍不附带原 C# 程序或依赖。

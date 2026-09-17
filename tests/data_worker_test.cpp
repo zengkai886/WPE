@@ -2,6 +2,7 @@
 #include <chrono>
 #include <filesystem>
 #include <iostream>
+#include <fstream>
 #include <thread>
 using namespace wpe::shell;
 using namespace std::chrono_literals;
@@ -34,5 +35,24 @@ int main(){try{
         Require(elapsed<2200ms,"shutdown drained queued SQLite lock waits");Require(cancelled>=2,"unstarted jobs not cancelled");lock.Execute("ROLLBACK");
         std::cout<<"shutdownMs="<<std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count()<<", cancelled="<<cancelled<<'\n';
     }
-    std::cout<<"PASS: worker shutdown queue cancellation, emit failure isolation and completion exception isolation\n";return 0;
+    {
+        auto worker=std::make_unique<DataWorker>(root/"export.db");Json id;bool ready=false;
+        worker->Submit("addSend",{},[&](Json value,std::string error){Require(error.empty(),"create export draft");id=value["id"];ready=true;});Pump(*worker,[&]{return ready;});
+        const auto input=root/"pending.sc",marker=root/"marker.sc";
+        {std::ofstream f(input);f<<"<SendCollection><Collection><Socket>17</Socket><Buffer>AA BB</Buffer></Collection></SendCollection>";}
+        const auto path=[](const std::filesystem::path& p){const auto u=p.u8string();return std::string(u.begin(),u.end());};
+        worker->Submit("openSendEdit",{{"id",id}},[](Json,std::string){});
+        worker->Submit("importSendCollection",{{"_filePath",path(input)}},[](Json,std::string){});
+        bool token=false,ownerNull=false;
+        worker->Submit("__prepareEditorExport",{{"method","exportSendCollection"},{"args",Json::object()}},[&](Json plan,std::string error){
+            token=error.empty()&&plan.contains("token");ownerNull=!worker;
+            // Same owner-lifetime guard as Host::DiscardExport: the worker's
+            // service already owns destruction of its plans during reset().
+            if(worker&&token)worker->ForgetExportPlan(plan["token"].get<std::string>());
+        });
+        worker->Submit("exportSendCollection",{{"_filePath",path(marker)}},[](Json,std::string){});
+        const auto deadline=std::chrono::steady_clock::now()+5s;while(!std::filesystem::exists(marker)&&std::chrono::steady_clock::now()<deadline)std::this_thread::sleep_for(2ms);
+        Require(std::filesystem::exists(marker),"undrained export worker deadline");worker.reset();Require(token&&ownerNull,"pending export completion was not tested during reset");
+    }
+    std::cout<<"PASS: worker shutdown queue cancellation, emit/completion isolation and undrained export token cleanup during owner reset\n";return 0;
 }catch(const std::exception& e){std::cerr<<"FAIL: "<<e.what()<<'\n';return 1;}}

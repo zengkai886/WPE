@@ -1,9 +1,9 @@
 {
   "scope": "Registration inventory, not a functional-completion percentage. Partial and offline methods are explicitly distinguished.",
   "originalRpcCount": 217,
-  "nativeDataRegistered": 63,
-  "nativeHostRegistered": 7,
-  "remainingUnregistered": 147,
+  "nativeDataRegistered": 64,
+  "nativeHostRegistered": 9,
+  "remainingUnregistered": 144,
   "originalSource": "WinsockPacketEditor/ShellForm.cs",
   "originalSourceSha256": "86d277408d233903ec82ffe8f06a2cd1995898617c477a1f181046ebe0f72f12",
   "methods": [
@@ -465,16 +465,16 @@
     {
       "method": "clipboardRead",
       "originalLine": 3409,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主剪贴板已接",
+      "note": "独立线程读取真实 Windows Unicode 剪贴板；忙重试、延迟渲染与消息泵；失败返回空文本。"
     },
     {
       "method": "clipboardWrite",
       "originalLine": 3423,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主剪贴板已接",
+      "note": "独立线程写真实 Windows Unicode 剪贴板；空/ null 清空；忙重试，失败返回 ok:false。"
     },
     {
       "method": "getExecuteTargets",
@@ -1229,8 +1229,8 @@
       "method": "sendCollectionAction",
       "originalLine": 4570,
       "registered": true,
-      "status": "发送集编辑部分接线",
-      "note": "读取、复制、移动、删除、清空发送集草稿；保存外层发送条目后落库；导出未接，实际发送未接。"
+      "status": "数据动作部分接线",
+      "note": "发送草稿复制/移动/删除/清空、选中条目明文导出；导出冻结成员顺序但共享封包编辑字段；加密及 action 8 未实现。"
     },
     {
       "method": "importSendCollection",
@@ -1242,9 +1242,9 @@
     {
       "method": "exportSendCollection",
       "originalLine": 4590,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "明文导出已接",
+      "note": "导出当前发送草稿为原 .sc XML；保存框和原密码框已接；非空密码明确拒绝，不写明文。"
     },
     {
       "method": "clearSendCollection",
@@ -1383,22 +1383,22 @@
       "method": "copyStoresHex",
       "originalLine": 4800,
       "registered": true,
-      "status": "仓库数据读取已接",
-      "note": "原 BLOB、预览/截断和 CRLF 文本，配合本轮条目动作及明文导入；系统剪贴板写入和采集入库未接。"
+      "status": "数据读写已接",
+      "note": "选中仓储条目转完整十六进制文本；原 Vue 再调用 clipboardWrite，真实剪贴板已接。"
     },
     {
       "method": "storesAction",
       "originalLine": 4807,
       "registered": true,
-      "status": "仓库条目部分接线",
-      "note": "条目移动、复制、删除、清空、明文 .whs XML 导入，事务落库后刷新数量；导出、加密导入尚未接。"
+      "status": "数据动作部分接线",
+      "note": "仓储条目复制/移动/删除/清空及选中明文导出；加密及 action 8 未实现。"
     },
     {
       "method": "storesCommand",
       "originalLine": 4824,
       "registered": true,
-      "status": "仓库条目部分接线",
-      "note": "条目移动、复制、删除、清空、明文 .whs XML 导入，事务落库后刷新数量；导出、加密导入尚未接。"
+      "status": "数据动作部分接线",
+      "note": "仓储明文导入/全部导出、清空；加密导入导出未实现。"
     },
     {
       "method": "saveWareHouseName",

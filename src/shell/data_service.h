@@ -16,7 +16,10 @@ public:
     Json Prefs() const;
     static bool NeedsConfirmation(const std::string& method,const Json& args);
     static bool NeedsOpenFile(const std::string& method,const Json& args);
+    static bool NeedsSaveFile(const std::string& method,const Json& args);
 private:
+    Json PrepareExport(const std::string& method,const Json& args);
+    Json WriteExport(Json plan,const std::string& path);
     std::optional<Json> CallEditor(const std::string& method,const Json& args);
     Json InstructionRows();
     std::string ValidateInstruction(int type,const std::string& content);
@@ -38,6 +41,7 @@ private:
     Json config_;
     std::array<Json,19> lists_;
     Json send_edit_=nullptr,robot_edit_=nullptr;
+    std::map<std::string,Json> export_plans_; // Membership frozen; PacketInfo fields retain alias semantics.
     std::uint64_t packet_id_{};
 };
 }

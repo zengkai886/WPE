@@ -29,6 +29,8 @@ public:
     void RegisterAsync(std::string method,AsyncHandler handler);
     void Receive(std::string_view source,std::string_view raw);
     std::string Ask(std::string method,Json args,Answer answer,std::chrono::milliseconds timeout=std::chrono::minutes(5));
+    // Unlike legacy Ask, a transport failure is distinct from a successful null answer.
+    std::string AskResult(std::string method,Json args,Completion answer,std::chrono::milliseconds timeout=std::chrono::minutes(5));
     void PushEvent(std::string name,Json data);
     // Optional UI notification must never prevent the RPC result. Navigation
     // invalidates the notification along with the originating call.
@@ -37,9 +39,9 @@ public:
     void FailAllPending();
     std::size_t PendingCount() const noexcept{return pending_.size();}
 private:
-    struct Pending {Clock::time_point deadline;Answer complete;};
+    struct Pending {Clock::time_point deadline;Completion complete;};
     void Reply(const Json& id,bool ok,Json value,const std::string& error={});
-    void Complete(const std::string& id,Json value);
+    void Complete(const std::string& id,Json value,std::string error={});
     static std::string Key(std::string value);
     Post post_;
     std::map<std::string,AsyncHandler> methods_;

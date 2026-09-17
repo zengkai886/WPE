@@ -24,11 +24,75 @@ Json Unhex(const std::string& s){
     for(std::size_t i=0;i<clean.size();i+=2){int hi=nibble(clean[i]),lo=nibble(clean[i+1]);if(hi<0||lo<0)return Json::binary(std::vector<std::uint8_t>{});bytes.push_back(static_cast<std::uint8_t>((hi<<4)|lo));}
     return Json::binary(bytes);
 }
+const std::array<const char*,23> packetNames={"WS1_Send","WS2_Send","WS1_SendTo","WS2_SendTo","WS1_Recv","WS2_Recv","WS1_RecvFrom","WS2_RecvFrom","WSASend","WSASendTo","WSARecv","WSARecvEx","WSARecvFrom","TCP_Req","UDP_Req","TCP_Resp","UDP_Resp","HTTP_Req","HTTP_Resp","HTTPS_Req","HTTPS_Resp","WebSocket_Req","WebSocket_Resp"};
 int PacketType(const std::string& name){
-    static const std::array<const char*,23> names={"WS1_Send","WS2_Send","WS1_SendTo","WS2_SendTo","WS1_Recv","WS2_Recv","WS1_RecvFrom","WS2_RecvFrom","WSASend","WSASendTo","WSARecv","WSARecvEx","WSARecvFrom","TCP_Req","UDP_Req","TCP_Resp","UDP_Resp","HTTP_Req","HTTP_Resp","HTTPS_Req","HTTPS_Resp","WebSocket_Req","WebSocket_Resp"};
-    const auto text=Trim(name);for(std::size_t i=0;i<names.size();++i)if(text==names[i])return static_cast<int>(i);
+    const auto text=Trim(name);for(std::size_t i=0;i<packetNames.size();++i)if(text==packetNames[i])return static_cast<int>(i);
     int value=0;return Integer(text,value)?value:0;
 }
+std::string EscapeXml(const std::string& s){
+    if(s.size()>INT_MAX)throw std::length_error("XML 字段过长");
+    if(!s.empty()){
+        const auto size=MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,s.data(),static_cast<int>(s.size()),nullptr,0);
+        if(!size)throw std::runtime_error("XML 字段包含无效 UTF-8");
+        std::wstring wide(static_cast<std::size_t>(size),L'\0');MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,s.data(),static_cast<int>(s.size()),wide.data(),size);
+        for(wchar_t c:wide)if((c<0x20&&c!=9&&c!=10&&c!=13)||c==0xFFFE||c==0xFFFF)throw std::runtime_error("XML 字段包含无效控制字符");
+    }
+    std::string out;for(std::size_t i=0;i<s.size();++i){switch(s[i]){
+        case '&':out+="&amp;";break;case '<':out+="&lt;";break;case '>':out+="&gt;";break;
+        case '\r':if(i+1<s.size()&&s[i+1]=='\n')++i;[[fallthrough]];
+        case '\n':out+="\r\n";break;default:out+=s[i];break;
+    }}return out;
+}
+class AtomicOutput {
+    std::filesystem::path target_,temporary_;HANDLE file_=INVALID_HANDLE_VALUE;bool committed_=false;
+public:
+    explicit AtomicOutput(const std::filesystem::path& target):target_(target){
+        const auto id=Guid();temporary_=target.parent_path()/(L".wpe-export-"+std::wstring(id.begin(),id.end())+L".tmp");
+        // A replacement must not expose an existing restricted file through a
+        // more permissive temporary. Apply its DACL at creation, before bytes.
+        DWORD needed=0;std::vector<std::uint8_t> security;
+        if(!GetFileSecurityW(target.c_str(),DACL_SECURITY_INFORMATION,nullptr,0,&needed)){
+            const auto error=GetLastError();if(error==ERROR_INSUFFICIENT_BUFFER){security.resize(needed);if(!GetFileSecurityW(target.c_str(),DACL_SECURITY_INFORMATION,security.data(),needed,&needed))throw std::runtime_error("无法读取原导出文件权限");}
+            else if(error!=ERROR_FILE_NOT_FOUND)throw std::runtime_error("无法检查原导出文件权限");
+        }
+        SECURITY_ATTRIBUTES attributes{sizeof(SECURITY_ATTRIBUTES),security.empty()?nullptr:security.data(),FALSE};
+        file_=CreateFileW(temporary_.c_str(),GENERIC_WRITE,0,security.empty()?nullptr:&attributes,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
+        if(file_==INVALID_HANDLE_VALUE)throw std::runtime_error("无法创建导出文件：请检查路径与写入权限");
+    }
+    ~AtomicOutput(){if(file_!=INVALID_HANDLE_VALUE)CloseHandle(file_);if(!committed_)DeleteFileW(temporary_.c_str());}
+    AtomicOutput(const AtomicOutput&)=delete;AtomicOutput& operator=(const AtomicOutput&)=delete;
+    void Write(std::string_view s){while(!s.empty()){const auto count=static_cast<DWORD>(std::min<std::size_t>(s.size(),1024*1024));DWORD written=0;if(!WriteFile(file_,s.data(),count,&written,nullptr)||written!=count)throw std::runtime_error("导出文件写入失败，原文件未替换");s.remove_prefix(written);}}
+    void Commit(){
+        if(!FlushFileBuffers(file_))throw std::runtime_error("导出文件刷新失败，原文件未替换");
+        const auto handle=file_;file_=INVALID_HANDLE_VALUE;if(!CloseHandle(handle))throw std::runtime_error("导出文件关闭失败");
+        if(MoveFileExW(temporary_.c_str(),target_.c_str(),MOVEFILE_WRITE_THROUGH)){committed_=true;return;}
+        // Do not ignore merge/ACL errors. A backup also prevents ReplaceFile's
+        // partial-failure cases from destroying the only copy of the old file.
+        auto backup=temporary_;backup+=L".bak";
+        if(GetFileAttributesW(backup.c_str())!=INVALID_FILE_ATTRIBUTES)throw std::runtime_error("导出恢复文件已存在，停止替换");
+        if(!ReplaceFileW(target_.c_str(),temporary_.c_str(),backup.c_str(),0,nullptr,nullptr)){
+            const auto error=GetLastError();
+            if(GetFileAttributesW(backup.c_str())!=INVALID_FILE_ATTRIBUTES){
+                if(!MoveFileExW(backup.c_str(),target_.c_str(),MOVEFILE_WRITE_THROUGH))throw std::runtime_error("导出替换失败，原文件保留于恢复文件："+backup.string());
+            }
+            throw std::runtime_error("无法替换导出文件：文件被占用或没有写入权限（"+std::to_string(error)+"）");
+        }
+        committed_=true;
+        if(!DeleteFileW(backup.c_str()))throw std::runtime_error("导出已写入，但旧文件恢复副本清理失败："+backup.string());
+    }
+};
+}
+void WriteEditorXml(const std::filesystem::path& path,const Json& rows,bool send){
+    AtomicOutput file(path);file.Write("\xEF\xBB\xBF<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\r\n");
+    const std::string root=send?"SendCollection":"Stores",child=send?"Collection":"Data";
+    if(rows.empty()){file.Write("<"+root+" />");file.Commit();return;}
+    file.Write("<"+root+">\r\n");
+    auto element=[&](const std::string& name,const std::string& value){file.Write("    <"+name+">"+EscapeXml(value)+"</"+name+">\r\n");};
+    for(const auto& row:rows){if(!row.at("Buffer").is_binary())throw std::runtime_error("导出封包 Buffer 不是二进制数据");file.Write("  <"+child+">\r\n");if(send){
+        element("Socket",std::to_string(N(row,"Socket")));const auto type=N(row,"Type");element("Type",type>=0&&type<static_cast<int>(packetNames.size())?packetNames[type]:std::to_string(type));
+        element("IPFrom",S(row,"IPFrom"));element("IPTo",S(row,"IPTo"));
+    }element(send?"Buffer":"PacketData",Hex(row.at("Buffer"),std::numeric_limits<std::size_t>::max()));file.Write("  </"+child+">\r\n");}
+    file.Write("</"+root+">");file.Commit();
 }
 Json ReadEditorXml(const std::filesystem::path& path,bool send){
     // Stream from the selected file rather than copying/capping its raw bytes.

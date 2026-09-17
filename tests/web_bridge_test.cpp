@@ -74,7 +74,16 @@ int main() {
         finish(nullptr,"bad XML");check(toastAttempts==1&&imports.size()==1&&imports[0]["error"]=="bad XML");
         importsBridge.Receive("https://app.wpe64.local/",R"({"type":"call","id":"import2","method":"import"})");
         importsBridge.FailAllPending();finish(nullptr,"late XML error");check(toastAttempts==1&&imports.size()==1);
-        std::cout<<"PASS: five bridge message types, origins, errors, timeout, cancellation, duplicate answer, failed transport and independent import-error completion\n";
+        int plainWrites=0,askFailures=0;
+        auto guarded=[&](Json value,std::string error){if(error.empty()&&value.is_null())++plainWrites;else if(!error.empty())++askFailures;};
+        broken.AskResult("prompt",{},guarded);
+        bridge.AskResult("prompt",{},guarded,std::chrono::milliseconds(0));bridge.Tick(WebBridge::Clock::now()+std::chrono::seconds(1));
+        id=bridge.AskResult("prompt",{},guarded);bridge.Receive("https://app.wpe64.local/",Json({{"type","answer"},{"id",id},{"ok",false}}).dump());
+        bridge.AskResult("prompt",{},guarded);bridge.FailAllPending();
+        check(plainWrites==0&&askFailures==4&&bridge.PendingCount()==0);
+        id=bridge.AskResult("prompt",{},guarded);bridge.Receive("https://app.wpe64.local/",Json({{"type","answer"},{"id",id},{"ok",true},{"result",nullptr}}).dump());
+        check(plainWrites==1&&askFailures==4);
+        std::cout<<"PASS: five bridge message types, origins, timeout, cancellation, duplicate answer, independent completion; successful null distinct from four Ask failure paths\n";
         return 0;
     }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 }

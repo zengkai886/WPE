@@ -21,9 +21,9 @@ function Run([string]$Executable,[string[]]$Arguments,[string]$Log) {
 }
 $manifest=[ordered]@{
     schemaVersion=1
-    testId='CPP-EDITOR-WIRING-004'
+    testId='CPP-EXCHANGE-WIRING-005'
     specificationSections=@('0','2.3','3.1','3.2','3.3','4.2','4.4','9.2','9.3','13.1')
-    scope='Protocol/ring, native SQLite, editors, XML, original Vue/HexView and restart. topmostProbe is a separate non-gating window diagnostic. Fixed-path picker seam, no picker UI automation, injection, capture, proxy, executors or complete acceptance'
+    scope='Protocol/ring, native SQLite, editors, plaintext XML export, private-station OS clipboard, original Vue/HexView/export/clipboard buttons and restart. UI clipboard uses a memory seam; file picker uses a fixed-path seam. topmostProbe is non-gating; no picker UI automation, injection, capture, proxy, executors or complete acceptance'
     startedUtc=[DateTime]::UtcNow.ToString('o')
     finishedUtc=$null
     result='running'
@@ -96,6 +96,12 @@ try {
             } finally {$process.Dispose()}
             $manifest.host=Get-Content -LiteralPath (Join-Path $hostEvidence 'host-self-test.json') -Raw | ConvertFrom-Json
             if($manifest.host.result -ne 'passed'){throw 'Native host did not pass'}
+            if(-not $manifest.host.frontend.originalExportButtons -or -not $manifest.host.frontend.originalClipboardButtons -or -not $manifest.host.frontend.encryptedExportRejected){throw 'Export/clipboard original UI test did not pass'}
+            [xml]$sendExport=Get-Content -LiteralPath (Join-Path $hostEvidence 'export.sc') -Raw
+            [xml]$storeExport=Get-Content -LiteralPath (Join-Path $hostEvidence 'export.whs') -Raw
+            if(@($sendExport.SendCollection.Collection).Count -ne 2 -or $sendExport.SendCollection.Collection[0].Socket -ne '99' -or $sendExport.SendCollection.Collection[0].Buffer -ne 'AA FF 80 42'){throw 'Native send export content mismatch'}
+            if(@($storeExport.Stores.Data).Count -ne 2 -or $storeExport.Stores.Data[0].PacketData -ne '00 FF 80'){throw 'Native warehouse export content mismatch'}
+            $manifest.exportArtifacts=@('export.sc','export.whs') | ForEach-Object {$path=Join-Path $hostEvidence $_;[ordered]@{path=$path;sha256=(Hash $path)}}
             $manifest.hostArtifacts=@($app,(Join-Path $hostEvidence 'host-self-test.json'),(Join-Path $hostEvidence 'original-vue.png')) | ForEach-Object {[ordered]@{path=$_;sha256=(Hash $_)}}
             $reopenEvidence=Join-Path $run 'host-reopen'
             $arguments=@('--assets',('"'+(Join-Path $PSScriptRoot 'wwwroot')+'"'),'--data-dir',('"'+(Join-Path $run 'webview-profile')+'"'),'--self-test',('"'+$reopenEvidence+'"'))

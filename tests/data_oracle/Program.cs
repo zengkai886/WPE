@@ -14,6 +14,9 @@ class Program
     {
         try
         {
+            if (args.Length == 2 && args[0] == "export-snapshot") return ExportSnapshotOracle.Run(new[]{args[1]});
+            if (args.Length == 3 && args[0] == "exports") return ExportOracle.Run(args[1],args[2]);
+            if (args.Length == 3 && args[0] == "verify-export") return ExportOracle.Verify(args[1],args[2]);
             if (args.Length == 4 && args[0] == "editors") return EditorOracle.Run(args[1],args[2],args[3]);
             if (args.Length == 3 && args[0] == "verify-native") return VerifyNative(args[1],args[2]);
             if (args.Length != 2) throw new Exception("expected isolated database directory and fixture output");

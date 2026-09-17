@@ -63,6 +63,25 @@ std::vector<std::string> Pick(const Json& rows,const Json& args,bool indexes){
 }
 }
 bool DataService::NeedsOpenFile(const std::string& method,const Json& args){return method=="importSendCollection"||(method=="storesCommand"&&N(args,"action",-1)==8);}
+bool DataService::NeedsSaveFile(const std::string& method,const Json& args){return method=="exportSendCollection"||((method=="sendCollectionAction"||method=="storesAction"||method=="storesCommand")&&N(args,"action",-1)==5);}
+Json DataService::PrepareExport(const std::string& method,const Json& args){
+    const bool send=method=="exportSendCollection"||method=="sendCollectionAction";
+    const bool selected=method=="sendCollectionAction"||method=="storesAction";const auto row=send?(send_edit_.is_null()?nullptr:&send_edit_):Find(11,S(args,"wid"));
+    Json items=Json::array();if(row){const auto& all=row->at("_children");if(selected){const auto picked=Pick(all,args,false);for(const auto& child:all)if(std::find(picked.begin(),picked.end(),S(child,"_id"))!=picked.end())items.push_back(child);}else items=all;}
+    const bool idsEmpty=args.value("ids",Json::array()).empty();Json result=selected?Json{{"ok",!idsEmpty},{"delta",0}}:Good();
+    return Json{{"send",send},{"rows",std::move(items)},{"result",result},{"title",Text(send?"ExportSendCollection":"ExportStores",send?"导出发送集":"导出仓储数据")},{"success",Text(send?"ExportSendCollection.Success":"ExportStores.Success",send?"导出发送集成功":"导出仓储数据成功")}};
+}
+Json DataService::WriteExport(Json plan,const std::string& path){
+    if(plan.contains("token")){
+        auto entry=export_plans_.extract(S(plan,"token"));
+        if(entry.empty())throw std::runtime_error("导出计划已取消或已完成");
+        plan=std::move(entry.mapped()); // Consume even if writing fails.
+    }
+    if(!path.empty()&&!plan.at("rows").empty()){
+        WriteEditorXml(std::filesystem::path(std::u8string(path.begin(),path.end())),plan.at("rows"),plan.at("send").get<bool>());
+        emit_("notify",{{"level",2},{"title",plan.at("success")},{"content",path}});
+    }return plan.at("result");
+}
 void DataService::TrimStores(Json& items)const{
     const auto max=N(config_,"StoresLimit_Value",5000);if(!B(config_,"StoresLimit",true)||max<=0)return;
     if(items.size()>static_cast<std::size_t>(max))items.erase(items.begin(),items.begin()+static_cast<Json::difference_type>(items.size()-max));
@@ -124,6 +143,20 @@ Json DataService::SaveRobot(const Json& args){
     SaveList(10,rows);robot_edit_=std::move(next);return error("");
 }
 std::optional<Json> DataService::CallEditor(const std::string& method,const Json& args){
+    // Internal worker operations are deliberately absent from Methods(), and
+    // therefore cannot be invoked over the browser's RPC bridge.
+    if(method=="__prepareEditorExport"){
+        auto plan=PrepareExport(S(args,"method"),args.at("args"));
+        plan["rowCount"]=plan.at("rows").size();
+        if(!plan.at("rows").empty()){
+            if(export_plans_.size()>=16)throw std::runtime_error("待处理导出过多，请先完成或取消已有导出");
+            const auto token=Guid();export_plans_.emplace(token,plan);plan["token"]=token;
+            // Only metadata crosses the worker seam; never duplicate packet buffers.
+        }plan.erase("rows");return plan;
+    }
+    if(method=="__discardEditorExport"){export_plans_.erase(S(args,"token"));return Good();}
+    if(method=="__writeEditorExport")return WriteExport(args.at("plan"),S(args,"_filePath"));
+    if(NeedsSaveFile(method,args))return WriteExport(PrepareExport(method,args),S(args,"_filePath"));
     if(method=="openRobotEdit"){auto row=Find(10,S(args,"id"));if(!row)return Json{{"Id",""},{"Name",""}};robot_edit_=*row;return Json{{"Id",(*row)["GUID"]},{"Name",(*row)["Name"]}};}
     if(method=="closeRobotEdit"){robot_edit_=nullptr;return Good();}
     if(method=="getRobotInstructions")return Json{{"rows",InstructionRows()}};
@@ -163,6 +196,7 @@ std::optional<Json> DataService::CallEditor(const std::string& method,const Json
         // isolated, but editing a pre-existing PacketInfo changes its aliases in
         // memory, even if the parent dialog is later cancelled. No DB write here.
         for(auto& row:lists_[9])for(auto& child:row["_children"])if(S(child,"_id")==id){child["Socket"]=N(args,"socket");child["Buffer"]=bytes;}
+        for(auto& [token,plan]:export_plans_)if(plan.at("send").get<bool>())for(auto& child:plan["rows"])if(S(child,"_id")==id){child["Socket"]=N(args,"socket");child["Buffer"]=bytes;}
         return Json{{"error",""}};
     }
     if(method=="storesAction"||method=="storesCommand"){

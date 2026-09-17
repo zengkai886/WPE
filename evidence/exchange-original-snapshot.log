@@ -1,0 +1,12 @@
+Notify Success: 导出发送集成功
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<SendCollection>
+  <Collection>
+    <Socket>99</Socket>
+    <Type>TCP_Req</Type>
+    <IPFrom>from</IPFrom>
+    <IPTo>to</IPTo>
+    <Buffer>AA BB</Buffer>
+  </Collection>
+</SendCollection>
+PASS: original file-dialog callback edit is included in exported shallow snapshot

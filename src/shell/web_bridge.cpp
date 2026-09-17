@@ -30,7 +30,7 @@ void WebBridge::Receive(std::string_view source,std::string_view raw){
         if(message.contains("id") && message["id"].is_string())id=message["id"];
         const auto type=message.value("type",std::string{});
         if(type=="answer"){
-            if(id.is_string())Complete(id.get<std::string>(),message.value("ok",false)?message.value("result",Json{}):Json{});
+            if(id.is_string())Complete(id.get<std::string>(),message.value("ok",false)?message.value("result",Json{}):Json{},message.value("ok",false)?"":"界面未成功返回确认结果");
             return;
         }
         if(type!="call" || !id.is_string())return;
@@ -51,17 +51,20 @@ void WebBridge::Receive(std::string_view source,std::string_view raw){
     }
 }
 std::string WebBridge::Ask(std::string method,Json args,Answer answer,std::chrono::milliseconds timeout){
-    if(closed_||cancelling_){if(answer)try{answer(nullptr);}catch(...){}return {};}
+    return AskResult(std::move(method),std::move(args),[answer=std::move(answer)](Json value,std::string error){if(answer)answer(error.empty()?std::move(value):Json{});},timeout);
+}
+std::string WebBridge::AskResult(std::string method,Json args,Completion answer,std::chrono::milliseconds timeout){
+    if(closed_||cancelling_){if(answer)try{answer(nullptr,"界面已关闭或正在取消");}catch(...){}return {};}
     const auto id="a"+std::to_string(++sequence_);
     pending_.emplace(id,Pending{Clock::now()+timeout,std::move(answer)});
     Json message{{"type","ask"},{"id",id},{"method",std::move(method)}};
     if(!args.is_null())message["args"]=std::move(args);
-    try{post_(message.dump());}catch(...){Complete(id,nullptr);}
+    try{post_(message.dump());}catch(...){Complete(id,nullptr,"无法发送界面请求");}
     return id;
 }
-void WebBridge::Complete(const std::string& id,Json value){
+void WebBridge::Complete(const std::string& id,Json value,std::string error){
     auto entry=pending_.extract(id);
-    if(!entry.empty() && entry.mapped().complete)try{entry.mapped().complete(std::move(value));}catch(...){/* One failing UI consumer must not strand the rest. */}
+    if(!entry.empty() && entry.mapped().complete)try{entry.mapped().complete(std::move(value),std::move(error));}catch(...){/* One failing UI consumer must not strand the rest. */}
 }
 void WebBridge::FailAllPending(){
     if(cancelling_)return;
@@ -73,7 +76,7 @@ void WebBridge::FailAllPending(){
     pending_.clear();
     for(auto& [id,pending]:abandoned){
         (void)id;
-        if(pending.complete)try{pending.complete(nullptr);}catch(...){}
+        if(pending.complete)try{pending.complete(nullptr,"界面请求已取消");}catch(...){}
     }
     cancelling_=false;
     if(!closed_)call_epoch_=std::make_shared<int>(0);
@@ -81,7 +84,7 @@ void WebBridge::FailAllPending(){
 void WebBridge::Tick(Clock::time_point now){
     std::vector<std::string> expired;
     for(const auto& [id,pending]:pending_)if(pending.deadline<=now)expired.push_back(id);
-    for(const auto& id:expired)Complete(id,nullptr);
+    for(const auto& id:expired)Complete(id,nullptr,"界面请求超时");
 }
 void WebBridge::PushEvent(std::string name,Json data){
     if(closed_)return;

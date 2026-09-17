@@ -1,0 +1,12 @@
+Original loader read 3 native send packets
+PASS: native file -> original loader -> original serializer, byte-for-byte equality
+Original loader read 3 native store entries
+PASS: native file -> original loader -> original serializer, byte-for-byte equality
+Original loader read 3 native send packets
+PASS: native file -> original loader -> original serializer, byte-for-byte equality
+Original loader read 3 native store entries
+PASS: native file -> original loader -> original serializer, byte-for-byte equality
+Original loader read 2 native send packets
+PASS: native file -> original loader -> original serializer, byte-for-byte equality
+Original loader read 2 native store entries
+PASS: native file -> original loader -> original serializer, byte-for-byte equality

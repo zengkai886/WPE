@@ -10,6 +10,7 @@
 #include <WebView2.h>
 #include "web_bridge.h"
 #include "data_worker.h"
+#include "clipboard_worker.h"
 #include <filesystem>
 #include <fstream>
 #include <memory>
@@ -78,7 +79,7 @@ public:
     explicit Host(Options options):options_(std::move(options)),exit_code_(options_.test?1:0){}
     ~Host(){
         closing_=true;lifetime_.reset();
-        data_.reset();
+        clipboard_.reset();data_.reset();
         // Complete callbacks while the report/window state they capture still exists.
         if(bridge_){bridge_->FailAllPending();bridge_.reset();}
         if(controller_)controller_->Close();
@@ -101,11 +102,14 @@ private:
     void Finish(bool success);
     void PickImportFile();
     void CancelFileJobs();
-    struct FileJob {std::string method;Json args;WebBridge::Completion done;};
+    void DiscardExport(const Json& plan){if(data_&&plan.is_object()&&plan.contains("token"))data_->ForgetExportPlan(plan.at("token").get<std::string>());}
+    void DrainClipboard();
+    std::unique_ptr<wpe::shell::ClipboardWorker> clipboard_;
+    struct FileJob {std::string method;Json args;WebBridge::Completion done;Json export_plan=nullptr;};
     std::deque<FileJob> file_jobs_;
-    ComPtr<IFileOpenDialog> file_dialog_;
+    ComPtr<IFileDialog> file_dialog_;
     std::uint64_t file_epoch_{};
-    bool test_cancel_file_{};
+    bool test_cancel_file_{},file_prompt_pending_{};
     Options options_;
     HWND window_{};
     ComPtr<ICoreWebView2Environment> environment_;
@@ -147,6 +151,7 @@ LRESULT Host::Message(UINT message,WPARAM wparam,LPARAM lparam){
     case WM_SIZE:Resize();State();return 0;
     case WM_TIMER:
         if(bridge_)bridge_->Tick();
+        if(!closing_)DrainClipboard();
         if(data_&&bridge_&&!closing_)data_->Drain([this](std::string name,Json value){bridge_->PushEvent(std::move(name),std::move(value));});
         if(options_.test && std::chrono::steady_clock::now()-started_>std::chrono::seconds(90))Fail("WebView2 self-test timed out");
         if(!options_.test && !revealed_ && std::chrono::steady_clock::now()-started_>std::chrono::seconds(4)){revealed_=true;ShowWindow(window_,SW_SHOW);}
@@ -234,9 +239,21 @@ void Host::RegisterMethods(){
     data_=std::make_unique<wpe::shell::DataWorker>(db);
     for(const auto& method:wpe::shell::DataService::Methods()){
         bridge_->RegisterAsync(method,[this,method](const Json& args,WebBridge::Completion done){
-            if(wpe::shell::DataService::NeedsOpenFile(method,args)){
+            if(wpe::shell::DataService::NeedsOpenFile(method,args)||wpe::shell::DataService::NeedsSaveFile(method,args)){
                 if(file_jobs_.size()>=8){done(nullptr,"文件选择请求过多");return;}
                 auto safe=args;safe.erase("_filePath"); // Only the native chooser may grant a file path.
+                if(wpe::shell::DataService::NeedsSaveFile(method,args)){
+                    // Snapshot selection on the data worker BEFORE opening the
+                    // picker, just as the original constructs its List<T> first.
+                    auto complete=bridge_->WithErrorToast(std::move(done));
+                    data_->Submit("__prepareEditorExport",{{"method",method},{"args",safe}},[this,method,safe,complete,epoch=file_epoch_](Json plan,std::string error){
+                        if(closing_||epoch!=file_epoch_){DiscardExport(plan);complete(nullptr,"文件选择已取消");return;}
+                        if(!error.empty()){complete(nullptr,std::move(error));return;}
+                        if(plan.at("rowCount")==0){complete(plan.at("result"),{});return;}
+                        if(file_jobs_.size()>=8){DiscardExport(plan);complete(nullptr,"文件选择请求过多");return;}
+                        file_jobs_.push_back({method,safe,complete,std::move(plan)});PostMessageW(window_,app_file,0,0);
+                    });return;
+                }
                 file_jobs_.push_back({method,std::move(safe),std::move(done)});PostMessageW(window_,app_file,0,0);return;
             }
             auto submit=[this,method,args,done]{data_->Submit(method,args,done);};
@@ -265,6 +282,14 @@ void Host::RegisterMethods(){
         if(options_.test)report_["topmostCalls"].push_back({{"on",on},{"style",GetWindowLongPtrW(window_,GWL_EXSTYLE)},{"visible",IsWindowVisible(window_)!=FALSE}});
         return Json{{"topMost",(GetWindowLongPtrW(window_,GWL_EXSTYLE)&WS_EX_TOPMOST)!=0}};});
     bridge_->Register("startDragWindow",[this](const Json&){PostMessageW(window_,app_drag,0,0);return Json{{"ok",true}};});
+    clipboard_=std::make_unique<wpe::shell::ClipboardWorker>(options_.test);
+    bridge_->RegisterAsync("clipboardRead",[this](const Json&,WebBridge::Completion done){
+        clipboard_->Submit(false,{},[done](bool ok,std::wstring value){std::string text;try{if(ok)text=Utf8(value);}catch(...){}done({{"text",text}},{});});
+    });
+    bridge_->RegisterAsync("clipboardWrite",[this](const Json& args,WebBridge::Completion done){
+        std::wstring text;try{if(args.contains("text")&&!args["text"].is_null())text=Wide(args.at("text").get<std::string>());}catch(...){done({{"ok",false}},{});return;}
+        clipboard_->Submit(true,std::move(text),[done](bool ok,std::wstring){done({{"ok",ok}},{});});
+    });
     if(options_.test){
         bridge_->Register("__testStage",[this](const Json& args){report_["lastStage"]=args;return Json{{"ok",true}};});
         bridge_->Register("__testCancelNextFile",[this](const Json&){test_cancel_file_=true;return Json{{"ok",true}};});
@@ -274,33 +299,49 @@ void Host::RegisterMethods(){
     }
 }
 void Host::CancelFileJobs(){
-    ++file_epoch_;if(file_dialog_)file_dialog_->Close(HRESULT_FROM_WIN32(ERROR_CANCELLED));
-    auto cancelled=std::move(file_jobs_);file_jobs_.clear();for(auto& job:cancelled)job.done(nullptr,"文件选择已取消");
+    // Navigation/close must cancel deferred clipboard writes too.
+    if(clipboard_)clipboard_->Cancel();
+    ++file_epoch_;file_prompt_pending_=false;if(file_dialog_)file_dialog_->Close(HRESULT_FROM_WIN32(ERROR_CANCELLED));
+    auto cancelled=std::move(file_jobs_);file_jobs_.clear();for(auto& job:cancelled){DiscardExport(job.export_plan);job.done(nullptr,"文件选择已取消");}
 }
 void Host::PickImportFile(){
-    if(closing_||file_dialog_||file_jobs_.empty())return;
+    if(closing_||file_dialog_||file_prompt_pending_||file_jobs_.empty())return;
     auto job=std::move(file_jobs_.front());file_jobs_.pop_front();const auto epoch=file_epoch_;
     try{
-        fs::path path;const bool send=job.method=="importSendCollection";
+        fs::path path;const bool save=!job.export_plan.is_null(),send=save?job.export_plan.at("send").get<bool>():job.method=="importSendCollection";
         if(options_.test){
             // Test-only chooser seam; fixed files under the isolated report dir.
             // The production Windows dialog is never replaced outside --self-test.
-            if(!test_cancel_file_)path=options_.report/(send?L"import.sc":L"import.whs");test_cancel_file_=false;
+            if(!test_cancel_file_)path=options_.report/(save?(send?L"export.sc":L"export.whs"):(send?L"import.sc":L"import.whs"));test_cancel_file_=false;
         }else{
-            Check(CoCreateInstance(CLSID_FileOpenDialog,nullptr,CLSCTX_INPROC_SERVER,IID_PPV_ARGS(&file_dialog_)),"Create open dialog");
+            Check(CoCreateInstance(save?CLSID_FileSaveDialog:CLSID_FileOpenDialog,nullptr,CLSCTX_INPROC_SERVER,IID_PPV_ARGS(&file_dialog_)),"Create file dialog");
             DWORD flags=0;Check(file_dialog_->GetOptions(&flags),"Get dialog flags");
-            Check(file_dialog_->SetOptions(flags|FOS_FORCEFILESYSTEM|FOS_FILEMUSTEXIST|FOS_PATHMUSTEXIST|FOS_NOCHANGEDIR),"Set dialog flags");
+            Check(file_dialog_->SetOptions(flags|FOS_FORCEFILESYSTEM|FOS_PATHMUSTEXIST|FOS_NOCHANGEDIR|(save?FOS_OVERWRITEPROMPT:FOS_FILEMUSTEXIST)),"Set dialog flags");
             const COMDLG_FILTERSPEC filters[]={{send?L"发送集文件 (*.sc)":L"仓储数据文件 (*.whs)",send?L"*.sc":L"*.whs"},{L"XML 文件",L"*.xml"},{L"所有文件",L"*.*"}};
-            Check(file_dialog_->SetFileTypes(3,filters),"Set dialog filters");Check(file_dialog_->SetTitle(send?L"导入发送集":L"导入仓储数据"),"Set dialog title");
+            Check(file_dialog_->SetFileTypes(3,filters),"Set dialog filters");Check(file_dialog_->SetDefaultExtension(send?L"sc":L"whs"),"Set default extension");
+            Check(file_dialog_->SetTitle(save?Wide(job.export_plan.at("title").get<std::string>()).c_str():(send?L"导入发送集":L"导入仓储数据")),"Set dialog title");
             const auto hr=file_dialog_->Show(window_);if(hr!=HRESULT_FROM_WIN32(ERROR_CANCELLED)){Check(hr,"Open file dialog");ComPtr<IShellItem> item;Check(file_dialog_->GetResult(&item),"Get selected file");CoString name;Check(item->GetDisplayName(SIGDN_FILESYSPATH,&name.value),"Get file path");path=name.value;}
             file_dialog_.Reset();
         }
-        if(closing_||epoch!=file_epoch_)job.done(nullptr,"文件选择已取消");
-        else if(path.empty())job.done(Json{{"ok",true}},{});
+        if(closing_||epoch!=file_epoch_){DiscardExport(job.export_plan);job.done(nullptr,"文件选择已取消");}
+        else if(path.empty()){DiscardExport(job.export_plan);job.done(save?job.export_plan.at("result"):Json{{"ok",true}},{});}
+        else if(save){
+            file_prompt_pending_=true;
+            bridge_->AskResult("prompt",{{"formId","encrypt-export"},{"arg",{{"Title",job.export_plan.at("title")},{"FilePath",nullptr}}}},
+                [this,job,epoch,path](Json answer,std::string error){
+                    if(closing_||epoch!=file_epoch_){DiscardExport(job.export_plan);job.done(nullptr,"导出已取消");return;}
+                    file_prompt_pending_=false;
+                    if(!error.empty()){DiscardExport(job.export_plan);job.done(nullptr,"导出已取消："+error);}
+                    else if(answer.is_null())data_->Submit("__writeEditorExport",{{"plan",job.export_plan},{"_filePath",Utf8(path.wstring())}},[this,job](Json value,std::string failure){DiscardExport(job.export_plan);job.done(std::move(value),std::move(failure));});
+                    else{DiscardExport(job.export_plan);job.done(nullptr,"尚未实现：加密导出；未写入文件，请选择“不加密”导出明文");}
+                    if(!file_jobs_.empty())PostMessageW(window_,app_file,0,0);
+                });
+        }
         else{job.args["_filePath"]=Utf8(path.wstring());data_->Submit(job.method,std::move(job.args),bridge_->WithErrorToast(job.done));}
-    }catch(const std::exception& e){file_dialog_.Reset();job.done(nullptr,e.what());}
+    }catch(const std::exception& e){file_dialog_.Reset();file_prompt_pending_=false;DiscardExport(job.export_plan);job.done(nullptr,e.what());}
     if(!closing_&&!file_jobs_.empty())PostMessageW(window_,app_file,0,0);
 }
+void Host::DrainClipboard(){if(clipboard_)clipboard_->Drain();}
 void Host::Script(const std::wstring& script){
     Check(view_->ExecuteScript(script.c_str(),Callback<ICoreWebView2ExecuteScriptCompletedHandler>([this,alive=std::weak_ptr(lifetime_)](HRESULT hr,LPCWSTR)->HRESULT{
         if(alive.expired()||closing_)return S_OK;
@@ -331,12 +372,15 @@ void Host::BeginTest(){
         document.querySelector('[role=alertdialog] .btn.primary').click();
         await wait(()=>document.body.textContent.includes('NATIVE_BRIDGE_EVENT_OK'));
         const modeCards=document.querySelectorAll('.rack .cd').length;
-        const feeds=new Map();w.addEventListener('message',e=>{const m=e.data;if(m.type==='event'&&m.name==='feed:replace')feeds.set(m.data.list,m.data.rows);});
+        const feeds=new Map(),notices=[];w.addEventListener('message',e=>{const m=e.data;if(m.type==='event'&&m.name==='feed:replace')feeds.set(m.data.list,m.data.rows);if(m.type==='event'&&m.name==='notify')notices.push(m.data);});
         const dialog=kind=>[...document.querySelectorAll('[role=dialog]')].find(d=>d.querySelector('.sub')?.textContent==='Controls/'+kind);
         const input=(el,value)=>{if(!el)throw Error('editor input missing');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el,String(value));el.dispatchEvent(new Event('input',{bubbles:true}));};
         const nav=async label=>{await call('__testStage',{stage:label});const el=[...document.querySelectorAll('.side .sb-item')].find(e=>e.querySelector('.t')?.textContent.trim()===label);if(!el)throw Error('navigation missing: '+label);el.click();await wait(()=>document.querySelector('.list-page .bar .btn.primary'));};
         const openEditor=async(kind)=>{document.querySelector('.list-page .row .ops .op:not(.del)').click();await wait(()=>dialog(kind)?.querySelector('.bd'));return dialog(kind);};
         const closeEditor=async(kind)=>{dialog(kind).querySelector('.ft .btn:not(.primary)').click();await wait(()=>!dialog(kind));};
+        const clipEquals=async expected=>{for(let n=0;n<50;n++){if((await call('clipboardRead')).text===expected)return;await new Promise(r=>setTimeout(r,40));}throw Error('clipboard mismatch');};
+        const exportPlain=async(d,title)=>{const count=notices.length;[...d.querySelectorAll('.runbar .btn')].find(e=>e.textContent.trim().includes('导出')).click();await wait(()=>document.querySelector('[role=dialog] .ft .btn.plain'));document.querySelector('[role=dialog] .ft .btn.plain').click();await wait(()=>notices.slice(count).some(x=>x.title===title));};
+    )JS" LR"JS(
         const editors=async(restart)=>{
           await nav('发送列表');if(!restart){document.querySelector('.list-page .bar .btn.primary').click();await wait(()=>feeds.get(9)?.length===1&&document.querySelector('.list-page .row .name'));}
           let d=await openEditor('SendEdit');
@@ -351,8 +395,17 @@ void Host::BeginTest(){
             const p=dialog('PacketEdit');input(p.querySelector('.fields input'),99);
             const hex=p.querySelector('.hexed [tabindex="0"]');if(!hex)throw Error('original HexView missing');
             hex.focus();for(const key of ['A','A'])hex.dispatchEvent(new KeyboardEvent('keydown',{key,bubbles:true,cancelable:true}));
+            for(const key of ['a','c'])hex.dispatchEvent(new KeyboardEvent('keydown',{key,ctrlKey:true,bubbles:true,cancelable:true}));
+            await clipEquals('AA FF 80 41');await call('clipboardWrite',{text:'AA FF 80 42'});
+            hex.dispatchEvent(new KeyboardEvent('keydown',{key:'v',ctrlKey:true,bubbles:true,cancelable:true}));
+            await wait(()=>hex.querySelector('.hexs .b[data-i="3"]')?.textContent.trim()==='42');
+            await call('clipboardWrite',{text:null});await clipEquals('');
             p.querySelector('.ft .btn.primary').click();await wait(()=>!dialog('PacketEdit')&&d.querySelector('.row2 .so')?.textContent==='99');
             if(!d.querySelector('.row2 .dt').textContent.startsWith('AA FF'))throw Error('HexView edit not saved');
+            await call('__testCancelNextFile');await call('exportSendCollection',{_filePath:'untrusted-browser-path.sc'});
+            await exportPlain(d,'导出发送集成功');
+            const denied=call('exportSendCollection').then(()=>{throw Error('password export falsely succeeded');},e=>{if(!String(e).includes('尚未实现：加密导出'))throw e;});
+            await wait(()=>document.querySelector('[role=dialog] .ft .btn.plain'));const pw=document.querySelector('[role=dialog] .ft .btn.plain').closest('[role=dialog]');for(const field of pw.querySelectorAll('input'))input(field,'test-only-not-a-user-password');await wait(()=>!pw.querySelector('.ft .btn.primary').disabled);pw.querySelector('.ft .btn.primary').click();await denied;
             d.querySelector('.ft .btn.primary').click();await wait(()=>!dialog('SendEdit')&&feeds.get(9)?.[0]?.PacketCount===2);
           }else{
             await wait(()=>d.querySelectorAll('.row2').length===2);
@@ -366,6 +419,8 @@ void Host::BeginTest(){
             input(d.querySelector('.bd > .row input'),'C++ 仓储编辑测试');
             [...d.querySelectorAll('.runbar .btn')].find(e=>e.textContent.trim().includes('导入')).click();
             await wait(()=>d.querySelectorAll('.row2').length===2&&document.body.textContent.includes('导入仓储数据成功'));
+            await exportPlain(d,'导出仓储数据成功');
+            d.querySelector('.row2').click();await wait(()=>[...d.querySelectorAll('.runbar .btn')].some(e=>e.textContent.includes('复制')&&!e.disabled));[...d.querySelectorAll('.runbar .btn')].find(e=>e.textContent.includes('复制')).click();await clipEquals('00 FF 80\r\n');
             d.querySelector('.runbar .btn.danger').click();await wait(()=>document.querySelector('[role=alertdialog] .btn:not(.primary)'));
             document.querySelector('[role=alertdialog] .btn:not(.primary)').click();await wait(()=>!document.querySelector('[role=alertdialog]'));
             if(d.querySelectorAll('.row2').length!==2)throw Error('cancelled store clear lost entries');
@@ -385,7 +440,7 @@ void Host::BeginTest(){
           }
           await wait(()=>d.querySelectorAll('.flow .blk').length===3);
           if(d.querySelector('.wbar input.nm').value!=='C++ 指令闭环测试'||!d.querySelector('.flow .blk.c1').textContent.includes('25'))throw Error('robot draft/restart mismatch');
-          return {originalEditorButtons:true,originalHexViewEdited:true,importNotifications:true,chooserCancelKeptData:true,robotCancelKeptSavedInstructions:true,editorRestartPersistence:restart,editorCounts:[feeds.get(9)[0].PacketCount,feeds.get(10)[0].InstructionCount,feeds.get(11)[0].DataCount],chooserTest:'fixed-path seam; production Windows picker UI not automated'};
+          return {originalEditorButtons:true,originalHexViewEdited:true,originalExportButtons:!restart,originalClipboardButtons:!restart,encryptedExportRejected:!restart,clipboardTest:'UI uses isolated memory clipboard; real OS clipboard tested separately in private window station',importNotifications:true,chooserCancelKeptData:true,robotCancelKeptSavedInstructions:true,editorRestartPersistence:restart,editorCounts:[feeds.get(9)[0].PacketCount,feeds.get(10)[0].InstructionCount,feeds.get(11)[0].DataCount],chooserTest:'fixed-path seam; production Windows picker UI not automated'};
         };
     )JS" LR"JS(
         const prefs=await call('getPrefs');if(!prefs.isDark||prefs.language!=='zh-CN')throw Error('unexpected fresh DB prefs');
@@ -439,7 +494,7 @@ void Host::Fail(const std::string& message){
 void Host::Finish(bool success){
     if(done_)return;done_=true;exit_code_=success?0:1;
     report_["result"]=success?"passed":"failed";report_["webMessagesReceived"]=messages_;report_["nativeDrag"]=native_drag_;
-    report_["scope"]="Editor acceptance: original Vue/HexView, XML chooser seam, cancel and restart -> native RPC/SQLite/feed. topmostProbe is a separate non-gating window diagnostic; no picker UI automation, capture/proxy/injection/execution";
+    report_["scope"]="Exchange/editor acceptance: original Vue/HexView/export/copy/paste -> native RPC/SQLite/files. UI clipboard uses isolated memory; OS clipboard verified separately on private station. File chooser fixed-path seam. topmostProbe non-gating; no picker UI automation, capture/proxy/injection/execution";
     if(options_.test){std::ofstream file(options_.report/L"host-self-test.json",std::ios::binary);file<<report_.dump(2);file.flush();if(!file)exit_code_=1;}
     PostMessageW(window_,WM_CLOSE,0,0);
 }
