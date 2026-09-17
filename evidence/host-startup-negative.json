@@ -1,0 +1,7 @@
+{
+  "case": "missing-wwwroot",
+  "result": "passed",
+  "appExitCode": 1,
+  "outputsCreated": false,
+  "note": "Expected nonzero exit without window/modal or runtime initialization"
+}

@@ -14,11 +14,11 @@
     "13.1"
   ],
   "scope": "Common protocol/ring, bridge transport and original Vue startup; no native pipes, injection, capture, proxy, complete business handlers or full UI acceptance",
-  "startedUtc": "2026-09-17T12:59:13.2769131Z",
-  "finishedUtc": "2026-09-17T12:59:32.4004335Z",
+  "startedUtc": "2026-09-17T13:07:23.0025544Z",
+  "finishedUtc": "2026-09-17T13:07:44.2955900Z",
   "result": "passed",
-  "runDirectory": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-m0-full\\run-a9d6f93fd58a4bd99211ef3394949940",
-  "command": "E:\\codex\\2026-09-17\\bi-a\\outputs\\WPE64-Cpp\\build-test.ps1 -BuildRoot E:\\codex\\2026-09-17\\bi-a\\work\\cpp-m0-full -Architecture x64,Win32",
+  "runDirectory": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-host-ring-final\\run-10503902cf534dac8e626fc1a76c3d7d",
+  "command": "E:\\codex\\2026-09-17\\bi-a\\outputs\\WPE64-Cpp\\build-test.ps1 -BuildRoot E:\\codex\\2026-09-17\\bi-a\\work\\cpp-host-ring-final -Architecture x64,Win32",
   "architectures": [
     {
       "architecture": "x64",
@@ -28,20 +28,20 @@
       "ring": "PASS: packet ring edges/concurrency; 6416 original state-transition vectors",
       "artifacts": [
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-m0-full\\run-a9d6f93fd58a4bd99211ef3394949940\\x64\\Release\\wpe64-parity-test.exe",
-          "sha256": "65B976B8DC281B918FB512D08265FE59D4793A42DD2AF5396E847DC66D335C90"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-host-ring-final\\run-10503902cf534dac8e626fc1a76c3d7d\\x64\\Release\\wpe64-parity-test.exe",
+          "sha256": "D810B25AA0852A5A175CB5DDD67F638A65CE5C4995FE98087FEDCCEB1F5FEF19"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-m0-full\\run-a9d6f93fd58a4bd99211ef3394949940\\x64\\Release\\wpe64-common.lib",
-          "sha256": "43F8A8097403261D90BCE6ED4108C180FF6B39AE17BBD5138FEBD6C90CB9B682"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-host-ring-final\\run-10503902cf534dac8e626fc1a76c3d7d\\x64\\Release\\wpe64-common.lib",
+          "sha256": "A89F7D647B748482AF1B45E4B8B756F1D91280A1BBF33B9D1F2056EB7AD54534"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-m0-full\\run-a9d6f93fd58a4bd99211ef3394949940\\x64-packets.tsv",
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-host-ring-final\\run-10503902cf534dac8e626fc1a76c3d7d\\x64-packets.tsv",
           "sha256": "982050FA8F316304A79A30ED787A390BC6F2220E48E0AE40E757151F0C8EEE47"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-m0-full\\run-a9d6f93fd58a4bd99211ef3394949940\\x64\\CMakeCache.txt",
-          "sha256": "BC8205730ED252C8271E2F183EAEF2B7FCCDA106D7AEA86E207F48156F520097"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-host-ring-final\\run-10503902cf534dac8e626fc1a76c3d7d\\x64\\CMakeCache.txt",
+          "sha256": "B4F1E24260CFBDD402FDCFC9870A17EC96CD2CDB0136E97F2F2DBB0DD180C90D"
         }
       ]
     },
@@ -53,20 +53,20 @@
       "ring": "PASS: packet ring edges/concurrency; 6416 original state-transition vectors",
       "artifacts": [
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-m0-full\\run-a9d6f93fd58a4bd99211ef3394949940\\Win32\\Release\\wpe64-parity-test.exe",
-          "sha256": "965770755CE7CCC5A937BF5811B95FCF0BDB0E267FFF6661A915CFEAC458DE6B"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-host-ring-final\\run-10503902cf534dac8e626fc1a76c3d7d\\Win32\\Release\\wpe64-parity-test.exe",
+          "sha256": "16DF899030999163823B37D7F6A6B95ED25870163EAD380B24F47F5F5EE50599"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-m0-full\\run-a9d6f93fd58a4bd99211ef3394949940\\Win32\\Release\\wpe64-common.lib",
-          "sha256": "BE949AD3D0E1AEB4A05FEC2AB09301392B5219023857CAB10562769D2F45D439"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-host-ring-final\\run-10503902cf534dac8e626fc1a76c3d7d\\Win32\\Release\\wpe64-common.lib",
+          "sha256": "60C6C0E45AE130B8A1295CCB2D77DAE956086D2845E796543C223A4DAA46277D"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-m0-full\\run-a9d6f93fd58a4bd99211ef3394949940\\Win32-packets.tsv",
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-host-ring-final\\run-10503902cf534dac8e626fc1a76c3d7d\\Win32-packets.tsv",
           "sha256": "982050FA8F316304A79A30ED787A390BC6F2220E48E0AE40E757151F0C8EEE47"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-m0-full\\run-a9d6f93fd58a4bd99211ef3394949940\\Win32\\CMakeCache.txt",
-          "sha256": "96E94C09B54A9ADF2B46A6997B857C41069DBD660262618078657B99D827078C"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-host-ring-final\\run-10503902cf534dac8e626fc1a76c3d7d\\Win32\\CMakeCache.txt",
+          "sha256": "F2ADC8A5791D275B27C2B52F72DD505F4557BC4EFC61756AF72DEAA317CDC3C4"
         }
       ]
     }
@@ -186,15 +186,15 @@
     },
     {
       "path": "src\\shell\\main.cpp",
-      "sha256": "FB3B5A8794D65B6C1C04952EC863B5D5263043423BE668A441FD97A80AC7C2A7"
+      "sha256": "2834F8BE599B4B8605A98AD011583E9FB0660D72C79113F9ED30F03B6A0DF90B"
     },
     {
       "path": "src\\shell\\web_bridge.cpp",
-      "sha256": "FAD4D69D02F4BC1499C314C3CBF8DC5F88341F432E82C47F105AD49262AC1F59"
+      "sha256": "3A5FAA315293371109C6B2C10ED276B1A2ACC8BEB47D5DD4ADDB3738736F22A7"
     },
     {
       "path": "src\\shell\\web_bridge.h",
-      "sha256": "E862ED275740FAC2A71EFAE293DA70CE2B4B4984B266DBA76FEFDCB06BE04EAE"
+      "sha256": "50B7F4033884A8CD8F45705EA65ED4494C33E7F0B9508290BCC5CA75974DAC7D"
     },
     {
       "path": "tests\\codec_test.cpp",
@@ -238,7 +238,7 @@
     },
     {
       "path": "tests\\web_bridge_test.cpp",
-      "sha256": "899152082DF4CF63F9413FFCB52E2E9A074D8896E11FDA011106EACA25455374"
+      "sha256": "5E3F49EEE68CB82FE9AA7CF56EE7312E210C0D8414BB2BE215B904AB52169C4B"
     },
     {
       "path": "verify-assets.ps1",
@@ -246,7 +246,7 @@
     }
   ],
   "git": {
-    "commit": "a9dc07e0efa88ff246a64a8d933c108b6190e911",
+    "commit": "c640546d650d79f140111988e504e1d207e3a7b9",
     "dirty": true
   },
   "environment": {
@@ -285,16 +285,16 @@
   },
   "hostArtifacts": [
     {
-      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-m0-full\\run-a9d6f93fd58a4bd99211ef3394949940\\x64\\Release\\wpe64-app.exe",
-      "sha256": "A855B517F36EC26747CABDE1E0F9C93867EE3601B8EC8BFAD67EB5BAC7A6F690"
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-host-ring-final\\run-10503902cf534dac8e626fc1a76c3d7d\\x64\\Release\\wpe64-app.exe",
+      "sha256": "9644A90BAEF0EF4419AB4EE6E946E7E5EFE8D0116ABDBCA81E6412254578F04E"
     },
     {
-      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-m0-full\\run-a9d6f93fd58a4bd99211ef3394949940\\host\\host-self-test.json",
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-host-ring-final\\run-10503902cf534dac8e626fc1a76c3d7d\\host\\host-self-test.json",
       "sha256": "C2262F8E1C74438338627C05808041F1365528828A2DDC2C4D725107CF40D858"
     },
     {
-      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-m0-full\\run-a9d6f93fd58a4bd99211ef3394949940\\host\\original-vue.png",
-      "sha256": "6C9F2867D490E119548B6C0EE6449A52F4839A267ADDF0DBEEA3F69B7E722B05"
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\cpp-host-ring-final\\run-10503902cf534dac8e626fc1a76c3d7d\\host\\original-vue.png",
+      "sha256": "169B831A3444B896B1358D4EFDDA9B317A76ED4F732B1C9A356FDE14B996CAB0"
     }
   ]
 }

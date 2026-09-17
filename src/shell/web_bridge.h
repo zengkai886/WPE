@@ -37,5 +37,6 @@ private:
     std::map<std::string,Pending> pending_;
     std::uint64_t sequence_{};
     bool closed_{};
+    bool cancelling_{};
 };
 } // namespace wpe::shell

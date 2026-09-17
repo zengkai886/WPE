@@ -37,9 +37,23 @@ int main() {
         bridge.Register("fail",[](const Json&) -> Json{throw std::runtime_error("intentional");});
         bridge.Receive("https://app.wpe64.local/",R"({"type":"call","id":"e","method":"fail"})");
         check(sent.back()["error"]=="intentional");
+        const std::string large(1024*1024+32,'x');
+        bridge.Receive("https://app.wpe64.local/",Json({{"type","call"},{"id","large-call"},{"method","echo"},{"args",{{"payload",large}}}}).dump());
+        check(sent.back()["id"]=="large-call" && sent.back()["result"]["payload"]==large);
+        id=bridge.Ask("prompt",Json::object(),[&](Json value){result=value;});
+        bridge.Receive("https://app.wpe64.local/",Json({{"type","answer"},{"id",id},{"ok",true},{"result",large}}).dump());
+        check(result==large && bridge.PendingCount()==0);
         WebBridge broken([](const std::string&){throw std::runtime_error("closed transport");});
         broken.Ask("confirm",{},[&](Json value){++answers;result=value;});
         check(answers==4 && result.is_null() && broken.PendingCount()==0);
+        int cancelled=0;
+        bridge.Ask("first",{},[&](Json value){
+            check(value.is_null());++cancelled;
+            bridge.Ask("during-navigation",{},[&](Json nested){check(nested.is_null());++cancelled;});
+        });
+        const auto posted_before_cancel=sent.size();
+        bridge.FailAllPending();
+        check(cancelled==2 && bridge.PendingCount()==0 && sent.size()==posted_before_cancel);
         std::cout<<"PASS: five bridge message types, origins, errors, timeout, cancellation, duplicate answer and failed transport\n";
         return 0;
     }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}

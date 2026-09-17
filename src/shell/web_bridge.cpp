@@ -19,7 +19,7 @@ void WebBridge::Reply(const Json& id,bool ok,Json value,const std::string& error
     post_(message.dump());
 }
 void WebBridge::Receive(std::string_view source,std::string_view raw){
-    if(closed_ || !IsAllowedSource(source) || raw.size()>1024*1024)return;
+    if(closed_ || !IsAllowedSource(source))return;
     Json id;
     try {
         const auto message=Json::parse(raw);
@@ -43,7 +43,7 @@ void WebBridge::Receive(std::string_view source,std::string_view raw){
     }
 }
 std::string WebBridge::Ask(std::string method,Json args,Answer answer,std::chrono::milliseconds timeout){
-    if(closed_ || pending_.size()>=1024){if(answer)answer(nullptr);return {};}
+    if(closed_||cancelling_){if(answer)try{answer(nullptr);}catch(...){}return {};}
     const auto id="a"+std::to_string(++sequence_);
     pending_.emplace(id,Pending{Clock::now()+timeout,std::move(answer)});
     Json message{{"type","ask"},{"id",id},{"method",std::move(method)}};
@@ -56,9 +56,17 @@ void WebBridge::Complete(const std::string& id,Json value){
     if(!entry.empty() && entry.mapped().complete)try{entry.mapped().complete(std::move(value));}catch(...){/* One failing UI consumer must not strand the rest. */}
 }
 void WebBridge::FailAllPending(){
-    std::vector<std::string> ids;
-    for(const auto& [id,pending]:pending_){(void)pending;ids.push_back(id);}
-    for(const auto& id:ids)Complete(id,nullptr);
+    if(cancelling_)return;
+    cancelling_=true;
+    // Keep cancellation active while callbacks run: they may try to ask again.
+    // Extracting the whole map needs no temporary ID allocations during shutdown.
+    auto abandoned=std::move(pending_);
+    pending_.clear();
+    for(auto& [id,pending]:abandoned){
+        (void)id;
+        if(pending.complete)try{pending.complete(nullptr);}catch(...){}
+    }
+    cancelling_=false;
 }
 void WebBridge::Tick(Clock::time_point now){
     std::vector<std::string> expired;

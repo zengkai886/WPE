@@ -19,7 +19,7 @@ using wpe::shell::Json;
 using wpe::shell::WebBridge;
 namespace fs=std::filesystem;
 namespace {
-constexpr UINT app_ready=WM_APP+1, app_drag=WM_APP+2, app_test=WM_APP+3;
+constexpr UINT app_ready=WM_APP+1, app_drag=WM_APP+2, app_test=WM_APP+3, app_failure=WM_APP+4;
 constexpr wchar_t origin[]=L"https://app.wpe64.local/index.html";
 void Check(HRESULT result,const char* operation){
     if(FAILED(result)){std::ostringstream text;text<<operation<<" HRESULT=0x"<<std::hex<<static_cast<unsigned long>(result);throw std::runtime_error(text.str());}
@@ -72,8 +72,14 @@ Options Arguments(){
 }
 class Host {
 public:
-    explicit Host(Options options):options_(std::move(options)){}
-    ~Host(){closing_=true;lifetime_.reset();if(controller_)controller_->Close();if(IsWindow(window_))DestroyWindow(window_);}
+    explicit Host(Options options):options_(std::move(options)),exit_code_(options_.test?1:0){}
+    ~Host(){
+        closing_=true;lifetime_.reset();
+        // Complete callbacks while the report/window state they capture still exists.
+        if(bridge_){bridge_->FailAllPending();bridge_.reset();}
+        if(controller_)controller_->Close();
+        if(IsWindow(window_))DestroyWindow(window_);
+    }
     int Run();
 private:
     static LRESULT CALLBACK WindowProc(HWND window,UINT message,WPARAM wparam,LPARAM lparam);
@@ -95,8 +101,8 @@ private:
     ComPtr<ICoreWebView2Controller> controller_;
     ComPtr<ICoreWebView2> view_;
     std::unique_ptr<WebBridge> bridge_;
-    bool native_drag_{},ready_{},closing_{},done_{};
-    int exit_code_=1;
+    bool native_drag_{},ready_{},revealed_{},closing_{},done_{},failure_posted_{};
+    int exit_code_;
     std::uint64_t messages_{};
     Json report_=Json::object();
     std::chrono::steady_clock::time_point started_=std::chrono::steady_clock::now();
@@ -130,18 +136,23 @@ LRESULT Host::Message(UINT message,WPARAM wparam,LPARAM lparam){
     case WM_TIMER:
         if(bridge_)bridge_->Tick();
         if(options_.test && std::chrono::steady_clock::now()-started_>std::chrono::seconds(30))Fail("WebView2 self-test timed out");
+        if(!options_.test && !revealed_ && std::chrono::steady_clock::now()-started_>std::chrono::seconds(4)){revealed_=true;ShowWindow(window_,SW_SHOW);}
+        if(!options_.test && !ready_ && std::chrono::steady_clock::now()-started_>std::chrono::seconds(30))Fail("原 Vue 页面未在 30 秒内完成初始化，请检查 WebView2 Runtime 和 wwwroot 资源。");
         return 0;
     case app_ready:
-        if(!options_.test)ShowWindow(window_,SW_SHOW);
-        else if(!ready_){ready_=true;BeginTest();}
+        if(!ready_){ready_=true;if(!options_.test){revealed_=true;ShowWindow(window_,SW_SHOW);}else BeginTest();}
         return 0;
     case app_drag:ReleaseCapture();SendMessageW(window_,WM_NCLBUTTONDOWN,HTCAPTION,0);return 0;
     case app_test:CaptureAndFinish();return 0;
+    case app_failure:
+        // Posted from WebView2 callbacks: no nested modal pump in those callbacks.
+        if(!options_.test)MessageBoxW(window_,Wide(report_.value("error",std::string("Native host failed"))).c_str(),L"WPE C++ 宿主错误",MB_OK|MB_ICONERROR);
+        Finish(false);return 0;
     case WM_CLOSE:
         closing_=true;if(bridge_)bridge_->FailAllPending();
         if(controller_)controller_->Close();view_.Reset();controller_.Reset();
         DestroyWindow(window_);return 0;
-    case WM_DESTROY:KillTimer(window_,1);PostQuitMessage(options_.test?exit_code_:0);return 0;
+    case WM_DESTROY:KillTimer(window_,1);PostQuitMessage(exit_code_);return 0;
     }
     return DefWindowProcW(window_,message,wparam,lparam);
 }
@@ -260,10 +271,10 @@ void Host::CaptureAndFinish(){
     }).Get()),"Capture preview");
 }
 void Host::Fail(const std::string& message){
-    if(done_||closing_)return;
+    if(done_||closing_||failure_posted_)return;
+    failure_posted_=true;exit_code_=1;
     report_["error"]=message;
-    if(!options_.test)MessageBoxW(window_,Wide(message).c_str(),L"WPE C++ 宿主错误",MB_OK|MB_ICONERROR);
-    Finish(false);
+    PostMessageW(window_,app_failure,0,0);
 }
 void Host::Finish(bool success){
     if(done_)return;done_=true;exit_code_=success?0:1;
