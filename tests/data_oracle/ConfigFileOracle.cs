@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -70,8 +71,15 @@ static class ConfigFileOracle
         Save(Path.Combine(output,"original.wl"),whiteXml);Save(Path.Combine(output,"original.bl"),blackXml);
         Save(Path.Combine(output,"ip-rules.sb"),new XElement("WPE64_BackUp",whiteXml,blackXml));
         Save(Path.Combine(output,"supported-nine.sb"),new XElement("WPE64_BackUp",system,proxy,whiteXml,blackXml,inject,roots));
+        var accounts=new List<AccountInfo> {
+            new AccountInfo(new Guid("55555555-5555-5555-5555-555555555555"),true,"alice<&>",Operate.SystemConfig.PassWord_Encrypt("P@ss'中"),new BindingList<AccountIPInfo> {
+                new AccountIPInfo(new DateTime(2026,9,18,5,6,7),"192.0.2.10","测试网络"),new AccountIPInfo(new DateTime(2026,9,18,6,7,8),"198.51.100.20","测试网络") },true,7,false,0,true,new DateTime(2027,2,3,4,5,6),new DateTime(2026,9,18,4,3,2)),
+            new AccountInfo(new Guid("66666666-6666-6666-6666-666666666666"),false,"用户二",Operate.SystemConfig.PassWord_Encrypt("!Zz 905"),new BindingList<AccountIPInfo>(),false,0,true,2,false,Operate.SystemConfig.MaxDateTime,new DateTime(2026,9,18,7,8,9)) };
+        var accountXml=Operate.ProxyConfig.Account.GetAccountList_XML(accounts);Save(Path.Combine(output,"original.pa"),accountXml);
+        Save(Path.Combine(output,"accounts.sb"),new XElement("WPE64_BackUp",accountXml));
+        Save(Path.Combine(output,"supported-ten.sb"),new XElement("WPE64_BackUp",system,proxy,accountXml,whiteXml,blackXml,inject,roots));
         var cases=new JArray();var passwords=new[]{"compatibility-test", "密码中文测试", "emoji-\U0001F512-\U0001F600", "\u00e9\u20ac\u0416\u3042\u3000", " leading and trailing ", "x", "\0embedded\0"};
-        foreach(var kind in kinds.Concat(new[]{"wl","bl","sb"}))for(int i=0;i<passwords.Length;i++)
+        foreach(var kind in kinds.Concat(new[]{"wl","bl","pa","sb"}))for(int i=0;i<passwords.Length;i++)
         {
             var file=Path.Combine(output,kind+"-"+i+".encrypted");File.Copy(Path.Combine(output,"original."+kind),file);
             Operate.SystemConfig.EncryptXMLFile(file,passwords[i]);
@@ -80,7 +88,7 @@ static class ConfigFileOracle
         }
         string hash;using(var sha=System.Security.Cryptography.SHA256.Create())hash=BitConverter.ToString(sha.ComputeHash(File.ReadAllBytes(typeof(Operate).Assembly.Location))).Replace("-","");
         File.WriteAllText(Path.Combine(output,"crypto.json"),new JObject { ["sourceAssemblySha256"]=hash,["codePage"]=Encoding.Default.CodePage,["cases"]=cases }.ToString());
-        Console.WriteLine("PASS: original loaders and serializers, 4 parent lists + proxy/inject/IP-rule backups, "+cases.Count+" cipher vectors, ACP="+Encoding.Default.CodePage);return 0;
+        Console.WriteLine("PASS: original loaders and serializers, 4 parent lists + settings/IP/account backups, "+cases.Count+" cipher vectors, ACP="+Encoding.Default.CodePage);return 0;
     }
     public static int Verify(string file,string password)
     {
@@ -102,5 +110,12 @@ static class ConfigFileOracle
         if(!SpinWait.SpinUntil(()=>Operate.ProxyConfig.Proxy.lstWhiteList.Count==whiteCount&&Operate.ProxyConfig.Proxy.lstBlackList.Count==blackCount,5000))throw new Exception("Original IP-rule loaders did not settle");
         Save(output,new XElement("WPE64_BackUp",Operate.ProxyConfig.Proxy.GetWhiteList_XML(Operate.ProxyConfig.Proxy.lstWhiteList),Operate.ProxyConfig.Proxy.GetBlackList_XML(Operate.ProxyConfig.Proxy.lstBlackList)));
         Console.WriteLine("PASS: unchanged original loaded native WhiteList and BlackList database rows");return 0;
+    }
+    public static int VerifyAccountsDatabase(string database,string output)
+    {
+        var file=Path.GetFullPath(database);Operate.DataBase.dbPath=Path.GetDirectoryName(file);Operate.DataBase.dbName=Path.GetFileName(file);Operate.DataBase.InitConStr();
+        int accountCount=Operate.DataBase.SelectTable_ProxyAccount().Rows.Count,loginCount=Operate.DataBase.SelectTable_ProxyAccountIPInfo().Rows.Count;Operate.ProxyConfig.Account.LoadProxyAccountList_FromDB();
+        if(!SpinWait.SpinUntil(()=>Operate.ProxyConfig.Account.lstAccountInfo.Count==accountCount&&Operate.ProxyConfig.Account.lstAccountInfo.Sum(x=>x.AIPInfo.Count)==loginCount,5000))throw new Exception("Original account loader did not settle");
+        Save(output,Operate.ProxyConfig.Account.GetAccountList_XML(Operate.ProxyConfig.Account.lstAccountInfo.ToList()));Console.WriteLine("PASS: unchanged original loaded native ProxyAccount and ProxyAccountIPInfo rows");return 0;
     }
 }

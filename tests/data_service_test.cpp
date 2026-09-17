@@ -16,8 +16,8 @@ Json Call(DataService& service,const std::string& method,Json args=Json::object(
 int main(int argc,char** argv){
     try{
         const auto dir=fs::current_path()/"data-test"/std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());fs::create_directories(dir);
-        const auto file=dir/L"中文持久化.db";std::map<int,Json> feeds;std::string id,sid,wid;
-        auto emit=[&](std::string event,Json data){Require(event=="feed:replace","wrong feed event");feeds[data.at("list").get<int>()]=data.at("rows");};
+        const auto file=dir/L"中文持久化.db";std::map<int,Json> feeds;std::string id,sid,wid,accountId;
+        auto emit=[&](std::string event,Json data){if(event=="toast")return;Require(event=="feed:replace","wrong feed event");feeds[data.at("list").get<int>()]=data.at("rows");};
         {
             DataService service(file,emit);
             auto prefs=Call(service,"getPrefs");Require(prefs["isDark"]==true&&prefs["scanLine"]==true,"fresh defaults");
@@ -36,6 +36,13 @@ int main(int argc,char** argv){
             Call(service,"saveLogSetting",{{"autoClearValue",1234}});Call(service,"saveLogSetting",{{"autoClear",false}});Require(Call(service,"getLogSetting")["autoClearValue"]==1234,"partial log save");
             Call(service,"saveSystemSetting",{{"speedMode",true},{"listExecute",0},{"filterExecute",1}});
             Call(service,"enterProxyMode");Require(feeds[8].empty(),"fresh filter list");Require(Call(service,"getStats")["proxyRunning"]==false,"proxy falsely running");
+            Require(feeds.contains(5)&&feeds[5].empty(),"fresh account feed");
+            Require(Call(service,"saveAccount",{{"userName"," 账号持久化 "},{"password"," P@ss'中 "},{"isEnable",true},{"isLimitLinks",true},{"limitLinks",3},{"isLimitDevices",false},{"limitDevices",7},{"isExpiry",true},{"expiryTime","2030-01-02 03:04:05"}})["ok"]==true,"account save");
+            Require(feeds[5].size()==1&&!feeds[5][0].contains("PassWord")&&feeds[5][0]["LoginCount"]==0,"account feed shape or secret leak");
+            accountId=feeds[5][0]["Id"].get<std::string>();Require(Call(service,"getAccountPassword",{{"id",accountId}})["password"]=="P@ss'中","account password mapping");
+            Require(Call(service,"setAccountEnable",{{"id",accountId},{"enable",false}})["ok"]==true&&feeds[5][0]["IsEnable"]==false,"account enable");
+            Require(Call(service,"adjustAccountLimit",{{"ids",Json::array({accountId})},{"devices",true},{"on",true},{"value",2}})["count"]==1&&feeds[5][0]["LimitDevices"]==2,"account device adjustment");
+            Require(Call(service,"adjustAccountExpiry",{{"ids",Json::array({accountId})},{"addType",0},{"hours",25}})["count"]==1&&feeds[5][0]["ExpiryTime"]=="2030-01-03 04:04:05","account expiry adjustment");
             id=Call(service,"addFilter")["id"].get<std::string>();Require(feeds[8].size()==1&&feeds[8][0]["Id"]==id,"new filter not pushed");
             auto row=Call(service,"getFilterEdit",{{"id",id}})["row"];
             Require(row["Name"]=="滤镜 1"&&row["FunctionMask"]==4095&&row["ExecuteType"]==2,"original new filter defaults");
@@ -74,8 +81,11 @@ int main(int argc,char** argv){
             Require(feeds[8].size()==1&&feeds[8][0]["Id"]==id,"filter restart persistence");
             Require(Call(reopened,"getFilterEdit",{{"id",id}})["row"]["Modify"][0]["Index"]==-1000,"offset persistence");
             Require(feeds[9][0]["Name"]=="序列 中文"&&feeds[11][0]["Name"]=="仓库持久化","collection persistence");
+            Require(feeds[5].size()==1&&feeds[5][0]["Id"]==accountId&&feeds[5][0]["UserName"]=="账号持久化"&&feeds[5][0]["LimitDevices"]==2,"account restart persistence");
+            Require(Call(reopened,"getAccountPassword",{{"id",accountId}})["password"]=="P@ss'中"&&Call(reopened,"getAccountLogins",{{"id",accountId}})["rows"].empty(),"account secret/login restart persistence");
             Require(Call(reopened,"getPrefs")["themeMode"]=="system"&&Call(reopened,"getPrefs")["scanLine"]==false,"appearance persistence");
         }
+        {Database schema(file);const auto tables=schema.Query("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('ProxyAccount','ProxyAccountIPInfo')");Require(tables.size()==2,"account schema tables missing");}
         {
             Database db(dir/"rollback.db");db.Execute("CREATE TABLE test (id TEXT PRIMARY KEY,value BLOB)");
             const Json original=Json::array({{{"id","keep"},{"value",Json::binary({0,255,128})}}});

@@ -213,6 +213,41 @@
       "password": "\u0000embedded\u0000"
     },
     {
+      "plain": "original.pa",
+      "encrypted": "pa-0.encrypted",
+      "password": "compatibility-test"
+    },
+    {
+      "plain": "original.pa",
+      "encrypted": "pa-1.encrypted",
+      "password": "密码中文测试"
+    },
+    {
+      "plain": "original.pa",
+      "encrypted": "pa-2.encrypted",
+      "password": "emoji-🔒-😀"
+    },
+    {
+      "plain": "original.pa",
+      "encrypted": "pa-3.encrypted",
+      "password": "é€Жあ　"
+    },
+    {
+      "plain": "original.pa",
+      "encrypted": "pa-4.encrypted",
+      "password": " leading and trailing "
+    },
+    {
+      "plain": "original.pa",
+      "encrypted": "pa-5.encrypted",
+      "password": "x"
+    },
+    {
+      "plain": "original.pa",
+      "encrypted": "pa-6.encrypted",
+      "password": "\u0000embedded\u0000"
+    },
+    {
       "plain": "original.sb",
       "encrypted": "sb-0.encrypted",
       "password": "compatibility-test"

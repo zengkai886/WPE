@@ -102,6 +102,26 @@ Json ParseIpRuleList(bool,const XmlNode& root,const Json& current){
         rows.push_back({{"IPAddress",ip},{"StartIP",range?static_cast<std::int64_t>(range->first):-1},{"EndIP",range?static_cast<std::int64_t>(range->second):-1},{"IsExpiry",expiry},{"ExpiryTime",expires},{"CreateTime",created},{"IPLocation",""},{"EffectCount",0}});existing.insert(Upper(ip));
     }return rows;
 }
+XmlNode AccountListXml(const Json& rows){
+    XmlNode root("ProxyAccountList");for(const auto& row:rows){XmlNode account("ProxyAccount");
+        account.nodes.emplace_back("IsEnable",B(row,"IsEnable")?"True":"False");account.nodes.emplace_back("ID",Upper(S(row,"GUID")));account.nodes.emplace_back("UserName",S(row,"UserName"));account.nodes.emplace_back("PassWord",S(row,"PassWord"));
+        account.nodes.emplace_back("IsLimitLinks",B(row,"IsLimitLinks")?"true":"false");account.nodes.emplace_back("LimitLinks",std::to_string(N(row,"LimitLinks",1)));account.nodes.emplace_back("IsLimitDevices",B(row,"IsLimitDevices")?"true":"false");account.nodes.emplace_back("LimitDevices",std::to_string(N(row,"LimitDevices",1)));
+        account.nodes.emplace_back("IsExpiry",B(row,"IsExpiry")?"true":"false");account.nodes.emplace_back("ExpiryTime",XmlDate(S(row,"ExpiryTime")));account.nodes.emplace_back("CreateTime",XmlDate(S(row,"CreateTime")));
+        if(row.contains("_logins")&&!row.at("_logins").empty()){XmlNode logins("AccountIPInfo");for(const auto& login:row.at("_logins")){XmlNode item("IPInfo");auto time=S(login,"LoginTime");std::replace(time.begin(),time.end(),' ','T');item.nodes.emplace_back("LoginTime",time);item.nodes.emplace_back("LoginIP",S(login,"LoginIP"));logins.nodes.push_back(std::move(item));}account.nodes.push_back(std::move(logins));}
+        root.nodes.push_back(std::move(account));
+    }return root;
+}
+Json ParseAccountList(const XmlNode& root,const Json& current){
+    Json rows=current;std::set<std::string> ids,users;for(const auto& row:rows){ids.insert(Upper(S(row,"GUID")));users.insert(S(row,"UserName"));}
+    for(const auto& node:root.nodes){const auto user=node.Value("UserName"),password=node.Value("PassWord");if(user.empty()||password.empty()||users.contains(user))continue;
+        auto id=TryGuid(node.Value("ID")).value_or(Guid());if(id==zero_guid||ids.contains(id))id=Guid();const auto now=LocalDateTime();
+        auto date=[&](const char* key,const std::string& fallback){const auto* value=node.Get(key);if(!value)return fallback;const auto parsed=DateTimeText(value->text.value_or(""));if(!parsed)throw std::runtime_error("代理账号日期字段无效，未应用导入");return *parsed;};
+        Json logins=Json::array();std::map<std::string,std::size_t> positions;if(const auto* list=node.Get("AccountIPInfo")){for(const auto& item:list->nodes){const auto ip=item.Value("LoginIP");if(ip.empty())continue;const auto parsed=DateTimeText(item.Value("LoginTime","0001-01-01 00:00:00"));if(!parsed)throw std::runtime_error("账号登录日期字段无效，未应用导入");const auto found=positions.find(ip);if(found==positions.end()){positions[ip]=logins.size();logins.push_back({{"LoginTime",*parsed},{"LoginIP",ip},{"IPLocation",""}});}else if(S(logins[found->second],"LoginTime")<*parsed)logins[found->second]["LoginTime"]=*parsed;}}
+        const bool limitLinks=node.Get("IsLimitLinks")?Boolean(node.Value("IsLimitLinks")):false,limitDevices=node.Get("IsLimitDevices")?Boolean(node.Value("IsLimitDevices")):true;
+        const auto links=Int(node.Value("LimitLinks","1")),devices=Int(node.Value("LimitDevices","1"));Json row{{"GUID",id},{"IsEnable",node.Get("IsEnable")?Boolean(node.Value("IsEnable")):false},{"UserName",user},{"PassWord",password},{"IsLimitLinks",limitLinks},{"LimitLinks",limitLinks?std::max(1,links):links},{"IsLimitDevices",limitDevices},{"LimitDevices",limitDevices?std::max(1,devices):devices},{"IsExpiry",node.Get("IsExpiry")?Boolean(node.Value("IsExpiry")):false},{"ExpiryTime",date("ExpiryTime",now)},{"CreateTime",date("CreateTime",now)},{"IsOnLine",false},{"_logins",std::move(logins)}};
+        ids.insert(id);users.insert(user);rows.push_back(std::move(row));
+    }return rows;
+}
 XmlNode ParentListXml(int list,const Json& rows){
     XmlNode root(list==11?"WareHouseList":tables[list-8]+"List");
     for(const auto& row:rows){XmlNode parent(tables[list-8]);

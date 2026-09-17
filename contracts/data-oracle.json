@@ -1,5 +1,5 @@
 {
-  "description": "Original net48 oracle: 120 filter edits, 184 editor calls, plaintext/shallow export; four parent-list serializers, SystemConfig plus ProxyMode/InjectMode and WhiteList/BlackList backup settings, 49 AES cipher vectors (ACP936) including Unicode/NUL; product does not run original C#",
+  "description": "Original net48 oracle: 120 filter edits, 184 editor calls, plaintext/shallow export; four parent-list serializers, SystemConfig plus ProxyMode/InjectMode, WhiteList/BlackList and ProxyAccountList backup settings, 56 AES cipher vectors (ACP936) including Unicode/NUL; product does not run original C#",
   "originalAssemblySha256": "76C33B88188F7F921AE5B21117533FF1D3F1861A04A723B8087DE42B17E5FEED",
   "originalSources": [
     {
@@ -38,11 +38,11 @@
     },
     {
       "path": "src/shell/data_schema.h",
-      "sha256": "B2362C50EBC0D15991002F55000F5C3F95DA7B6F2C2835F6B247D6FA69D6F98C"
+      "sha256": "619251A71E27CFC00474EC828531B22EF097685AE04C292088CB918546AEC7AB"
     },
     {
       "path": "tests/data_oracle/ConfigFileOracle.cs",
-      "sha256": "DFE70D2120CBC16573EC4A43F18987A018FA6420E8CD62BBDFD5916CB74EDB14"
+      "sha256": "CF41B6D887CAA67CDDE84D811A26F8AD016CA436D4B97B040C99828FE5AAC7DC"
     },
     {
       "path": "tests/data_oracle/DataOracle.csproj",
@@ -62,7 +62,7 @@
     },
     {
       "path": "tests/data_oracle/extract_contracts.py",
-      "sha256": "15BED7D158CD93AAA2D3FA3AF6285CC88CCC9AEBF1CA534474512ED6AF3D24EF"
+      "sha256": "DF3D6E56C3F4838631961A9D873B3BC4789201632B67C8EE1FDE3E70CF2D3145"
     },
     {
       "path": "tests/data_oracle/extract_xml_fields.py",
@@ -70,7 +70,7 @@
     },
     {
       "path": "tests/data_oracle/Program.cs",
-      "sha256": "DE3372CB94DA3C51204C9599F5D830E969708E1CBD173345AD82A849C3623F16"
+      "sha256": "1067A2BB83735CDD0838291CF3E2A731488D253FAC2015A2E5B2B50FEE1591DC"
     },
     {
       "path": "tests/fixtures/config-files/edges/namespace-input.xml",
@@ -114,7 +114,7 @@
     },
     {
       "path": "tests/fixtures/config-files/original/crypto.json",
-      "sha256": "44B7C9240E22EE7B8B5498F9AC371F8F59BC725981977E1BCD54FD369B1CDF0B"
+      "sha256": "29F4C43EEC22B573FF3C3374C7718A09B7865CF6D7CD9932E127FA4B9716D52F"
     },
     {
       "path": "tests/fixtures/config-files/original/fp-0.encrypted",
@@ -411,6 +411,46 @@
     {
       "path": "tests/fixtures/config-files/original/bl-6.encrypted",
       "sha256": "2723FA5CE692FF8C26328E1D42A5B17B938F3E647AB737E1C3568FF34463A721"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/original.pa",
+      "sha256": "B20620478C4FF345F707B4AEF095F3F649CD1406C4D7AD5824C7D87B89AAC57C"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/accounts.sb",
+      "sha256": "DA7DCA72AF8AEB7FB5E4B0576C9875BF7B63B09AE76CB6F720DEC35E6710A9CE"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/supported-ten.sb",
+      "sha256": "CB47B558707F0A34911E12FA97B1E26271A83110B309DF8FC2F23239B5DDA812"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/pa-0.encrypted",
+      "sha256": "0BF5A48AC523C534B4DD88085C7A762623955D2E2DC0C6DD49DA14C693A4F345"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/pa-1.encrypted",
+      "sha256": "1C78A953A3E60859FC6D1408273D6E072D586F49C92A445FC5F6D0F494FE244D"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/pa-2.encrypted",
+      "sha256": "AD9201E9B62AAC05B55791C90E1DAC68127B3FC957229A8512FE9988A8230713"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/pa-3.encrypted",
+      "sha256": "8B6501359E893491457C3F61434AE349FE93B704BCFDFAA4EEDFD419C85E88F9"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/pa-4.encrypted",
+      "sha256": "67AB03614BBB790F111F124F9AA01CE9F3FFA6975255F0616E4269526D3DBA54"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/pa-5.encrypted",
+      "sha256": "4722436528565A1A4FD8B4FE2516FE6136A0006E2B27782EA8B64A9A36F61747"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/pa-6.encrypted",
+      "sha256": "1291FE338C1538C6E99DFAC40F22DC88236536452D25AA7D669F584023F0BE06"
     }
   ]
 }

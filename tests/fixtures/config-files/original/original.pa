@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<ProxyAccountList>
+  <ProxyAccount>
+    <IsEnable>True</IsEnable>
+    <ID>55555555-5555-5555-5555-555555555555</ID>
+    <UserName>alice&lt;&amp;&gt;</UserName>
+    <PassWord>919935884884'中</PassWord>
+    <IsLimitLinks>true</IsLimitLinks>
+    <LimitLinks>7</LimitLinks>
+    <IsLimitDevices>false</IsLimitDevices>
+    <LimitDevices>0</LimitDevices>
+    <IsExpiry>true</IsExpiry>
+    <ExpiryTime>2027/02/03 04:05:06</ExpiryTime>
+    <CreateTime>2026/09/18 04:03:02</CreateTime>
+    <AccountIPInfo>
+      <IPInfo>
+        <LoginTime>2026-09-18T05:06:07</LoginTime>
+        <LoginIP>192.0.2.10</LoginIP>
+      </IPInfo>
+      <IPInfo>
+        <LoginTime>2026-09-18T06:07:08</LoginTime>
+        <LoginIP>198.51.100.20</LoginIP>
+      </IPInfo>
+    </AccountIPInfo>
+  </ProxyAccount>
+  <ProxyAccount>
+    <IsEnable>False</IsEnable>
+    <ID>66666666-6666-6666-6666-666666666666</ID>
+    <UserName>用户二</UserName>
+    <PassWord>966909877 942951946</PassWord>
+    <IsLimitLinks>false</IsLimitLinks>
+    <LimitLinks>0</LimitLinks>
+    <IsLimitDevices>true</IsLimitDevices>
+    <LimitDevices>2</LimitDevices>
+    <IsExpiry>false</IsExpiry>
+    <ExpiryTime>8888/12/31 00:00:00</ExpiryTime>
+    <CreateTime>2026/09/18 07:08:09</CreateTime>
+  </ProxyAccount>
+</ProxyAccountList>

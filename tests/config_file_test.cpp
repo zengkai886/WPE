@@ -1,6 +1,7 @@
 #include "shell/data_service.h"
 #include "shell/data_schema.h"
 #include "shell/data_worker.h"
+#include "shell/data_util.h"
 #include "shell/config_xml.h"
 #include "shell/xml_crypto.h"
 #include "shell/editor_xml.h"
@@ -41,6 +42,9 @@ int main(int argc,char** argv){try{
     Check(SerializeXml(IpRuleListXml(false,white))==read(golden/"original.wl"),"White-list XML differs from original");
     Check(SerializeXml(IpRuleListXml(true,black))==read(golden/"original.bl"),"Black-list XML differs from original");
     Check(white.size()==2&&white[1]["StartIP"]==167772161&&white[1]["EndIP"]==167772185,"White-list IP range differs from original");
+    const auto accounts=ParseAccountList(ParseXml(read(golden/"original.pa")),Json::array());Check(accounts.size()==2,"Original account XML did not parse");
+    Check(SerializeXml(AccountListXml(accounts))==read(golden/"original.pa"),"Proxy-account XML differs from original");
+    Check(data_detail::PasswordEncrypt("P@ss'中")=="919935884884'中"&&data_detail::PasswordDecrypt("919935884884'中")=="P@ss'中"&&data_detail::PasswordDecrypt("905")=="905","Original account password mapping differs");
     Check(SerializeXml(SystemConfigXml(ParseSystemConfig(ParseXml(read(golden/"system-before-import.xml")),Json::object())))==read(golden/"system.xml"),"Original null-to-empty XML import semantics");
     WriteXmlFileBytes(dir/"system.xml",SerializeXml(SystemConfigXml(system)));Check(read(dir/"system.xml")==read(golden/"system.xml"),"System config field or serialization differs");
     for(int i=0;i<4;++i){const auto rows=ParseParentList(i+8,ParseXml(read(fixtures/("input."+kinds[i]))),{},nextId,system);const auto xml=SerializeXml(ParentListXml(i+8,rows));
@@ -75,6 +79,14 @@ int main(int argc,char** argv){try{
     Check(call("saveIPRule",{{"black",false},{"oldIp",""},{"ip","192.0.2.44"},{"isExpiry",true},{"expiry","2027-02-03 04:05"}})["ok"]==true,"Valid IP rule was rejected");
     {Database persisted(dir/"data.sqlite");const auto rules=persisted.Query("SELECT * FROM WhiteList WHERE IPAddress='192.0.2.44'");Check(rules.size()==1&&rules[0]["StartIP"]==3221226028ll&&rules[0]["ExpiryTime"]=="2027-02-03 04:05:00","IP rule did not persist original fields");}
     Check(call("addIpRule",{{"black",true},{"ip","203.0.113.99"},{"hours",1}})["ok"]==true,"Client-list IP rule was rejected");Check(call("deleteIPRule",{{"black",true},{"ip","203.0.113.99"}})["ok"]==true,"IP rule delete did not persist");
+    call("importBackup",{{"_filePath",Path(golden/"accounts.sb")}});auto accountParts=Json{{"proxyAccount",true},{"_filePath",Path(dir/"accounts.sb")}};call("exportBackup",accountParts);Check(read(dir/"accounts.sb")==read(golden/"accounts.sb"),"Native account backup differs from original");
+    Check(call("getAccountPassword",{{"id","55555555-5555-5555-5555-555555555555"}})["password"]=="P@ss'中","Account password did not decrypt like original");Check(call("getAccountLogins",{{"id","55555555-5555-5555-5555-555555555555"}})["rows"].size()==2,"Account login rows missing");
+    Check(DataService::NeedsOpenFile("importAccounts",{})&&DataService::NeedsSaveFile("exportAccounts",{})&&DataService::NeedsSaveFile("exportSelectedAccounts",{}),"Account chooser routing missing");Check(DataService::NeedsConfirmation("deleteAccount",{})&&DataService::NeedsConfirmation("clearAllAccounts",{})&&DataService::NeedsConfirmation("deleteSelectedAccounts",{}),"Account confirmation routing missing");
+    call("exportAccounts",{{"_filePath",Path(dir/"accounts.pa")}});Check(read(dir/"accounts.pa")==read(golden/"original.pa"),"Native account export differs from original");call("exportAccounts",{{"_filePath",Path(dir/"accounts-encrypted.pa")},{"_password","密码中文测试"}});Check(read(dir/"accounts-encrypted.pa")==read(golden/"pa-1.encrypted"),"Native encrypted account export differs from original");
+    Check(call("setAccountEnable",{{"id","55555555-5555-5555-5555-555555555555"},{"enable",false}})["ok"]==true,"Account enable update failed");Check(call("adjustAccountLimit",{{"ids",Json::array({"55555555-5555-5555-5555-555555555555"})},{"devices",true},{"on",true},{"value",4}})["count"]==1,"Account device limit update failed");Check(call("adjustAccountExpiry",{{"ids",Json::array({"55555555-5555-5555-5555-555555555555"})},{"addType",0},{"hours",2}})["count"]==1,"Account expiry adjustment failed");
+    Check(call("saveAccount",{{"id",""},{"userName"," native 用户 "},{"password"," pass'905 "},{"isEnable",true},{"isLimitLinks",true},{"limitLinks",0},{"isLimitDevices",false},{"limitDevices",0},{"isExpiry",true},{"expiryTime","2028-03-04 05:06:07"}})["ok"]==true,"Account add failed");{Database persisted(dir/"data.sqlite");const auto saved=persisted.Query("SELECT * FROM ProxyAccount WHERE UserName='native 用户'");Check(saved.size()==1&&saved[0]["LimitLinks"]==1&&saved[0]["PassWord"]=="887902884884'942951946","Account fields did not persist like original");}
+    call("clearAllAccounts");call("importAccounts",{{"_filePath",Path(golden/"original.pa")}});call("exportAccounts",{{"_filePath",Path(dir/"accounts-restored.pa")}});Check(read(dir/"accounts-restored.pa")==read(golden/"original.pa"),"Account clear/import did not restore original");
+    auto tenParts=Json{{"systemConfig",true},{"proxySet",true},{"proxyAccount",true},{"whiteList",true},{"blackList",true},{"injectSet",true},{"filterList",true},{"sendList",true},{"robotList",true},{"wareHouse",true},{"_filePath",Path(dir/"supported-ten.sb")}};call("importBackup",{{"_filePath",Path(golden/"supported-ten.sb")}});call("exportBackup",tenParts);Check(read(dir/"supported-ten.sb")==read(golden/"supported-ten.sb"),"Native ten-section backup order or bytes differ from original");
     const auto backup=golden/"original.sb",out=dir/"native.sb";const Json parts={{"systemConfig",true},{"filterList",true},{"sendList",true},{"robotList",true},{"wareHouse",true}};
     auto result=call("importBackup",{{"_filePath",Path(backup)}});Check(result.size()==4&&result["language"]=="en-US"&&!result["isDark"].get<bool>(),"Backup preference result");
     auto exportArgs=parts;exportArgs["_filePath"]=Path(out);call("exportBackup",exportArgs);Check(read(out)==read(backup),"Native backup data did not match original");
@@ -110,8 +122,8 @@ int main(int argc,char** argv){try{
     call("__applyImport",{{"token",token},{"password","密码中文测试"}});Throws([&]{call("__applyImport",{{"token",token}});});
     Check(call("__verifyImportPassword",{{"token",token},{"password","密码中文测试"}})["ok"]==false,"Consumed token still usable");
     for(int i=0;i<20;++i){const auto p=call("__prepareImport",{{"method","importBackup"},{"args",{{"_filePath",Path(backup)}}}});call("__discardImport",{{"token",p["token"]}});}
-    auto bad=parts;bad["proxyAccount"]=true;bad["_filePath"]=Path(out);Throws([&]{call("exportBackup",bad);});Check(read(out)==read(backup),"Unsupported export replaced file");
-    const auto invalid=dir/"invalid.sb";WriteXmlFileBytes(invalid,"<WPE64_BackUp><SystemConfig><DefaultLanguage>ja-JP</DefaultLanguage></SystemConfig><ProxyAccountList /></WPE64_BackUp>");
+    auto bad=parts;bad["proxyMapping"]=true;bad["_filePath"]=Path(out);Throws([&]{call("exportBackup",bad);});Check(read(out)==read(backup),"Unsupported export replaced file");
+    const auto invalid=dir/"invalid.sb";WriteXmlFileBytes(invalid,"<WPE64_BackUp><SystemConfig><DefaultLanguage>ja-JP</DefaultLanguage></SystemConfig><ProxyMappingList /></WPE64_BackUp>");
     Throws([&]{call("importBackup",{{"_filePath",Path(invalid)}});});call("exportBackup",exportArgs);Check(read(out)==read(backup),"Unsupported section partially changed DB");
     WriteXmlFileBytes(invalid,"<WPE64_BackUp><SystemConfig><DefaultLanguage>ja-JP</DefaultLanguage></SystemConfig><SendList><Send><Name>bad</Name><LoopCNT>not-number</LoopCNT></Send></SendList></WPE64_BackUp>");
     Throws([&]{call("importBackup",{{"_filePath",Path(invalid)}});});call("exportBackup",exportArgs);Check(read(out)==read(backup),"Invalid row partially changed DB");

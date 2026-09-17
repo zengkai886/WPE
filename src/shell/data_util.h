@@ -6,10 +6,13 @@
 #include "web_bridge.h"
 #include <algorithm>
 #include <charconv>
+#include <cstdio>
 #include <iomanip>
 #include <regex>
 #include <optional>
 #include <sstream>
+#include <string_view>
+#include <tuple>
 
 namespace wpe::shell::data_detail {
 inline const std::array<std::string,4> tables={"Filter","Send","Robot","WareHouse"};
@@ -75,6 +78,32 @@ inline std::optional<std::string> DateTimeText(const std::string& input){
     std::ostringstream out;out<<std::setfill('0')<<std::setw(4)<<year<<'-'<<std::setw(2)<<month<<'-'<<std::setw(2)<<day<<' '<<std::setw(2)<<hour<<':'<<std::setw(2)<<minute<<':'<<std::setw(2)<<second;return out.str();
 }
 inline std::string XmlDate(std::string text){std::replace(text.begin(),text.end(),'-','/');return text;}
+inline std::string PasswordEncrypt(const std::string& plain){
+    static constexpr std::string_view alphabet=R"wpe(!"#$%^&*()+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]_`abcdefghijklmnopqrstuvwxyz{|}~)wpe";
+    std::string encrypted;encrypted.reserve(plain.size()*3);
+    for(const unsigned char c:plain){const auto at=alphabet.find(static_cast<char>(c));if(at==alphabet.npos){encrypted+=static_cast<char>(c);continue;}const auto code=static_cast<int>((at<=60?966:965)-at);encrypted+=std::to_string(code);}
+    return encrypted;
+}
+inline std::string PasswordDecrypt(const std::string& encrypted){
+    static constexpr std::string_view alphabet=R"wpe(!"#$%^&*()+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]_`abcdefghijklmnopqrstuvwxyz{|}~)wpe";
+    std::string plain;plain.reserve(encrypted.size());
+    for(std::size_t i=0;i<encrypted.size();){
+        if(i+3<=encrypted.size()&&encrypted[i]>='0'&&encrypted[i]<='9'&&encrypted[i+1]>='0'&&encrypted[i+1]<='9'&&encrypted[i+2]>='0'&&encrypted[i+2]<='9'){
+            const int code=(encrypted[i]-'0')*100+(encrypted[i+1]-'0')*10+encrypted[i+2]-'0';const int at=code>=906&&code<=966?966-code:code>=873&&code<=904?965-code:-1;
+            if(at>=0&&static_cast<std::size_t>(at)<alphabet.size()){plain+=alphabet[static_cast<std::size_t>(at)];i+=3;continue;}
+        }plain+=encrypted[i++];
+    }return plain;
+}
+inline std::int64_t DaysFromCivil(int year,unsigned month,unsigned day){year-=month<=2;const int era=(year>=0?year:year-399)/400;const unsigned yoe=static_cast<unsigned>(year-era*400);const unsigned adjustedMonth=month>2?month-3:month+9;const unsigned doy=(153*adjustedMonth+2)/5+day-1;const unsigned doe=yoe*365+yoe/4-yoe/100+doy;return static_cast<std::int64_t>(era)*146097+doe-719468;}
+inline std::tuple<int,unsigned,unsigned> CivilFromDays(std::int64_t days){days+=719468;const auto era=(days>=0?days:days-146096)/146097;const auto doe=static_cast<unsigned>(days-era*146097);const auto yoe=(doe-doe/1460+doe/36524-doe/146096)/365;int year=static_cast<int>(yoe)+static_cast<int>(era)*400;const auto doy=doe-(365*yoe+yoe/4-yoe/100);const auto mp=(5*doy+2)/153;const auto day=doy-(153*mp+2)/5+1;const auto month=mp+(mp<10?3:-9);year+=month<=2;return {year,month,day};}
+inline std::optional<std::string> AddDateTimeHours(const std::string& input,int hours){
+    const auto normalized=DateTimeText(input);if(!normalized)return {};int year=0,month=0,day=0,hour=0,minute=0,second=0;
+    if(sscanf_s(normalized->c_str(),"%d-%d-%d %d:%d:%d",&year,&month,&day,&hour,&minute,&second)!=6)return {};
+    std::int64_t total=DaysFromCivil(year,static_cast<unsigned>(month),static_cast<unsigned>(day))*86400+hour*3600+minute*60+second+static_cast<std::int64_t>(hours)*3600;
+    auto days=total/86400;auto rem=total%86400;if(rem<0){rem+=86400;--days;}unsigned outMonth=0,outDay=0;std::tie(year,outMonth,outDay)=CivilFromDays(days);if(year<1||year>9999)return {};
+    std::ostringstream out;out<<std::setfill('0')<<std::setw(4)<<year<<'-'<<std::setw(2)<<outMonth<<'-'<<std::setw(2)<<outDay<<' '<<std::setw(2)<<(rem/3600)<<':'<<std::setw(2)<<((rem%3600)/60)<<':'<<std::setw(2)<<(rem%60);return out.str();
+}
+inline std::optional<std::string> AddDateTimeYears(const std::string& input,int years){const auto normalized=DateTimeText(input);if(!normalized)return {};int year=0,month=0,day=0,hour=0,minute=0,second=0;if(sscanf_s(normalized->c_str(),"%d-%d-%d %d:%d:%d",&year,&month,&day,&hour,&minute,&second)!=6)return {};year+=years;if(year<1||year>9999)return {};day=std::min(day,DaysInMonth(year,month));std::ostringstream out;out<<std::setfill('0')<<std::setw(4)<<year<<'-'<<std::setw(2)<<month<<'-'<<std::setw(2)<<day<<' '<<std::setw(2)<<hour<<':'<<std::setw(2)<<minute<<':'<<std::setw(2)<<second;return out.str();}
 inline std::string LocalDateTime(int addHours=0){
     FILETIME utc{};GetSystemTimeAsFileTime(&utc);ULARGE_INTEGER value{};value.LowPart=utc.dwLowDateTime;value.HighPart=utc.dwHighDateTime;value.QuadPart+=static_cast<std::uint64_t>(std::max(0,addHours))*3600ull*10000000ull;utc.dwLowDateTime=value.LowPart;utc.dwHighDateTime=value.HighPart;
     FILETIME local{};SYSTEMTIME time{};if(!FileTimeToLocalFileTime(&utc,&local)||!FileTimeToSystemTime(&local,&time))throw std::runtime_error("Unable to read local time");

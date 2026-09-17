@@ -90,11 +90,13 @@ DataService::DataService(const std::filesystem::path& path,Emit emit):db_(path),
         for(auto& row:rows){row["IsExpiry"]=B(row,"IsExpiry");row["IPLocation"]="";row["EffectCount"]=0;}
         lists_[list]=std::move(rows);
     }
+    {auto rows=db_.Query("SELECT * FROM ProxyAccount ORDER BY rowid"),logins=db_.Query("SELECT * FROM ProxyAccountIPInfo ORDER BY rowid");for(auto& row:rows){for(const auto* key:{"IsEnable","IsLimitLinks","IsLimitDevices","IsExpiry"})row[key]=B(row,key);row["IsOnLine"]=false;row["_logins"]=Json::array();for(const auto& login:logins)if(Upper(S(login,"GUID"))==Upper(S(row,"GUID")))row["_logins"].push_back({{"LoginTime",S(login,"LoginTime")},{"LoginIP",S(login,"LoginIP")},{"IPLocation",""}});}lists_[5]=std::move(rows);}
 }
 std::vector<std::string> DataService::Methods(){return {
     "getPrefs","setAppearance","setLanguage","saveActionColor","getSystemSetting","saveSystemSetting","getLogSetting","saveLogSetting",
     "getProxySetting","saveProxySetting","getHookSetting","saveHookSetting","getFireWall","saveFireWall","saveListAutoClear",
     "addIpRule","saveIPRule","deleteIPRule","ipRuleAction",
+    "getAccountPassword","getAccountLogins","saveAccount","deleteAccount","clearAllAccounts","setAccountEnable","importAccounts","exportAccounts","adjustAccountExpiry","adjustAccountLimit","exportSelectedAccounts","deleteSelectedAccounts",
     "enterProxyMode","enterInjectMode","getStats","getClientConnections","clearLogs","getCountryTable",
     "getFilterExecute","getFilterEdit","saveFilterEdit","getExecuteTargets","addFilter","setFilterEnable","setAllFilterEnable","resetFilterCount","filterListAction","clearFilters",
     "getSendMeta","addSend","setSendEnable","setAllSendEnable","resetSendCount","sendListAction","clearSends","openSendEdit","closeSendEdit","getSendCollection","saveSendEdit","exportSendCollection",
@@ -105,7 +107,7 @@ std::vector<std::string> DataService::Methods(){return {
     "importFilters","exportFilters","importSends","exportSends","importRobots","exportRobots","importWareHouses","exportWareHouses","importBackup","exportBackup"
 };}
 bool DataService::NeedsConfirmation(const std::string& method,const Json& args){
-    if(method=="deleteIPRule"||method=="clearSendCollection"||((method=="robotInstructionAction"||method=="storesCommand"||method=="sendCollectionAction"||method=="ipRuleAction")&&N(args,"action",-1)==7))return true;
+    if(method=="deleteAccount"||method=="clearAllAccounts"||method=="deleteSelectedAccounts"||method=="deleteIPRule"||method=="clearSendCollection"||((method=="robotInstructionAction"||method=="storesCommand"||method=="sendCollectionAction"||method=="ipRuleAction")&&N(args,"action",-1)==7))return true;
     return method=="clearFilters"||method=="clearSends"||method=="clearRobots"||method=="clearWareHouses"||method=="clearLogs"||
         ((method=="filterListAction"||method=="sendListAction"||method=="robotListAction"||method=="wareHouseListAction")&&N(args,"action",-1)==6);
 }
@@ -168,12 +170,18 @@ void DataService::PersistIpRules(int list,const Json& rows){
     for(auto& row:stored){row.erase("IPLocation");row.erase("EffectCount");}
     db_.Replace(list==15?"WhiteList":"BlackList",stored);
 }
+void DataService::PersistAccounts(const Json& rows){
+    Json accounts=Json::array(),logins=Json::array();for(const auto& source:rows){auto row=source;row.erase("IsOnLine");row.erase("_logins");accounts.push_back(std::move(row));if(source.contains("_logins"))for(const auto& sourceLogin:source.at("_logins")){auto login=sourceLogin;login.erase("IPLocation");login["GUID"]=S(source,"GUID");logins.push_back(std::move(login));}}
+    db_.Execute("DELETE FROM ProxyAccountIPInfo");db_.Replace("ProxyAccount",accounts);db_.Replace("ProxyAccountIPInfo",logins);
+}
 void DataService::SaveList(int list,const Json& rows){
     db_.Transaction([&]{PersistList(list,rows);});lists_[list]=rows;RefreshExportAliases(list);Publish(list);
 }
 void DataService::SaveIpRules(int list,const Json& rows){db_.Transaction([&]{PersistIpRules(list,rows);});lists_[list]=rows;Publish(list);}
+void DataService::SaveAccounts(const Json& rows){db_.Transaction([&]{PersistAccounts(rows);});lists_[5]=rows;Publish(5);}
 Json DataService::Rows(int list)const{
     Json result=Json::array();
+    if(list==5){for(const auto& row:lists_[5])result.push_back({{"Id",Upper(S(row,"GUID"))},{"IsCheck",false},{"IsEnable",B(row,"IsEnable")},{"UserName",S(row,"UserName")},{"IsLimitLinks",B(row,"IsLimitLinks")},{"LimitLinks",N(row,"LimitLinks")},{"IsLimitDevices",B(row,"IsLimitDevices")},{"LimitDevices",N(row,"LimitDevices")},{"IsExpiry",B(row,"IsExpiry")},{"ExpiryTime",S(row,"ExpiryTime")},{"CreateTime",S(row,"CreateTime")},{"IsOnLine",B(row,"IsOnLine")},{"LoginCount",row.contains("_logins")?row.at("_logins").size():0}});return result;}
     if(list<8||list>11)return lists_[list];
     for(const auto& row:lists_[list]){
         Json r{{"Id",row["GUID"]},{"Name",S(row,"Name")}};
@@ -193,6 +201,7 @@ void DataService::PublishAll(){
     // Only publish implemented collections. Empty unsupported tables are not fake data sources.
     for(int list=8;list<=11;++list)Publish(list);
     for(int list=2;list<=4;++list)Publish(list);
+    Publish(5);
     Publish(15);Publish(16);
 }
 Json DataService::FilterEdit(const Json& row)const{
@@ -355,6 +364,40 @@ Json DataService::Call(const std::string& method,const Json& args){
         SaveProxyConfig({{"EnableFireWall",B(args,"enable")},{"WhiteListMode",B(args,"whiteMode")},{"FireWall_AutoWhiteList_AuthSuccess",B(args,"autoWhiteAuthOk")},
             {"FireWall_AutoBlackList_UnSupport",B(args,"autoBlackUnsupport")},{"FireWall_AutoBlackList_AuthFail",B(args,"autoBlackAuthFail")},
             {"FireWall_AutoBlackList_Minutes",minutes},{"FireWall_AutoClear_Expiry",B(args,"autoClearExpiry")}});return Good();
+    }
+    if(method=="getAccountPassword"){
+        const auto id=Upper(S(args,"id"));for(const auto& row:lists_[5])if(Upper(S(row,"GUID"))==id)return {{"password",PasswordDecrypt(S(row,"PassWord"))}};return {{"password",""}};
+    }
+    if(method=="getAccountLogins"){
+        const auto id=Upper(S(args,"id"));for(const auto& row:lists_[5])if(Upper(S(row,"GUID"))==id)return {{"rows",row.value("_logins",Json::array())}};return {{"rows",Json::array()}};
+    }
+    if(method=="saveAccount"){
+        const auto id=Upper(S(args,"id")),user=Trim(S(args,"userName")),password=Trim(S(args,"password"));if(user.empty())return Bad(Text("AccountEditForm.UserName.Empty","请输入用户名"));if(id.empty()&&password.empty())return Bad(Text("AccountEditForm.PassWord.Empty","请输入密码"));
+        const bool expiry=B(args,"isExpiry"),limitLinks=B(args,"isLimitLinks"),limitDevices=B(args,"isLimitDevices");const auto parsed=DateTimeText(S(args,"expiryTime"));if(expiry&&!parsed)return Bad(Text("AccountEditForm.ExpiryTime","过期时间格式不正确"));const auto expiryTime=expiry?*parsed:*AddDateTimeYears(LocalDateTime(),100);auto rows=lists_[5];
+        if(id.empty()){
+            for(const auto& row:rows)if(S(row,"UserName")==user)return Bad(Text("AccountEditForm.UserName.Error","用户名已存在"));
+            rows.push_back({{"GUID",Guid()},{"IsEnable",B(args,"isEnable")},{"UserName",user},{"PassWord",PasswordEncrypt(password)},{"IsLimitLinks",limitLinks},{"LimitLinks",limitLinks?std::max(1,N(args,"limitLinks")):N(args,"limitLinks")},{"IsLimitDevices",limitDevices},{"LimitDevices",limitDevices?std::max(1,N(args,"limitDevices")):N(args,"limitDevices")},{"IsExpiry",expiry},{"ExpiryTime",expiryTime},{"CreateTime",LocalDateTime()},{"IsOnLine",false},{"_logins",Json::array()}});
+        }else{
+            auto found=std::find_if(rows.begin(),rows.end(),[&](const Json& row){return Upper(S(row,"GUID"))==id;});if(found==rows.end())return Bad(Text("AccountList.Empty","请选择账号"));found->at("IsEnable")=B(args,"isEnable");if(!password.empty())found->at("PassWord")=PasswordEncrypt(password);found->at("IsLimitLinks")=limitLinks;found->at("LimitLinks")=limitLinks?std::max(1,N(args,"limitLinks")):N(args,"limitLinks");found->at("IsLimitDevices")=limitDevices;found->at("LimitDevices")=limitDevices?std::max(1,N(args,"limitDevices")):N(args,"limitDevices");found->at("IsExpiry")=expiry;found->at("ExpiryTime")=expiryTime;
+        }SaveAccounts(rows);emit_("toast",{{"level",1},{"text",Text("AccountEditForm.Success","账号保存成功")}});return Good();
+    }
+    if(method=="deleteAccount"){
+        const auto id=Upper(S(args,"id"));if(id.empty())return Json{{"ok",false}};auto rows=lists_[5];const auto found=std::find_if(rows.begin(),rows.end(),[&](const Json& row){return Upper(S(row,"GUID"))==id;});if(found==rows.end())return Json{{"ok",false}};rows.erase(found);SaveAccounts(rows);return Good();
+    }
+    if(method=="clearAllAccounts"){SaveAccounts(Json::array());return Good();}
+    if(method=="setAccountEnable"){
+        const auto id=Upper(S(args,"id"));auto rows=lists_[5];const auto found=std::find_if(rows.begin(),rows.end(),[&](const Json& row){return Upper(S(row,"GUID"))==id;});if(found==rows.end())return Json{{"ok",false}};found->at("IsEnable")=B(args,"enable");SaveAccounts(rows);return Good();
+    }
+    if(method=="adjustAccountExpiry"){
+        const int hours=N(args,"hours"),addType=N(args,"addType");if(!hours)return { {"ok",false},{"count",0},{"error",Text("ExpiryTimeForm.Zero","请输入要增加的时长")} };std::set<std::string> ids;for(const auto& id:args.value("ids",Json::array()))if(id.is_string())ids.insert(Upper(id.get<std::string>()));auto rows=lists_[5];int count=0;const auto now=LocalDateTime();
+        for(auto& row:rows)if(ids.contains(Upper(S(row,"GUID")))){const auto base=addType==1&&S(row,"ExpiryTime")<now?now:S(row,"ExpiryTime");const auto shifted=AddDateTimeHours(base,hours);if(!shifted)return { {"ok",false},{"count",0},{"error",Text("AccountEditForm.ExpiryTime","过期时间格式不正确")} };row["ExpiryTime"]=*shifted;++count;}if(!count)return {{"ok",false},{"count",0},{"error",Text("AccountList.Empty","请选择账号")}};SaveAccounts(rows);return {{"ok",true},{"count",count},{"error",""}};
+    }
+    if(method=="adjustAccountLimit"){
+        const bool devices=B(args,"devices"),on=B(args,"on");const int value=N(args,"value",1);if(on&&value<1)return {{"ok",false},{"count",0},{"error",Text("LimitForm.Range","限制值至少为 1")}};std::set<std::string> ids;for(const auto& id:args.value("ids",Json::array()))if(id.is_string())ids.insert(Upper(id.get<std::string>()));auto rows=lists_[5];int count=0;
+        for(auto& row:rows)if(ids.contains(Upper(S(row,"GUID")))){row[devices?"IsLimitDevices":"IsLimitLinks"]=on;row[devices?"LimitDevices":"LimitLinks"]=value;++count;}if(!count)return {{"ok",false},{"count",0},{"error",Text("AccountList.Empty","请选择账号")}};SaveAccounts(rows);return {{"ok",true},{"count",count},{"error",""}};
+    }
+    if(method=="deleteSelectedAccounts"){
+        std::set<std::string> ids;for(const auto& id:args.value("ids",Json::array()))if(id.is_string())ids.insert(Upper(id.get<std::string>()));auto rows=lists_[5];rows.erase(std::remove_if(rows.begin(),rows.end(),[&](const Json& row){return ids.contains(Upper(S(row,"GUID")));}),rows.end());SaveAccounts(rows);return Good();
     }
     if(method=="addIpRule"){
         const int list=B(args,"black")?16:15;const auto ip=Trim(S(args,"ip"));const auto range=IpRuleRange(ip);if(ip.empty()||!range||ip.find('/')!=ip.npos)return Bad("empty ip");

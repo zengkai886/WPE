@@ -18,6 +18,7 @@ class Program
             if (args.Length == 3 && args[0] == "verify-encrypted") return ConfigFileOracle.Verify(args[1],args[2]);
             if (args.Length == 3 && args[0] == "verify-settings-db") return ConfigFileOracle.VerifySettingsDatabase(args[1],args[2]);
             if (args.Length == 3 && args[0] == "verify-ip-rules-db") return ConfigFileOracle.VerifyIpRulesDatabase(args[1],args[2]);
+            if (args.Length == 3 && args[0] == "verify-accounts-db") return ConfigFileOracle.VerifyAccountsDatabase(args[1],args[2]);
             if (args.Length == 2 && args[0] == "export-snapshot") return ExportSnapshotOracle.Run(new[]{args[1]});
             if (args.Length == 3 && args[0] == "exports") return ExportOracle.Run(args[1],args[2]);
             if (args.Length == 3 && args[0] == "verify-export") return ExportOracle.Verify(args[1],args[2]);

@@ -526,6 +526,22 @@ void Host::BeginTest(){
         firewallDialog().querySelector('.ft .btn:not(.primary)').click();
         await wait(()=>!firewallDialog());
         const firewallIpRuleRoundTrip=true;
+        const accountName='C++ 账号闭环测试',accountPassword="P@ss'中";
+        const accountNav=[...document.querySelectorAll('.side .sb-item')].find(e=>e.querySelector('.t')?.textContent.trim()==='账号列表');
+        if(!accountNav)throw Error('original account navigation missing');accountNav.click();
+        await wait(()=>document.querySelector('.list-page.acct .bar .btn.primary')&&feeds.has(5));
+        const accountDialog=()=>[...document.querySelectorAll('[role=dialog]')].find(d=>d.querySelector('.sub')?.textContent==='Proxy Account');
+        if(!feeds.get(5).length){
+          document.querySelector('.list-page.acct .bar .btn.primary').click();await wait(()=>accountDialog()?.querySelectorAll('.bd input.inp').length>=2);
+          const fields=accountDialog().querySelectorAll('.bd input.inp');input(fields[0],accountName);input(fields[1],accountPassword);
+          accountDialog().querySelector('.ft .btn.primary').click();
+          await wait(()=>!accountDialog()&&feeds.get(5)?.length===1&&document.querySelector('.list-page.acct .row .user')?.textContent.trim()===accountName);
+        }else{
+          if(feeds.get(5).length!==1||feeds.get(5)[0].UserName!==accountName)throw Error('account restart persistence failed');
+          await wait(()=>document.querySelector('.list-page.acct .row .user')?.textContent.trim()===accountName);
+        }
+        if((await call('getAccountPassword',{id:feeds.get(5)[0].Id})).password!==accountPassword)throw Error('account password round trip failed');
+        const accountRoundTrip=true;
         const filterNav=[...document.querySelectorAll('.side .sb-item')].find(e=>e.querySelector('.t')?.textContent.trim()==='滤镜列表');
         if(!filterNav)throw Error('original filter navigation missing');filterNav.click();
         await wait(()=>document.querySelector('.list-page .bar .btn.primary'));
@@ -534,7 +550,7 @@ void Host::BeginTest(){
           const restored=(await call('getFilterEdit',{id:old[0].Id})).row;
           if(restored.Modify[0].Index!==-1||!restored.Modify[0].Progression)throw Error('restart editor persistence failed');
           await wait(()=>document.querySelector('.list-page .row .name')?.textContent==='C++ 数据闭环测试');
-          const editorResult=await editors(true);await call('__testDone',{ok:true,restartPersistence:true,firewallIpRuleRoundTrip,originalListDom:true,persistentFilterId:old[0].Id,dbFull:info.dbFull,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',...editorResult});return;
+          const editorResult=await editors(true);await call('__testDone',{ok:true,restartPersistence:true,firewallIpRuleRoundTrip,accountRoundTrip,originalListDom:true,persistentFilterId:old[0].Id,dbFull:info.dbFull,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',...editorResult});return;
         }
         document.querySelector('.list-page .bar .btn.primary').click();
         await wait(()=>feeds.get(8)?.length===1&&document.querySelector('.list-page .row .name'));
@@ -550,7 +566,7 @@ void Host::BeginTest(){
         await wait(()=>document.querySelector('[role=alertdialog] .btn:not(.primary)'));
         document.querySelector('[role=alertdialog] .btn:not(.primary)').click();await deletion;
         if(!(await call('getFilterEdit',{id})).row)throw Error('cancelled deletion changed data');
-        const editorResult=await editors(false);await call('__testDone',{ok:true,titlebar:!!document.querySelector('.titlebar'),modeCards,unsupportedRejected:unsupported,windowRoundTrip:!!top.topMost,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',firewallIpRuleRoundTrip,originalListDom:true,originalAddAndEnableButtons:true,negativeOffsetRoundTrip:true,cancelledDeletionKeptData:true,persistentFilterId:id,dbFull:info.dbFull,url:location.href,...editorResult});
+        const editorResult=await editors(false);await call('__testDone',{ok:true,titlebar:!!document.querySelector('.titlebar'),modeCards,unsupportedRejected:unsupported,windowRoundTrip:!!top.topMost,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',firewallIpRuleRoundTrip,accountRoundTrip,originalListDom:true,originalAddAndEnableButtons:true,negativeOffsetRoundTrip:true,cancelledDeletionKeptData:true,persistentFilterId:id,dbFull:info.dbFull,url:location.href,...editorResult});
       })().catch(error=>call('__testDone',{ok:false,error:String(error)}));
     })())JS");
 }
