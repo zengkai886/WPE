@@ -1,9 +1,9 @@
 {
   "scope": "Registration inventory, not a functional-completion percentage. Partial and offline methods are explicitly distinguished.",
   "originalRpcCount": 217,
-  "nativeDataRegistered": 74,
+  "nativeDataRegistered": 81,
   "nativeHostRegistered": 10,
-  "remainingUnregistered": 133,
+  "remainingUnregistered": 126,
   "originalSource": "WinsockPacketEditor/ShellForm.cs",
   "originalSourceSha256": "86d277408d233903ec82ffe8f06a2cd1995898617c477a1f181046ebe0f72f12",
   "methods": [
@@ -185,16 +185,16 @@
     {
       "method": "getProxySetting",
       "originalLine": 1992,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "设置读写已接",
+      "note": "真实读取 ProxyMode、本机地址、物理内存与连接上限；代理监听运行引擎尚未接。"
     },
     {
       "method": "saveProxySetting",
       "originalLine": 2039,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "设置读写已接",
+      "note": "按原业务规则校验并事务保存 ProxyMode；代理监听运行引擎尚未接。"
     },
     {
       "method": "setSystemProxy",
@@ -220,9 +220,9 @@
     {
       "method": "saveListAutoClear",
       "originalLine": 2260,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "设置读写已接",
+      "note": "稀疏保存 InjectMode 共用封包/代理列表自动清理设置；运行态清理引擎仍待接。"
     },
     {
       "method": "saveListSetting",
@@ -248,16 +248,16 @@
     {
       "method": "getFireWall",
       "originalLine": 2418,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "设置读写已接",
+      "note": "真实读取 ProxyMode 防火墙设置；名单与代理执行引擎仍待接。"
     },
     {
       "method": "saveFireWall",
       "originalLine": 2429,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "设置读写已接",
+      "note": "按原范围校验并事务保存 ProxyMode 防火墙设置；名单与代理执行引擎仍待接。"
     },
     {
       "method": "saveIPRule",
@@ -283,16 +283,16 @@
     {
       "method": "getHookSetting",
       "originalLine": 2536,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "设置读写部分接线",
+      "note": "注入 12 个钩子、代理拆包和本次运行方向标志已接；尚未推送到目标进程或代理引擎。"
     },
     {
       "method": "saveHookSetting",
       "originalLine": 2562,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "设置读写部分接线",
+      "note": "稀疏保存注入钩子与代理拆包并执行格式校验；尚未推送到目标进程或代理引擎。"
     },
     {
       "method": "getSystemSetting",
@@ -1076,14 +1076,14 @@
       "originalLine": 4318,
       "registered": true,
       "status": "文件接线已接（备份部分）",
-      "note": "原 XML/原 AES 文件互通；备份仅 SystemConfig 与四父列表五组，其余九组整次拒绝；参见配置加密接线进度。"
+      "note": "原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、InjectMode 与四父列表七组，其余七组整次拒绝；参见配置加密接线进度。"
     },
     {
       "method": "importBackup",
       "originalLine": 4351,
       "registered": true,
       "status": "文件接线已接（备份部分）",
-      "note": "原 XML/原 AES 文件互通；备份仅 SystemConfig 与四父列表五组，其余九组整次拒绝；参见配置加密接线进度。"
+      "note": "原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、InjectMode 与四父列表七组，其余七组整次拒绝；参见配置加密接线进度。"
     },
     {
       "method": "getRemoteSetting",

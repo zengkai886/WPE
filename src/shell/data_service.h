@@ -38,6 +38,8 @@ private:
     void Publish(int list);
     void SaveList(int list,const Json& rows);
     void SaveConfig(const Json& changes);
+    void SaveInjectConfig(const Json& changes);
+    void SaveProxyConfig(const Json& changes);
     Json FilterEdit(const Json& row) const;
     Json SaveFilter(const Json& args);
     Json ListAction(int list,const Json& args);
@@ -46,11 +48,14 @@ private:
     Database db_;
     Emit emit_;
     Json config_;
+    Json inject_config_;
+    Json proxy_config_;
     std::array<Json,19> lists_;
     Json send_edit_=nullptr,robot_edit_=nullptr;
     std::map<std::string,Json> export_plans_; // Membership frozen; PacketInfo fields retain alias semantics.
     struct ImportPlan {std::string method,bytes;Json args;};
     std::map<std::string,ImportPlan> import_plans_;
     std::uint64_t packet_id_{};
+    bool hook_tcp_req_{true},hook_tcp_resp_{true},hook_udp_req_{true},hook_udp_resp_{true};
 };
 }

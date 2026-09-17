@@ -14,7 +14,7 @@ const std::array<std::string,4> parts={"filterList","sendList","robotList","ware
 std::filesystem::path Path(const std::string& p){return std::filesystem::path(std::u8string(p.begin(),p.end()));}
 int List(const std::string& kind){const auto i=std::find(kinds.begin(),kinds.end(),kind);return i==kinds.end()?-1:8+static_cast<int>(i-kinds.begin());}
 Json BackupResult(const Json& p){return {{"language",p["language"]},{"isDark",p["isDark"]},{"themeMode",p["themeMode"]},{"scanLine",p["scanLine"]}};}
-void CheckBackupParts(const Json& args){for(const auto* key:{"proxySet","proxyAccount","whiteList","blackList","proxyMapping","injectSet","autoStores","wpcServer","wpcNotice"})if(B(args,key))throw std::runtime_error("尚未实现备份分组："+std::string(key)+"；已取消整次导出，不会生成缺项备份");}
+void CheckBackupParts(const Json& args){for(const auto* key:{"proxyAccount","whiteList","blackList","proxyMapping","autoStores","wpcServer","wpcNotice"})if(B(args,key))throw std::runtime_error("尚未实现备份分组："+std::string(key)+"；已取消整次导出，不会生成缺项备份");}
 }
 std::string DataService::FileKind(const std::string& method,const Json& args){
     for(std::size_t i=0;i<kinds.size();++i)if(method==imports[i]||method==exports[i]||(method==actions[i]&&N(args,"action",-1)==5))return kinds[i];
@@ -38,7 +38,7 @@ Json DataService::FileInfo(const std::string& kind,bool save)const{
 Json DataService::PrepareParentExport(const std::string& method,const Json& args){
     const auto kind=FileKind(method,args);auto plan=FileInfo(kind,true);plan["rows"]=Json::array();plan["result"]=Good();plan["send"]=false;
     if(kind=="sb"){
-        CheckBackupParts(args);bool selected=B(args,"systemConfig");for(const auto& part:parts)selected=selected||B(args,part.c_str());
+        CheckBackupParts(args);bool selected=B(args,"systemConfig")||B(args,"proxySet")||B(args,"injectSet");for(const auto& part:parts)selected=selected||B(args,part.c_str());
         if(!selected){emit_("toast",{{"level",3},{"text",Text("BackUpSettingsForm.NothingSelected","请先勾选要备份的内容")}});return plan;}
         plan["parts"]=args;plan["rows"].push_back(true);return plan; // Backup reads live state after the password dialog, like upstream.
     }
@@ -81,11 +81,12 @@ Json DataService::ApplyImport(const std::string& method,const Json& args,std::st
         const auto root=ParseXml(bytes);
         if(kind=="sb"){
             if(root.LocalName()!="WPE64_BackUp")throw std::runtime_error("不是原版系统备份文件");
-            for(const auto& n:root.nodes)if(n.name!="SystemConfig"&&n.name!="FilterList"&&n.name!="SendList"&&n.name!="RobotList"&&n.name!="WareHouseList")throw std::runtime_error("尚未实现备份分组："+n.name+"；已取消整次导入，未修改数据库");
-            auto config=config_;if(const auto* node=root.Get("SystemConfig"))config=ParseSystemConfig(*node,config);std::map<int,Json> changed;
+            for(const auto& n:root.nodes)if(n.name!="SystemConfig"&&n.name!="ProxyMode"&&n.name!="InjectMode"&&n.name!="FilterList"&&n.name!="SendList"&&n.name!="RobotList"&&n.name!="WareHouseList")throw std::runtime_error("尚未实现备份分组："+n.name+"；已取消整次导入，未修改数据库");
+            auto config=config_,proxy=proxy_config_,inject=inject_config_;if(const auto* node=root.Get("SystemConfig"))config=ParseSystemConfig(*node,config);
+            if(const auto* node=root.Get("ProxyMode"))proxy=ParseProxyMode(*node,proxy);if(const auto* node=root.Get("InjectMode"))inject=ParseInjectMode(*node,inject);std::map<int,Json> changed;
             for(int list=8;list<=11;++list){const auto name=list==11?"WareHouseList":tables[list-8]+"List";if(const auto* node=root.Get(name))changed[list]=ParseParentList(list,*node,{},packet_id_,config);}
-            db_.Transaction([&]{if(root.Get("SystemConfig"))db_.Replace("SystemConfig",Json::array({config}));for(const auto& [list,rows]:changed)PersistList(list,rows);});
-            config_=std::move(config);for(auto& [list,rows]:changed)lists_[list]=std::move(rows);PublishAll();
+            db_.Transaction([&]{if(root.Get("SystemConfig"))db_.Replace("SystemConfig",Json::array({config}));if(root.Get("ProxyMode"))db_.Replace("ProxyMode",Json::array({proxy}));if(root.Get("InjectMode"))db_.Replace("InjectMode",Json::array({inject}));for(const auto& [list,rows]:changed)PersistList(list,rows);});
+            config_=std::move(config);proxy_config_=std::move(proxy);inject_config_=std::move(inject);for(auto& [list,rows]:changed)lists_[list]=std::move(rows);PublishAll();
         }else{
             const auto list=List(kind);std::set<std::string> ids;for(const auto& row:lists_[list])ids.insert(S(row,"GUID"));auto imported=ParseParentList(list,root,ids,packet_id_,config_);auto rows=lists_[list];for(auto& row:imported)rows.push_back(std::move(row));SaveList(list,rows);
         }

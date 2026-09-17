@@ -1,4 +1,5 @@
 #include "shell/data_service.h"
+#include "shell/data_schema.h"
 #include "shell/data_worker.h"
 #include "shell/config_xml.h"
 #include "shell/xml_crypto.h"
@@ -27,6 +28,14 @@ int main(int argc,char** argv){try{
         Throws([&]{(void)ParseXml(CryptXml(cipher,"wrong-fixed-test-password",false));});
     }
     std::uint64_t nextId=0;const auto system=ParseSystemConfig(ParseXml(read(golden/"system.xml")),Json::object());
+    Json emptyInject={{"HookWS1_Send",true},{"HookWS1_SendTo",true},{"HookWS1_Recv",true},{"HookWS1_RecvFrom",true},{"HookWS2_Send",true},{"HookWS2_SendTo",true},{"HookWS2_Recv",true},{"HookWS2_RecvFrom",true},{"HookWSA_Send",true},{"HookWSA_SendTo",true},{"HookWSA_Recv",true},{"HookWSA_RecvFrom",true},{"PacketList_AutoRoll",false},{"PacketList_AutoClear",true},{"PacketList_AutoClear_Value",5000}};
+    Json emptyProxy;{Database schema(dir/"settings-schema.db");schema.Execute(data_schema);schema.Execute("INSERT INTO ProxyMode DEFAULT VALUES");emptyProxy=schema.Query("SELECT * FROM ProxyMode")[0];}
+    {const auto legacyFile=dir/"legacy-settings.db";Database legacy(legacyFile);legacy.Execute(data_schema);legacy.Execute("ALTER TABLE SystemConfig DROP COLUMN ThemeFollowSystem");legacy.Execute("ALTER TABLE ProxyMode DROP COLUMN DriverType");legacy.Execute("ALTER TABLE ProxyMode DROP COLUMN SelectProcessNames");legacy.Execute("ALTER TABLE ProxyMode DROP COLUMN Only_WPC_Client");
+        DataService migrated(legacyFile,[](std::string,Json){});const auto saved=migrated.Call("saveProxySetting",{{"proxyIpAuto",true},{"proxyIp",""},{"enableSocks5",true},{"socks5Port",1080},{"enableHttp",false},{"httpPort",1081},{"enableAuth",true},{"onlyWpc",true},{"maxConnection",5000}});Check(saved["ok"]==true,"Original old settings schema did not migrate");
+        const auto columns=legacy.Query("PRAGMA table_info(ProxyMode)");std::set<std::string> names;for(const auto& column:columns)names.insert(column["name"].get<std::string>());Check(names.contains("DriverType")&&names.contains("SelectProcessNames")&&names.contains("Only_WPC_Client"),"ProxyMode migration columns missing");}
+    const auto inject=ParseInjectMode(ParseXml(read(golden/"inject.xml")),emptyInject),proxy=ParseProxyMode(ParseXml(read(golden/"proxy.xml")),emptyProxy);
+    Check(SerializeXml(InjectModeXml(inject))==read(golden/"inject.xml"),"InjectMode XML differs from original");
+    Check(SerializeXml(ProxyModeXml(proxy))==read(golden/"proxy.xml"),"ProxyMode XML differs from original");
     Check(SerializeXml(SystemConfigXml(ParseSystemConfig(ParseXml(read(golden/"system-before-import.xml")),Json::object())))==read(golden/"system.xml"),"Original null-to-empty XML import semantics");
     WriteXmlFileBytes(dir/"system.xml",SerializeXml(SystemConfigXml(system)));Check(read(dir/"system.xml")==read(golden/"system.xml"),"System config field or serialization differs");
     for(int i=0;i<4;++i){const auto rows=ParseParentList(i+8,ParseXml(read(fixtures/("input."+kinds[i]))),{},nextId,system);const auto xml=SerializeXml(ParentListXml(i+8,rows));
@@ -39,6 +48,14 @@ int main(int argc,char** argv){try{
     Check(ReadEditorXmlNode(ParseXml("<SendCollection><Collection><Buffer>AA<X/>BB</Buffer></Collection></SendCollection>"),true)[0]["Buffer"]==Json::binary({0xaa,0xbb}),"Mixed XML field content lost");
     std::vector<Json> events;DataService service(dir/"data.sqlite",[&](std::string name,Json data){events.push_back({{"name",name},{"data",data}});});
     auto call=[&](const std::string& name,Json args=Json::object()){return service.Call(name,args);};
+    {const auto local=call("getProxySetting")["localIps"];bool clean=true;for(const auto& ip:local)clean=clean&&ip.get<std::string>().find(":0:")==std::string::npos&&!ip.get<std::string>().ends_with(":0");Check(clean,"Local address accidentally included a socket port");}
+    call("importBackup",{{"_filePath",Path(golden/"settings.sb")}});const auto proxyRpc=call("getProxySetting"),hookRpc=call("getHookSetting"),fireRpc=call("getFireWall");
+    Check(proxyRpc["proxyIp"]=="127.0.0.1"&&proxyRpc["socks5Port"]==1088&&proxyRpc["httpPort"]==8088,"Proxy settings RPC did not load backup");
+    Check(hookRpc["ws1Send"]==false&&hookRpc["ws2SendTo"]==false&&hookRpc["unpack"]==true,"Hook settings RPC did not load backup");
+    Check(fireRpc["enable"]==true&&fireRpc["autoBlackMinutes"]==1440,"Firewall settings RPC did not load backup");
+    auto settingsParts=Json{{"proxySet",true},{"injectSet",true},{"_filePath",Path(dir/"settings.sb")}};call("exportBackup",settingsParts);Check(read(dir/"settings.sb")==read(golden/"settings.sb"),"Native proxy/inject backup differs from original");
+    Check(call("saveProxySetting",{{"proxyIpAuto",false},{"proxyIp","bad ip"},{"enableSocks5",true},{"socks5Port",1080},{"enableHttp",true},{"httpPort",1081},{"enableAuth",true},{"onlyWpc",false},{"maxConnection",5000}})["ok"]==false,"Invalid manual proxy IP accepted");
+    Check(call("saveListAutoClear",{{"autoClearValue",99}})["ok"]==false,"Invalid packet auto-clear size accepted");
     const auto backup=golden/"original.sb",out=dir/"native.sb";const Json parts={{"systemConfig",true},{"filterList",true},{"sendList",true},{"robotList",true},{"wareHouse",true}};
     auto result=call("importBackup",{{"_filePath",Path(backup)}});Check(result.size()==4&&result["language"]=="en-US"&&!result["isDark"].get<bool>(),"Backup preference result");
     auto exportArgs=parts;exportArgs["_filePath"]=Path(out);call("exportBackup",exportArgs);Check(read(out)==read(backup),"Native backup data did not match original");
@@ -74,8 +91,8 @@ int main(int argc,char** argv){try{
     call("__applyImport",{{"token",token},{"password","密码中文测试"}});Throws([&]{call("__applyImport",{{"token",token}});});
     Check(call("__verifyImportPassword",{{"token",token},{"password","密码中文测试"}})["ok"]==false,"Consumed token still usable");
     for(int i=0;i<20;++i){const auto p=call("__prepareImport",{{"method","importBackup"},{"args",{{"_filePath",Path(backup)}}}});call("__discardImport",{{"token",p["token"]}});}
-    auto bad=parts;bad["proxySet"]=true;bad["_filePath"]=Path(out);Throws([&]{call("exportBackup",bad);});Check(read(out)==read(backup),"Unsupported export replaced file");
-    const auto invalid=dir/"invalid.sb";WriteXmlFileBytes(invalid,"<WPE64_BackUp><SystemConfig><DefaultLanguage>ja-JP</DefaultLanguage></SystemConfig><ProxySet /></WPE64_BackUp>");
+    auto bad=parts;bad["proxyAccount"]=true;bad["_filePath"]=Path(out);Throws([&]{call("exportBackup",bad);});Check(read(out)==read(backup),"Unsupported export replaced file");
+    const auto invalid=dir/"invalid.sb";WriteXmlFileBytes(invalid,"<WPE64_BackUp><SystemConfig><DefaultLanguage>ja-JP</DefaultLanguage></SystemConfig><ProxyAccountList /></WPE64_BackUp>");
     Throws([&]{call("importBackup",{{"_filePath",Path(invalid)}});});call("exportBackup",exportArgs);Check(read(out)==read(backup),"Unsupported section partially changed DB");
     WriteXmlFileBytes(invalid,"<WPE64_BackUp><SystemConfig><DefaultLanguage>ja-JP</DefaultLanguage></SystemConfig><SendList><Send><Name>bad</Name><LoopCNT>not-number</LoopCNT></Send></SendList></WPE64_BackUp>");
     Throws([&]{call("importBackup",{{"_filePath",Path(invalid)}});});call("exportBackup",exportArgs);Check(read(out)==read(backup),"Invalid row partially changed DB");

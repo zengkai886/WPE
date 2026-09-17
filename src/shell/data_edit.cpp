@@ -70,6 +70,8 @@ Json DataService::WriteExport(Json plan,const std::string& path,const std::strin
         if(kind=="sc"||kind=="whs")WriteEditorXml(target,plan.at("rows"),kind=="sc",password);
         else if(kind=="sb"){
             XmlNode root("WPE64_BackUp");const auto& parts=plan.at("parts");if(B(parts,"systemConfig"))root.nodes.push_back(SystemConfigXml(config_));
+            if(B(parts,"proxySet"))root.nodes.push_back(ProxyModeXml(proxy_config_));
+            if(B(parts,"injectSet"))root.nodes.push_back(InjectModeXml(inject_config_));
             const std::array<const char*,4> partKeys={"filterList","sendList","robotList","wareHouse"};
             for(int list=8;list<=11;++list)if(B(parts,partKeys[list-8])&&!lists_[list].empty())root.nodes.push_back(ParentListXml(list,lists_[list]));WriteXmlFile(target,root,password);
         }else WriteXmlFile(target,ParentListXml(kind=="fp"?8:kind=="sp"?9:kind=="rp"?10:11,plan.at("rows")),password);

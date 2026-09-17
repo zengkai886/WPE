@@ -40,9 +40,55 @@ void ReadFields(Json& row,const XmlNode& node,const auto& fields){
         else row[key]=value;
     }
 }
+enum class SettingType{Boolean,Integer,Port,Text};
+struct SettingField{const char* xml;const char* db;SettingType type;};
+constexpr std::array<SettingField,15> injectModeFields={
+    SettingField{"HookWS1_Send","HookWS1_Send",SettingType::Boolean},{"HookWS1_SendTo","HookWS1_SendTo",SettingType::Boolean},
+    {"HookWS1_Recv","HookWS1_Recv",SettingType::Boolean},{"HookWS1_RecvFrom","HookWS1_RecvFrom",SettingType::Boolean},
+    {"HookWS2_Send","HookWS2_Send",SettingType::Boolean},{"HookWS2_SendTo","HookWS2_SendTo",SettingType::Boolean},
+    {"HookWS2_Recv","HookWS2_Recv",SettingType::Boolean},{"HookWS2_RecvFrom","HookWS2_RecvFrom",SettingType::Boolean},
+    {"HookWSA_Send","HookWSA_Send",SettingType::Boolean},{"HookWSA_SendTo","HookWSA_SendTo",SettingType::Boolean},
+    {"HookWSA_Recv","HookWSA_Recv",SettingType::Boolean},{"HookWSA_RecvFrom","HookWSA_RecvFrom",SettingType::Boolean},
+    {"PacketList_AutoRoll","PacketList_AutoRoll",SettingType::Boolean},{"PacketList_AutoClear","PacketList_AutoClear",SettingType::Boolean},
+    {"PacketList_AutoClear_Value","PacketList_AutoClear_Value",SettingType::Integer}
+};
+constexpr std::array<SettingField,39> proxyModeFields={
+    SettingField{"ProxyIP_Auto","ProxyIP_Auto",SettingType::Boolean},{"Enable_SOCKS5","Enable_SOCKS5",SettingType::Boolean},
+    {"Enable_HTTP","Enable_HTTP",SettingType::Boolean},{"ProxyIP","ProxyIP",SettingType::Text},
+    {"SOCKS5_Port","SOCKS5_Port",SettingType::Port},{"HTTP_Port","HTTP_Port",SettingType::Port},
+    {"Enable_Auth","EnableAuth",SettingType::Boolean},{"MaxConnectionNumber","MaxConnectionNumber",SettingType::Integer},
+    {"Enable_UnPack","Enable_UnPack",SettingType::Boolean},{"UnPack_Head","UnPack_Head",SettingType::Text},
+    {"UnPack_Length","UnPack_Length",SettingType::Text},{"Enable_MapLocal","Enable_MapLocal",SettingType::Boolean},
+    {"Enable_MapRemote","Enable_MapRemote",SettingType::Boolean},{"Enable_ExternalProxy","Enable_ExternalProxy",SettingType::Boolean},
+    {"ExternalProxy_IP","ExternalProxy_IP",SettingType::Text},{"ExternalProxy_Port","ExternalProxy_Port",SettingType::Port},
+    {"Enable_ExternalProxy_AppointPort","Enable_ExternalProxy_AppointPort",SettingType::Boolean},{"ExternalProxy_AppointPort","ExternalProxy_AppointPort",SettingType::Text},
+    {"Enable_ExternalProxy_Auth","Enable_ExternalProxy_Auth",SettingType::Boolean},{"ExternalProxy_UserName","ExternalProxy_UserName",SettingType::Text},
+    {"ExternalProxy_PassWord","ExternalProxy_PassWord",SettingType::Text},{"MustTCP","MustTCP",SettingType::Boolean},
+    {"MustTCP_IP","MustTCP_IP",SettingType::Text},{"MustTCP_Port","MustTCP_Port",SettingType::Port},
+    {"MustTCP_Auth","MustTCP_Auth",SettingType::Boolean},{"MustTCP_UserName","MustTCP_UserName",SettingType::Text},
+    {"MustTCP_PassWord","MustTCP_PassWord",SettingType::Text},{"MustTCP_AppointPort","MustTCP_AppointPort",SettingType::Boolean},
+    {"MustTCP_AppointPortContent","MustTCP_AppointPortContent",SettingType::Text},{"EnableFireWall","EnableFireWall",SettingType::Boolean},
+    {"Only_WPC_Client","Only_WPC_Client",SettingType::Boolean},{"WhiteListMode","WhiteListMode",SettingType::Boolean},
+    {"FireWall_AutoWhiteList_AuthSuccess","FireWall_AutoWhiteList_AuthSuccess",SettingType::Boolean},
+    {"FireWall_AutoBlackList_UnSupport","FireWall_AutoBlackList_UnSupport",SettingType::Boolean},
+    {"FireWall_AutoBlackList_AuthFail","FireWall_AutoBlackList_AuthFail",SettingType::Boolean},
+    {"FireWall_AutoBlackList_Minutes","FireWall_AutoBlackList_Minutes",SettingType::Integer},
+    {"FireWall_AutoClear_Expiry","FireWall_AutoClear_Expiry",SettingType::Boolean},{"DriverType","DriverType",SettingType::Integer},
+    {"SelectProcessNames","SelectProcessNames",SettingType::Text}
+};
+template<std::size_t Count>XmlNode SettingsXml(const char* name,const Json& settings,const std::array<SettingField,Count>& fields){
+    XmlNode root(name);for(const auto& field:fields){std::string value;if(field.type==SettingType::Boolean)value=B(settings,field.db)?"true":"false";else if(field.type==SettingType::Integer||field.type==SettingType::Port)value=std::to_string(N(settings,field.db));else value=S(settings,field.db);root.nodes.emplace_back(field.xml,value);}return root;
+}
+template<std::size_t Count>Json ParseSettings(const XmlNode& node,const Json& current,const std::array<SettingField,Count>& fields){
+    auto next=current;for(const auto& field:fields){const auto* value=node.Get(field.xml);if(!value)continue;const auto text=value->text.value_or("");if(field.type==SettingType::Boolean)next[field.db]=Boolean(text);else if(field.type==SettingType::Text)next[field.db]=text;else{const auto number=Int(text);if(field.type==SettingType::Port&&(number<0||number>65535))throw std::runtime_error("代理端口超出原版 UInt16 范围");if(std::string(field.db)=="DriverType"&&(number<0||number>2))continue;next[field.db]=number;}}return next;
+}
 }
 XmlNode SystemConfigXml(const Json& config){XmlNode root("SystemConfig");for(const auto& f:systemFields)root.nodes.push_back(Field(f,config,true));return root;}
 Json ParseSystemConfig(const XmlNode& node,const Json& current){auto next=current;ReadFields(next,node,systemFields);return next;}
+XmlNode InjectModeXml(const Json& config){return SettingsXml("InjectMode",config,injectModeFields);}
+Json ParseInjectMode(const XmlNode& node,const Json& current){return ParseSettings(node,current,injectModeFields);}
+XmlNode ProxyModeXml(const Json& config){return SettingsXml("ProxyMode",config,proxyModeFields);}
+Json ParseProxyMode(const XmlNode& node,const Json& current){return ParseSettings(node,current,proxyModeFields);}
 XmlNode ParentListXml(int list,const Json& rows){
     XmlNode root(list==11?"WareHouseList":tables[list-8]+"List");
     for(const auto& row:rows){XmlNode parent(tables[list-8]);

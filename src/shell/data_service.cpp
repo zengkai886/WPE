@@ -1,6 +1,9 @@
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #include <windows.h>
+#include <iphlpapi.h>
 #include <objbase.h>
 #include "data_service.h"
 #include "data_schema.h"
@@ -10,14 +13,54 @@
 #include <iomanip>
 #include <regex>
 #include <sstream>
+#include <cmath>
 
 #include "data_util.h"
 namespace wpe::shell {
 using namespace data_detail;
+namespace {
+class Winsock final{public:Winsock(){WSADATA data{};ready_=WSAStartup(MAKEWORD(2,2),&data)==0;}~Winsock(){if(ready_)WSACleanup();}explicit operator bool()const{return ready_;}private:bool ready_{};};
+Json LocalAddresses(){
+    const Winsock winsock;if(!winsock)return Json::array();
+    ULONG bytes=0;const ULONG flags=GAA_FLAG_SKIP_ANYCAST|GAA_FLAG_SKIP_MULTICAST|GAA_FLAG_SKIP_DNS_SERVER;
+    if(GetAdaptersAddresses(AF_UNSPEC,flags,nullptr,nullptr,&bytes)!=ERROR_BUFFER_OVERFLOW)return Json::array();
+    std::vector<std::byte> storage(bytes);auto* first=reinterpret_cast<IP_ADAPTER_ADDRESSES*>(storage.data());
+    if(GetAdaptersAddresses(AF_UNSPEC,flags,nullptr,first,&bytes)!=NO_ERROR)return Json::array();
+    Json result=Json::array();std::set<std::string> seen;
+    for(auto* adapter=first;adapter;adapter=adapter->Next){if(adapter->OperStatus!=IfOperStatusUp)continue;for(auto* item=adapter->FirstUnicastAddress;item;item=item->Next){
+        if(!item->Address.lpSockaddr)continue;const void* source=nullptr;ULONG scope=0;
+        if(item->Address.lpSockaddr->sa_family==AF_INET)source=&reinterpret_cast<const SOCKADDR_IN*>(item->Address.lpSockaddr)->sin_addr;
+        else if(item->Address.lpSockaddr->sa_family==AF_INET6){const auto* address=reinterpret_cast<const SOCKADDR_IN6*>(item->Address.lpSockaddr);source=&address->sin6_addr;scope=address->sin6_scope_id;}else continue;
+        wchar_t wide[INET6_ADDRSTRLEN]{};if(!InetNtopW(item->Address.lpSockaddr->sa_family,const_cast<void*>(source),wide,std::size(wide)))continue;
+        const auto count=WideCharToMultiByte(CP_UTF8,0,wide,-1,nullptr,0,nullptr,nullptr);if(count<=1)continue;std::string value(static_cast<std::size_t>(count),0);WideCharToMultiByte(CP_UTF8,0,wide,-1,value.data(),count,nullptr,nullptr);value.pop_back();if(scope)value+="%"+std::to_string(scope);
+        if(seen.insert(value).second)result.push_back(value);
+    }}return result;
+}
+std::uint64_t PhysicalMemory(){MEMORYSTATUSEX info{};info.dwLength=sizeof(info);return GlobalMemoryStatusEx(&info)?info.ullTotalPhys:0;}
+int MaxConnectionCap(){constexpr std::uint64_t mb=1024ull*1024ull;std::uint64_t bytes;
+#if defined(_WIN64)
+    const auto physical=PhysicalMemory();bytes=physical?std::min<std::uint64_t>(physical/2,1536ull*mb):512ull*mb;
+#else
+    bytes=256ull*mb;
+#endif
+    return static_cast<int>(std::max<std::uint64_t>(1,bytes/(16ull*1024ull)));
+}
+bool ValidIp(const std::string& value){const Winsock winsock;if(!winsock)return false;IN_ADDR v4{};IN6_ADDR v6{};return InetPtonA(AF_INET,value.c_str(),&v4)==1||InetPtonA(AF_INET6,value.c_str(),&v6)==1;}
+std::string Address(const Json& proxy,const Json& local,bool http){
+    if(http&&!B(proxy,"Enable_HTTP"))return {};std::string ip=S(proxy,"ProxyIP");if(B(proxy,"ProxyIP_Auto",true)||ip.empty())ip=local.empty()?"0.0.0.0":local[0].get<std::string>();
+    if(ip.find(':')!=ip.npos)ip="["+ip+"]";return ip+":"+std::to_string(N(proxy,http?"HTTP_Port":"SOCKS5_Port",http?1081:1080));
+}
+}
 
 DataService::DataService(const std::filesystem::path& path,Emit emit):db_(path),emit_(std::move(emit)){
     for(auto& list:lists_)list=Json::array();
-    db_.Transaction([&]{db_.Execute(data_schema);});
+    db_.Transaction([&]{db_.Execute(data_schema);
+        auto ensure=[&](const char* table,const char* column,const char* declaration){const auto info=db_.Query("PRAGMA table_info("+std::string(table)+")");
+            if(std::none_of(info.begin(),info.end(),[&](const Json& row){return Upper(S(row,"name"))==Upper(column);}))db_.Execute("ALTER TABLE "+std::string(table)+" ADD COLUMN "+column+" "+declaration);
+        };
+        for(const auto& field:std::array<std::pair<const char*,const char*>,8>{{{"ThemeFollowSystem","BOOLEAN DEFAULT 0"},{"ScanLine","BOOLEAN DEFAULT 1"},{"StoresLimit","BOOLEAN DEFAULT 1"},{"StoresLimit_Value","INTEGER DEFAULT 5000"},{"LastInjectMethod","INTEGER DEFAULT 0"},{"LastInjectPath","TEXT"},{"LastInjectArgs","TEXT"},{"LastInjectTime","TEXT"}}})ensure("SystemConfig",field.first,field.second);
+        ensure("ProxyMode","DriverType","INTEGER DEFAULT 1");ensure("ProxyMode","SelectProcessNames","TEXT");ensure("ProxyMode","Only_WPC_Client","BOOLEAN DEFAULT 0");
+    });
     auto settings=db_.Query("SELECT * FROM SystemConfig ORDER BY rowid LIMIT 1");
     if(settings.empty()){
         db_.Transaction([&]{db_.Execute("INSERT INTO SystemConfig DEFAULT VALUES");
@@ -30,6 +73,11 @@ DataService::DataService(const std::filesystem::path& path,Emit emit):db_(path),
         settings=db_.Query("SELECT * FROM SystemConfig ORDER BY rowid LIMIT 1");
     }
     config_=settings.at(0);
+    auto inject=db_.Query("SELECT * FROM InjectMode ORDER BY rowid LIMIT 1");
+    auto proxy=db_.Query("SELECT * FROM ProxyMode ORDER BY rowid LIMIT 1");
+    if(inject.empty()||proxy.empty())db_.Transaction([&]{if(inject.empty())db_.Execute("INSERT INTO InjectMode DEFAULT VALUES");if(proxy.empty())db_.Execute("INSERT INTO ProxyMode DEFAULT VALUES");});
+    if(inject.empty())inject=db_.Query("SELECT * FROM InjectMode ORDER BY rowid LIMIT 1");if(proxy.empty())proxy=db_.Query("SELECT * FROM ProxyMode ORDER BY rowid LIMIT 1");
+    inject_config_=inject.at(0);proxy_config_=proxy.at(0);
     for(int list=8;list<=11;++list){
         auto rows=db_.Query("SELECT * FROM "+tables[list-8]+" ORDER BY rowid");
         for(auto& row:rows){
@@ -40,6 +88,7 @@ DataService::DataService(const std::filesystem::path& path,Emit emit):db_(path),
 }
 std::vector<std::string> DataService::Methods(){return {
     "getPrefs","setAppearance","setLanguage","saveActionColor","getSystemSetting","saveSystemSetting","getLogSetting","saveLogSetting",
+    "getProxySetting","saveProxySetting","getHookSetting","saveHookSetting","getFireWall","saveFireWall","saveListAutoClear",
     "enterProxyMode","enterInjectMode","getStats","getClientConnections","clearLogs","getCountryTable",
     "getFilterExecute","getFilterEdit","saveFilterEdit","getExecuteTargets","addFilter","setFilterEnable","setAllFilterEnable","resetFilterCount","filterListAction","clearFilters",
     "getSendMeta","addSend","setSendEnable","setAllSendEnable","resetSendCount","sendListAction","clearSends","openSendEdit","closeSendEdit","getSendCollection","saveSendEdit","exportSendCollection",
@@ -72,6 +121,14 @@ void DataService::SaveConfig(const Json& changes){
     auto next=config_;for(auto it=changes.begin();it!=changes.end();++it){if(!next.contains(it.key()))throw std::invalid_argument("Unknown setting");next[it.key()]=it.value();}
     // Preserve every untouched upstream column. Commit before changing the live mirror.
     db_.Transaction([&]{db_.Replace("SystemConfig",Json::array({next}));});config_=std::move(next);
+}
+void DataService::SaveInjectConfig(const Json& changes){
+    auto next=inject_config_;for(auto it=changes.begin();it!=changes.end();++it){if(!next.contains(it.key()))throw std::invalid_argument("Unknown inject setting");next[it.key()]=it.value();}
+    db_.Transaction([&]{db_.Replace("InjectMode",Json::array({next}));});inject_config_=std::move(next);
+}
+void DataService::SaveProxyConfig(const Json& changes){
+    auto next=proxy_config_;for(auto it=changes.begin();it!=changes.end();++it){if(!next.contains(it.key()))throw std::invalid_argument("Unknown proxy setting");next[it.key()]=it.value();}
+    db_.Transaction([&]{db_.Replace("ProxyMode",Json::array({next}));});proxy_config_=std::move(next);
 }
 Json DataService::NewRow(int list){
     Json row{{"GUID",Guid()},{"Name",""},{"_objectId",Guid()}};
@@ -230,6 +287,64 @@ Json DataService::Call(const std::string& method,const Json& args){
         Json changes=Json::object();if(args.contains("autoClear"))changes["LogList_AutoClear"]=B(args,"autoClear");
         if(args.contains("autoClearValue")){const int v=N(args,"autoClearValue");if(v<100||v>500000)return Bad(Text("ListSettingsForm.Range","保留条数需在 100 ~ 500000 之间"));changes["LogList_AutoClear_Value"]=v;}
         SaveConfig(changes);return Good();
+    }
+    if(method=="getProxySetting"){
+        const auto ips=LocalAddresses();const auto physical=PhysicalMemory();const double gb=std::round(static_cast<double>(physical)/(1024.0*1024.0*1024.0)*10.0)/10.0;
+        return {{"proxyIpAuto",B(proxy_config_,"ProxyIP_Auto",true)},{"proxyIp",S(proxy_config_,"ProxyIP")},{"localIps",ips},
+            {"enableSocks5",B(proxy_config_,"Enable_SOCKS5",true)},{"socks5Port",N(proxy_config_,"SOCKS5_Port",1080)},
+            {"enableAuth",B(proxy_config_,"EnableAuth",true)},{"onlyWpc",B(proxy_config_,"Only_WPC_Client")},
+            {"maxConnection",N(proxy_config_,"MaxConnectionNumber",5000)},{"maxConnectionCap",MaxConnectionCap()},
+            {"maxConnectionDefault",5000},{"connBufferKB",16},{"memoryGB",gb},{"enableHttp",B(proxy_config_,"Enable_HTTP",true)},
+            {"httpPort",N(proxy_config_,"HTTP_Port",1080)},{"enableSystemProxy",false},{"running",false}};
+    }
+    if(method=="saveProxySetting"){
+        const bool socks=B(args,"enableSocks5"),http=B(args,"enableHttp"),automatic=B(args,"proxyIpAuto"),auth=B(args,"enableAuth"),only=B(args,"onlyWpc");
+        const int socksPort=N(args,"socks5Port",1080),httpPort=N(args,"httpPort",1081),maximum=N(args,"maxConnection",5000);const auto ip=Trim(S(args,"proxyIp"));
+        if(!socks)return Bad(Text("ProxySettingsForm.ProxyType.Error","代理类型未设置"));
+        if(http&&socksPort==httpPort)return Bad(Text("ProxySettingsForm.ProxyType.Error","SOCKS 和 HTTP 端口不能相同"));
+        if(socksPort<1||socksPort>65535||httpPort<1||httpPort>65535)return Bad(Text("ProxySettingsForm.Port.Error","端口必须在 1 ~ 65535 之间"));
+        if(!automatic&&!ValidIp(ip))return Bad(Text("ProxySettingsForm.ProxyIP.Empty","请选择监听地址，或勾上「自动检测」"));
+        if(only&&!auth)return Bad(Text("ProxySettingsForm.OnlyWpc.NeedAuth","「只允许 WPC 客户端连接」需要先启用身份认证"));
+        if(maximum<1||maximum>MaxConnectionCap())return Bad(Text("ProxySettingsForm.MaxConnection.Error","最大连接数超出本机可预留内存范围"));
+        SaveProxyConfig({{"ProxyIP_Auto",automatic},{"ProxyIP",ip},{"Enable_SOCKS5",socks},{"SOCKS5_Port",socksPort},{"EnableAuth",auth},
+            {"Only_WPC_Client",only},{"MaxConnectionNumber",maximum},{"Enable_HTTP",http},{"HTTP_Port",httpPort}});
+        const auto ips=LocalAddresses();emit_("toast",{{"level",2},{"text",Text("ProxySettingsForm.Success","代理设置保存成功")}});
+        return {{"ok",true},{"socks5Addr",Address(proxy_config_,ips,false)},{"httpAddr",Address(proxy_config_,ips,true)}};
+    }
+    if(method=="getHookSetting")return {
+        {"ws1Send",B(inject_config_,"HookWS1_Send",true)},{"ws1SendTo",B(inject_config_,"HookWS1_SendTo",true)},
+        {"ws1Recv",B(inject_config_,"HookWS1_Recv",true)},{"ws1RecvFrom",B(inject_config_,"HookWS1_RecvFrom",true)},
+        {"ws2Send",B(inject_config_,"HookWS2_Send",true)},{"ws2SendTo",B(inject_config_,"HookWS2_SendTo",true)},
+        {"ws2Recv",B(inject_config_,"HookWS2_Recv",true)},{"ws2RecvFrom",B(inject_config_,"HookWS2_RecvFrom",true)},
+        {"wsaSend",B(inject_config_,"HookWSA_Send",true)},{"wsaSendTo",B(inject_config_,"HookWSA_SendTo",true)},
+        {"wsaRecv",B(inject_config_,"HookWSA_Recv",true)},{"wsaRecvFrom",B(inject_config_,"HookWSA_RecvFrom",true)},
+        {"tcpReq",hook_tcp_req_},{"tcpResp",hook_tcp_resp_},{"udpReq",hook_udp_req_},{"udpResp",hook_udp_resp_},
+        {"unpack",B(proxy_config_,"Enable_UnPack")},{"unpackHead",S(proxy_config_,"UnPack_Head")},{"unpackLength",S(proxy_config_,"UnPack_Length")}};
+    if(method=="saveHookSetting"){
+        Json inject=Json::object();const std::array<std::pair<const char*,const char*>,12> hooks={{{"ws1Send","HookWS1_Send"},{"ws1SendTo","HookWS1_SendTo"},{"ws1Recv","HookWS1_Recv"},{"ws1RecvFrom","HookWS1_RecvFrom"},
+            {"ws2Send","HookWS2_Send"},{"ws2SendTo","HookWS2_SendTo"},{"ws2Recv","HookWS2_Recv"},{"ws2RecvFrom","HookWS2_RecvFrom"},{"wsaSend","HookWSA_Send"},{"wsaSendTo","HookWSA_SendTo"},{"wsaRecv","HookWSA_Recv"},{"wsaRecvFrom","HookWSA_RecvFrom"}}};
+        for(const auto& [arg,key]:hooks)if(args.contains(arg)&&!args.at(arg).is_null())inject[key]=B(args,arg);if(!inject.empty())SaveInjectConfig(inject);
+        if(args.contains("tcpReq")&&!args.at("tcpReq").is_null()){
+            const bool unpack=B(args,"unpack");const auto head=Trim(S(args,"unpackHead")),length=Trim(S(args,"unpackLength"));
+            if(unpack){if(!std::regex_match(head,std::regex(R"(^[0-9A-Fa-f]{2}([ ,;]+[0-9A-Fa-f]{2})*$)"))||!std::regex_match(length,std::regex(R"(^\d+-\d+$)")))return Bad(Text("HookSettingsForm.UnPack.Error","拆包设置不正确"));
+                const auto dash=length.find('-');int start=0,end=0;if(!Integer(length.substr(0,dash),start)||!Integer(length.substr(dash+1),end)||end<start)return Bad(Text("HookSettingsForm.UnPack.Error","拆包设置不正确"));}
+            hook_tcp_req_=B(args,"tcpReq");hook_tcp_resp_=B(args,"tcpResp");hook_udp_req_=B(args,"udpReq");hook_udp_resp_=B(args,"udpResp");
+            SaveProxyConfig({{"Enable_UnPack",unpack},{"UnPack_Head",head},{"UnPack_Length",length}});
+        }
+        emit_("toast",{{"level",2},{"text",Text("HookSettingsForm.Success","拦截设置保存成功")}});return Good();
+    }
+    if(method=="getFireWall")return {{"enable",B(proxy_config_,"EnableFireWall")},{"whiteMode",B(proxy_config_,"WhiteListMode")},
+        {"autoWhiteAuthOk",B(proxy_config_,"FireWall_AutoWhiteList_AuthSuccess")},{"autoBlackUnsupport",B(proxy_config_,"FireWall_AutoBlackList_UnSupport")},
+        {"autoBlackAuthFail",B(proxy_config_,"FireWall_AutoBlackList_AuthFail")},{"autoBlackMinutes",N(proxy_config_,"FireWall_AutoBlackList_Minutes",30)},
+        {"autoClearExpiry",B(proxy_config_,"FireWall_AutoClear_Expiry")}};
+    if(method=="saveFireWall"){
+        const int minutes=N(args,"autoBlackMinutes",30);if(minutes<1||minutes>525600)return Bad(Text("FireWallSetting.Minutes.Range","屏蔽时长需在 1 ~ 525600 分钟之间"));
+        SaveProxyConfig({{"EnableFireWall",B(args,"enable")},{"WhiteListMode",B(args,"whiteMode")},{"FireWall_AutoWhiteList_AuthSuccess",B(args,"autoWhiteAuthOk")},
+            {"FireWall_AutoBlackList_UnSupport",B(args,"autoBlackUnsupport")},{"FireWall_AutoBlackList_AuthFail",B(args,"autoBlackAuthFail")},
+            {"FireWall_AutoBlackList_Minutes",minutes},{"FireWall_AutoClear_Expiry",B(args,"autoClearExpiry")}});return Good();
+    }
+    if(method=="saveListAutoClear"){
+        Json changes=Json::object();if(args.contains("autoClear"))changes["PacketList_AutoClear"]=B(args,"autoClear");if(args.contains("autoClearValue")){const int keep=N(args,"autoClearValue");if(keep<100||keep>500000)return Bad(Text("ListSettingsForm.Range","保留条数需在 100 ~ 500000 之间"));changes["PacketList_AutoClear_Value"]=keep;}SaveInjectConfig(changes);return Good();
     }
     if(method=="getFilterExecute")return {{"mode",N(config_,"FilterExecute",1)}};
     if(method=="getSendMeta")return {{"systemSocket",0},{"running",false},{"listExecute",N(config_,"ListExecute",1)}};

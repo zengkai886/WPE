@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<InjectMode>
+  <HookWS1_Send>false</HookWS1_Send>
+  <HookWS1_SendTo>true</HookWS1_SendTo>
+  <HookWS1_Recv>false</HookWS1_Recv>
+  <HookWS1_RecvFrom>true</HookWS1_RecvFrom>
+  <HookWS2_Send>true</HookWS2_Send>
+  <HookWS2_SendTo>false</HookWS2_SendTo>
+  <HookWS2_Recv>true</HookWS2_Recv>
+  <HookWS2_RecvFrom>false</HookWS2_RecvFrom>
+  <HookWSA_Send>false</HookWSA_Send>
+  <HookWSA_SendTo>false</HookWSA_SendTo>
+  <HookWSA_Recv>true</HookWSA_Recv>
+  <HookWSA_RecvFrom>true</HookWSA_RecvFrom>
+  <PacketList_AutoRoll>true</PacketList_AutoRoll>
+  <PacketList_AutoClear>false</PacketList_AutoClear>
+  <PacketList_AutoClear_Value>12345</PacketList_AutoClear_Value>
+</InjectMode>

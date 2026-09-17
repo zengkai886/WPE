@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<WPE64_BackUp>
+  <ProxyMode>
+    <ProxyIP_Auto>false</ProxyIP_Auto>
+    <Enable_SOCKS5>true</Enable_SOCKS5>
+    <Enable_HTTP>true</Enable_HTTP>
+    <ProxyIP>127.0.0.1</ProxyIP>
+    <SOCKS5_Port>1088</SOCKS5_Port>
+    <HTTP_Port>8088</HTTP_Port>
+    <Enable_Auth>false</Enable_Auth>
+    <MaxConnectionNumber>4321</MaxConnectionNumber>
+    <Enable_UnPack>true</Enable_UnPack>
+    <UnPack_Head>AA BB</UnPack_Head>
+    <UnPack_Length>2-3</UnPack_Length>
+    <Enable_MapLocal>true</Enable_MapLocal>
+    <Enable_MapRemote>false</Enable_MapRemote>
+    <Enable_ExternalProxy>true</Enable_ExternalProxy>
+    <ExternalProxy_IP>2001:db8::1</ExternalProxy_IP>
+    <ExternalProxy_Port>65535</ExternalProxy_Port>
+    <Enable_ExternalProxy_AppointPort>true</Enable_ExternalProxy_AppointPort>
+    <ExternalProxy_AppointPort>80,443</ExternalProxy_AppointPort>
+    <Enable_ExternalProxy_Auth>true</Enable_ExternalProxy_Auth>
+    <ExternalProxy_UserName>用户&lt;&amp;&gt;</ExternalProxy_UserName>
+    <ExternalProxy_PassWord>p"'&amp;</ExternalProxy_PassWord>
+    <MustTCP>false</MustTCP>
+    <MustTCP_IP></MustTCP_IP>
+    <MustTCP_Port>1</MustTCP_Port>
+    <MustTCP_Auth>true</MustTCP_Auth>
+    <MustTCP_UserName>u</MustTCP_UserName>
+    <MustTCP_PassWord>p</MustTCP_PassWord>
+    <MustTCP_AppointPort>true</MustTCP_AppointPort>
+    <MustTCP_AppointPortContent>1-10</MustTCP_AppointPortContent>
+    <EnableFireWall>true</EnableFireWall>
+    <Only_WPC_Client>false</Only_WPC_Client>
+    <WhiteListMode>true</WhiteListMode>
+    <FireWall_AutoWhiteList_AuthSuccess>true</FireWall_AutoWhiteList_AuthSuccess>
+    <FireWall_AutoBlackList_UnSupport>false</FireWall_AutoBlackList_UnSupport>
+    <FireWall_AutoBlackList_AuthFail>true</FireWall_AutoBlackList_AuthFail>
+    <FireWall_AutoBlackList_Minutes>1440</FireWall_AutoBlackList_Minutes>
+    <FireWall_AutoClear_Expiry>true</FireWall_AutoClear_Expiry>
+    <DriverType>2</DriverType>
+    <SelectProcessNames>a.exe|
+b.exe|</SelectProcessNames>
+  </ProxyMode>
+  <InjectMode>
+    <HookWS1_Send>false</HookWS1_Send>
+    <HookWS1_SendTo>true</HookWS1_SendTo>
+    <HookWS1_Recv>false</HookWS1_Recv>
+    <HookWS1_RecvFrom>true</HookWS1_RecvFrom>
+    <HookWS2_Send>true</HookWS2_Send>
+    <HookWS2_SendTo>false</HookWS2_SendTo>
+    <HookWS2_Recv>true</HookWS2_Recv>
+    <HookWS2_RecvFrom>false</HookWS2_RecvFrom>
+    <HookWSA_Send>false</HookWSA_Send>
+    <HookWSA_SendTo>false</HookWSA_SendTo>
+    <HookWSA_Recv>true</HookWSA_Recv>
+    <HookWSA_RecvFrom>true</HookWSA_RecvFrom>
+    <PacketList_AutoRoll>true</PacketList_AutoRoll>
+    <PacketList_AutoClear>false</PacketList_AutoClear>
+    <PacketList_AutoClear_Value>12345</PacketList_AutoClear_Value>
+  </InjectMode>
+</WPE64_BackUp>

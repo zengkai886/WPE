@@ -17,6 +17,8 @@ static class ConfigFileOracle
         if(File.Exists(Path.Combine(db,"oracle.db")))throw new Exception("Fresh oracle directory required");
         Operate.DataBase.dbPath=db;Operate.DataBase.dbName="oracle.db";Operate.DataBase.InitDB();
         Operate.SystemConfig.LoadSystemConfig_FromDB();
+        Operate.SystemConfig.LoadInjectMode_FromDB();
+        Operate.SystemConfig.LoadProxyMode_FromDB();
         Operate.SystemConfig.SetSystemConfig_FromXML(XElement.Load(Path.Combine(input,"system.xml")));
         Operate.FilterConfig.List.LoadFilterList_FromXDocument(XDocument.Load(Path.Combine(input,"input.fp")));
         Operate.SendConfig.List.LoadSendList_FromXDocument(XDocument.Load(Path.Combine(input,"input.sp")));
@@ -35,6 +37,27 @@ static class ConfigFileOracle
         Operate.SystemConfig.SetSystemConfig_FromXML(system);
         system=Operate.SystemConfig.GetSystemConfig_XML();Save(Path.Combine(output,"system.xml"),system);
         Save(Path.Combine(output,"original.sb"),new XElement("WPE64_BackUp",system,roots));
+        var inject=new XElement("InjectMode",
+            new XElement("HookWS1_Send",false),new XElement("HookWS1_SendTo",true),new XElement("HookWS1_Recv",false),new XElement("HookWS1_RecvFrom",true),
+            new XElement("HookWS2_Send",true),new XElement("HookWS2_SendTo",false),new XElement("HookWS2_Recv",true),new XElement("HookWS2_RecvFrom",false),
+            new XElement("HookWSA_Send",false),new XElement("HookWSA_SendTo",false),new XElement("HookWSA_Recv",true),new XElement("HookWSA_RecvFrom",true),
+            new XElement("PacketList_AutoRoll",true),new XElement("PacketList_AutoClear",false),new XElement("PacketList_AutoClear_Value",12345));
+        var proxy=new XElement("ProxyMode",
+            new XElement("ProxyIP_Auto",false),new XElement("Enable_SOCKS5",true),new XElement("Enable_HTTP",true),new XElement("ProxyIP","127.0.0.1"),
+            new XElement("SOCKS5_Port",1088),new XElement("HTTP_Port",8088),new XElement("Enable_Auth",false),new XElement("MaxConnectionNumber",4321),
+            new XElement("Enable_UnPack",true),new XElement("UnPack_Head","AA BB"),new XElement("UnPack_Length","2-3"),new XElement("Enable_MapLocal",true),
+            new XElement("Enable_MapRemote",false),new XElement("Enable_ExternalProxy",true),new XElement("ExternalProxy_IP","2001:db8::1"),new XElement("ExternalProxy_Port",65535),
+            new XElement("Enable_ExternalProxy_AppointPort",true),new XElement("ExternalProxy_AppointPort","80,443"),new XElement("Enable_ExternalProxy_Auth",true),
+            new XElement("ExternalProxy_UserName","用户<&>"),new XElement("ExternalProxy_PassWord","p\"'&"),new XElement("MustTCP",false),new XElement("MustTCP_IP",string.Empty),
+            new XElement("MustTCP_Port",1),new XElement("MustTCP_Auth",true),new XElement("MustTCP_UserName","u"),new XElement("MustTCP_PassWord","p"),
+            new XElement("MustTCP_AppointPort",true),new XElement("MustTCP_AppointPortContent","1-10"),new XElement("EnableFireWall",true),new XElement("Only_WPC_Client",false),
+            new XElement("WhiteListMode",true),new XElement("FireWall_AutoWhiteList_AuthSuccess",true),new XElement("FireWall_AutoBlackList_UnSupport",false),
+            new XElement("FireWall_AutoBlackList_AuthFail",true),new XElement("FireWall_AutoBlackList_Minutes",1440),new XElement("FireWall_AutoClear_Expiry",true),
+            new XElement("DriverType",2),new XElement("SelectProcessNames","a.exe\nb.exe"));
+        Operate.SystemConfig.SetInjectMode_FromXML(inject);Operate.SystemConfig.SetProxyMode_FromXML(proxy);
+        inject=Operate.SystemConfig.GetInjectMode_XML();proxy=Operate.SystemConfig.GetProxyMode_XML();
+        Save(Path.Combine(output,"inject.xml"),inject);Save(Path.Combine(output,"proxy.xml"),proxy);
+        Save(Path.Combine(output,"settings.sb"),new XElement("WPE64_BackUp",proxy,inject));
         var cases=new JArray();var passwords=new[]{"compatibility-test", "密码中文测试", "emoji-\U0001F512-\U0001F600", "\u00e9\u20ac\u0416\u3042\u3000", " leading and trailing ", "x", "\0embedded\0"};
         foreach(var kind in kinds.Concat(new[]{"sb"}))for(int i=0;i<passwords.Length;i++)
         {
@@ -51,5 +74,12 @@ static class ConfigFileOracle
     {
         var doc=Operate.SystemConfig.DecryptXMLFile(file,password);if(doc==null||doc.Root==null)throw new Exception("Original rejected native encrypted XML");
         Console.WriteLine("PASS: unchanged original decrypted native "+doc.Root.Name);return 0;
+    }
+    public static int VerifySettingsDatabase(string database,string output)
+    {
+        var file=Path.GetFullPath(database);Operate.DataBase.dbPath=Path.GetDirectoryName(file);Operate.DataBase.dbName=Path.GetFileName(file);Operate.DataBase.InitConStr();
+        Operate.SystemConfig.LoadProxyMode_FromDB();Operate.SystemConfig.LoadInjectMode_FromDB();
+        Save(output,new XElement("WPE64_BackUp",Operate.SystemConfig.GetProxyMode_XML(),Operate.SystemConfig.GetInjectMode_XML()));
+        Console.WriteLine("PASS: unchanged original loaded native ProxyMode and InjectMode database rows");return 0;
     }
 }

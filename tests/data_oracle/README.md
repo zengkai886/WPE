@@ -88,7 +88,9 @@ export-edge 覆盖 CR/LF/CRLF、Tab、中文、emoji、XML 特殊字符与未知
 
 ## 父列表与原加密对照
 
-`config-files <tests/fixtures/config-files> <新的隔离输出目录>` 调用原加载器/保存器，输出四父列表、五组备份、系统默认 null 导入前后 XML，以及 35 个实际原 AES 密文。`crypto.json` 记录原程序集 SHA256 和 Encoding.Default.CodePage。中文/emoji/NUL 密码均是固定合成测试输入，不是用户密码。
+`config-files <tests/fixtures/config-files> <新的隔离输出目录>` 调用原加载器/保存器，输出四父列表、五组历史备份、ProxyMode/InjectMode 七组设置备份、系统默认 null 导入前后 XML，以及 35 个实际原 AES 密文。`crypto.json` 记录原程序集 SHA256 和 Encoding.Default.CodePage。中文/emoji/NUL 密码均是固定合成测试输入，不是用户密码。
+
+`verify-settings-db <原生测试数据库> <输出.sb>` 让未修改原程序集从原生 SQLite 实际加载 ProxyMode/InjectMode 并重新序列化；当前固定输出与 `settings.sb` 逐字节一致。只对隔离测试数据库使用，不要传入真实业务库。
 
 `verify-encrypted <C++测试输出文件绝对路径> <固定测试密码>` 用原程序真实 DecryptXMLFile 验证，不运行 UI、注入或代理。产品不携带/运行该 .NET 程序。`extract_xml_fields.py <原项目目录> <C++项目目录>` 可重新提取 65 系统字段和 27 滤镜字段。
 

@@ -1,5 +1,5 @@
 {
-  "description": "Original net48 oracle: 120 filter edits, 184 editor calls, plaintext/shallow export; four parent-list serializers, five-section backup, 35 AES cipher vectors (ACP936) including Unicode/NUL; product does not run original C#",
+  "description": "Original net48 oracle: 120 filter edits, 184 editor calls, plaintext/shallow export; four parent-list serializers, SystemConfig plus ProxyMode/InjectMode backup settings, 35 AES cipher vectors (ACP936) including Unicode/NUL; product does not run original C#",
   "originalAssemblySha256": "76C33B88188F7F921AE5B21117533FF1D3F1861A04A723B8087DE42B17E5FEED",
   "originalSources": [
     {
@@ -38,11 +38,11 @@
     },
     {
       "path": "src/shell/data_schema.h",
-      "sha256": "774745113DB5B1A9527D5297CCF8E8BCE45F9F9A57A0321AAE5C3226E024BF00"
+      "sha256": "910AB9F86E29758CFA59DF6318C472A619E720D618F00FB1C26AFE797ABE34DD"
     },
     {
       "path": "tests/data_oracle/ConfigFileOracle.cs",
-      "sha256": "F24BA17F586E3197DB91D23F09AB9AF4FDDDBE81AEECE83C34667E64AED0E8DE"
+      "sha256": "953AA64A0A68839EB2E585B2A53155DACA0ACF3A19DDB6AD52E83ABBD25BA02C"
     },
     {
       "path": "tests/data_oracle/DataOracle.csproj",
@@ -61,16 +61,16 @@
       "sha256": "F6AAF7CA21473AD545A1EFC2F6EB8CD4AAA29335015D1F63C9A179DE7BA31976"
     },
     {
-      "path": "tests/data_oracle/Program.cs",
-      "sha256": "5F74F1481FC39CB37556AB996B9CB98AF9AE39FB36CF46E632E35A44185BF08D"
-    },
-    {
       "path": "tests/data_oracle/extract_contracts.py",
-      "sha256": "00AC25DB33BC1767FDFF606A5BFBE9396609EE3C80B76C6427AC07FB2AE5354B"
+      "sha256": "6EA4E0786C71D769EBD8E36E6D0188FC3862E13546ACEE2F8A7F72CC7F0D7B64"
     },
     {
       "path": "tests/data_oracle/extract_xml_fields.py",
       "sha256": "5778D918AAD919677644191F05F711CD84928D04E96F6B89DE9DF8347A14F03F"
+    },
+    {
+      "path": "tests/data_oracle/Program.cs",
+      "sha256": "FCBBB47FA5359AC3AAC467E06F5758626EF683B85DAAD10DAA83A9E6EF51193D"
     },
     {
       "path": "tests/fixtures/config-files/edges/namespace-input.xml",
@@ -145,6 +145,10 @@
       "sha256": "483FA1E728C7D6213B19C1715A9DD2F6D63ABA0C8F0B7384D432039373D199D9"
     },
     {
+      "path": "tests/fixtures/config-files/original/inject.xml",
+      "sha256": "4E71B8704409B260BD2CC47B8592553E30689468CA6B82CA180937E60DD88655"
+    },
+    {
       "path": "tests/fixtures/config-files/original/original.fp",
       "sha256": "11E55AF4B60722B23679505F570CEE6F0D1C49AA673654B3225014CA23914CAA"
     },
@@ -163,6 +167,10 @@
     {
       "path": "tests/fixtures/config-files/original/original.whp",
       "sha256": "CAD7FB5FD5050AF592FE012CEAFA902378F5DFB85C9CF01871916B9315EA1766"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/proxy.xml",
+      "sha256": "E4C2712900B1B74A52C77FA841DC223C6329CE8A8A54D89BEBF505DC7E7EE868"
     },
     {
       "path": "tests/fixtures/config-files/original/rp-0.encrypted",
@@ -219,6 +227,10 @@
     {
       "path": "tests/fixtures/config-files/original/sb-6.encrypted",
       "sha256": "3CC3CB3A6C71D27FD7F11114085D4912BD980F052959B2E2284FE616049127DF"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/settings.sb",
+      "sha256": "B72A5BD8EE99C6BC31C84FEA6C0F73E82563C2EF02EA88CDC0B7792AAE49816C"
     },
     {
       "path": "tests/fixtures/config-files/original/sp-0.encrypted",
