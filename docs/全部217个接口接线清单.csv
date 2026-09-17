@@ -111,19 +111,19 @@ transcode,3860,否,未接线,没有原方法名处理器；调用返回尚未实
 extractPick,3868,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 extractBytes,3872,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 saveExtraction,3880,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-saveServer,3896,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-setServerEnable,3909,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-serverListAction,3915,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-clearServers,3923,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-getRuleTypes,3929,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-getServerRules,3931,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-saveServerRule,3936,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-setServerRuleEnable,3947,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-serverRuleAction,3955,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-clearServerRules,3963,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-saveNotice,3969,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-noticeListAction,3979,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-clearNotices,3987,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
+saveServer,3896,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
+setServerEnable,3909,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
+serverListAction,3915,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
+clearServers,3923,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
+getRuleTypes,3929,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
+getServerRules,3931,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
+saveServerRule,3936,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
+setServerRuleEnable,3947,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
+serverRuleAction,3955,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
+clearServerRules,3963,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
+saveNotice,3969,是,WPC 公告数据已接,原公告表、feed 18、原 Vue CRUD/排序与备份已接；远程 WPC 服务运行链路未接。
+noticeListAction,3979,是,WPC 公告数据已接,原公告表、feed 18、原 Vue CRUD/排序与备份已接；远程 WPC 服务运行链路未接。
+clearNotices,3987,是,WPC 公告数据已接,原公告表、feed 18、原 Vue CRUD/排序与备份已接；远程 WPC 服务运行链路未接。
 getFilterStats,3997,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 resetFilterStats,4003,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 getLogSetting,4040,是,设置读写已接,真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。
@@ -138,13 +138,13 @@ removeSelectProcessName,4159,否,未接线,没有原方法名处理器；调用�
 uninstallDriver,4164,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 saveProcessSetting,4167,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 testSocksProxy,4190,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-getMapSetting,4202,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-saveMapSetting,4208,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-saveMapLocal,4216,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-saveMapRemote,4227,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-setMapEnable,4241,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-mapAction,4250,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-mapCommand,4261,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
+getMapSetting,4202,是,代理映射数据与文件已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；代理映射执行链路未接。
+saveMapSetting,4208,是,代理映射数据与文件已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；代理映射执行链路未接。
+saveMapLocal,4216,是,代理映射数据与文件已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；代理映射执行链路未接。
+saveMapRemote,4227,是,代理映射数据与文件已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；代理映射执行链路未接。
+setMapEnable,4241,是,代理映射数据与文件已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；代理映射执行链路未接。
+mapAction,4250,是,代理映射数据与文件已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；代理映射执行链路未接。
+mapCommand,4261,是,代理映射数据与文件已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；代理映射执行链路未接。
 pickLocalFile,4272,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 getExtProxySetting,4279,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 saveExtProxySetting,4281,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。

@@ -17,4 +17,10 @@ XmlNode AccountListXml(const Json& rows);
 Json ParseAccountList(const XmlNode& root,const Json& current);
 XmlNode AutoStoresXml(const Json& rows);
 Json ParseAutoStores(const XmlNode& root,const Json& current,bool append);
+XmlNode MapListXml(bool remote,const Json& rows);
+Json ParseMapList(bool remote,const XmlNode& root,const Json& current,bool append);
+XmlNode ServerListXml(const Json& rows);
+Json ParseServerList(const XmlNode& root);
+XmlNode NoticeListXml(const Json& rows);
+Json ParseNoticeList(const XmlNode& root);
 }

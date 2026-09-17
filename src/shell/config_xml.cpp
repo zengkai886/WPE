@@ -134,6 +134,30 @@ Json ParseAutoStores(const XmlNode& root,const Json& current,bool append){
         rows.push_back({{"IsEnable",enabled},{"PacketHead",head},{"WID",wid},{"_id",Guid()}});
     }return rows;
 }
+XmlNode MapListXml(bool remote,const Json& rows){
+    XmlNode root(remote?"MapRemote":"MapLocal");for(const auto& row:rows){XmlNode item(remote?"Remote":"Local");item.nodes.emplace_back("IsEnable",B(row,"IsEnable")?"True":"False");
+        if(!remote)item.nodes.insert(item.nodes.end(),{XmlNode("ProtocolType",S(row,"ProtocolType","Http")),XmlNode("Host",S(row,"Host")),XmlNode("Port",std::to_string(N(row,"Port",80))),XmlNode("RemotePath",S(row,"RemotePath")),XmlNode("LocalPath",S(row,"LocalPath"))});
+        else item.nodes.insert(item.nodes.end(),{XmlNode("ProtocolType_From",S(row,"ProtocolType_From","Http")),XmlNode("Host_From",S(row,"Host_From")),XmlNode("Port_From",std::to_string(N(row,"Port_From",80))),XmlNode("Path_From",S(row,"Path_From")),XmlNode("ProtocolType_To",S(row,"ProtocolType_To","Http")),XmlNode("Host_To",S(row,"Host_To")),XmlNode("Port_To",std::to_string(N(row,"Port_To",80))),XmlNode("Path_To",S(row,"Path_To"))});root.nodes.push_back(std::move(item));
+    }return root;
+}
+Json ParseMapList(bool remote,const XmlNode& root,const Json& current,bool append){
+    if(root.LocalName()!=(remote?"MapRemote":"MapLocal"))throw std::runtime_error("不是原版代理映射文件");Json rows=append?current:Json::array();for(const auto& item:root.nodes){const bool enabled=item.Get("IsEnable")?Boolean(item.Value("IsEnable")):false;
+        if(!remote){const auto host=item.Value("Host"),local=item.Value("LocalPath");const int port=Int(item.Value("Port","80"));if(host.empty()||port<=0)continue;rows.push_back({{"IsEnable",enabled},{"ProtocolType",item.Value("ProtocolType","Http")},{"Host",host},{"Port",port},{"RemotePath",item.Value("RemotePath")},{"LocalPath",local},{"_id",Guid()}});}
+        else{const auto from=item.Value("Host_From"),to=item.Value("Host_To");const int fromPort=Int(item.Value("Port_From","80")),toPort=Int(item.Value("Port_To","80"));if(from.empty()||to.empty()||fromPort<=0||toPort<=0)continue;rows.push_back({{"IsEnable",enabled},{"ProtocolType_From",item.Value("ProtocolType_From","Http")},{"Host_From",from},{"Port_From",fromPort},{"Path_From",item.Value("Path_From")},{"ProtocolType_To",item.Value("ProtocolType_To","Http")},{"Host_To",to},{"Port_To",toPort},{"Path_To",item.Value("Path_To")},{"_id",Guid()}});}
+    }return rows;
+}
+XmlNode ServerListXml(const Json& rows){
+    XmlNode root("ServerList");for(const auto& row:rows){XmlNode server("Server");server.nodes={XmlNode("IsEnable",B(row,"IsEnable")?"true":"false"),XmlNode("ServerName",S(row,"ServerName")),XmlNode("ServerIP",S(row,"ServerIP")),XmlNode("ServerPort",std::to_string(N(row,"ServerPort",1080))),XmlNode("ForgotURL",S(row,"ForgotURL")),XmlNode("RegisterURL",S(row,"RegisterURL")),XmlNode("VerifyURL",S(row,"VerifyURL"))};XmlNode rules("Rules");for(const auto& rowRule:row.at("_rules")){XmlNode rule("Rule");rule.nodes={XmlNode("IsEnable",B(rowRule,"IsEnable")?"true":"false"),XmlNode("RType",std::to_string(N(rowRule,"RuleType"))),XmlNode("RArgument",S(rowRule,"RuleArgument")),XmlNode("RAction",std::to_string(N(rowRule,"RuleAction")))};rules.nodes.push_back(std::move(rule));}server.nodes.push_back(std::move(rules));root.nodes.push_back(std::move(server));}return root;
+}
+Json ParseServerList(const XmlNode& root){
+    Json rows=Json::array();for(const auto& node:root.nodes){const auto name=node.Value("ServerName");if(name.empty())continue;Json rules=Json::array();if(const auto* ruleNodes=node.Get("Rules"))for(const auto& item:ruleNodes->nodes)rules.push_back({{"RID",Guid()},{"IsEnable",item.Get("IsEnable")?Boolean(item.Value("IsEnable")):false},{"RuleType",Int(item.Value("RType","0"))},{"RuleArgument",item.Value("RArgument")},{"RuleAction",Int(item.Value("RAction","0"))}});rows.push_back({{"SID",Guid()},{"IsEnable",node.Get("IsEnable")?Boolean(node.Value("IsEnable")):false},{"ServerName",name},{"ServerIP",node.Value("ServerIP")},{"ServerPort",Int(node.Value("ServerPort","0"))},{"ForgotURL",node.Value("ForgotURL")},{"RegisterURL",node.Value("RegisterURL")},{"VerifyURL",node.Value("VerifyURL")},{"_rules",std::move(rules)}});}return rows;
+}
+XmlNode NoticeListXml(const Json& rows){
+    XmlNode root("NoticeList");for(const auto& row:rows){auto time=S(row,"NoticeTime");std::replace(time.begin(),time.end(),' ','T');if(time.size()==19)time+=".0000000";XmlNode notice("Notice");notice.nodes={XmlNode("NoticeType",std::to_string(N(row,"NoticeType",1))),XmlNode("NoticeTitle",S(row,"NoticeTitle")),XmlNode("NoticeContent",S(row,"NoticeContent")),XmlNode("NoticeMore",S(row,"NoticeMore")),XmlNode("NoticeTime",time)};root.nodes.push_back(std::move(notice));}return root;
+}
+Json ParseNoticeList(const XmlNode& root){
+    Json rows=Json::array();for(const auto& node:root.nodes){const auto title=node.Value("NoticeTitle");if(title.empty())continue;auto raw=node.Value("NoticeTime");if(raw.size()>=19)raw=raw.substr(0,19);auto time=DateTimeText(raw).value_or(LocalDateTime());rows.push_back({{"NID",Guid()},{"NoticeType",Int(node.Value("NoticeType","0"))},{"NoticeTitle",title},{"NoticeContent",node.Value("NoticeContent")},{"NoticeMore",node.Value("NoticeMore")},{"NoticeTime",time}});}return rows;
+}
 XmlNode ParentListXml(int list,const Json& rows){
     XmlNode root(list==11?"WareHouseList":tables[list-8]+"List");
     for(const auto& row:rows){XmlNode parent(tables[list-8]);

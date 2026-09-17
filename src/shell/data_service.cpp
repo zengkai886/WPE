@@ -113,6 +113,10 @@ DataService::DataService(const std::filesystem::path& path,Emit emit):db_(path),
     }
     {auto rows=db_.Query("SELECT * FROM ProxyAccount ORDER BY rowid"),logins=db_.Query("SELECT * FROM ProxyAccountIPInfo ORDER BY rowid");for(auto& row:rows){for(const auto* key:{"IsEnable","IsLimitLinks","IsLimitDevices","IsExpiry"})row[key]=B(row,key);row["IsOnLine"]=false;row["_logins"]=Json::array();for(const auto& login:logins)if(Upper(S(login,"GUID"))==Upper(S(row,"GUID")))row["_logins"].push_back({{"LoginTime",S(login,"LoginTime")},{"LoginIP",S(login,"LoginIP")},{"IPLocation",""}});}lists_[5]=std::move(rows);}
     {auto rows=db_.Query("SELECT * FROM AutoStores ORDER BY rowid");for(auto& row:rows){row["IsEnable"]=B(row,"IsEnable");row["WID"]=Upper(S(row,"WID"));row["_id"]=Guid();}lists_[12]=std::move(rows);}
+    {auto rows=db_.Query("SELECT * FROM ProxyMapLocal ORDER BY rowid");for(auto& row:rows){row["IsEnable"]=B(row,"IsEnable");row["_id"]=Guid();}lists_[13]=std::move(rows);}
+    {auto rows=db_.Query("SELECT * FROM ProxyMapRemote ORDER BY rowid");for(auto& row:rows){row["IsEnable"]=B(row,"IsEnable");row["_id"]=Guid();}lists_[14]=std::move(rows);}
+    {auto rows=db_.Query("SELECT * FROM ServerInfo ORDER BY rowid"),rules=db_.Query("SELECT * FROM ServerRuleInfo ORDER BY rowid");for(auto& row:rows){row["SID"]=Upper(S(row,"SID"));row["IsEnable"]=B(row,"IsEnable");row["_rules"]=Json::array();for(auto rule:rules)if(Upper(S(rule,"SID"))==S(row,"SID")){rule["RID"]=Upper(S(rule,"RID"));rule["IsEnable"]=B(rule,"IsEnable");rule.erase("SID");row["_rules"].push_back(std::move(rule));}}lists_[17]=std::move(rows);}
+    {auto rows=db_.Query("SELECT * FROM NoticeInfo ORDER BY rowid");for(auto& row:rows){row["NID"]=Upper(S(row,"NID"));}lists_[18]=std::move(rows);}
 }
 std::vector<std::string> DataService::Methods(){return {
     "getPrefs","setAppearance","setLanguage","saveActionColor","getSystemSetting","saveSystemSetting","getLogSetting","saveLogSetting",
@@ -125,12 +129,14 @@ std::vector<std::string> DataService::Methods(){return {
     "getRobotMeta","addRobot","setRobotEnable","setAllRobotEnable","resetRobotCount","robotListAction","clearRobots",
     "addWareHouse","wareHouseListAction","clearWareHouses","openWareHouseEdit","getStoreRows","getStorePreviews","copyStoresHex","saveWareHouseName",
     "getAutoStoresMeta","setAutoStoresSwitch","saveAutoStores","setAutoStoresEnable","deleteAutoStores","autoStoresAction",
+    "getMapSetting","saveMapSetting","saveMapLocal","saveMapRemote","setMapEnable","mapAction","mapCommand",
+    "saveServer","setServerEnable","serverListAction","clearServers","getRuleTypes","getServerRules","saveServerRule","setServerRuleEnable","serverRuleAction","clearServerRules","saveNotice","noticeListAction","clearNotices",
     "openRobotEdit","closeRobotEdit","getRobotInstructions","addRobotInstruction","robotInstructionAction","saveRobotEdit",
     "sendCollectionAction","clearSendCollection","importSendCollection","openPacketEdit","savePacketEdit","storesAction","storesCommand",
     "importFilters","exportFilters","importSends","exportSends","importRobots","exportRobots","importWareHouses","exportWareHouses","importBackup","exportBackup"
 };}
 bool DataService::NeedsConfirmation(const std::string& method,const Json& args){
-    if(method=="deleteAccount"||method=="clearAllAccounts"||method=="deleteSelectedAccounts"||method=="deleteIPRule"||method=="deleteAutoStores"||method=="clearSendCollection"||((method=="robotInstructionAction"||method=="storesCommand"||method=="sendCollectionAction"||method=="ipRuleAction"||method=="autoStoresAction")&&N(args,"action",-1)==7))return true;
+    if(method=="deleteAccount"||method=="clearAllAccounts"||method=="deleteSelectedAccounts"||method=="deleteIPRule"||method=="deleteAutoStores"||method=="clearSendCollection"||method=="clearServers"||method=="clearServerRules"||method=="clearNotices"||((method=="mapAction")&&N(args,"action",-1)==6)||((method=="mapCommand"||method=="robotInstructionAction"||method=="storesCommand"||method=="sendCollectionAction"||method=="ipRuleAction"||method=="autoStoresAction")&&N(args,"action",-1)==7)||((method=="serverListAction"||method=="serverRuleAction"||method=="noticeListAction")&&N(args,"action",-1)==6))return true;
     return method=="clearFilters"||method=="clearSends"||method=="clearRobots"||method=="clearWareHouses"||method=="clearLogs"||
         ((method=="filterListAction"||method=="sendListAction"||method=="robotListAction"||method=="wareHouseListAction")&&N(args,"action",-1)==6);
 }
@@ -212,6 +218,10 @@ Json DataService::Rows(int list)const{
     Json result=Json::array();
     if(list==5){for(const auto& row:lists_[5])result.push_back({{"Id",Upper(S(row,"GUID"))},{"IsCheck",false},{"IsEnable",B(row,"IsEnable")},{"UserName",S(row,"UserName")},{"IsLimitLinks",B(row,"IsLimitLinks")},{"LimitLinks",N(row,"LimitLinks")},{"IsLimitDevices",B(row,"IsLimitDevices")},{"LimitDevices",N(row,"LimitDevices")},{"IsExpiry",B(row,"IsExpiry")},{"ExpiryTime",S(row,"ExpiryTime")},{"CreateTime",S(row,"CreateTime")},{"IsOnLine",B(row,"IsOnLine")},{"LoginCount",row.contains("_logins")?row.at("_logins").size():0}});return result;}
     if(list==12){for(const auto& row:lists_[12])result.push_back({{"Id",S(row,"_id")},{"IsEnable",B(row,"IsEnable")},{"PacketHead",S(row,"PacketHead")},{"WareHouseId",Upper(S(row,"WID"))}});return result;}
+    if(list==13){for(const auto& row:lists_[13])result.push_back({{"Id",S(row,"_id")},{"IsEnable",B(row,"IsEnable")},{"Protocol",0},{"Host",S(row,"Host")},{"Port",N(row,"Port",80)},{"RemotePath",S(row,"RemotePath")},{"LocalPath",S(row,"LocalPath")}});return result;}
+    if(list==14){for(const auto& row:lists_[14])result.push_back({{"Id",S(row,"_id")},{"IsEnable",B(row,"IsEnable")},{"ProtocolFrom",0},{"HostFrom",S(row,"Host_From")},{"PortFrom",N(row,"Port_From",80)},{"PathFrom",S(row,"Path_From")},{"ProtocolTo",0},{"HostTo",S(row,"Host_To")},{"PortTo",N(row,"Port_To",80)},{"PathTo",S(row,"Path_To")}});return result;}
+    if(list==17){for(const auto& row:lists_[17])result.push_back({{"Id",S(row,"SID")},{"IsEnable",B(row,"IsEnable")},{"Name",S(row,"ServerName")},{"IP",S(row,"ServerIP")},{"Port",N(row,"ServerPort",1080)},{"ForgotURL",S(row,"ForgotURL")},{"RegisterURL",S(row,"RegisterURL")},{"VerifyURL",S(row,"VerifyURL")},{"RuleCount",row.at("_rules").size()}});return result;}
+    if(list==18){for(const auto& row:lists_[18])result.push_back({{"Id",S(row,"NID")},{"Type",N(row,"NoticeType",1)},{"Title",S(row,"NoticeTitle")},{"Content",S(row,"NoticeContent")},{"More",S(row,"NoticeMore")},{"Time",S(row,"NoticeTime")}});return result;}
     if(list<8||list>11)return lists_[list];
     for(const auto& row:lists_[list]){
         Json r{{"Id",row["GUID"]},{"Name",S(row,"Name")}};
@@ -233,7 +243,9 @@ void DataService::PublishAll(){
     for(int list=2;list<=4;++list)Publish(list);
     Publish(5);
     Publish(12);
+    Publish(13);Publish(14);
     Publish(15);Publish(16);
+    Publish(17);Publish(18);
 }
 Json DataService::FilterEdit(const Json& row)const{
     Json r{{"Id",row["GUID"]},{"Name",S(row,"Name")},{"FunctionMask",Mask(S(row,"Function"))},{"ExecuteId",Upper(S(row,"ExecuteGUID"))}};
@@ -310,6 +322,7 @@ Json DataService::ListAction(int list,const Json& args){
 
 Json DataService::Call(const std::string& method,const Json& args){
     if(auto result=CallEditor(method,args))return std::move(*result);
+    if(auto result=CallConfigLists(method,args))return std::move(*result);
     if(method=="getCountryTable")return Json::parse(country_codes);
     if(method=="getPrefs")return Prefs();
     if(method=="setAppearance"){

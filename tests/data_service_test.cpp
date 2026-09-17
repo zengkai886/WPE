@@ -16,7 +16,7 @@ Json Call(DataService& service,const std::string& method,Json args=Json::object(
 int main(int argc,char** argv){
     try{
         const auto dir=fs::current_path()/"data-test"/std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());fs::create_directories(dir);
-        const auto file=dir/L"中文持久化.db";std::map<int,Json> feeds;std::string id,sid,wid,accountId,autoStoreId;
+        const auto file=dir/L"中文持久化.db";std::map<int,Json> feeds;std::string id,sid,wid,accountId,autoStoreId,mapLocalId,mapRemoteId,serverId,noticeId;
         auto emit=[&](std::string event,Json data){if(event=="toast")return;const auto list=data.at("list").get<int>();if(event=="feed:replace")feeds[list]=data.at("rows");else if(event=="feed:append")for(const auto& row:data.at("rows"))feeds[list].push_back(row);else Require(false,"wrong feed event");};
         {
             DataService service(file,emit);
@@ -84,6 +84,14 @@ int main(int argc,char** argv){
             Require(Call(service,"saveAutoStores",{{"head","160301"},{"wid",wid}})["ok"]==false,"normalized duplicate auto-store accepted");
             Require(Call(service,"setAutoStoresEnable",{{"id",autoStoreId},{"enable",true}})["ok"]==true&&feeds[12][0]["IsEnable"]==true,"auto-store enable");
             auto meta=Call(service,"setAutoStoresSwitch",{{"enable",true},{"limit",true},{"limitValue",0}});Require(meta["enable"]==true&&meta["limitValue"]==1,"auto-store runtime switch/limit clamp");
+            Require(feeds.contains(13)&&feeds[13].empty()&&feeds.contains(14)&&feeds[14].empty()&&feeds.contains(17)&&feeds[17].empty()&&feeds.contains(18)&&feeds[18].empty(),"fresh configuration feeds");
+            Require(Call(service,"saveMapLocal",{{"host"," example.test "},{"port",8080},{"remotePath"," /api "},{"localPath"," C:\\映射\\file.bin "}})["error"]=="","local mapping save");mapLocalId=feeds[13][0]["Id"];
+            Require(Call(service,"saveMapRemote",{{"hostFrom","from.test"},{"portFrom",80},{"pathFrom","/old"},{"hostTo","to.test"},{"portTo",8081},{"pathTo","/new"}})["error"]=="","remote mapping save");mapRemoteId=feeds[14][0]["Id"];
+            Require(Call(service,"setMapEnable",{{"id",mapLocalId},{"enable",true}})["ok"]==true&&feeds[13][0]["IsEnable"]==true,"local mapping enable");Call(service,"saveMapSetting",{{"enableLocal",true},{"enableRemote",true}});Require(Call(service,"getMapSetting")["enableRemote"]==true,"mapping switches");
+            Require(Call(service,"saveServer",{{"enable",true},{"name"," 主节点 "},{"ip","127.0.0.1"},{"port",1080},{"forgotUrl"," /forgot "},{"registerUrl","/register"},{"verifyUrl","/verify"}})["error"]=="","server save");serverId=feeds[17][0]["Id"];
+            Require(Call(service,"saveServerRule",{{"sid",serverId},{"enable",true},{"type",1},{"argument","example.com; example.org"},{"ruleAction",0}})["error"]==""&&feeds[17][0]["RuleCount"]==2,"server multi-rule save");auto rules=Call(service,"getServerRules",{{"sid",serverId}})["rows"];Require(rules.size()==2&&rules[0]["TypeName"]=="DOMAIN-SUFFIX","server rule DTO");
+            Require(Call(service,"setServerRuleEnable",{{"sid",serverId},{"id",rules[0]["Id"]},{"enable",false}})["ok"]==true,"server rule enable");
+            Require(Call(service,"saveNotice",{{"type",3},{"title"," 维护公告 "},{"content"," 正文 "},{"more"," https://example.test "}})["error"]=="","notice save");noticeId=feeds[18][0]["Id"];Require(feeds[18][0]["Title"]=="维护公告"&&feeds[18][0]["Type"]==3,"notice feed");
             Throws([&]{Call(service,"startProxy");});Require(Call(service,"filterListAction",{{"action",5},{"ids",Json::array({id})}})["ok"]==true,"cancelled filter export should preserve original successful cancellation");
         }
         {
@@ -97,9 +105,13 @@ int main(int argc,char** argv){
             Require(Call(reopened,"getPrefs")["themeMode"]=="system"&&Call(reopened,"getPrefs")["scanLine"]==false,"appearance persistence");
             Require(feeds[12].size()==1&&feeds[12][0]["PacketHead"]=="16 03 01"&&feeds[12][0]["WareHouseId"]==wid&&feeds[12][0]["IsEnable"]==true,"auto-store restart persistence");
             auto meta=Call(reopened,"getAutoStoresMeta");Require(meta["enable"]==false&&meta["limitValue"]==1,"auto-store runtime switch persisted or limit lost");
+            Require(feeds[13].size()==1&&feeds[13][0]["Host"]=="example.test"&&feeds[13][0]["IsEnable"]==true&&feeds[14].size()==1&&feeds[14][0]["HostTo"]=="to.test","mapping restart persistence");
+            Require(Call(reopened,"getMapSetting")["enableLocal"]==true&&Call(reopened,"getMapSetting")["enableRemote"]==true,"mapping switch restart persistence");
+            Require(feeds[17].size()==1&&feeds[17][0]["Name"]=="主节点"&&feeds[17][0]["RuleCount"]==2&&Call(reopened,"getServerRules",{{"sid",serverId}})["rows"].size()==2,"server/rule restart persistence");
+            Require(feeds[18].size()==1&&feeds[18][0]["Id"]==noticeId&&feeds[18][0]["Content"]=="正文","notice restart persistence");
             autoStoreId=feeds[12][0]["Id"].get<std::string>();Call(reopened,"autoStoresAction",{{"action",7}});Require(feeds[12].empty(),"auto-store clear");
         }
-        {Database schema(file);const auto tables=schema.Query("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('ProxyAccount','ProxyAccountIPInfo','AutoStores')");Require(tables.size()==3,"account/auto-store schema tables missing");}
+        {Database schema(file);const auto tables=schema.Query("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('ProxyAccount','ProxyAccountIPInfo','AutoStores','ProxyMapLocal','ProxyMapRemote','ServerInfo','ServerRuleInfo','NoticeInfo')");Require(tables.size()==8,"configuration schema tables missing");}
         {
             Database db(dir/"rollback.db");db.Execute("CREATE TABLE test (id TEXT PRIMARY KEY,value BLOB)");
             const Json original=Json::array({{{"id","keep"},{"value",Json::binary({0,255,128})}}});

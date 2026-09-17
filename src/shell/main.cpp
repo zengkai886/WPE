@@ -573,6 +573,23 @@ void Host::BeginTest(){
         if(!batchNames.every(name=>feeds.get(5).some(r=>r.UserName===name)))throw Error('batch account restart persistence failed');
         const accountRoundTrip=true;
         const batchAccountRoundTrip=true;
+    )JS" LR"JS(
+        if(!(feeds.get(13)||[]).some(r=>r.Host==='ui-map.example')){
+          const saved=await call('saveMapLocal',{host:'ui-map.example',port:8080,remotePath:'/asset',localPath:'C:\\WPE64\\asset.bin'});if(saved.error)throw Error(saved.error);
+          const redirected=await call('saveMapRemote',{hostFrom:'ui-from.example',portFrom:80,pathFrom:'/old',hostTo:'ui-to.example',portTo:8081,pathTo:'/new'});if(redirected.error)throw Error(redirected.error);
+          await call('saveMapSetting',{enableLocal:true,enableRemote:true});
+        }
+        settingsButton.click();await wait(()=>[...document.querySelectorAll('.cm-it')].some(e=>e.querySelector('.tx')?.textContent.trim()==='映射设置'));
+        [...document.querySelectorAll('.cm-it')].find(e=>e.querySelector('.tx')?.textContent.trim()==='映射设置').click();
+        const mapDialog=()=>[...document.querySelectorAll('[role=dialog]')].find(d=>d.querySelector('.sub')?.textContent==='Address Mapping');await wait(()=>mapDialog()?.textContent.includes('ui-map.example')&&mapDialog()?.textContent.includes('ui-to.example'));mapDialog().querySelector('.ft .btn:not(.primary)').click();await wait(()=>!mapDialog());
+        await nav('WPC 配置');
+        if(!(feeds.get(17)||[]).some(r=>r.Name==='C++ WPC 节点')){
+          const saved=await call('saveServer',{enable:true,name:'C++ WPC 节点',ip:'127.0.0.1',port:1080,forgotUrl:'/forgot',registerUrl:'/register',verifyUrl:'/verify'});if(saved.error)throw Error(saved.error);
+          const server=feeds.get(17).find(r=>r.Name==='C++ WPC 节点');const rule=await call('saveServerRule',{sid:server.Id,enable:true,type:1,argument:'example.com;example.org',ruleAction:0});if(rule.error)throw Error(rule.error);
+          const notice=await call('saveNotice',{type:2,title:'C++ WPC 公告',content:'公告正文',more:'/more'});if(notice.error)throw Error(notice.error);
+        }
+        await wait(()=>document.querySelector('.list-page.wpc .row .name')?.textContent==='C++ WPC 节点');const server=feeds.get(17).find(r=>r.Name==='C++ WPC 节点');if(!server||server.RuleCount!==2||!(feeds.get(18)||[]).some(r=>r.Title==='C++ WPC 公告'))throw Error('WPC configuration round trip failed');
+        const configurationListsRoundTrip=true;
         const filterNav=[...document.querySelectorAll('.side .sb-item')].find(e=>e.querySelector('.t')?.textContent.trim()==='滤镜列表');
         if(!filterNav)throw Error('original filter navigation missing');filterNav.click();
         await wait(()=>document.querySelector('.list-page .bar .btn.primary'));
@@ -581,7 +598,7 @@ void Host::BeginTest(){
           const restored=(await call('getFilterEdit',{id:old[0].Id})).row;
           if(restored.Modify[0].Index!==-1||!restored.Modify[0].Progression)throw Error('restart editor persistence failed');
           await wait(()=>document.querySelector('.list-page .row .name')?.textContent==='C++ 数据闭环测试');
-          const editorResult=await editors(true);await call('__testDone',{ok:true,restartPersistence:true,firewallIpRuleRoundTrip,accountRoundTrip,batchAccountRoundTrip,originalListDom:true,persistentFilterId:old[0].Id,dbFull:info.dbFull,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',...editorResult});return;
+          const editorResult=await editors(true);await call('__testDone',{ok:true,restartPersistence:true,firewallIpRuleRoundTrip,accountRoundTrip,batchAccountRoundTrip,configurationListsRoundTrip,originalListDom:true,persistentFilterId:old[0].Id,dbFull:info.dbFull,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',...editorResult});return;
         }
         document.querySelector('.list-page .bar .btn.primary').click();
         await wait(()=>feeds.get(8)?.length===1&&document.querySelector('.list-page .row .name'));
@@ -597,7 +614,7 @@ void Host::BeginTest(){
         await wait(()=>document.querySelector('[role=alertdialog] .btn:not(.primary)'));
         document.querySelector('[role=alertdialog] .btn:not(.primary)').click();await deletion;
         if(!(await call('getFilterEdit',{id})).row)throw Error('cancelled deletion changed data');
-        const editorResult=await editors(false);await call('__testDone',{ok:true,titlebar:!!document.querySelector('.titlebar'),modeCards,unsupportedRejected:unsupported,windowRoundTrip:!!top.topMost,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',firewallIpRuleRoundTrip,accountRoundTrip,batchAccountRoundTrip,originalListDom:true,originalAddAndEnableButtons:true,negativeOffsetRoundTrip:true,cancelledDeletionKeptData:true,persistentFilterId:id,dbFull:info.dbFull,url:location.href,...editorResult});
+        const editorResult=await editors(false);await call('__testDone',{ok:true,titlebar:!!document.querySelector('.titlebar'),modeCards,unsupportedRejected:unsupported,windowRoundTrip:!!top.topMost,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',firewallIpRuleRoundTrip,accountRoundTrip,batchAccountRoundTrip,configurationListsRoundTrip,originalListDom:true,originalAddAndEnableButtons:true,negativeOffsetRoundTrip:true,cancelledDeletionKeptData:true,persistentFilterId:id,dbFull:info.dbFull,url:location.href,...editorResult});
       })().catch(error=>call('__testDone',{ok:false,error:String(error)}));
     })())JS");
 }

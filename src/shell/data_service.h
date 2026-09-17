@@ -27,10 +27,14 @@ private:
     void PersistIpRules(int list,const Json& rows);
     void PersistAccounts(const Json& rows);
     void PersistAutoStores(const Json& rows);
+    void PersistMap(int list,const Json& rows);
+    void PersistServers(const Json& rows);
+    void PersistNotices(const Json& rows);
     void RefreshExportAliases(int list);
     Json PrepareExport(const std::string& method,const Json& args);
     Json WriteExport(Json plan,const std::string& path,const std::string& password={});
     std::optional<Json> CallEditor(const std::string& method,const Json& args);
+    std::optional<Json> CallConfigLists(const std::string& method,const Json& args);
     Json InstructionRows();
     std::string ValidateInstruction(int type,const std::string& content);
     Json SaveRobot(const Json& args);
