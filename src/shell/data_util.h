@@ -8,6 +8,7 @@
 #include <charconv>
 #include <iomanip>
 #include <regex>
+#include <optional>
 #include <sstream>
 
 namespace wpe::shell::data_detail {
@@ -61,5 +62,18 @@ inline std::string Hex(const Json& binary,std::size_t limit=60){
 inline std::size_t Size(const Json& binary){return binary.is_binary()?binary.get_binary().size():0;}
 inline Json RuntimeChildren(Json rows,int list,std::uint64_t& packet_id){
     for(auto& child:rows)child["_id"]=list==11?Guid():std::to_string(++packet_id);return rows;
+}
+inline std::optional<std::string> TryGuid(std::string s){
+    // Guid.TryParse also accepts the hexadecimal X form. Whitespace is ignored
+    // inside that form, but not inside the ordinary D/N/B/P representations.
+    if(s.find("0x")!=s.npos||s.find("0X")!=s.npos){
+        const auto compact=Trim(s,true);
+        std::smatch match;static const std::regex x(R"(\{0[xX]([0-9a-fA-F]+),0[xX]([0-9a-fA-F]+),0[xX]([0-9a-fA-F]+),\{0[xX]([0-9a-fA-F]+),0[xX]([0-9a-fA-F]+),0[xX]([0-9a-fA-F]+),0[xX]([0-9a-fA-F]+),0[xX]([0-9a-fA-F]+),0[xX]([0-9a-fA-F]+),0[xX]([0-9a-fA-F]+),0[xX]([0-9a-fA-F]+)\}\})");
+        if(!std::regex_match(compact,match,x))return {};
+        s.clear();for(std::size_t i=1;i<match.size();++i){const std::size_t width=i==1?8:i<4?4:2;auto part=match[i].str();const auto start=part.find_first_not_of('0');part=start==part.npos?"0":part.substr(start);if(part.size()>width)return {};s+=std::string(width-part.size(),'0')+part;}
+    }
+    s=Trim(s);if(s.size()>1&&((s.front()=='{'&&s.back()=='}')||(s.front()=='('&&s.back()==')'))){if(s.size()!=38)return {};s=s.substr(1,s.size()-2);}
+    if(std::regex_match(s,std::regex("[0-9a-fA-F]{32}")))s=s.substr(0,8)+'-'+s.substr(8,4)+'-'+s.substr(12,4)+'-'+s.substr(16,4)+'-'+s.substr(20);
+    if(!std::regex_match(s,std::regex("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")))return {};return Upper(s);
 }
 }

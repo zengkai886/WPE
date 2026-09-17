@@ -33,7 +33,7 @@ DataService::DataService(const std::filesystem::path& path,Emit emit):db_(path),
     for(int list=8;list<=11;++list){
         auto rows=db_.Query("SELECT * FROM "+tables[list-8]+" ORDER BY rowid");
         for(auto& row:rows){
-            row["GUID"]=Upper(S(row,"GUID"));
+            row["GUID"]=Upper(S(row,"GUID"));row["_objectId"]=Guid();
             if(list>8)row["_children"]=RuntimeChildren(db_.Query("SELECT * FROM "+children[list-8]+" WHERE GUID=? COLLATE NOCASE ORDER BY rowid",Json::array({row["GUID"]})),list,packet_id_);
         }lists_[list]=std::move(rows);
     }
@@ -46,7 +46,8 @@ std::vector<std::string> DataService::Methods(){return {
     "getRobotMeta","addRobot","setRobotEnable","setAllRobotEnable","resetRobotCount","robotListAction","clearRobots",
     "addWareHouse","wareHouseListAction","clearWareHouses","openWareHouseEdit","getStoreRows","getStorePreviews","copyStoresHex","saveWareHouseName",
     "openRobotEdit","closeRobotEdit","getRobotInstructions","addRobotInstruction","robotInstructionAction","saveRobotEdit",
-    "sendCollectionAction","clearSendCollection","importSendCollection","openPacketEdit","savePacketEdit","storesAction","storesCommand"
+    "sendCollectionAction","clearSendCollection","importSendCollection","openPacketEdit","savePacketEdit","storesAction","storesCommand",
+    "importFilters","exportFilters","importSends","exportSends","importRobots","exportRobots","importWareHouses","exportWareHouses","importBackup","exportBackup"
 };}
 bool DataService::NeedsConfirmation(const std::string& method,const Json& args){
     if(method=="clearSendCollection"||((method=="robotInstructionAction"||method=="storesCommand"||method=="sendCollectionAction")&&N(args,"action",-1)==7))return true;
@@ -73,7 +74,7 @@ void DataService::SaveConfig(const Json& changes){
     db_.Transaction([&]{db_.Replace("SystemConfig",Json::array({next}));});config_=std::move(next);
 }
 Json DataService::NewRow(int list){
-    Json row{{"GUID",Guid()},{"Name",""}};
+    Json row{{"GUID",Guid()},{"Name",""},{"_objectId",Guid()}};
     const std::array<std::string,4> keys={"FilterList.NewFilter","SendList.NewSend","RobotList.NewRobot","WareHouseList.NewWareHouse"};
     const std::array<std::string,4> fallback={"滤镜 {0}","发送 {0}","机器人 {0}","仓库 {0}"};
     auto name=Text(keys[list-8],fallback[list-8]);const auto pos=name.find("{0}");if(pos!=name.npos)name.replace(pos,3,std::to_string(lists_[list].size()+1));row["Name"]=name;
@@ -86,20 +87,21 @@ Json DataService::NewRow(int list){
     }return row;
 }
 Json* DataService::Find(int list,const std::string& id){const auto key=Upper(id);for(auto& row:lists_[list])if(S(row,"GUID")==key)return &row;return nullptr;}
-void DataService::SaveList(int list,const Json& rows){
+void DataService::PersistList(int list,const Json& rows){
     Json parents=rows,child=Json::array();
     for(auto& row:parents){
+        row.erase("_objectId");
         if(row.contains("_children")){
             for(auto item:row["_children"]){item.erase("_id");item["GUID"]=row["GUID"];child.push_back(std::move(item));}
             row.erase("_children");
         }
     }
-    db_.Transaction([&]{
-        if(list>8)db_.Execute("DELETE FROM "+children[list-8]);
-        db_.Replace(tables[list-8],parents);
-        if(list>8)db_.Replace(children[list-8],child);
-    });
-    lists_[list]=rows;Publish(list);
+    if(list>8)db_.Execute("DELETE FROM "+children[list-8]);
+    db_.Replace(tables[list-8],parents);
+    if(list>8)db_.Replace(children[list-8],child);
+}
+void DataService::SaveList(int list,const Json& rows){
+    db_.Transaction([&]{PersistList(list,rows);});lists_[list]=rows;RefreshExportAliases(list);Publish(list);
 }
 Json DataService::Rows(int list)const{
     Json result=Json::array();
@@ -184,7 +186,7 @@ Json DataService::ListAction(int list,const Json& args){
         auto it=std::find_if(rows.begin(),rows.end(),[&](const Json& row){return S(row,"GUID")==id;});if(it==rows.end())continue;
         const auto index=static_cast<std::size_t>(it-rows.begin());auto row=*it;
         if(action==4){
-            row["GUID"]=Guid();if(list<11)row["IsEnable"]=false;
+            row["GUID"]=Guid();row["_objectId"]=Guid();if(list<11)row["IsEnable"]=false;
             auto name=Text("CopyName","{0} - 副本");const auto pos=name.find("{0}");if(pos!=name.npos)name.replace(pos,3,S(row,"Name"));row["Name"]=name;
             // Original CopySend copies the list, not its PacketInfo objects.
             if(list>9)row["_children"]=RuntimeChildren(row["_children"],list,packet_id_);rows.push_back(std::move(row));continue;
@@ -275,6 +277,7 @@ Json DataService::Call(const std::string& method,const Json& args){
         auto next=send_edit_;next.update({{"Name",name},{"SystemSocket",B(args,"useSystemSocket")},{"LoopCNT",std::max(1,N(args,"loopCount",1))},{"LoopINT",std::max(0,N(args,"loopInterval"))},{"Notes",Trim(S(args,"notes"))}});
         // Editing the name must not roll back a list enable toggle made meanwhile.
         next["IsEnable"]=Find(9,S(next,"GUID"))->at("IsEnable");
+        next["_objectId"]=Find(9,S(next,"GUID"))->at("_objectId");
         auto rows=lists_[9];for(auto& row:rows)if(row["GUID"]==next["GUID"])row=next;SaveList(9,rows);send_edit_=std::move(next);return {{"error",""}};
     }
     if(method=="openWareHouseEdit"){auto row=Find(11,S(args,"wid"));return {{"id",row?S(*row,"GUID"):""},{"name",row?S(*row,"Name"):""}};}

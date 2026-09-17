@@ -13,11 +13,13 @@ public:
     DataWorker& operator=(const DataWorker&)=delete;
     void Submit(std::string method,Json args,WebBridge::Completion done);
     void ForgetExportPlan(std::string token); // Internal cleanup cannot be rejected by the work-queue cap.
+    void ForgetImportPlan(std::string token);
     void Drain(const DataService::Emit& emit); // Called by the host UI timer.
 private:
     struct Job {std::string method;Json args;WebBridge::Completion done;};
     struct Result {WebBridge::Completion done;Json value;std::string error;std::vector<std::pair<std::string,Json>> events;};
     void Run(const std::filesystem::path& path);
+    void ForgetPlan(std::string method,std::string token);
     std::mutex mutex_;
     std::condition_variable wake_;
     std::deque<Job> jobs_;

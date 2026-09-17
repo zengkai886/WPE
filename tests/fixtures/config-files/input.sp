@@ -1,0 +1,5 @@
+<SendList>
+  <Send><ID>22222222-2222-2222-2222-222222222222</ID><Name>发送 中文</Name><IsEnable>True</IsEnable><SystemSocket>True</SystemSocket><LoopCNT>-1</LoopCNT><LoopINT>-2</LoopINT><Notes>line 1&#xA;line 2 &amp; 😀</Notes><SendCollection><Collection><Socket>17</Socket><Type>TCP_Req</Type><IPFrom>ignored-by-parent-export</IPFrom><IPTo>127.0.0.1:1234</IPTo><Buffer>00 FF AA</Buffer></Collection><Collection><Socket>-1</Socket><Type>22</Type><Buffer /></Collection></SendCollection></Send>
+  <Send><ID>22222222-2222-2222-2222-222222222223</ID><Name>empty send</Name></Send>
+  <Send><ID>00000000-0000-0000-0000-000000000000</ID><Name>skipped zero</Name></Send>
+</SendList>

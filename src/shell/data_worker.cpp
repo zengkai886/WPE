@@ -17,10 +17,12 @@ void DataWorker::Submit(std::string method,Json args,WebBridge::Completion done)
     if(rejected){done(nullptr,"数据任务队列已满或正在退出，请稍后重试");return;}
     wake_.notify_one();
 }
-void DataWorker::ForgetExportPlan(std::string token){
+void DataWorker::ForgetExportPlan(std::string token){ForgetPlan("__discardEditorExport",std::move(token));}
+void DataWorker::ForgetImportPlan(std::string token){ForgetPlan("__discardImport",std::move(token));}
+void DataWorker::ForgetPlan(std::string method,std::string token){
     if(token.empty())return;
     {std::lock_guard lock(mutex_);if(stopping_)return;
-        jobs_.push_front({"__discardEditorExport",{{"token",std::move(token)}},[](Json,std::string){}});}
+        jobs_.push_front({std::move(method),{{"token",std::move(token)}},[](Json,std::string){}});}
     wake_.notify_one();
 }
 void DataWorker::Drain(const DataService::Emit& emit){

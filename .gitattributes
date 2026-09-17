@@ -15,4 +15,5 @@ tests/fixtures/** -text
 tests/data_oracle/** -text
 src/shell/data_schema.h -text
 src/shell/data_l10n.h -text
+src/shell/config_xml_fields.h -text
 tests/oracle/Program.cs -text

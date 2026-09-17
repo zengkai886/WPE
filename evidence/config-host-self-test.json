@@ -1,0 +1,56 @@
+{
+  "frontend": {
+    "cancelledDeletionKeptData": true,
+    "chooserCancelKeptData": true,
+    "chooserTest": "fixed-path seam; production Windows picker UI not automated",
+    "clipboardTest": "UI uses isolated memory clipboard; real OS clipboard tested separately in private window station",
+    "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\config-final2\\run-09b5e6db4cfe42749d3b8d8229eb9502\\webview-profile\\2.3.0\\WPE.db",
+    "editorCounts": [
+      2,
+      3,
+      2
+    ],
+    "editorRestartPersistence": false,
+    "encryptedExportAndImport": true,
+    "importGrantRestricted": true,
+    "importNotifications": true,
+    "modeCards": 2,
+    "negativeOffsetRoundTrip": true,
+    "ok": true,
+    "originalAddAndEnableButtons": true,
+    "originalClipboardButtons": true,
+    "originalEditorButtons": true,
+    "originalExportButtons": true,
+    "originalHexViewEdited": true,
+    "originalListDom": true,
+    "persistentFilterId": "71CD2A8A-5B0F-4A5F-83FF-78D0C645D8BA",
+    "robotCancelKeptSavedInstructions": true,
+    "titlebar": true,
+    "topmostProbe": "failed-background-request-not-applied",
+    "unsupportedRejected": true,
+    "url": "https://app.wpe64.local/index.html",
+    "windowRoundTrip": false,
+    "wrongPasswordRetried": true
+  },
+  "lastStage": {
+    "stage": "机器人列表"
+  },
+  "nativeDrag": true,
+  "originalVueConfirmed": true,
+  "result": "passed",
+  "scope": "Exchange/editor acceptance: original Vue/HexView/export/copy/paste -> native RPC/SQLite/files. UI clipboard uses isolated memory; OS clipboard verified separately on private station. File chooser fixed-path seam. topmostProbe non-gating; no picker UI automation, capture/proxy/injection/execution",
+  "topmostCalls": [
+    {
+      "on": true,
+      "style": 256,
+      "visible": false
+    },
+    {
+      "on": false,
+      "style": 256,
+      "visible": false
+    }
+  ],
+  "webMessagesReceived": 166,
+  "webview2Runtime": "153.0.4234.32"
+}

@@ -1,0 +1,181 @@
+{
+  "sourceAssemblySha256": "76C33B88188F7F921AE5B21117533FF1D3F1861A04A723B8087DE42B17E5FEED",
+  "codePage": 936,
+  "cases": [
+    {
+      "plain": "original.fp",
+      "encrypted": "fp-0.encrypted",
+      "password": "compatibility-test"
+    },
+    {
+      "plain": "original.fp",
+      "encrypted": "fp-1.encrypted",
+      "password": "密码中文测试"
+    },
+    {
+      "plain": "original.fp",
+      "encrypted": "fp-2.encrypted",
+      "password": "emoji-🔒-😀"
+    },
+    {
+      "plain": "original.fp",
+      "encrypted": "fp-3.encrypted",
+      "password": "é€Жあ　"
+    },
+    {
+      "plain": "original.fp",
+      "encrypted": "fp-4.encrypted",
+      "password": " leading and trailing "
+    },
+    {
+      "plain": "original.fp",
+      "encrypted": "fp-5.encrypted",
+      "password": "x"
+    },
+    {
+      "plain": "original.fp",
+      "encrypted": "fp-6.encrypted",
+      "password": "\u0000embedded\u0000"
+    },
+    {
+      "plain": "original.sp",
+      "encrypted": "sp-0.encrypted",
+      "password": "compatibility-test"
+    },
+    {
+      "plain": "original.sp",
+      "encrypted": "sp-1.encrypted",
+      "password": "密码中文测试"
+    },
+    {
+      "plain": "original.sp",
+      "encrypted": "sp-2.encrypted",
+      "password": "emoji-🔒-😀"
+    },
+    {
+      "plain": "original.sp",
+      "encrypted": "sp-3.encrypted",
+      "password": "é€Жあ　"
+    },
+    {
+      "plain": "original.sp",
+      "encrypted": "sp-4.encrypted",
+      "password": " leading and trailing "
+    },
+    {
+      "plain": "original.sp",
+      "encrypted": "sp-5.encrypted",
+      "password": "x"
+    },
+    {
+      "plain": "original.sp",
+      "encrypted": "sp-6.encrypted",
+      "password": "\u0000embedded\u0000"
+    },
+    {
+      "plain": "original.rp",
+      "encrypted": "rp-0.encrypted",
+      "password": "compatibility-test"
+    },
+    {
+      "plain": "original.rp",
+      "encrypted": "rp-1.encrypted",
+      "password": "密码中文测试"
+    },
+    {
+      "plain": "original.rp",
+      "encrypted": "rp-2.encrypted",
+      "password": "emoji-🔒-😀"
+    },
+    {
+      "plain": "original.rp",
+      "encrypted": "rp-3.encrypted",
+      "password": "é€Жあ　"
+    },
+    {
+      "plain": "original.rp",
+      "encrypted": "rp-4.encrypted",
+      "password": " leading and trailing "
+    },
+    {
+      "plain": "original.rp",
+      "encrypted": "rp-5.encrypted",
+      "password": "x"
+    },
+    {
+      "plain": "original.rp",
+      "encrypted": "rp-6.encrypted",
+      "password": "\u0000embedded\u0000"
+    },
+    {
+      "plain": "original.whp",
+      "encrypted": "whp-0.encrypted",
+      "password": "compatibility-test"
+    },
+    {
+      "plain": "original.whp",
+      "encrypted": "whp-1.encrypted",
+      "password": "密码中文测试"
+    },
+    {
+      "plain": "original.whp",
+      "encrypted": "whp-2.encrypted",
+      "password": "emoji-🔒-😀"
+    },
+    {
+      "plain": "original.whp",
+      "encrypted": "whp-3.encrypted",
+      "password": "é€Жあ　"
+    },
+    {
+      "plain": "original.whp",
+      "encrypted": "whp-4.encrypted",
+      "password": " leading and trailing "
+    },
+    {
+      "plain": "original.whp",
+      "encrypted": "whp-5.encrypted",
+      "password": "x"
+    },
+    {
+      "plain": "original.whp",
+      "encrypted": "whp-6.encrypted",
+      "password": "\u0000embedded\u0000"
+    },
+    {
+      "plain": "original.sb",
+      "encrypted": "sb-0.encrypted",
+      "password": "compatibility-test"
+    },
+    {
+      "plain": "original.sb",
+      "encrypted": "sb-1.encrypted",
+      "password": "密码中文测试"
+    },
+    {
+      "plain": "original.sb",
+      "encrypted": "sb-2.encrypted",
+      "password": "emoji-🔒-😀"
+    },
+    {
+      "plain": "original.sb",
+      "encrypted": "sb-3.encrypted",
+      "password": "é€Жあ　"
+    },
+    {
+      "plain": "original.sb",
+      "encrypted": "sb-4.encrypted",
+      "password": " leading and trailing "
+    },
+    {
+      "plain": "original.sb",
+      "encrypted": "sb-5.encrypted",
+      "password": "x"
+    },
+    {
+      "plain": "original.sb",
+      "encrypted": "sb-6.encrypted",
+      "password": "\u0000embedded\u0000"
+    }
+  ]
+}

@@ -105,11 +105,14 @@ private:
     void DiscardExport(const Json& plan){if(data_&&plan.is_object()&&plan.contains("token"))data_->ForgetExportPlan(plan.at("token").get<std::string>());}
     void DrainClipboard();
     std::unique_ptr<wpe::shell::ClipboardWorker> clipboard_;
-    struct FileJob {std::string method;Json args;WebBridge::Completion done;Json export_plan=nullptr;};
+    struct FileJob {std::string method;Json args;WebBridge::Completion done;Json export_plan=nullptr;Json file_info=nullptr;};
+    void BeginImport(FileJob job,const fs::path& path,std::uint64_t epoch);
+    void ReleaseImport(const std::string& token){if(data_)data_->ForgetImportPlan(token);if(token==import_token_){import_token_.clear();import_path_.clear();}}
+    std::string import_token_,import_path_;
     std::deque<FileJob> file_jobs_;
     ComPtr<IFileDialog> file_dialog_;
     std::uint64_t file_epoch_{};
-    bool test_cancel_file_{},file_prompt_pending_{};
+    bool test_cancel_file_{},test_encrypted_import_{},file_prompt_pending_{};
     Options options_;
     HWND window_{};
     ComPtr<ICoreWebView2Environment> environment_;
@@ -241,7 +244,7 @@ void Host::RegisterMethods(){
         bridge_->RegisterAsync(method,[this,method](const Json& args,WebBridge::Completion done){
             if(wpe::shell::DataService::NeedsOpenFile(method,args)||wpe::shell::DataService::NeedsSaveFile(method,args)){
                 if(file_jobs_.size()>=8){done(nullptr,"文件选择请求过多");return;}
-                auto safe=args;safe.erase("_filePath"); // Only the native chooser may grant a file path.
+                auto safe=args;safe.erase("_filePath");safe.erase("_password"); // Only the native chooser may grant a file path.
                 if(wpe::shell::DataService::NeedsSaveFile(method,args)){
                     // Snapshot selection on the data worker BEFORE opening the
                     // picker, just as the original constructs its List<T> first.
@@ -254,7 +257,13 @@ void Host::RegisterMethods(){
                         file_jobs_.push_back({method,safe,complete,std::move(plan)});PostMessageW(window_,app_file,0,0);
                     });return;
                 }
-                file_jobs_.push_back({method,std::move(safe),std::move(done)});PostMessageW(window_,app_file,0,0);return;
+                auto complete=bridge_->WithErrorToast(std::move(done));
+                data_->Submit("__fileInfo",{{"kind",wpe::shell::DataService::FileKind(method,safe)},{"save",false}},[this,method,safe,complete,epoch=file_epoch_](Json info,std::string error){
+                    if(closing_||epoch!=file_epoch_){complete(nullptr,"文件选择已取消");return;}
+                    if(!error.empty()){complete(nullptr,std::move(error));return;}
+                    if(file_jobs_.size()>=8){complete(nullptr,"文件选择请求过多");return;}
+                    file_jobs_.push_back({method,safe,complete,nullptr,std::move(info)});PostMessageW(window_,app_file,0,0);
+                });return;
             }
             auto submit=[this,method,args,done]{data_->Submit(method,args,done);};
             if(wpe::shell::DataService::NeedsConfirmation(method,args)){
@@ -263,6 +272,12 @@ void Host::RegisterMethods(){
             }else submit();
         });
     }
+    bridge_->RegisterAsync("verifyEncryptPassword",[this](const Json& args,WebBridge::Completion done){
+        if(import_token_.empty()||import_path_.empty()||!args.contains("path")||args["path"]!=import_path_){done({{"ok",false}},{});return;}
+        data_->Submit("__verifyImportPassword",{{"token",import_token_},{"password",args.value("password",std::string{})}},[this,done,token=import_token_,epoch=file_epoch_](Json value,std::string error){
+            if(!error.empty()||epoch!=file_epoch_||token!=import_token_){done({{"ok",false}},{});return;}done(std::move(value),{});
+        });
+    });
     bridge_->RegisterAsync("getSystemCheck",[this,db](const Json&,WebBridge::Completion done){
         data_->Submit("getPrefs",Json::object(),[this,db,done](Json prefs,std::string error){
             if(!error.empty()){done(nullptr,std::move(error));return;}
@@ -293,6 +308,9 @@ void Host::RegisterMethods(){
     if(options_.test){
         bridge_->Register("__testStage",[this](const Json& args){report_["lastStage"]=args;return Json{{"ok",true}};});
         bridge_->Register("__testCancelNextFile",[this](const Json&){test_cancel_file_=true;return Json{{"ok",true}};});
+        bridge_->Register("__testUseLastEncryptedExport",[this](const Json&){
+            const auto target=options_.report/L"encrypted-export.sc";fs::copy_file(options_.report/L"export.sc",target,fs::copy_options::overwrite_existing);test_encrypted_import_=true;return Json{{"path",Utf8(target.wstring())}};
+        });
         bridge_->Register("__testConfirm",[this](const Json&){
             bridge_->Ask("confirm",{{"title","C++ ↔ 原 Vue 双向桥测试"},{"content","此对话框由原 Vue 渲染，自动测试将点击确定。"},{"icon",2}},[this](Json answer){report_["originalVueConfirmed"]=answer;bridge_->PushEvent("toast",{{"level",1},{"text","NATIVE_BRIDGE_EVENT_OK"}});});return Json{{"ok",true}};});
         bridge_->Register("__testDone",[this](const Json& args){report_["frontend"]=args;PostMessageW(window_,app_test,0,0);return Json{{"ok",true}};});
@@ -302,29 +320,31 @@ void Host::CancelFileJobs(){
     // Navigation/close must cancel deferred clipboard writes too.
     if(clipboard_)clipboard_->Cancel();
     ++file_epoch_;file_prompt_pending_=false;if(file_dialog_)file_dialog_->Close(HRESULT_FROM_WIN32(ERROR_CANCELLED));
+    const auto token=import_token_;ReleaseImport(token);
     auto cancelled=std::move(file_jobs_);file_jobs_.clear();for(auto& job:cancelled){DiscardExport(job.export_plan);job.done(nullptr,"文件选择已取消");}
 }
 void Host::PickImportFile(){
     if(closing_||file_dialog_||file_prompt_pending_||file_jobs_.empty())return;
     auto job=std::move(file_jobs_.front());file_jobs_.pop_front();const auto epoch=file_epoch_;
     try{
-        fs::path path;const bool save=!job.export_plan.is_null(),send=save?job.export_plan.at("send").get<bool>():job.method=="importSendCollection";
+        fs::path path;const bool save=!job.export_plan.is_null();const auto& info=save?job.export_plan:job.file_info;const auto kind=info.at("kind").get<std::string>();
         if(options_.test){
             // Test-only chooser seam; fixed files under the isolated report dir.
             // The production Windows dialog is never replaced outside --self-test.
-            if(!test_cancel_file_)path=options_.report/(save?(send?L"export.sc":L"export.whs"):(send?L"import.sc":L"import.whs"));test_cancel_file_=false;
+            if(!test_cancel_file_)path=options_.report/Wide(std::string(!save&&test_encrypted_import_?"encrypted-export.":save?"export.":"import.")+kind);test_cancel_file_=false;if(!save)test_encrypted_import_=false;
         }else{
             Check(CoCreateInstance(save?CLSID_FileSaveDialog:CLSID_FileOpenDialog,nullptr,CLSCTX_INPROC_SERVER,IID_PPV_ARGS(&file_dialog_)),"Create file dialog");
             DWORD flags=0;Check(file_dialog_->GetOptions(&flags),"Get dialog flags");
             Check(file_dialog_->SetOptions(flags|FOS_FORCEFILESYSTEM|FOS_PATHMUSTEXIST|FOS_NOCHANGEDIR|(save?FOS_OVERWRITEPROMPT:FOS_FILEMUSTEXIST)),"Set dialog flags");
-            const COMDLG_FILTERSPEC filters[]={{send?L"发送集文件 (*.sc)":L"仓储数据文件 (*.whs)",send?L"*.sc":L"*.whs"},{L"XML 文件",L"*.xml"},{L"所有文件",L"*.*"}};
-            Check(file_dialog_->SetFileTypes(3,filters),"Set dialog filters");Check(file_dialog_->SetDefaultExtension(send?L"sc":L"whs"),"Set default extension");
-            Check(file_dialog_->SetTitle(save?Wide(job.export_plan.at("title").get<std::string>()).c_str():(send?L"导入发送集":L"导入仓储数据")),"Set dialog title");
+            const auto pattern=Wide("*."+kind),label=Wide("WPE (*."+kind+")"),extension=Wide(kind);
+            const COMDLG_FILTERSPEC filters[]={{label.c_str(),pattern.c_str()},{L"XML 文件",L"*.xml"},{L"所有文件",L"*.*"}};
+            Check(file_dialog_->SetFileTypes(3,filters),"Set dialog filters");Check(file_dialog_->SetDefaultExtension(extension.c_str()),"Set default extension");
+            Check(file_dialog_->SetTitle(Wide(info.at("title").get<std::string>()).c_str()),"Set dialog title");
             const auto hr=file_dialog_->Show(window_);if(hr!=HRESULT_FROM_WIN32(ERROR_CANCELLED)){Check(hr,"Open file dialog");ComPtr<IShellItem> item;Check(file_dialog_->GetResult(&item),"Get selected file");CoString name;Check(item->GetDisplayName(SIGDN_FILESYSPATH,&name.value),"Get file path");path=name.value;}
             file_dialog_.Reset();
         }
         if(closing_||epoch!=file_epoch_){DiscardExport(job.export_plan);job.done(nullptr,"文件选择已取消");}
-        else if(path.empty()){DiscardExport(job.export_plan);job.done(save?job.export_plan.at("result"):Json{{"ok",true}},{});}
+        else if(path.empty()){DiscardExport(job.export_plan);if(save)job.done(job.export_plan.at("result"),{});else data_->Submit(job.method,job.args,job.done);}
         else if(save){
             file_prompt_pending_=true;
             bridge_->AskResult("prompt",{{"formId","encrypt-export"},{"arg",{{"Title",job.export_plan.at("title")},{"FilePath",nullptr}}}},
@@ -332,16 +352,43 @@ void Host::PickImportFile(){
                     if(closing_||epoch!=file_epoch_){DiscardExport(job.export_plan);job.done(nullptr,"导出已取消");return;}
                     file_prompt_pending_=false;
                     if(!error.empty()){DiscardExport(job.export_plan);job.done(nullptr,"导出已取消："+error);}
-                    else if(answer.is_null())data_->Submit("__writeEditorExport",{{"plan",job.export_plan},{"_filePath",Utf8(path.wstring())}},[this,job](Json value,std::string failure){DiscardExport(job.export_plan);job.done(std::move(value),std::move(failure));});
-                    else{DiscardExport(job.export_plan);job.done(nullptr,"尚未实现：加密导出；未写入文件，请选择“不加密”导出明文");}
+                    else if(answer.is_null()||(answer.is_object()&&answer.contains("Password")&&answer["Password"].is_string()&&!answer["Password"].get<std::string>().empty()))
+                        data_->Submit("__writeEditorExport",{{"plan",job.export_plan},{"_filePath",Utf8(path.wstring())},{"_password",answer.is_null()?"":answer["Password"].get<std::string>()}},[this,job](Json value,std::string failure){DiscardExport(job.export_plan);job.done(std::move(value),std::move(failure));});
+                    else{DiscardExport(job.export_plan);job.done(nullptr,"密码结果无效；未写入文件");}
                     if(!file_jobs_.empty())PostMessageW(window_,app_file,0,0);
                 });
         }
-        else{job.args["_filePath"]=Utf8(path.wstring());data_->Submit(job.method,std::move(job.args),bridge_->WithErrorToast(job.done));}
+        else BeginImport(job,path,epoch);
     }catch(const std::exception& e){file_dialog_.Reset();file_prompt_pending_=false;DiscardExport(job.export_plan);job.done(nullptr,e.what());}
     if(!closing_&&!file_jobs_.empty())PostMessageW(window_,app_file,0,0);
 }
 void Host::DrainClipboard(){if(clipboard_)clipboard_->Drain();}
+void Host::BeginImport(FileJob job,const fs::path& path,std::uint64_t epoch){
+    file_prompt_pending_=true;job.args["_filePath"]=Utf8(path.wstring());
+    data_->Submit("__prepareImport",{{"method",job.method},{"args",job.args}},[this,job,epoch](Json plan,std::string error){
+        const auto token=plan.is_object()?plan.value("token",std::string{}):std::string{};
+        auto finish=[this,job,epoch,token](Json value,std::string failure){
+            ReleaseImport(token);
+            if(epoch==file_epoch_){file_prompt_pending_=false;if(!closing_&&!file_jobs_.empty())PostMessageW(window_,app_file,0,0);}
+            job.done(std::move(value),std::move(failure));
+        };
+        if(closing_||epoch!=file_epoch_){finish(nullptr,"导入已取消");return;}
+        if(!error.empty()){finish(nullptr,std::move(error));return;}
+        try{
+            import_token_=token; // Plain XML must also be cancellable while apply is queued.
+            if(!plan.at("encrypted").get<bool>()){data_->Submit("__applyImport",{{"token",token}},finish);return;}
+            import_path_=job.args.at("_filePath").get<std::string>();
+            bridge_->AskResult("prompt",{{"formId","encrypt-import"},{"arg",{{"Title",plan.at("title")},{"FilePath",import_path_}}}},
+                [this,job,epoch,token,finish](Json answer,std::string failure){
+                    if(closing_||epoch!=file_epoch_){finish(nullptr,"导入已取消");return;}
+                    if(!failure.empty()){finish(nullptr,"导入已取消："+failure);return;}
+                    if(answer.is_null()){auto cancelled=job.args;cancelled.erase("_filePath");data_->Submit(job.method,std::move(cancelled),finish);return;}
+                    if(!answer.is_object()||!answer.contains("Password")||!answer["Password"].is_string()||answer["Password"].get<std::string>().empty()){finish(nullptr,"密码结果无效；未导入数据");return;}
+                    data_->Submit("__applyImport",{{"token",token},{"password",answer.at("Password")}},finish);
+                });
+        }catch(const std::exception& e){finish(nullptr,e.what());}
+    });
+}
 void Host::Script(const std::wstring& script){
     Check(view_->ExecuteScript(script.c_str(),Callback<ICoreWebView2ExecuteScriptCompletedHandler>([this,alive=std::weak_ptr(lifetime_)](HRESULT hr,LPCWSTR)->HRESULT{
         if(alive.expired()||closing_)return S_OK;
@@ -404,8 +451,19 @@ void Host::BeginTest(){
             if(!d.querySelector('.row2 .dt').textContent.startsWith('AA FF'))throw Error('HexView edit not saved');
             await call('__testCancelNextFile');await call('exportSendCollection',{_filePath:'untrusted-browser-path.sc'});
             await exportPlain(d,'导出发送集成功');
-            const denied=call('exportSendCollection').then(()=>{throw Error('password export falsely succeeded');},e=>{if(!String(e).includes('尚未实现：加密导出'))throw e;});
-            await wait(()=>document.querySelector('[role=dialog] .ft .btn.plain'));const pw=document.querySelector('[role=dialog] .ft .btn.plain').closest('[role=dialog]');for(const field of pw.querySelectorAll('input'))input(field,'test-only-not-a-user-password');await wait(()=>!pw.querySelector('.ft .btn.primary').disabled);pw.querySelector('.ft .btn.primary').click();await denied;
+            await call('__testStage',{stage:'encrypted-export'});const secret='test-only-not-a-user-password',encrypted=call('exportSendCollection');
+            await wait(()=>document.querySelector('[role=dialog] .ft .btn.plain'));const pw=document.querySelector('[role=dialog] .ft .btn.plain').closest('[role=dialog]');for(const field of pw.querySelectorAll('input'))input(field,secret);await wait(()=>!pw.querySelector('.ft .btn.primary').disabled);pw.querySelector('.ft .btn.primary').click();await encrypted;
+            await call('__testStage',{stage:'encrypted-export-complete'});const grant=await call('__testUseLastEncryptedExport');
+            if((await call('verifyEncryptPassword',{path:grant.path,password:secret})).ok)throw Error('password verifier accepted unselected file');
+            await call('__testStage',{stage:'clear-before-encrypted-import'});d.querySelector('.runbar .btn.danger').click();await wait(()=>document.querySelector('[role=alertdialog] .btn.primary'));document.querySelector('[role=alertdialog] .btn.primary').click();await wait(()=>d.querySelectorAll('.row2').length===0);imp.click();
+            await wait(()=>[...document.querySelectorAll('[role=dialog]')].some(e=>e.querySelector('.fld input')&&!e.querySelector('.ft .btn.plain')));
+            const unlock=[...document.querySelectorAll('[role=dialog]')].find(e=>e.querySelector('.fld input')&&!e.querySelector('.ft .btn.plain'));
+            if((await call('verifyEncryptPassword',{path:grant.path+'.forged',password:secret})).ok)throw Error('forged import path accepted');
+            await call('__testStage',{stage:'encrypted-import-wrong-password'});input(unlock.querySelector('input'),'wrong-password');await wait(()=>!unlock.querySelector('.ft .btn.primary').disabled);unlock.querySelector('.ft .btn.primary').click();await wait(()=>unlock.querySelector('.err'));
+            if(d.querySelectorAll('.row2').length!==0)throw Error('wrong password imported data');
+            input(unlock.querySelector('input'),secret);await wait(()=>!unlock.querySelector('.ft .btn.primary').disabled);unlock.querySelector('.ft .btn.primary').click();await wait(()=>!unlock.isConnected&&d.querySelectorAll('.row2').length===2);
+            if((await call('verifyEncryptPassword',{path:grant.path,password:secret})).ok)throw Error('consumed import grant remained usable');
+            await exportPlain(d,'导出发送集成功');
             d.querySelector('.ft .btn.primary').click();await wait(()=>!dialog('SendEdit')&&feeds.get(9)?.[0]?.PacketCount===2);
           }else{
             await wait(()=>d.querySelectorAll('.row2').length===2);
@@ -440,7 +498,7 @@ void Host::BeginTest(){
           }
           await wait(()=>d.querySelectorAll('.flow .blk').length===3);
           if(d.querySelector('.wbar input.nm').value!=='C++ 指令闭环测试'||!d.querySelector('.flow .blk.c1').textContent.includes('25'))throw Error('robot draft/restart mismatch');
-          return {originalEditorButtons:true,originalHexViewEdited:true,originalExportButtons:!restart,originalClipboardButtons:!restart,encryptedExportRejected:!restart,clipboardTest:'UI uses isolated memory clipboard; real OS clipboard tested separately in private window station',importNotifications:true,chooserCancelKeptData:true,robotCancelKeptSavedInstructions:true,editorRestartPersistence:restart,editorCounts:[feeds.get(9)[0].PacketCount,feeds.get(10)[0].InstructionCount,feeds.get(11)[0].DataCount],chooserTest:'fixed-path seam; production Windows picker UI not automated'};
+          return {originalEditorButtons:true,originalHexViewEdited:true,originalExportButtons:!restart,originalClipboardButtons:!restart,encryptedExportAndImport:!restart,wrongPasswordRetried:!restart,importGrantRestricted:!restart,clipboardTest:'UI uses isolated memory clipboard; real OS clipboard tested separately in private window station',importNotifications:true,chooserCancelKeptData:true,robotCancelKeptSavedInstructions:true,editorRestartPersistence:restart,editorCounts:[feeds.get(9)[0].PacketCount,feeds.get(10)[0].InstructionCount,feeds.get(11)[0].DataCount],chooserTest:'fixed-path seam; production Windows picker UI not automated'};
         };
     )JS" LR"JS(
         const prefs=await call('getPrefs');if(!prefs.isDark||prefs.language!=='zh-CN')throw Error('unexpected fresh DB prefs');

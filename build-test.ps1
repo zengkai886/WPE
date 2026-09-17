@@ -96,12 +96,12 @@ try {
             } finally {$process.Dispose()}
             $manifest.host=Get-Content -LiteralPath (Join-Path $hostEvidence 'host-self-test.json') -Raw | ConvertFrom-Json
             if($manifest.host.result -ne 'passed'){throw 'Native host did not pass'}
-            if(-not $manifest.host.frontend.originalExportButtons -or -not $manifest.host.frontend.originalClipboardButtons -or -not $manifest.host.frontend.encryptedExportRejected){throw 'Export/clipboard original UI test did not pass'}
+            if(-not $manifest.host.frontend.originalExportButtons -or -not $manifest.host.frontend.originalClipboardButtons -or -not $manifest.host.frontend.encryptedExportAndImport -or -not $manifest.host.frontend.wrongPasswordRetried -or -not $manifest.host.frontend.importGrantRestricted){throw 'Export/encryption/clipboard original UI test did not pass'}
             [xml]$sendExport=Get-Content -LiteralPath (Join-Path $hostEvidence 'export.sc') -Raw
             [xml]$storeExport=Get-Content -LiteralPath (Join-Path $hostEvidence 'export.whs') -Raw
             if(@($sendExport.SendCollection.Collection).Count -ne 2 -or $sendExport.SendCollection.Collection[0].Socket -ne '99' -or $sendExport.SendCollection.Collection[0].Buffer -ne 'AA FF 80 42'){throw 'Native send export content mismatch'}
             if(@($storeExport.Stores.Data).Count -ne 2 -or $storeExport.Stores.Data[0].PacketData -ne '00 FF 80'){throw 'Native warehouse export content mismatch'}
-            $manifest.exportArtifacts=@('export.sc','export.whs') | ForEach-Object {$path=Join-Path $hostEvidence $_;[ordered]@{path=$path;sha256=(Hash $path)}}
+            $manifest.exportArtifacts=@('export.sc','export.whs','encrypted-export.sc') | ForEach-Object {$path=Join-Path $hostEvidence $_;[ordered]@{path=$path;sha256=(Hash $path)}}
             $manifest.hostArtifacts=@($app,(Join-Path $hostEvidence 'host-self-test.json'),(Join-Path $hostEvidence 'original-vue.png')) | ForEach-Object {[ordered]@{path=$_;sha256=(Hash $_)}}
             $reopenEvidence=Join-Path $run 'host-reopen'
             $arguments=@('--assets',('"'+(Join-Path $PSScriptRoot 'wwwroot')+'"'),'--data-dir',('"'+(Join-Path $run 'webview-profile')+'"'),'--self-test',('"'+$reopenEvidence+'"'))

@@ -1,0 +1,424 @@
+## oracle-build.log
+  正在确定要还原的项目…
+  已还原 E:\codex\2026-09-17\bi-a\outputs\WPE64-Cpp\tests\oracle\Oracle.csproj (用时 175 毫秒)。
+  Oracle -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\oracle\WpeProtocolOracle.exe
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:00.67
+
+
+## oracle-generate.log
+Original C# oracle: 74684 vectors generated.
+Reference runtime: CLR 4.0.30319.42000; corelib mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+
+
+## oracle-ring.log
+Original C# PacketRing: 6416 state-transition vectors generated.
+
+
+## original-decrypt-native.log
+x64 PASS: unchanged original decrypted native FilterList
+x64 PASS: unchanged original decrypted native SendList
+x64 PASS: unchanged original decrypted native RobotList
+x64 PASS: unchanged original decrypted native WareHouseList
+x64 PASS: unchanged original decrypted native WPE64_BackUp
+Win32 PASS: unchanged original decrypted native FilterList
+Win32 PASS: unchanged original decrypted native SendList
+Win32 PASS: unchanged original decrypted native RobotList
+Win32 PASS: unchanged original decrypted native WareHouseList
+Win32 PASS: unchanged original decrypted native WPE64_BackUp
+UI PASS: unchanged original decrypted native SendCollection
+
+
+## Win32-build.log
+适用于 .NET Framework MSBuild 版本 17.14.51+25f168cee
+
+  1>Checking Build System
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  clipboard.cpp
+  web_bridge.cpp
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  ipc_codec.cpp
+  clipboard_worker.cpp
+  ipc_frame.cpp
+  packet_frame.cpp
+  packet_ring.cpp
+  正在生成代码...
+  wpe64-clipboard.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-clipboard.lib
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  sqlite3.c
+  正在生成代码...
+  wpe64-bridge.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-bridge.lib
+  wpe64-common.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-common.lib
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  web_bridge_test.cpp
+  clipboard_test.cpp
+  wpe64-clipboard-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-clipboard-test.exe
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  codec_test.cpp
+  wpe64-codec-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-codec-test.exe
+  wpe64-bridge-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-bridge-test.exe
+  protocol_parity_test.cpp
+  packet_ring_test.cpp
+  wpe64-parity-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-parity-test.exe
+  wpe64-ring-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-ring-test.exe
+  wpe64-sqlite.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-sqlite.lib
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  database.cpp
+  data_service.cpp
+  data_edit.cpp
+  editor_xml.cpp
+  data_worker.cpp
+  xml_document.cpp
+  xml_crypto.cpp
+  config_xml.cpp
+  data_files.cpp
+  正在生成代码...
+  wpe64-data.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-data.lib
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  export_test.cpp
+  editor_test.cpp
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  config_file_test.cpp
+  wpe64-export-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-export-test.exe
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  data_worker_test.cpp
+  wpe64-editor-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-editor-test.exe
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  data_service_test.cpp
+  wpe64-config-file-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-config-file-test.exe
+  wpe64-data-worker-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-data-worker-test.exe
+  wpe64-data-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-data-test.exe
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+
+
+## Win32-configure.log
+-- The C compiler identification is MSVC 19.44.35228.0
+-- The CXX compiler identification is MSVC 19.44.35228.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x86/cl.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x86/cl.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done (2.5s)
+-- Generating done (0.1s)
+-- Build files have been written to: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+
+
+## Win32-ctest.log
+UpdateCTestConfiguration  from :E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32/DartConfiguration.tcl
+Parse Config file:E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32/DartConfiguration.tcl
+Test project E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+      Start  1: codec-smoke
+
+1: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-codec-test.exe
+1: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+1: Test timeout computed to be: 1500
+1: PASS: codec smoke (LE, null distinct from empty)
+ 1/10 Test  #1: codec-smoke ......................   Passed    0.01 sec
+test 2
+      Start  2: protocol-edge
+
+2: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-parity-test.exe
+2: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+2: Test timeout computed to be: 1500
+2: PASS: 10 protocol edge assertions
+ 2/10 Test  #2: protocol-edge ....................   Passed    0.01 sec
+test 3
+      Start  3: packet-ring
+
+3: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-ring-test.exe
+3: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+3: Test timeout computed to be: 1500
+3: PASS: packet ring edges/concurrency; 0 original state-transition vectors
+ 3/10 Test  #3: packet-ring ......................   Passed    0.03 sec
+test 4
+      Start  4: web-bridge
+
+4: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-bridge-test.exe
+4: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+4: Test timeout computed to be: 1500
+4: PASS: five bridge message types, origins, timeout, cancellation, duplicate answer, independent completion; successful null distinct from four Ask failure paths
+ 4/10 Test  #4: web-bridge .......................   Passed    0.04 sec
+test 5
+      Start  5: native-data
+
+5: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-data-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures/filter-edit.json"
+5: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+5: Test timeout computed to be: 1500
+5: PASS: 440 data checks; original C# fixtures, persistent SQLite, rollback, feeds, worker FIFO; isolated files: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\data-test\297598096167500
+ 5/10 Test  #5: native-data ......................   Passed    1.15 sec
+test 6
+      Start  6: data-worker
+
+6: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-data-worker-test.exe
+6: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+6: Test timeout computed to be: 1500
+6: shutdownMs=1050, cancelled=2
+6: PASS: worker shutdown queue cancellation, emit/completion isolation and undrained export token cleanup during owner reset
+ 6/10 Test  #6: data-worker ......................   Passed    1.24 sec
+test 7
+      Start  7: editor-data
+
+7: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-editor-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures"
+7: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+7: Test timeout computed to be: 1500
+7: PASS: 229 editor checks; 184 original C# calls; XML, drafts, packet aliases, rollback and reopen; E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\editor-test\297600484912100
+ 7/10 Test  #7: editor-data ......................   Passed    1.47 sec
+test 8
+      Start  8: editor-export
+
+8: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-export-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures"
+8: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+8: Test timeout computed to be: 1500
+8: PASS: 41 export checks; original byte golden, snapshot, selected/all, cancel, replacement failure; E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\export-test\297601956613500
+ 8/10 Test  #8: editor-export ....................   Passed    0.13 sec
+test 9
+      Start  9: configuration-files
+
+9: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-config-file-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures"
+9: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+9: Test timeout computed to be: 1500
+9: PASS: 198 configuration and original AES checks; E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\config-test\297602082783300
+ 9/10 Test  #9: configuration-files ..............   Passed    0.49 sec
+test 10
+      Start 10: native-clipboard
+
+10: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-clipboard-test.exe
+10: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+10: Test timeout computed to be: 1500
+10: PASS: real Win32 clipboard Unicode/empty/NUL/64K UTF-16 units/lock ownership; delayed-render worker kept UI responsive; private window station; user's clipboard untouched
+10/10 Test #10: native-clipboard .................   Passed    6.37 sec
+
+100% tests passed out of 10
+
+Total Test time (real) =  10.94 sec
+
+
+## Win32-parity.log
+PASS: 74684 original C# vectors; 76618 assertions; 600 native packet frames. Pointer bits=32
+
+
+## Win32-reverse.log
+Original C# decoder accepted 600 native packet frames; all bytes and decoded fields match.
+
+
+## Win32-ring.log
+PASS: packet ring edges/concurrency; 6416 original state-transition vectors
+
+
+## x64-build.log
+适用于 .NET Framework MSBuild 版本 17.14.51+25f168cee
+
+  1>Checking Build System
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  web_bridge.cpp
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  clipboard.cpp
+  sqlite3.c
+  clipboard_worker.cpp
+  正在生成代码...
+  wpe64-clipboard.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-clipboard.lib
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  ipc_codec.cpp
+  ipc_frame.cpp
+  wpe64-bridge.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-bridge.lib
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  web_bridge_test.cpp
+  packet_frame.cpp
+  packet_ring.cpp
+  正在生成代码...
+  wpe64-common.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-common.lib
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  codec_test.cpp
+  wpe64-codec-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-codec-test.exe
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  clipboard_test.cpp
+  wpe64-bridge-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-bridge-test.exe
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  protocol_parity_test.cpp
+  wpe64-clipboard-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-clipboard-test.exe
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  packet_ring_test.cpp
+  wpe64-parity-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-parity-test.exe
+  wpe64-sqlite.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-sqlite.lib
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  database.cpp
+  wpe64-ring-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-ring-test.exe
+  data_service.cpp
+  data_edit.cpp
+  editor_xml.cpp
+  data_worker.cpp
+  xml_document.cpp
+  xml_crypto.cpp
+  config_xml.cpp
+  data_files.cpp
+  正在生成代码...
+  wpe64-data.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-data.lib
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  main.cpp
+  data_worker_test.cpp
+  export_test.cpp
+  editor_test.cpp
+  data_service_test.cpp
+  wpe64-app.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-app.exe
+  wpe64-export-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-export-test.exe
+  wpe64-data-worker-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-data-worker-test.exe
+  config_file_test.cpp
+  wpe64-editor-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-editor-test.exe
+  wpe64-data-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-data-test.exe
+  wpe64-config-file-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-config-file-test.exe
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+
+
+## x64-configure.log
+-- The C compiler identification is MSVC 19.44.35228.0
+-- The CXX compiler identification is MSVC 19.44.35228.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done (2.4s)
+-- Generating done (0.2s)
+-- Build files have been written to: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/x64
+
+
+## x64-ctest.log
+UpdateCTestConfiguration  from :E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/x64/DartConfiguration.tcl
+Parse Config file:E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/x64/DartConfiguration.tcl
+Test project E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/x64
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+      Start  1: codec-smoke
+
+1: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-codec-test.exe
+1: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/x64
+1: Test timeout computed to be: 1500
+1: PASS: codec smoke (LE, null distinct from empty)
+ 1/10 Test  #1: codec-smoke ......................   Passed    0.01 sec
+test 2
+      Start  2: protocol-edge
+
+2: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-parity-test.exe
+2: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/x64
+2: Test timeout computed to be: 1500
+2: PASS: 10 protocol edge assertions
+ 2/10 Test  #2: protocol-edge ....................   Passed    0.01 sec
+test 3
+      Start  3: packet-ring
+
+3: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-ring-test.exe
+3: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/x64
+3: Test timeout computed to be: 1500
+3: PASS: packet ring edges/concurrency; 0 original state-transition vectors
+ 3/10 Test  #3: packet-ring ......................   Passed    0.02 sec
+test 4
+      Start  4: web-bridge
+
+4: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-bridge-test.exe
+4: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/x64
+4: Test timeout computed to be: 1500
+4: PASS: five bridge message types, origins, timeout, cancellation, duplicate answer, independent completion; successful null distinct from four Ask failure paths
+ 4/10 Test  #4: web-bridge .......................   Passed    0.03 sec
+test 5
+      Start  5: native-data
+
+5: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-data-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures/filter-edit.json"
+5: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/x64
+5: Test timeout computed to be: 1500
+5: PASS: 440 data checks; original C# fixtures, persistent SQLite, rollback, feeds, worker FIFO; isolated files: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\data-test\297490784406200
+ 5/10 Test  #5: native-data ......................   Passed    1.15 sec
+test 6
+      Start  6: data-worker
+
+6: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-data-worker-test.exe
+6: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/x64
+6: Test timeout computed to be: 1500
+6: shutdownMs=1055, cancelled=2
+6: PASS: worker shutdown queue cancellation, emit/completion isolation and undrained export token cleanup during owner reset
+ 6/10 Test  #6: data-worker ......................   Passed    1.26 sec
+test 7
+      Start  7: editor-data
+
+7: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-editor-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures"
+7: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/x64
+7: Test timeout computed to be: 1500
+7: PASS: 229 editor checks; 184 original C# calls; XML, drafts, packet aliases, rollback and reopen; E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\editor-test\297493192236400
+ 7/10 Test  #7: editor-data ......................   Passed    1.41 sec
+test 8
+      Start  8: editor-export
+
+8: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-export-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures"
+8: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/x64
+8: Test timeout computed to be: 1500
+8: PASS: 41 export checks; original byte golden, snapshot, selected/all, cancel, replacement failure; E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\export-test\297494607582200
+ 8/10 Test  #8: editor-export ....................   Passed    0.12 sec
+test 9
+      Start  9: configuration-files
+
+9: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-config-file-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures"
+9: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/x64
+9: Test timeout computed to be: 1500
+9: PASS: 198 configuration and original AES checks; E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\config-test\297494728805900
+ 9/10 Test  #9: configuration-files ..............   Passed    0.47 sec
+test 10
+      Start 10: native-clipboard
+
+10: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\x64\Release\wpe64-clipboard-test.exe
+10: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/x64
+10: Test timeout computed to be: 1500
+10: PASS: real Win32 clipboard Unicode/empty/NUL/64K UTF-16 units/lock ownership; delayed-render worker kept UI responsive; private window station; user's clipboard untouched
+10/10 Test #10: native-clipboard .................   Passed    6.36 sec
+
+100% tests passed out of 10
+
+Total Test time (real) =  10.85 sec
+
+
+## x64-parity.log
+PASS: 74684 original C# vectors; 76618 assertions; 600 native packet frames. Pointer bits=64
+
+
+## x64-reverse.log
+Original C# decoder accepted 600 native packet frames; all bytes and decoded fields match.
+
+
+## x64-ring.log
+PASS: packet ring edges/concurrency; 6416 original state-transition vectors

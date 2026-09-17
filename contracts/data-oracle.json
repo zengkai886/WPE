@@ -1,5 +1,5 @@
 {
-  "description": "120 FilterEdit, 184 sequential editor calls, plaintext XML serializer and shallow-export dialog oracle from unchanged original net48 assembly; no original assembly shipped or run by product",
+  "description": "Original net48 oracle: 120 filter edits, 184 editor calls, plaintext/shallow export; four parent-list serializers, five-section backup, 35 AES cipher vectors (ACP936) including Unicode/NUL; product does not run original C#",
   "originalAssemblySha256": "76C33B88188F7F921AE5B21117533FF1D3F1861A04A723B8087DE42B17E5FEED",
   "originalSources": [
     {
@@ -21,52 +21,36 @@
   ],
   "files": [
     {
-      "path": "tests/fixtures/filter-edit.json",
-      "sha256": "C4A5B86B703592BD032FCAFD8286500BDA961746BBC80446C6DA07EF3A5A8779"
-    },
-    {
-      "path": "tests/data_oracle/Program.cs",
-      "sha256": "882A44E8A4C74AB803979134D8D36CA69E81A893A22A5E4C48E47F8C45AB11EB"
-    },
-    {
-      "path": "tests/data_oracle/DataOracle.csproj",
-      "sha256": "8BC1DC2B4907BF27EB37EA6BDF17E39DB1C4028E7AA97DAE9A9D89018E26B84A"
-    },
-    {
-      "path": "tests/data_oracle/extract_contracts.py",
-      "sha256": "00AC25DB33BC1767FDFF606A5BFBE9396609EE3C80B76C6427AC07FB2AE5354B"
-    },
-    {
-      "path": "src/shell/data_schema.h",
-      "sha256": "774745113DB5B1A9527D5297CCF8E8BCE45F9F9A57A0321AAE5C3226E024BF00"
-    },
-    {
-      "path": "src/shell/data_l10n.h",
-      "sha256": "603AF4E59055E012005AC493059B3C38A3504F6067C74B008414E159EA2CC9BB"
+      "path": "contracts/original-rpc.json",
+      "sha256": "E806839BDD1E6CAA15F46A0570249603F0BE9A7328373F02DE50A5D46AACF987"
     },
     {
       "path": "contracts/original-schema.json",
       "sha256": "4647470D26FD9005D2D2E85E89B5AE4F24AF77606DAD952C7E82DEA315BA017A"
     },
     {
-      "path": "contracts/original-rpc.json",
-      "sha256": "E806839BDD1E6CAA15F46A0570249603F0BE9A7328373F02DE50A5D46AACF987"
+      "path": "src/shell/config_xml_fields.h",
+      "sha256": "89B14E5FC9A0603E96D8C924E9622C1EE3CA6AAC388F85AEF6D9AAFB2B620864"
+    },
+    {
+      "path": "src/shell/data_l10n.h",
+      "sha256": "603AF4E59055E012005AC493059B3C38A3504F6067C74B008414E159EA2CC9BB"
+    },
+    {
+      "path": "src/shell/data_schema.h",
+      "sha256": "774745113DB5B1A9527D5297CCF8E8BCE45F9F9A57A0321AAE5C3226E024BF00"
+    },
+    {
+      "path": "tests/data_oracle/ConfigFileOracle.cs",
+      "sha256": "F24BA17F586E3197DB91D23F09AB9AF4FDDDBE81AEECE83C34667E64AED0E8DE"
+    },
+    {
+      "path": "tests/data_oracle/DataOracle.csproj",
+      "sha256": "8BC1DC2B4907BF27EB37EA6BDF17E39DB1C4028E7AA97DAE9A9D89018E26B84A"
     },
     {
       "path": "tests/data_oracle/EditorOracle.cs",
       "sha256": "ED0B0DAA3CE794E06417ED970E8D307A88ECBCEF728F278801302E034C8B9655"
-    },
-    {
-      "path": "tests/fixtures/editor-sequence.json",
-      "sha256": "9D27D72746813522569622DD4D6BF32156A3710F038897F2A68AA1CEC87B342B"
-    },
-    {
-      "path": "tests/fixtures/editor-send.sc",
-      "sha256": "D5B1943B1C6CF287C17368A4D536EBBDD81BA334965E4AB481FC132675ADE453"
-    },
-    {
-      "path": "tests/fixtures/editor-stores.whs",
-      "sha256": "8DBDF3F7808576945353995974801731FC3D168F8FD91B6C1E8962234CB95507"
     },
     {
       "path": "tests/data_oracle/ExportOracle.cs",
@@ -77,12 +61,244 @@
       "sha256": "F6AAF7CA21473AD545A1EFC2F6EB8CD4AAA29335015D1F63C9A179DE7BA31976"
     },
     {
-      "path": "tests/fixtures/export-original.sc",
-      "sha256": "186093792C83A0874BAA4B4DF0B2723A737BD7C18533FE4F9F5457EBA0C0443C"
+      "path": "tests/data_oracle/Program.cs",
+      "sha256": "5F74F1481FC39CB37556AB996B9CB98AF9AE39FB36CF46E632E35A44185BF08D"
     },
     {
-      "path": "tests/fixtures/export-original.whs",
-      "sha256": "A1C740E783FCBD0B1CFC5BDA9EA716857FE1C04D11A82188D7EDD5796195A51D"
+      "path": "tests/data_oracle/extract_contracts.py",
+      "sha256": "00AC25DB33BC1767FDFF606A5BFBE9396609EE3C80B76C6427AC07FB2AE5354B"
+    },
+    {
+      "path": "tests/data_oracle/extract_xml_fields.py",
+      "sha256": "5778D918AAD919677644191F05F711CD84928D04E96F6B89DE9DF8347A14F03F"
+    },
+    {
+      "path": "tests/fixtures/config-files/edges/namespace-input.xml",
+      "sha256": "8800B57DC61FFBBE2F8404BC24E68183D2D21B4E50FAAECCB618BB9320FCB7DE"
+    },
+    {
+      "path": "tests/fixtures/config-files/edges/namespace-original.xml",
+      "sha256": "428D821D65715392134CCD09FBD22DF4D8DEEAE9CFD483CBD5636B88DD7EC136"
+    },
+    {
+      "path": "tests/fixtures/config-files/edges/namespaced-root-input.xml",
+      "sha256": "276C14ACFAEF6C5930C4C51FA5F075D093C0D34FABA779A14CC7721360A24D63"
+    },
+    {
+      "path": "tests/fixtures/config-files/edges/namespaced-root-original.xml",
+      "sha256": "428D821D65715392134CCD09FBD22DF4D8DEEAE9CFD483CBD5636B88DD7EC136"
+    },
+    {
+      "path": "tests/fixtures/config-files/edges/trailing-input.xml",
+      "sha256": "85C76BAF04AA7FBDC9A6295335902D5F3D9C0F239A7EF3731179E3E97472B6DB"
+    },
+    {
+      "path": "tests/fixtures/config-files/edges/trailing-original.xml",
+      "sha256": "1F4CF310E45BD8F418EC908FA26C4995A969DD0E177B19BCA2C9FE70B3AFC826"
+    },
+    {
+      "path": "tests/fixtures/config-files/input.fp",
+      "sha256": "46E41081D303A89BC5D8285983A8D08410ABC7BE40561029CA5F78C14550D9D4"
+    },
+    {
+      "path": "tests/fixtures/config-files/input.rp",
+      "sha256": "6FE604E0CCB25EFA65554D6468EDFD5C95FE1A2896D69D415D849721DAAC4CA1"
+    },
+    {
+      "path": "tests/fixtures/config-files/input.sp",
+      "sha256": "BA046C99E85AF17897BE109AB39C012DDA800364C5BA72DD1323F77E0403892D"
+    },
+    {
+      "path": "tests/fixtures/config-files/input.whp",
+      "sha256": "95143C218F5E2C983F54A083E3F3CCC27E19C1F55B00EFE3437B7CA88DF1677B"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/crypto.json",
+      "sha256": "8981C9C5A32BAAD10E2E6AED92F2554A4E663EAC7A1254165DBEE672D12233B3"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/fp-0.encrypted",
+      "sha256": "0A32F6611DD0AD21249BB11E497BB01DC1A5C0FB6C77E0725A094EFE8E34FB00"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/fp-1.encrypted",
+      "sha256": "765906ECA12E9C5EBA6FC2740C943D519A2410805FF60689420EC41BC933D9CE"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/fp-2.encrypted",
+      "sha256": "7B1FF524482C46BAE9E2BED6F0C9AF3791771335F0DA2F670A25690674C17128"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/fp-3.encrypted",
+      "sha256": "58E932658F54E804297E2C04B8A3D4FD05627D66D466A0916FE19AB67652D629"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/fp-4.encrypted",
+      "sha256": "85B65EA4938C7FBF7F1AE84339004001B50607D026768E790FB31EAD7D49E7BC"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/fp-5.encrypted",
+      "sha256": "2990AFB1047F74C829119A327A8127189B978BFFD9EE6365594E1297CE40CF6D"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/fp-6.encrypted",
+      "sha256": "483FA1E728C7D6213B19C1715A9DD2F6D63ABA0C8F0B7384D432039373D199D9"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/original.fp",
+      "sha256": "11E55AF4B60722B23679505F570CEE6F0D1C49AA673654B3225014CA23914CAA"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/original.rp",
+      "sha256": "C9DD50A254CCFA9BE5E742BC650ABD2F46570DD803785743A770F609F701ADA6"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/original.sb",
+      "sha256": "BD4134C74AB00130D6D25968BC315851B327EEEC5CE1B2FF700E170A34F6F39A"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/original.sp",
+      "sha256": "428D821D65715392134CCD09FBD22DF4D8DEEAE9CFD483CBD5636B88DD7EC136"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/original.whp",
+      "sha256": "CAD7FB5FD5050AF592FE012CEAFA902378F5DFB85C9CF01871916B9315EA1766"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/rp-0.encrypted",
+      "sha256": "8D833B069EB9F6F71592FDCAB61AFE7C3673CD4AC960539A72F8F68E08EA90F5"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/rp-1.encrypted",
+      "sha256": "E7E90FF7B1DD8309B4FDD2376E6980187681584460B00C1548804515B18EB84C"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/rp-2.encrypted",
+      "sha256": "DC873E836822047927C078ADD56BDFF374997F1938C3815D70F01E208C361FAD"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/rp-3.encrypted",
+      "sha256": "87FF6F931CF7E7E1C2428F4115E2B13606AE83CB6701FB6944577B39F17849B5"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/rp-4.encrypted",
+      "sha256": "6AD7166AE4C33FE26B414B452BF22EC710BD83A01EA8E8A872E48F94A9CA04E4"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/rp-5.encrypted",
+      "sha256": "EF26C8482BF58992EE53E92A6BE04362E12E70F2E904028117081934F99A1CEC"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/rp-6.encrypted",
+      "sha256": "D3C0DC0C47B0CE4C9A6D0D91079453D574D700EECDA7C95339213DF9B52BFE5E"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/sb-0.encrypted",
+      "sha256": "CC9CAE1A3433FF5D8845DBA2CD6B279939606180286958106E21564A33DF9F4A"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/sb-1.encrypted",
+      "sha256": "7732E2C8088AD41024B1C2B0A3E1B50863896B2823D610ED9192837FA13F3130"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/sb-2.encrypted",
+      "sha256": "69937A80AE91A0EEF012873C9593729FE9947D7A8334DD9B40E35DC2688B87AC"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/sb-3.encrypted",
+      "sha256": "81FC39E9FFB5E962C89037F12C2DFB8D73DA8622EC6565B148A2CC2459F749EC"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/sb-4.encrypted",
+      "sha256": "995BC687B6B187AD86D741EFB42D4EF94F79FE2A85C8EC6BC04D4F8042143458"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/sb-5.encrypted",
+      "sha256": "191DDC282D195618E185ACF0AE4B4287077C2948BBCFF0FBCF0DFEEFAC889A79"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/sb-6.encrypted",
+      "sha256": "3CC3CB3A6C71D27FD7F11114085D4912BD980F052959B2E2284FE616049127DF"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/sp-0.encrypted",
+      "sha256": "4CCD8B3C675BFDACF6D32824A219A7D0AD1859A914A36EE00FF68E50651AFB0A"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/sp-1.encrypted",
+      "sha256": "1F9697667A2ECAFF3DEE31E5ECE863D2A241984172BF771A9D1E218AE5DA4A4F"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/sp-2.encrypted",
+      "sha256": "1A482611A1D73AB8FCB94B93F77B87EAAF90D42E2429DE4E735E6637BD48FBCB"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/sp-3.encrypted",
+      "sha256": "238E9C7DEB0F5688EAF54766DD5EA45BCCA8E7A76B7FEBC815CB5BF3919405D5"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/sp-4.encrypted",
+      "sha256": "834C3A310FD815B9DB3C689324D092219C8024E9280C9F9FCAC36FBEA572DA68"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/sp-5.encrypted",
+      "sha256": "5440409CBFB07B1C28E1DA90A2E9E57814C132F847A903D61D358EE8EAE1AB13"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/sp-6.encrypted",
+      "sha256": "031023A4D5CCB99732956FB985D1FA98E5439AA21968575FB2E9899EEC841272"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/system-before-import.xml",
+      "sha256": "CB191E65C5A0D82043284972E7C5638EE3BC052F7BF588C8E7502B44451A1F24"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/system.xml",
+      "sha256": "5AEB9E47F068C4CCC1C6EEAECE8D6E73BEDF4475C276AFAEA82E0F050E8695FD"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/whp-0.encrypted",
+      "sha256": "B90B5509FA14E1B67605DB0991F796FA93A42B58322B9ABB634DB0611457C93C"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/whp-1.encrypted",
+      "sha256": "00C0F1C66C7C5E5AD51AF4BCC79183404AE8EDB688E0AC33184C8FE5ED23F24E"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/whp-2.encrypted",
+      "sha256": "CB535F2B0F7DCB70FF320F250E03662D04A3E01A522A8381C0F44BB42275E902"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/whp-3.encrypted",
+      "sha256": "64C80A689AEA92AA3BA2447DCB7471405CC9703C8954BA5E7B41A1F7E0CAD244"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/whp-4.encrypted",
+      "sha256": "E6F6951D797A1A45D7CAB329539B87B96EA44BD1A37CFF55CE70C60BB6AEDC8A"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/whp-5.encrypted",
+      "sha256": "B431CA1707D74AA71BF46E84F64FA5DB780074186DAEF7C9CDEDB8F5D23BF269"
+    },
+    {
+      "path": "tests/fixtures/config-files/original/whp-6.encrypted",
+      "sha256": "7BF796C61BE972980E866B5CE8B2E2E3E4BA63B2938192DE1E432DA2B47F2182"
+    },
+    {
+      "path": "tests/fixtures/config-files/system.xml",
+      "sha256": "B70D49C5BF9C1E847DE397765677712A740D357D54CB30AD37E0AB9BF0929798"
+    },
+    {
+      "path": "tests/fixtures/editor-send.sc",
+      "sha256": "D5B1943B1C6CF287C17368A4D536EBBDD81BA334965E4AB481FC132675ADE453"
+    },
+    {
+      "path": "tests/fixtures/editor-sequence.json",
+      "sha256": "9D27D72746813522569622DD4D6BF32156A3710F038897F2A68AA1CEC87B342B"
+    },
+    {
+      "path": "tests/fixtures/editor-stores.whs",
+      "sha256": "8DBDF3F7808576945353995974801731FC3D168F8FD91B6C1E8962234CB95507"
     },
     {
       "path": "tests/fixtures/export-edge/editor-send.sc",
@@ -99,6 +315,18 @@
     {
       "path": "tests/fixtures/export-edge/export-original.whs",
       "sha256": "A1C740E783FCBD0B1CFC5BDA9EA716857FE1C04D11A82188D7EDD5796195A51D"
+    },
+    {
+      "path": "tests/fixtures/export-original.sc",
+      "sha256": "186093792C83A0874BAA4B4DF0B2723A737BD7C18533FE4F9F5457EBA0C0443C"
+    },
+    {
+      "path": "tests/fixtures/export-original.whs",
+      "sha256": "A1C740E783FCBD0B1CFC5BDA9EA716857FE1C04D11A82188D7EDD5796195A51D"
+    },
+    {
+      "path": "tests/fixtures/filter-edit.json",
+      "sha256": "C4A5B86B703592BD032FCAFD8286500BDA961746BBC80446C6DA07EF3A5A8779"
     }
   ]
 }

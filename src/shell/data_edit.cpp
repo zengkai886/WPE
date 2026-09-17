@@ -1,6 +1,7 @@
 #include "data_service.h"
 #include "data_util.h"
 #include "editor_xml.h"
+#include "config_xml.h"
 namespace wpe::shell {
 using namespace data_detail;
 namespace {
@@ -10,19 +11,7 @@ std::vector<std::string> Fields(const std::string& s,char delimiter){
     for(;;){auto end=s.find(delimiter,start);out.push_back(s.substr(start,end-start));if(end==s.npos)return out;start=end+1;}
 }
 std::string Fmt(std::string format,const std::string& arg){const auto p=format.find("{0}");if(p!=format.npos)format.replace(p,3,arg);return format;}
-std::string ParsedGuid(std::string s){
-    // Guid.TryParse also accepts the hexadecimal X form. Whitespace is ignored
-    // inside that form, but not inside the ordinary D/N/B/P representations.
-    if(s.find("0x")!=s.npos||s.find("0X")!=s.npos){
-        const auto compact=Trim(s,true);
-        std::smatch match;static const std::regex x(R"(\{0[xX]([0-9a-fA-F]+),0[xX]([0-9a-fA-F]+),0[xX]([0-9a-fA-F]+),\{0[xX]([0-9a-fA-F]+),0[xX]([0-9a-fA-F]+),0[xX]([0-9a-fA-F]+),0[xX]([0-9a-fA-F]+),0[xX]([0-9a-fA-F]+),0[xX]([0-9a-fA-F]+),0[xX]([0-9a-fA-F]+),0[xX]([0-9a-fA-F]+)\}\})");
-        if(!std::regex_match(compact,match,x))return {};
-        s.clear();for(std::size_t i=1;i<match.size();++i){const std::size_t width=i==1?8:i<4?4:2;auto part=match[i].str();const auto start=part.find_first_not_of('0');part=start==part.npos?"0":part.substr(start);if(part.size()>width)return {};s+=std::string(width-part.size(),'0')+part;}
-    }
-    s=Trim(s);if(s.size()>1&&((s.front()=='{'&&s.back()=='}')||(s.front()=='('&&s.back()==')'))){if(s.size()!=38)return {};s=s.substr(1,s.size()-2);}
-    if(std::regex_match(s,std::regex("[0-9a-fA-F]{32}")))s=s.substr(0,8)+'-'+s.substr(8,4)+'-'+s.substr(12,4)+'-'+s.substr(16,4)+'-'+s.substr(20);
-    const auto id=NormalGuid(s);return id==zero_guid?std::string{}:id;
-}
+std::string ParsedGuid(const std::string& s){const auto id=TryGuid(s);return id&&*id!=zero_guid?*id:std::string{};}
 const std::array<const char*,5> keys={"Press","Down","Up","Combine","Text"};
 const std::array<const char*,12> mice={"LeftClick","RightClick","LeftDBClick","RightDBClick","LeftDown","LeftUp","RightDown","RightUp","WheelUp","WheelDown","MoveTo","MoveBy"};
 Json Decode64(const std::string& text){
@@ -62,23 +51,28 @@ std::vector<std::string> Pick(const Json& rows,const Json& args,bool indexes){
     std::vector<std::string> picked;for(std::size_t i=0;i<rows.size();++i)if(indexes?positions.contains(static_cast<int>(i)):ids.contains(Upper(S(rows[i],"_id"))))picked.push_back(S(rows[i],"_id"));return picked;
 }
 }
-bool DataService::NeedsOpenFile(const std::string& method,const Json& args){return method=="importSendCollection"||(method=="storesCommand"&&N(args,"action",-1)==8);}
-bool DataService::NeedsSaveFile(const std::string& method,const Json& args){return method=="exportSendCollection"||((method=="sendCollectionAction"||method=="storesAction"||method=="storesCommand")&&N(args,"action",-1)==5);}
 Json DataService::PrepareExport(const std::string& method,const Json& args){
+    const auto kind=FileKind(method,args);if(kind!="sc"&&kind!="whs")return PrepareParentExport(method,args);
     const bool send=method=="exportSendCollection"||method=="sendCollectionAction";
     const bool selected=method=="sendCollectionAction"||method=="storesAction";const auto row=send?(send_edit_.is_null()?nullptr:&send_edit_):Find(11,S(args,"wid"));
     Json items=Json::array();if(row){const auto& all=row->at("_children");if(selected){const auto picked=Pick(all,args,false);for(const auto& child:all)if(std::find(picked.begin(),picked.end(),S(child,"_id"))!=picked.end())items.push_back(child);}else items=all;}
     const bool idsEmpty=args.value("ids",Json::array()).empty();Json result=selected?Json{{"ok",!idsEmpty},{"delta",0}}:Good();
-    return Json{{"send",send},{"rows",std::move(items)},{"result",result},{"title",Text(send?"ExportSendCollection":"ExportStores",send?"导出发送集":"导出仓储数据")},{"success",Text(send?"ExportSendCollection.Success":"ExportStores.Success",send?"导出发送集成功":"导出仓储数据成功")}};
+    auto plan=FileInfo(kind,true);plan.update({{"send",send},{"rows",std::move(items)},{"result",result}});return plan;
 }
-Json DataService::WriteExport(Json plan,const std::string& path){
+Json DataService::WriteExport(Json plan,const std::string& path,const std::string& password){
     if(plan.contains("token")){
         auto entry=export_plans_.extract(S(plan,"token"));
         if(entry.empty())throw std::runtime_error("导出计划已取消或已完成");
         plan=std::move(entry.mapped()); // Consume even if writing fails.
     }
     if(!path.empty()&&!plan.at("rows").empty()){
-        WriteEditorXml(std::filesystem::path(std::u8string(path.begin(),path.end())),plan.at("rows"),plan.at("send").get<bool>());
+        const auto target=std::filesystem::path(std::u8string(path.begin(),path.end()));const auto kind=S(plan,"kind");
+        if(kind=="sc"||kind=="whs")WriteEditorXml(target,plan.at("rows"),kind=="sc",password);
+        else if(kind=="sb"){
+            XmlNode root("WPE64_BackUp");const auto& parts=plan.at("parts");if(B(parts,"systemConfig"))root.nodes.push_back(SystemConfigXml(config_));
+            const std::array<const char*,4> partKeys={"filterList","sendList","robotList","wareHouse"};
+            for(int list=8;list<=11;++list)if(B(parts,partKeys[list-8])&&!lists_[list].empty())root.nodes.push_back(ParentListXml(list,lists_[list]));WriteXmlFile(target,root,password);
+        }else WriteXmlFile(target,ParentListXml(kind=="fp"?8:kind=="sp"?9:kind=="rp"?10:11,plan.at("rows")),password);
         emit_("notify",{{"level",2},{"title",plan.at("success")},{"content",path}});
     }return plan.at("result");
 }
@@ -139,10 +133,11 @@ Json DataService::SaveRobot(const Json& args){
         if(type==0&&!S(items[i],"Content").empty()){auto target=Find(9,ParsedGuid(S(items[i],"Content")));if(!target||S(*target,"Name").empty()){bad=static_cast<int>(i);break;}}}
     if(bad<0){if(starts.size()!=ends.size())bad=!starts.empty()?starts[0]:ends[0];else for(std::size_t i=0;i<starts.size();++i)if(starts[i]>=ends[i]){bad=ends[i];break;}}
     if(bad>=0){const int type=N(items[bad],"Type");return error(Fmt(Text("RobotEditForm.INST","指令 {0}"),std::to_string(bad+1))+": "+Text(type==2||type==3?"RobotEditForm.LoopINST.Error":"RobotEditForm.SendList.Error",type==2||type==3?"循环指令不正确":"发送列表不正确"),bad);}
-    auto next=robot_edit_;next["Name"]=name;next["IsEnable"]=(*live)["IsEnable"];auto rows=lists_[10];for(auto& row:rows)if(row["GUID"]==next["GUID"])row=next;
+    auto next=robot_edit_;next["Name"]=name;next["IsEnable"]=(*live)["IsEnable"];next["_objectId"]=(*live)["_objectId"];auto rows=lists_[10];for(auto& row:rows)if(row["GUID"]==next["GUID"])row=next;
     SaveList(10,rows);robot_edit_=std::move(next);return error("");
 }
 std::optional<Json> DataService::CallEditor(const std::string& method,const Json& args){
+    if(auto result=CallFiles(method,args))return result;
     // Internal worker operations are deliberately absent from Methods(), and
     // therefore cannot be invoked over the browser's RPC bridge.
     if(method=="__prepareEditorExport"){
@@ -155,8 +150,8 @@ std::optional<Json> DataService::CallEditor(const std::string& method,const Json
         }plan.erase("rows");return plan;
     }
     if(method=="__discardEditorExport"){export_plans_.erase(S(args,"token"));return Good();}
-    if(method=="__writeEditorExport")return WriteExport(args.at("plan"),S(args,"_filePath"));
-    if(NeedsSaveFile(method,args))return WriteExport(PrepareExport(method,args),S(args,"_filePath"));
+    if(method=="__writeEditorExport")return WriteExport(args.at("plan"),S(args,"_filePath"),S(args,"_password"));
+    if(NeedsSaveFile(method,args))return WriteExport(PrepareExport(method,args),S(args,"_filePath"),S(args,"_password"));
     if(method=="openRobotEdit"){auto row=Find(10,S(args,"id"));if(!row)return Json{{"Id",""},{"Name",""}};robot_edit_=*row;return Json{{"Id",(*row)["GUID"]},{"Name",(*row)["Name"]}};}
     if(method=="closeRobotEdit"){robot_edit_=nullptr;return Good();}
     if(method=="getRobotInstructions")return Json{{"rows",InstructionRows()}};
@@ -178,12 +173,6 @@ std::optional<Json> DataService::CallEditor(const std::string& method,const Json
         return Json{{"ok",true},{"delta",static_cast<std::int64_t>(items.size())-before}};
     }
     if(method=="clearSendCollection"){if(!send_edit_.is_null())send_edit_["_children"]=Json::array();return Good();}
-    if(method=="importSendCollection"){
-        if(send_edit_.is_null())return Good();const auto path=S(args,"_filePath");if(path.empty())return Good();
-        auto imported=RuntimeChildren(ReadEditorXml(std::filesystem::path(std::u8string(path.begin(),path.end())),true),9,packet_id_);auto next=send_edit_;
-        for(auto& row:imported)next["_children"].push_back(std::move(row));send_edit_=std::move(next);
-        emit_("notify",{{"level",2},{"title",Text("InjectModeForm.ImportSendCollection.Success","导入发送集成功")},{"content",path}});return Good();
-    }
     if(method=="openPacketEdit"||method=="savePacketEdit"){
         const auto list=S(args,"list","proxy");if(list!="send")throw std::runtime_error("尚未实现：代理/注入封包来源；本版仅接通发送集封包编辑");
         // JS supplies a number; the original bridge converts it to Int64.
@@ -196,7 +185,11 @@ std::optional<Json> DataService::CallEditor(const std::string& method,const Json
         // isolated, but editing a pre-existing PacketInfo changes its aliases in
         // memory, even if the parent dialog is later cancelled. No DB write here.
         for(auto& row:lists_[9])for(auto& child:row["_children"])if(S(child,"_id")==id){child["Socket"]=N(args,"socket");child["Buffer"]=bytes;}
-        for(auto& [token,plan]:export_plans_)if(plan.at("send").get<bool>())for(auto& child:plan["rows"])if(S(child,"_id")==id){child["Socket"]=N(args,"socket");child["Buffer"]=bytes;}
+        for(auto& [token,plan]:export_plans_){
+            auto update=[&](Json& packets){for(auto& child:packets)if(S(child,"_id")==id){child["Socket"]=N(args,"socket");child["Buffer"]=bytes;}};
+            if(S(plan,"kind")=="sc")update(plan["rows"]);
+            else if(S(plan,"kind")=="sp")for(auto& row:plan["rows"])update(row["_children"]);
+        }
         return Json{{"error",""}};
     }
     if(method=="storesAction"||method=="storesCommand"){

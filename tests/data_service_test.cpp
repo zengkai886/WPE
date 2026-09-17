@@ -67,7 +67,7 @@ int main(int argc,char** argv){
             Require(Call(service,"getExecuteTargets",{{"type",1},{"excludeId",robot}})["items"].empty(),"execute target exclusion");
             wid=Call(service,"addWareHouse")["id"].get<std::string>();Call(service,"saveWareHouseName",{{"wid",wid},{"name","仓库持久化"}});Require(feeds[11][0]["Name"]=="仓库持久化","warehouse feed");
             Require(Call(service,"getStoreRows",{{"wid",wid}})["rows"].empty(),"warehouse should be empty");
-            Throws([&]{Call(service,"startProxy");});Throws([&]{Call(service,"filterListAction",{{"action",5},{"ids",Json::array({id})}});});
+            Throws([&]{Call(service,"startProxy");});Require(Call(service,"filterListAction",{{"action",5},{"ids",Json::array({id})}})["ok"]==true,"cancelled filter export should preserve original successful cancellation");
         }
         {
             DataService reopened(file,emit);Call(reopened,"enterProxyMode");

@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<SystemConfig>
+  <IsAnimation>false</IsAnimation>
+  <IsShadowEnabled>false</IsShadowEnabled>
+  <IsShowInWindow>true</IsShowInWindow>
+  <IsScrollBarHide>false</IsScrollBarHide>
+  <IsTextRenderingHighQuality>false</IsTextRenderingHighQuality>
+  <IsDark>false</IsDark>
+  <ThemeFollowSystem>false</ThemeFollowSystem>
+  <DefaultLanguage>en-US</DefaultLanguage>
+  <LastInjection></LastInjection>
+  <LastInjectMethod>0</LastInjectMethod>
+  <LastInjectPath></LastInjectPath>
+  <LastInjectArgs></LastInjectArgs>
+  <LastInjectTime></LastInjectTime>
+  <Remote_IsEnable>false</Remote_IsEnable>
+  <Remote_UserName>compatibility-test</Remote_UserName>
+  <Remote_PassWord>synthetic-fixture-not-a-secret</Remote_PassWord>
+  <Remote_Port>88</Remote_Port>
+  <Remote_IP />
+  <IsShow_FloatButton>true</IsShow_FloatButton>
+  <ListExecute>Sequence</ListExecute>
+  <FilterExecute>Priority</FilterExecute>
+  <LogList_AutoRoll>false</LogList_AutoRoll>
+  <LogList_AutoClear>true</LogList_AutoClear>
+  <LogList_AutoClear_Value>5000</LogList_AutoClear_Value>
+  <ScanLine>false</ScanLine>
+  <StoresLimit>true</StoresLimit>
+  <StoresLimit_Value>2</StoresLimit_Value>
+  <CheckNotShow>true</CheckNotShow>
+  <CheckSocket>false</CheckSocket>
+  <CheckSocket_Value />
+  <CheckIP>false</CheckIP>
+  <CheckIP_Value />
+  <CheckPort>false</CheckPort>
+  <CheckPort_Value />
+  <CheckHead>false</CheckHead>
+  <CheckHead_Value />
+  <CheckData>false</CheckData>
+  <CheckData_Value />
+  <CheckSize>false</CheckSize>
+  <CheckLength_Value />
+  <CheckType>false</CheckType>
+  <CheckType_Value>0:0:0:0:0:0:0:0:0:0:0:0</CheckType_Value>
+  <HotKeyType>0</HotKeyType>
+  <HotKey1>Ctrl + Alt + F1</HotKey1>
+  <HotKey2>Ctrl + Alt + F2</HotKey2>
+  <HotKey3>Ctrl + Alt + F3</HotKey3>
+  <HotKey4>Ctrl + Alt + F4</HotKey4>
+  <HotKey5>Ctrl + Alt + F5</HotKey5>
+  <HotKey6>Ctrl + Alt + F6</HotKey6>
+  <HotKey7>Ctrl + Alt + F7</HotKey7>
+  <HotKey8>Ctrl + Alt + F8</HotKey8>
+  <HotKey9>Ctrl + Alt + F9</HotKey9>
+  <HotKey10>Ctrl + Alt + F10</HotKey10>
+  <HotKey11>Ctrl + Alt + F11</HotKey11>
+  <HotKey12>Ctrl + Alt + F12</HotKey12>
+  <SystemColor>-15304705</SystemColor>
+  <SpeedMode>false</SpeedMode>
+  <FilterReplace_BackColor>-11658154</FilterReplace_BackColor>
+  <FilterReplace_ForeColor>-20232</FilterReplace_ForeColor>
+  <FilterIntercept_BackColor>-11461589</FilterIntercept_BackColor>
+  <FilterIntercept_ForeColor>-23112</FilterIntercept_ForeColor>
+  <FilterChange_BackColor>-11649779</FilterChange_BackColor>
+  <FilterChange_ForeColor>-403345</FilterChange_ForeColor>
+  <FilterDisplay_BackColor>-15908013</FilterDisplay_BackColor>
+  <FilterDisplay_ForeColor>-7673089</FilterDisplay_ForeColor>
+</SystemConfig>

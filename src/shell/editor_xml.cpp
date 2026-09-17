@@ -7,11 +7,13 @@
 #include <fstream>
 #include "editor_xml.h"
 #include "data_util.h"
+#include "xml_document.h"
+#include "xml_crypto.h"
 namespace wpe::shell {
 using Microsoft::WRL::ComPtr;
 using namespace data_detail;
 namespace {
-void XmlCheck(HRESULT hr){if(FAILED(hr))throw std::runtime_error("XML 导入失败：文件损坏、格式不支持或已加密（密码导入尚未实现）");}
+void XmlCheck(HRESULT hr){if(FAILED(hr))throw std::runtime_error("XML 导入失败：文件损坏、格式不支持或密码不正确");}
 std::string Utf8(const wchar_t* p,UINT n){
     if(!n)return {};const int size=WideCharToMultiByte(CP_UTF8,WC_ERR_INVALID_CHARS,p,static_cast<int>(n),nullptr,0,nullptr,nullptr);
     if(!size)throw std::runtime_error("XML 文本编码错误");std::string out(static_cast<std::size_t>(size),'\0');
@@ -82,7 +84,15 @@ public:
     }
 };
 }
-void WriteEditorXml(const std::filesystem::path& path,const Json& rows,bool send){
+void WriteXmlFileBytes(const std::filesystem::path& path,std::string_view bytes){AtomicOutput file(path);file.Write(bytes);file.Commit();}
+void WriteEditorXml(const std::filesystem::path& path,const Json& rows,bool send,const std::string& password){
+    if(!password.empty()){
+        XmlNode root(send?"SendCollection":"Stores");for(const auto& row:rows){
+            if(!row.at("Buffer").is_binary())throw std::runtime_error("导出封包 Buffer 不是二进制数据");XmlNode child(send?"Collection":"Data");
+            if(send){const auto type=N(row,"Type");child.nodes={XmlNode("Socket",std::to_string(N(row,"Socket"))),XmlNode("Type",type>=0&&type<static_cast<int>(packetNames.size())?packetNames[type]:std::to_string(type)),XmlNode("IPFrom",S(row,"IPFrom")),XmlNode("IPTo",S(row,"IPTo"))};}
+            child.nodes.emplace_back(send?"Buffer":"PacketData",Hex(row["Buffer"],std::numeric_limits<std::size_t>::max()));root.nodes.push_back(std::move(child));
+        }WriteXmlFile(path,root,password);return;
+    }
     AtomicOutput file(path);file.Write("\xEF\xBB\xBF<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\r\n");
     const std::string root=send?"SendCollection":"Stores",child=send?"Collection":"Data";
     if(rows.empty()){file.Write("<"+root+" />");file.Commit();return;}
@@ -94,14 +104,21 @@ void WriteEditorXml(const std::filesystem::path& path,const Json& rows,bool send
     }element(send?"Buffer":"PacketData",Hex(row.at("Buffer"),std::numeric_limits<std::size_t>::max()));file.Write("  </"+child+">\r\n");}
     file.Write("</"+root+">");file.Commit();
 }
-Json ReadEditorXml(const std::filesystem::path& path,bool send){
+static Json ConvertEditorRows(const Json& raw,const std::string& root,bool send){
+    if(send&&root!="SendCollection"&&root!="SendList")throw std::runtime_error("不是原版发送集 XML 文件");
+    Json result=Json::array();for(const auto& item:raw){
+        if(!send){if(item.contains("PacketData"))result.push_back({{"Buffer",Unhex(S(item,"PacketData"))}});continue;}
+        const char* buffer=root=="SendList"?"Data":"Buffer";if(!item.contains(buffer))continue;
+        int socket=0;if(item.contains("Socket")&&!Integer(S(item,"Socket"),socket))throw std::runtime_error("XML Socket 不是有效的 32 位整数，未导入任何条目");
+        result.push_back({{"Socket",socket},{"Type",PacketType(S(item,"Type"))},{"IPFrom",S(item,"IPFrom")},{"IPTo",S(item,root=="SendList"?"ToAddress":"IPTo")},{"Buffer",Unhex(S(item,buffer))}});
+    }return result;
+}
+static Json ReadEditorStream(IStream* stream,bool send){
     // Stream from the selected file rather than copying/capping its raw bytes.
     // Denying concurrent writes gives this import a stable read-only snapshot.
-    ComPtr<IStream> stream;const auto opened=SHCreateStreamOnFileEx(path.c_str(),STGM_READ|STGM_SHARE_DENY_WRITE,FILE_ATTRIBUTE_NORMAL,FALSE,nullptr,&stream);
-    if(FAILED(opened))throw std::runtime_error("无法读取导入文件");
     ComPtr<IXmlReader> reader;XmlCheck(CreateXmlReader(__uuidof(IXmlReader),reinterpret_cast<void**>(reader.GetAddressOf()),nullptr));
     XmlCheck(reader->SetProperty(XmlReaderProperty_DtdProcessing,DtdProcessing_Prohibit));
-    XmlCheck(reader->SetProperty(XmlReaderProperty_MaxElementDepth,64));XmlCheck(reader->SetInput(stream.Get()));
+    XmlCheck(reader->SetProperty(XmlReaderProperty_MaxElementDepth,64));XmlCheck(reader->SetInput(stream));
     Json raw=Json::array(),row=Json::object();std::string root,field;XmlNodeType type{};HRESULT hr;
     while((hr=reader->Read(&type))==S_OK){
         UINT depth=0;XmlCheck(reader->GetDepth(&depth));
@@ -122,12 +139,12 @@ Json ReadEditorXml(const std::filesystem::path& path,bool send){
         }
     }
     XmlCheck(hr);if(root.empty())throw std::runtime_error("XML 缺少根元素");
-    if(send&&root!="SendCollection"&&root!="SendList")throw std::runtime_error("不是原版发送集 XML 文件");
-    Json result=Json::array();for(const auto& item:raw){
-        if(!send){if(item.contains("PacketData"))result.push_back({{"Buffer",Unhex(S(item,"PacketData"))}});continue;}
-        const char* buffer=root=="SendList"?"Data":"Buffer";if(!item.contains(buffer))continue;
-        int socket=0;if(item.contains("Socket")&&!Integer(S(item,"Socket"),socket))throw std::runtime_error("XML Socket 不是有效的 32 位整数，未导入任何条目");
-        result.push_back({{"Socket",socket},{"Type",PacketType(S(item,"Type"))},{"IPFrom",S(item,"IPFrom")},{"IPTo",S(item,root=="SendList"?"ToAddress":"IPTo")},{"Buffer",Unhex(S(item,buffer))}});
-    }return result;
+    return ConvertEditorRows(raw,root,send);
 }
+Json ReadEditorXmlNode(const XmlNode& root,bool send){
+    Json raw=Json::array();for(const auto& node:root.nodes){Json row=Json::object();for(const auto& field:node.nodes)if(field.namespace_uri.empty()&&!row.contains(field.name))row[field.name]=field.text.value_or("");raw.push_back(std::move(row));}
+    return ConvertEditorRows(raw,root.name,send);
+}
+Json ReadEditorXml(const std::filesystem::path& path,bool send){ComPtr<IStream> stream;XmlCheck(SHCreateStreamOnFileEx(path.c_str(),STGM_READ|STGM_SHARE_DENY_WRITE,FILE_ATTRIBUTE_NORMAL,FALSE,nullptr,&stream));return ReadEditorStream(stream.Get(),send);}
+Json ReadEditorXmlContent(std::string_view bytes,bool send){if(bytes.size()>INT_MAX)throw std::length_error("XML 文件过长");ComPtr<IStream> stream;stream.Attach(SHCreateMemStream(reinterpret_cast<const BYTE*>(bytes.data()),static_cast<UINT>(bytes.size())));if(!stream)throw std::bad_alloc();return ReadEditorStream(stream.Get(),send);}
 }

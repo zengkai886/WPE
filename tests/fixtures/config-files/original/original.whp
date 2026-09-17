@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<WareHouseList>
+  <WareHouse>
+    <ID>44444444-4444-4444-4444-444444444444</ID>
+    <Name>仓库</Name>
+    <Stores>
+      <Data>
+        <PacketData>AA BB</PacketData>
+      </Data>
+      <Data>
+        <PacketData>CC DD</PacketData>
+      </Data>
+    </Stores>
+  </WareHouse>
+  <WareHouse>
+    <ID>44444444-4444-4444-4444-444444444445</ID>
+    <Name>empty warehouse</Name>
+  </WareHouse>
+</WareHouseList>

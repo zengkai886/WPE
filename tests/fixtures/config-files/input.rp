@@ -1,0 +1,4 @@
+<RobotList>
+  <Robot><ID>33333333-3333-3333-3333-333333333333</ID><Name>机器人 &lt;&gt;</Name><IsEnable>True</IsEnable><Instructions><Inst Type="SendSendList">22222222-2222-2222-2222-222222222222</Inst><Inst Type="KeyBoard">Text|hello &amp; 中文</Inst><Inst Type="Delay">-3</Inst><Inst Type="Switch">Filter|11111111-1111-1111-1111-111111111111|true</Inst><Inst Type="123">unvalidated import text</Inst></Instructions></Robot>
+  <Robot><ID>33333333-3333-3333-3333-333333333334</ID><Name>empty robot</Name></Robot>
+</RobotList>

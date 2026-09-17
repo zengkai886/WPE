@@ -1,0 +1,94 @@
+UpdateCTestConfiguration  from :E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32/DartConfiguration.tcl
+Parse Config file:E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32/DartConfiguration.tcl
+Test project E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+      Start  1: codec-smoke
+
+1: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-codec-test.exe
+1: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+1: Test timeout computed to be: 1500
+1: PASS: codec smoke (LE, null distinct from empty)
+ 1/10 Test  #1: codec-smoke ......................   Passed    0.01 sec
+test 2
+      Start  2: protocol-edge
+
+2: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-parity-test.exe
+2: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+2: Test timeout computed to be: 1500
+2: PASS: 10 protocol edge assertions
+ 2/10 Test  #2: protocol-edge ....................   Passed    0.01 sec
+test 3
+      Start  3: packet-ring
+
+3: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-ring-test.exe
+3: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+3: Test timeout computed to be: 1500
+3: PASS: packet ring edges/concurrency; 0 original state-transition vectors
+ 3/10 Test  #3: packet-ring ......................   Passed    0.03 sec
+test 4
+      Start  4: web-bridge
+
+4: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-bridge-test.exe
+4: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+4: Test timeout computed to be: 1500
+4: PASS: five bridge message types, origins, timeout, cancellation, duplicate answer, independent completion; successful null distinct from four Ask failure paths
+ 4/10 Test  #4: web-bridge .......................   Passed    0.04 sec
+test 5
+      Start  5: native-data
+
+5: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-data-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures/filter-edit.json"
+5: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+5: Test timeout computed to be: 1500
+5: PASS: 440 data checks; original C# fixtures, persistent SQLite, rollback, feeds, worker FIFO; isolated files: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\data-test\297598096167500
+ 5/10 Test  #5: native-data ......................   Passed    1.15 sec
+test 6
+      Start  6: data-worker
+
+6: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-data-worker-test.exe
+6: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+6: Test timeout computed to be: 1500
+6: shutdownMs=1050, cancelled=2
+6: PASS: worker shutdown queue cancellation, emit/completion isolation and undrained export token cleanup during owner reset
+ 6/10 Test  #6: data-worker ......................   Passed    1.24 sec
+test 7
+      Start  7: editor-data
+
+7: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-editor-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures"
+7: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+7: Test timeout computed to be: 1500
+7: PASS: 229 editor checks; 184 original C# calls; XML, drafts, packet aliases, rollback and reopen; E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\editor-test\297600484912100
+ 7/10 Test  #7: editor-data ......................   Passed    1.47 sec
+test 8
+      Start  8: editor-export
+
+8: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-export-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures"
+8: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+8: Test timeout computed to be: 1500
+8: PASS: 41 export checks; original byte golden, snapshot, selected/all, cancel, replacement failure; E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\export-test\297601956613500
+ 8/10 Test  #8: editor-export ....................   Passed    0.13 sec
+test 9
+      Start  9: configuration-files
+
+9: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-config-file-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures"
+9: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+9: Test timeout computed to be: 1500
+9: PASS: 198 configuration and original AES checks; E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\config-test\297602082783300
+ 9/10 Test  #9: configuration-files ..............   Passed    0.49 sec
+test 10
+      Start 10: native-clipboard
+
+10: Test command: E:\codex\2026-09-17\bi-a\work\config-final2\run-09b5e6db4cfe42749d3b8d8229eb9502\Win32\Release\wpe64-clipboard-test.exe
+10: Working Directory: E:/codex/2026-09-17/bi-a/work/config-final2/run-09b5e6db4cfe42749d3b8d8229eb9502/Win32
+10: Test timeout computed to be: 1500
+10: PASS: real Win32 clipboard Unicode/empty/NUL/64K UTF-16 units/lock ownership; delayed-render worker kept UI responsive; private window station; user's clipboard untouched
+10/10 Test #10: native-clipboard .................   Passed    6.37 sec
+
+100% tests passed out of 10
+
+Total Test time (real) =  10.94 sec

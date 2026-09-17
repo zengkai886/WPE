@@ -17,9 +17,16 @@ public:
     static bool NeedsConfirmation(const std::string& method,const Json& args);
     static bool NeedsOpenFile(const std::string& method,const Json& args);
     static bool NeedsSaveFile(const std::string& method,const Json& args);
+    static std::string FileKind(const std::string& method,const Json& args);
 private:
+    Json FileInfo(const std::string& kind,bool save)const;
+    std::optional<Json> CallFiles(const std::string& method,const Json& args);
+    Json PrepareParentExport(const std::string& method,const Json& args);
+    Json ApplyImport(const std::string& method,const Json& args,std::string_view bytes);
+    void PersistList(int list,const Json& rows);
+    void RefreshExportAliases(int list);
     Json PrepareExport(const std::string& method,const Json& args);
-    Json WriteExport(Json plan,const std::string& path);
+    Json WriteExport(Json plan,const std::string& path,const std::string& password={});
     std::optional<Json> CallEditor(const std::string& method,const Json& args);
     Json InstructionRows();
     std::string ValidateInstruction(int type,const std::string& content);
@@ -42,6 +49,8 @@ private:
     std::array<Json,19> lists_;
     Json send_edit_=nullptr,robot_edit_=nullptr;
     std::map<std::string,Json> export_plans_; // Membership frozen; PacketInfo fields retain alias semantics.
+    struct ImportPlan {std::string method,bytes;Json args;};
+    std::map<std::string,ImportPlan> import_plans_;
     std::uint64_t packet_id_{};
 };
 }

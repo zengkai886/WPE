@@ -1,0 +1,24 @@
+{
+  "error": "WebView2 self-test timed out",
+  "lastStage": {
+    "stage": "clear-before-encrypted-import"
+  },
+  "nativeDrag": true,
+  "originalVueConfirmed": true,
+  "result": "failed",
+  "scope": "Exchange/editor acceptance: original Vue/HexView/export/copy/paste -> native RPC/SQLite/files. UI clipboard uses isolated memory; OS clipboard verified separately on private station. File chooser fixed-path seam. topmostProbe non-gating; no picker UI automation, capture/proxy/injection/execution",
+  "topmostCalls": [
+    {
+      "on": true,
+      "style": 256,
+      "visible": false
+    },
+    {
+      "on": false,
+      "style": 256,
+      "visible": false
+    }
+  ],
+  "webMessagesReceived": 148,
+  "webview2Runtime": "153.0.4234.32"
+}

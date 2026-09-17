@@ -85,3 +85,11 @@ if ($LASTEXITCODE -ne 0) { throw 'Editor reference generation failed' }
 exports 用未修改原加载器和保存器生成 XML 黄金。verify-export 通过原版读取 C++ 文件再保存并比较字节。export-snapshot 真调用原 SaveSendCollection_Dialog，在 PickSaveAsync 回调修改同一 PacketInfo，断言导出 Socket=99、Buffer=AA BB。不是本地重写序列化代码当作对照。
 
 export-edge 覆盖 CR/LF/CRLF、Tab、中文、emoji、XML 特殊字符与未知负枚举。XML 回读的行尾归一化与原版相同；比较导出字节，不误要求回读字段保留原 CR。产品仍不附带原 C# 程序或依赖。
+
+## 父列表与原加密对照
+
+`config-files <tests/fixtures/config-files> <新的隔离输出目录>` 调用原加载器/保存器，输出四父列表、五组备份、系统默认 null 导入前后 XML，以及 35 个实际原 AES 密文。`crypto.json` 记录原程序集 SHA256 和 Encoding.Default.CodePage。中文/emoji/NUL 密码均是固定合成测试输入，不是用户密码。
+
+`verify-encrypted <C++测试输出文件绝对路径> <固定测试密码>` 用原程序真实 DecryptXMLFile 验证，不运行 UI、注入或代理。产品不携带/运行该 .NET 程序。`extract_xml_fields.py <原项目目录> <C++项目目录>` 可重新提取 65 系统字段和 27 滤镜字段。
+
+`config-files/edges` 的尾分隔符、继承 namespace、带前缀根名样本由独立原程序运行产生对应黄金文件，捕获原 Enum.Parse/String.Split/Root.Elements/XElement.Value 行为。黄金数据不从 C++ 生成。

@@ -1,9 +1,9 @@
 {
   "scope": "Registration inventory, not a functional-completion percentage. Partial and offline methods are explicitly distinguished.",
   "originalRpcCount": 217,
-  "nativeDataRegistered": 64,
-  "nativeHostRegistered": 9,
-  "remainingUnregistered": 144,
+  "nativeDataRegistered": 74,
+  "nativeHostRegistered": 10,
+  "remainingUnregistered": 133,
   "originalSource": "WinsockPacketEditor/ShellForm.cs",
   "originalSourceSha256": "86d277408d233903ec82ffe8f06a2cd1995898617c477a1f181046ebe0f72f12",
   "methods": [
@@ -437,9 +437,9 @@
     {
       "method": "verifyEncryptPassword",
       "originalLine": 3333,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主验证已接",
+      "note": "只验证当前原生选择授权的内容与路径；选文件前、伪造路径、取消/消费后均拒绝。"
     },
     {
       "method": "getFilterExecute",
@@ -516,21 +516,21 @@
       "originalLine": 3485,
       "registered": true,
       "status": "多分支部分接线",
-      "note": "排序、复制、删除已落库；action=5 的原版 XML 导出/文件选择未实现并返回明确错误。删除确认文字尚未完全逐语言对齐。"
+      "note": "父列表排序/复制/删除和选中明文/原 AES 导出已接；真实执行相关分支仍未全部实现。"
     },
     {
       "method": "importFilters",
       "originalLine": 3499,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "文件接线已接",
+      "note": "原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
     },
     {
       "method": "exportFilters",
       "originalLine": 3505,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "文件接线已接",
+      "note": "原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
     },
     {
       "method": "clearFilters",
@@ -579,21 +579,21 @@
       "originalLine": 3566,
       "registered": true,
       "status": "多分支部分接线",
-      "note": "排序、复制、删除已落库；action=5 的原版 XML 导出/文件选择未实现并返回明确错误。删除确认文字尚未完全逐语言对齐。"
+      "note": "父列表排序/复制/删除和选中明文/原 AES 导出已接；真实执行相关分支仍未全部实现。"
     },
     {
       "method": "importSends",
       "originalLine": 3580,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "文件接线已接",
+      "note": "原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
     },
     {
       "method": "exportSends",
       "originalLine": 3586,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "文件接线已接",
+      "note": "原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
     },
     {
       "method": "clearSends",
@@ -656,21 +656,21 @@
       "originalLine": 3696,
       "registered": true,
       "status": "多分支部分接线",
-      "note": "排序、复制、删除已落库；action=5 的原版 XML 导出/文件选择未实现并返回明确错误。删除确认文字尚未完全逐语言对齐。"
+      "note": "父列表排序/复制/删除和选中明文/原 AES 导出已接；真实执行相关分支仍未全部实现。"
     },
     {
       "method": "importRobots",
       "originalLine": 3710,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "文件接线已接",
+      "note": "原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
     },
     {
       "method": "exportRobots",
       "originalLine": 3716,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "文件接线已接",
+      "note": "原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
     },
     {
       "method": "clearRobots",
@@ -1074,16 +1074,16 @@
     {
       "method": "exportBackup",
       "originalLine": 4318,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "文件接线已接（备份部分）",
+      "note": "原 XML/原 AES 文件互通；备份仅 SystemConfig 与四父列表五组，其余九组整次拒绝；参见配置加密接线进度。"
     },
     {
       "method": "importBackup",
       "originalLine": 4351,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "文件接线已接（备份部分）",
+      "note": "原 XML/原 AES 文件互通；备份仅 SystemConfig 与四父列表五组，其余九组整次拒绝；参见配置加密接线进度。"
     },
     {
       "method": "getRemoteSetting",
@@ -1230,21 +1230,21 @@
       "originalLine": 4570,
       "registered": true,
       "status": "数据动作部分接线",
-      "note": "发送草稿复制/移动/删除/清空、选中条目明文导出；导出冻结成员顺序但共享封包编辑字段；加密及 action 8 未实现。"
+      "note": "已接数据编辑动作和选择/全部明文或原 AES 导出；参见编辑/配置进度，实际发送或采集执行仍未全部实现。"
     },
     {
       "method": "importSendCollection",
       "originalLine": 4584,
       "registered": true,
-      "status": "明文 XML 导入已接",
-      "note": "Windows 文件选择→后台流式解析原 SendCollection/旧 SendList→编辑草稿→成功通知；加密导入/密码提示、导出尚未接。"
+      "status": "文件接线已接",
+      "note": "原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
     },
     {
       "method": "exportSendCollection",
       "originalLine": 4590,
       "registered": true,
-      "status": "明文导出已接",
-      "note": "导出当前发送草稿为原 .sc XML；保存框和原密码框已接；非空密码明确拒绝，不写明文。"
+      "status": "文件接线已接",
+      "note": "原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
     },
     {
       "method": "clearSendCollection",
@@ -1293,21 +1293,21 @@
       "originalLine": 4649,
       "registered": true,
       "status": "多分支部分接线",
-      "note": "排序、复制、删除已落库；action=5 的原版 XML 导出/文件选择未实现并返回明确错误。删除确认文字尚未完全逐语言对齐。"
+      "note": "父列表排序/复制/删除和选中明文/原 AES 导出已接；真实执行相关分支仍未全部实现。"
     },
     {
       "method": "importWareHouses",
       "originalLine": 4663,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "文件接线已接",
+      "note": "原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
     },
     {
       "method": "exportWareHouses",
       "originalLine": 4669,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "文件接线已接",
+      "note": "原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
     },
     {
       "method": "clearWareHouses",
@@ -1391,14 +1391,14 @@
       "originalLine": 4807,
       "registered": true,
       "status": "数据动作部分接线",
-      "note": "仓储条目复制/移动/删除/清空及选中明文导出；加密及 action 8 未实现。"
+      "note": "已接数据编辑动作和选择/全部明文或原 AES 导出；参见编辑/配置进度，实际发送或采集执行仍未全部实现。"
     },
     {
       "method": "storesCommand",
       "originalLine": 4824,
       "registered": true,
       "status": "数据动作部分接线",
-      "note": "仓储明文导入/全部导出、清空；加密导入导出未实现。"
+      "note": "已接数据编辑动作和选择/全部明文或原 AES 导出；参见编辑/配置进度，实际发送或采集执行仍未全部实现。"
     },
     {
       "method": "saveWareHouseName",

@@ -1,0 +1,11 @@
+x64 PASS: unchanged original decrypted native FilterList
+x64 PASS: unchanged original decrypted native SendList
+x64 PASS: unchanged original decrypted native RobotList
+x64 PASS: unchanged original decrypted native WareHouseList
+x64 PASS: unchanged original decrypted native WPE64_BackUp
+Win32 PASS: unchanged original decrypted native FilterList
+Win32 PASS: unchanged original decrypted native SendList
+Win32 PASS: unchanged original decrypted native RobotList
+Win32 PASS: unchanged original decrypted native WareHouseList
+Win32 PASS: unchanged original decrypted native WPE64_BackUp
+UI PASS: unchanged original decrypted native SendCollection
