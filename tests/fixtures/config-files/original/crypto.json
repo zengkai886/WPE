@@ -143,6 +143,76 @@
       "password": "\u0000embedded\u0000"
     },
     {
+      "plain": "original.wl",
+      "encrypted": "wl-0.encrypted",
+      "password": "compatibility-test"
+    },
+    {
+      "plain": "original.wl",
+      "encrypted": "wl-1.encrypted",
+      "password": "密码中文测试"
+    },
+    {
+      "plain": "original.wl",
+      "encrypted": "wl-2.encrypted",
+      "password": "emoji-🔒-😀"
+    },
+    {
+      "plain": "original.wl",
+      "encrypted": "wl-3.encrypted",
+      "password": "é€Жあ　"
+    },
+    {
+      "plain": "original.wl",
+      "encrypted": "wl-4.encrypted",
+      "password": " leading and trailing "
+    },
+    {
+      "plain": "original.wl",
+      "encrypted": "wl-5.encrypted",
+      "password": "x"
+    },
+    {
+      "plain": "original.wl",
+      "encrypted": "wl-6.encrypted",
+      "password": "\u0000embedded\u0000"
+    },
+    {
+      "plain": "original.bl",
+      "encrypted": "bl-0.encrypted",
+      "password": "compatibility-test"
+    },
+    {
+      "plain": "original.bl",
+      "encrypted": "bl-1.encrypted",
+      "password": "密码中文测试"
+    },
+    {
+      "plain": "original.bl",
+      "encrypted": "bl-2.encrypted",
+      "password": "emoji-🔒-😀"
+    },
+    {
+      "plain": "original.bl",
+      "encrypted": "bl-3.encrypted",
+      "password": "é€Жあ　"
+    },
+    {
+      "plain": "original.bl",
+      "encrypted": "bl-4.encrypted",
+      "password": " leading and trailing "
+    },
+    {
+      "plain": "original.bl",
+      "encrypted": "bl-5.encrypted",
+      "password": "x"
+    },
+    {
+      "plain": "original.bl",
+      "encrypted": "bl-6.encrypted",
+      "password": "\u0000embedded\u0000"
+    },
+    {
       "plain": "original.sb",
       "encrypted": "sb-0.encrypted",
       "password": "compatibility-test"

@@ -4,6 +4,7 @@
 #include "shell/config_xml.h"
 #include "shell/xml_crypto.h"
 #include "shell/editor_xml.h"
+#include <algorithm>
 #include <chrono>
 #include <iostream>
 #include <thread>
@@ -36,6 +37,10 @@ int main(int argc,char** argv){try{
     const auto inject=ParseInjectMode(ParseXml(read(golden/"inject.xml")),emptyInject),proxy=ParseProxyMode(ParseXml(read(golden/"proxy.xml")),emptyProxy);
     Check(SerializeXml(InjectModeXml(inject))==read(golden/"inject.xml"),"InjectMode XML differs from original");
     Check(SerializeXml(ProxyModeXml(proxy))==read(golden/"proxy.xml"),"ProxyMode XML differs from original");
+    const auto white=ParseIpRuleList(false,ParseXml(read(golden/"original.wl")),Json::array()),black=ParseIpRuleList(true,ParseXml(read(golden/"original.bl")),Json::array());
+    Check(SerializeXml(IpRuleListXml(false,white))==read(golden/"original.wl"),"White-list XML differs from original");
+    Check(SerializeXml(IpRuleListXml(true,black))==read(golden/"original.bl"),"Black-list XML differs from original");
+    Check(white.size()==2&&white[1]["StartIP"]==167772161&&white[1]["EndIP"]==167772185,"White-list IP range differs from original");
     Check(SerializeXml(SystemConfigXml(ParseSystemConfig(ParseXml(read(golden/"system-before-import.xml")),Json::object())))==read(golden/"system.xml"),"Original null-to-empty XML import semantics");
     WriteXmlFileBytes(dir/"system.xml",SerializeXml(SystemConfigXml(system)));Check(read(dir/"system.xml")==read(golden/"system.xml"),"System config field or serialization differs");
     for(int i=0;i<4;++i){const auto rows=ParseParentList(i+8,ParseXml(read(fixtures/("input."+kinds[i]))),{},nextId,system);const auto xml=SerializeXml(ParentListXml(i+8,rows));
@@ -56,6 +61,20 @@ int main(int argc,char** argv){try{
     auto settingsParts=Json{{"proxySet",true},{"injectSet",true},{"_filePath",Path(dir/"settings.sb")}};call("exportBackup",settingsParts);Check(read(dir/"settings.sb")==read(golden/"settings.sb"),"Native proxy/inject backup differs from original");
     Check(call("saveProxySetting",{{"proxyIpAuto",false},{"proxyIp","bad ip"},{"enableSocks5",true},{"socks5Port",1080},{"enableHttp",true},{"httpPort",1081},{"enableAuth",true},{"onlyWpc",false},{"maxConnection",5000}})["ok"]==false,"Invalid manual proxy IP accepted");
     Check(call("saveListAutoClear",{{"autoClearValue",99}})["ok"]==false,"Invalid packet auto-clear size accepted");
+    call("importBackup",{{"_filePath",Path(golden/"ip-rules.sb")}});auto ruleParts=Json{{"whiteList",true},{"blackList",true},{"_filePath",Path(dir/"ip-rules.sb")}};call("exportBackup",ruleParts);
+    Check(read(dir/"ip-rules.sb")==read(golden/"ip-rules.sb"),"Native IP-rule backup differs from original");
+    auto nineParts=Json{{"systemConfig",true},{"proxySet",true},{"whiteList",true},{"blackList",true},{"injectSet",true},{"filterList",true},{"sendList",true},{"robotList",true},{"wareHouse",true},{"_filePath",Path(dir/"supported-nine.sb")}};
+    call("importBackup",{{"_filePath",Path(golden/"supported-nine.sb")}});call("exportBackup",nineParts);Check(read(dir/"supported-nine.sb")==read(golden/"supported-nine.sb"),"Native nine-section backup order or bytes differ from original");
+    {const auto feed=std::find_if(events.rbegin(),events.rend(),[](const Json& event){return event["name"]=="feed:replace"&&event["data"]["list"]==15;});Check(feed!=events.rend()&&feed->at("data").at("rows").size()==2&&feed->at("data").at("rows")[1]["IsExpiry"]==true,"Original Vue white-list feed was not published");}
+    Check(DataService::NeedsOpenFile("ipRuleAction",{{"black",true},{"action",8}})&&DataService::NeedsSaveFile("ipRuleAction",{{"black",false},{"action",5}}),"IP-rule chooser routing missing");
+    Check(DataService::NeedsConfirmation("deleteIPRule",{{"black",false},{"ip","192.168.1.10"}})&&DataService::NeedsConfirmation("ipRuleAction",{{"black",true},{"action",7}}),"IP-rule confirmation routing missing");
+    call("ipRuleAction",{{"black",false},{"action",5},{"_filePath",Path(dir/"rules.wl")}});Check(read(dir/"rules.wl")==read(golden/"original.wl"),"Native white-list export differs from original");
+    call("ipRuleAction",{{"black",false},{"action",5},{"_filePath",Path(dir/"rules-encrypted.wl")},{"_password","密码中文测试"}});Check(read(dir/"rules-encrypted.wl")==read(golden/"wl-1.encrypted"),"Native encrypted white-list export differs from original");
+    call("ipRuleAction",{{"black",true},{"action",7}});call("ipRuleAction",{{"black",true},{"action",8},{"_filePath",Path(golden/"original.bl")}});call("exportBackup",ruleParts);Check(read(dir/"ip-rules.sb")==read(golden/"ip-rules.sb"),"Black-list clear/import did not restore original data");
+    Check(call("saveIPRule",{{"black",false},{"oldIp",""},{"ip","203.0.113.30-203.0.113.1"},{"isExpiry",false},{"expiry",""}})["ok"]==false,"Reversed IP range accepted");
+    Check(call("saveIPRule",{{"black",false},{"oldIp",""},{"ip","192.0.2.44"},{"isExpiry",true},{"expiry","2027-02-03 04:05"}})["ok"]==true,"Valid IP rule was rejected");
+    {Database persisted(dir/"data.sqlite");const auto rules=persisted.Query("SELECT * FROM WhiteList WHERE IPAddress='192.0.2.44'");Check(rules.size()==1&&rules[0]["StartIP"]==3221226028ll&&rules[0]["ExpiryTime"]=="2027-02-03 04:05:00","IP rule did not persist original fields");}
+    Check(call("addIpRule",{{"black",true},{"ip","203.0.113.99"},{"hours",1}})["ok"]==true,"Client-list IP rule was rejected");Check(call("deleteIPRule",{{"black",true},{"ip","203.0.113.99"}})["ok"]==true,"IP rule delete did not persist");
     const auto backup=golden/"original.sb",out=dir/"native.sb";const Json parts={{"systemConfig",true},{"filterList",true},{"sendList",true},{"robotList",true},{"wareHouse",true}};
     auto result=call("importBackup",{{"_filePath",Path(backup)}});Check(result.size()==4&&result["language"]=="en-US"&&!result["isDark"].get<bool>(),"Backup preference result");
     auto exportArgs=parts;exportArgs["_filePath"]=Path(out);call("exportBackup",exportArgs);Check(read(out)==read(backup),"Native backup data did not match original");

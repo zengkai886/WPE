@@ -24,6 +24,7 @@ private:
     Json PrepareParentExport(const std::string& method,const Json& args);
     Json ApplyImport(const std::string& method,const Json& args,std::string_view bytes);
     void PersistList(int list,const Json& rows);
+    void PersistIpRules(int list,const Json& rows);
     void RefreshExportAliases(int list);
     Json PrepareExport(const std::string& method,const Json& args);
     Json WriteExport(Json plan,const std::string& path,const std::string& password={});
@@ -37,6 +38,7 @@ private:
     Json Rows(int list) const;
     void Publish(int list);
     void SaveList(int list,const Json& rows);
+    void SaveIpRules(int list,const Json& rows);
     void SaveConfig(const Json& changes);
     void SaveInjectConfig(const Json& changes);
     void SaveProxyConfig(const Json& changes);

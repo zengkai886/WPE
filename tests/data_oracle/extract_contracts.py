@@ -13,7 +13,7 @@ for match in re.finditer(r'string sql = "CREATE TABLE IF NOT EXISTS ',operate):
     literals=re.findall(r'(?:string sql =|sql \+=)\s*"([^"\r\n]*)"',operate[match.start():end])
     for stmt in ''.join(literals).split(';'):
         if stmt.strip(): tables[re.search(r'EXISTS (\w+)',stmt).group(1)]=stmt+';'
-chosen=['SystemConfig','InjectMode','ProxyMode','Filter','Send','SendCollection','Robot','RobotInstruction','WareHouse','WareHouseData']
+chosen=['SystemConfig','InjectMode','ProxyMode','Filter','Send','SendCollection','Robot','RobotInstruction','WareHouse','WareHouseData','WhiteList','BlackList']
 header='// SQL copied from the supplied Operate.cs; no renamed columns.\n#pragma once\nnamespace wpe::shell {\ninline constexpr char data_schema[]=R"SQL(\n'+'\n'.join(tables[n] for n in chosen)+'\n)SQL";\n}\n'
 (out/'src/shell/data_schema.h').write_text(header,encoding='utf-8')
 shell=(src/'ShellForm.cs').read_text(encoding='utf-8-sig')

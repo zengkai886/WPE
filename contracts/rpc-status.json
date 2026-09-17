@@ -1,9 +1,9 @@
 {
   "scope": "Registration inventory, not a functional-completion percentage. Partial and offline methods are explicitly distinguished.",
   "originalRpcCount": 217,
-  "nativeDataRegistered": 81,
+  "nativeDataRegistered": 85,
   "nativeHostRegistered": 10,
-  "remainingUnregistered": 126,
+  "remainingUnregistered": 122,
   "originalSource": "WinsockPacketEditor/ShellForm.cs",
   "originalSourceSha256": "86d277408d233903ec82ffe8f06a2cd1995898617c477a1f181046ebe0f72f12",
   "methods": [
@@ -241,9 +241,9 @@
     {
       "method": "addIpRule",
       "originalLine": 2367,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "按原黑白名单分流并真实写入 SQLite；黑名单时长与白名单永久语义已接，IP 归属地查询仍未接。"
     },
     {
       "method": "getFireWall",
@@ -262,23 +262,23 @@
     {
       "method": "saveIPRule",
       "originalLine": 2467,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "新增与编辑校验、重复检测、IPv4 范围、到期时间和 SQLite 持久化已接；保留原编辑时不重算 StartIP/EndIP 的行为。"
     },
     {
       "method": "deleteIPRule",
       "originalLine": 2487,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "通过原 Vue 确认桥后按 IP 删除并持久化；确认框标题仍使用宿主通用文案。"
     },
     {
       "method": "ipRuleAction",
       "originalLine": 2495,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "数据读写已接",
+      "note": "原 .wl/.bl 明文或 AES 导入导出及清空已接；当前页面只使用 5/7/8 三种动作。"
     },
     {
       "method": "getHookSetting",
@@ -1076,14 +1076,14 @@
       "originalLine": 4318,
       "registered": true,
       "status": "文件接线已接（备份部分）",
-      "note": "原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、InjectMode 与四父列表七组，其余七组整次拒绝；参见配置加密接线进度。"
+      "note": "原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、WhiteList、BlackList、InjectMode 与四父列表九组，其余五组整次拒绝；参见配置加密接线进度。"
     },
     {
       "method": "importBackup",
       "originalLine": 4351,
       "registered": true,
       "status": "文件接线已接（备份部分）",
-      "note": "原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、InjectMode 与四父列表七组，其余七组整次拒绝；参见配置加密接线进度。"
+      "note": "原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、WhiteList、BlackList、InjectMode 与四父列表九组，其余五组整次拒绝；参见配置加密接线进度。"
     },
     {
       "method": "getRemoteSetting",

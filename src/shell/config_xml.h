@@ -11,4 +11,6 @@ XmlNode InjectModeXml(const Json& config);
 Json ParseInjectMode(const XmlNode& node,const Json& current);
 XmlNode ProxyModeXml(const Json& config);
 Json ParseProxyMode(const XmlNode& node,const Json& current);
+XmlNode IpRuleListXml(bool black,const Json& rows);
+Json ParseIpRuleList(bool black,const XmlNode& root,const Json& current);
 }

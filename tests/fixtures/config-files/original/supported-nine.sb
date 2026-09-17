@@ -1,0 +1,318 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<WPE64_BackUp>
+  <SystemConfig>
+    <IsAnimation>false</IsAnimation>
+    <IsShadowEnabled>false</IsShadowEnabled>
+    <IsShowInWindow>true</IsShowInWindow>
+    <IsScrollBarHide>false</IsScrollBarHide>
+    <IsTextRenderingHighQuality>false</IsTextRenderingHighQuality>
+    <IsDark>false</IsDark>
+    <ThemeFollowSystem>false</ThemeFollowSystem>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <LastInjection></LastInjection>
+    <LastInjectMethod>0</LastInjectMethod>
+    <LastInjectPath></LastInjectPath>
+    <LastInjectArgs></LastInjectArgs>
+    <LastInjectTime></LastInjectTime>
+    <Remote_IsEnable>false</Remote_IsEnable>
+    <Remote_UserName>compatibility-test</Remote_UserName>
+    <Remote_PassWord>synthetic-fixture-not-a-secret</Remote_PassWord>
+    <Remote_Port>88</Remote_Port>
+    <Remote_IP></Remote_IP>
+    <IsShow_FloatButton>true</IsShow_FloatButton>
+    <ListExecute>Sequence</ListExecute>
+    <FilterExecute>Priority</FilterExecute>
+    <LogList_AutoRoll>false</LogList_AutoRoll>
+    <LogList_AutoClear>true</LogList_AutoClear>
+    <LogList_AutoClear_Value>5000</LogList_AutoClear_Value>
+    <ScanLine>false</ScanLine>
+    <StoresLimit>true</StoresLimit>
+    <StoresLimit_Value>2</StoresLimit_Value>
+    <CheckNotShow>true</CheckNotShow>
+    <CheckSocket>false</CheckSocket>
+    <CheckSocket_Value></CheckSocket_Value>
+    <CheckIP>false</CheckIP>
+    <CheckIP_Value></CheckIP_Value>
+    <CheckPort>false</CheckPort>
+    <CheckPort_Value></CheckPort_Value>
+    <CheckHead>false</CheckHead>
+    <CheckHead_Value></CheckHead_Value>
+    <CheckData>false</CheckData>
+    <CheckData_Value></CheckData_Value>
+    <CheckSize>false</CheckSize>
+    <CheckLength_Value></CheckLength_Value>
+    <CheckType>false</CheckType>
+    <CheckType_Value>0:0:0:0:0:0:0:0:0:0:0:0</CheckType_Value>
+    <HotKeyType>0</HotKeyType>
+    <HotKey1>Ctrl + Alt + F1</HotKey1>
+    <HotKey2>Ctrl + Alt + F2</HotKey2>
+    <HotKey3>Ctrl + Alt + F3</HotKey3>
+    <HotKey4>Ctrl + Alt + F4</HotKey4>
+    <HotKey5>Ctrl + Alt + F5</HotKey5>
+    <HotKey6>Ctrl + Alt + F6</HotKey6>
+    <HotKey7>Ctrl + Alt + F7</HotKey7>
+    <HotKey8>Ctrl + Alt + F8</HotKey8>
+    <HotKey9>Ctrl + Alt + F9</HotKey9>
+    <HotKey10>Ctrl + Alt + F10</HotKey10>
+    <HotKey11>Ctrl + Alt + F11</HotKey11>
+    <HotKey12>Ctrl + Alt + F12</HotKey12>
+    <SystemColor>-15304705</SystemColor>
+    <SpeedMode>false</SpeedMode>
+    <FilterReplace_BackColor>-11658154</FilterReplace_BackColor>
+    <FilterReplace_ForeColor>-20232</FilterReplace_ForeColor>
+    <FilterIntercept_BackColor>-11461589</FilterIntercept_BackColor>
+    <FilterIntercept_ForeColor>-23112</FilterIntercept_ForeColor>
+    <FilterChange_BackColor>-11649779</FilterChange_BackColor>
+    <FilterChange_ForeColor>-403345</FilterChange_ForeColor>
+    <FilterDisplay_BackColor>-15908013</FilterDisplay_BackColor>
+    <FilterDisplay_ForeColor>-7673089</FilterDisplay_ForeColor>
+  </SystemConfig>
+  <ProxyMode>
+    <ProxyIP_Auto>false</ProxyIP_Auto>
+    <Enable_SOCKS5>true</Enable_SOCKS5>
+    <Enable_HTTP>true</Enable_HTTP>
+    <ProxyIP>127.0.0.1</ProxyIP>
+    <SOCKS5_Port>1088</SOCKS5_Port>
+    <HTTP_Port>8088</HTTP_Port>
+    <Enable_Auth>false</Enable_Auth>
+    <MaxConnectionNumber>4321</MaxConnectionNumber>
+    <Enable_UnPack>true</Enable_UnPack>
+    <UnPack_Head>AA BB</UnPack_Head>
+    <UnPack_Length>2-3</UnPack_Length>
+    <Enable_MapLocal>true</Enable_MapLocal>
+    <Enable_MapRemote>false</Enable_MapRemote>
+    <Enable_ExternalProxy>true</Enable_ExternalProxy>
+    <ExternalProxy_IP>2001:db8::1</ExternalProxy_IP>
+    <ExternalProxy_Port>65535</ExternalProxy_Port>
+    <Enable_ExternalProxy_AppointPort>true</Enable_ExternalProxy_AppointPort>
+    <ExternalProxy_AppointPort>80,443</ExternalProxy_AppointPort>
+    <Enable_ExternalProxy_Auth>true</Enable_ExternalProxy_Auth>
+    <ExternalProxy_UserName>用户&lt;&amp;&gt;</ExternalProxy_UserName>
+    <ExternalProxy_PassWord>p"'&amp;</ExternalProxy_PassWord>
+    <MustTCP>false</MustTCP>
+    <MustTCP_IP></MustTCP_IP>
+    <MustTCP_Port>1</MustTCP_Port>
+    <MustTCP_Auth>true</MustTCP_Auth>
+    <MustTCP_UserName>u</MustTCP_UserName>
+    <MustTCP_PassWord>p</MustTCP_PassWord>
+    <MustTCP_AppointPort>true</MustTCP_AppointPort>
+    <MustTCP_AppointPortContent>1-10</MustTCP_AppointPortContent>
+    <EnableFireWall>true</EnableFireWall>
+    <Only_WPC_Client>false</Only_WPC_Client>
+    <WhiteListMode>true</WhiteListMode>
+    <FireWall_AutoWhiteList_AuthSuccess>true</FireWall_AutoWhiteList_AuthSuccess>
+    <FireWall_AutoBlackList_UnSupport>false</FireWall_AutoBlackList_UnSupport>
+    <FireWall_AutoBlackList_AuthFail>true</FireWall_AutoBlackList_AuthFail>
+    <FireWall_AutoBlackList_Minutes>1440</FireWall_AutoBlackList_Minutes>
+    <FireWall_AutoClear_Expiry>true</FireWall_AutoClear_Expiry>
+    <DriverType>2</DriverType>
+    <SelectProcessNames>a.exe|
+b.exe|</SelectProcessNames>
+  </ProxyMode>
+  <WhiteList>
+    <White>
+      <IPAddress>192.168.1.10</IPAddress>
+      <IsExpiry>false</IsExpiry>
+      <ExpiryTime>8888/12/31 00:00:00</ExpiryTime>
+      <CreateTime>2026/09/18 01:02:03</CreateTime>
+    </White>
+    <White>
+      <IPAddress>10.0.0.1-10.0.0.25</IPAddress>
+      <IsExpiry>true</IsExpiry>
+      <ExpiryTime>2027/01/02 03:04:05</ExpiryTime>
+      <CreateTime>2026/09/18 02:03:04</CreateTime>
+    </White>
+  </WhiteList>
+  <BlackList>
+    <Black>
+      <IPAddress>203.0.113.7</IPAddress>
+      <IsExpiry>true</IsExpiry>
+      <ExpiryTime>2026/12/31 23:59:58</ExpiryTime>
+      <CreateTime>2026/09/18 03:04:05</CreateTime>
+    </Black>
+    <Black>
+      <IPAddress>198.51.100.1-198.51.100.200</IPAddress>
+      <IsExpiry>false</IsExpiry>
+      <ExpiryTime>8888/12/31 00:00:00</ExpiryTime>
+      <CreateTime>2026/09/18 04:05:06</CreateTime>
+    </Black>
+  </BlackList>
+  <InjectMode>
+    <HookWS1_Send>false</HookWS1_Send>
+    <HookWS1_SendTo>true</HookWS1_SendTo>
+    <HookWS1_Recv>false</HookWS1_Recv>
+    <HookWS1_RecvFrom>true</HookWS1_RecvFrom>
+    <HookWS2_Send>true</HookWS2_Send>
+    <HookWS2_SendTo>false</HookWS2_SendTo>
+    <HookWS2_Recv>true</HookWS2_Recv>
+    <HookWS2_RecvFrom>false</HookWS2_RecvFrom>
+    <HookWSA_Send>false</HookWSA_Send>
+    <HookWSA_SendTo>false</HookWSA_SendTo>
+    <HookWSA_Recv>true</HookWSA_Recv>
+    <HookWSA_RecvFrom>true</HookWSA_RecvFrom>
+    <PacketList_AutoRoll>true</PacketList_AutoRoll>
+    <PacketList_AutoClear>false</PacketList_AutoClear>
+    <PacketList_AutoClear_Value>12345</PacketList_AutoClear_Value>
+  </InjectMode>
+  <FilterList>
+    <Filter>
+      <IsEnable>True</IsEnable>
+      <ID>11111111-1111-1111-1111-111111111111</ID>
+      <Name>滤镜 &amp; &lt;测试&gt;</Name>
+      <AppointHeader>False</AppointHeader>
+      <HeaderContent></HeaderContent>
+      <AppointSocket>False</AppointSocket>
+      <SocketContent>1;2</SocketContent>
+      <AppointLength>False</AppointLength>
+      <LengthContent></LengthContent>
+      <AppointPort>False</AppointPort>
+      <PortContent>80-90</PortContent>
+      <Mode>Advanced</Mode>
+      <Action>Change</Action>
+      <IsExecute>True</IsExecute>
+      <ExecuteType>Send</ExecuteType>
+      <ExecuteGUID>22222222-2222-2222-2222-222222222222</ExecuteGUID>
+      <Function>1:0:1:0:1:0:1:0:1:1:1:1</Function>
+      <StartFrom>Head</StartFrom>
+      <IsProgressionContinuous>False</IsProgressionContinuous>
+      <ProgressionStep>-3</ProgressionStep>
+      <IsProgressionCarry>False</IsProgressionCarry>
+      <ProgressionCarryNumber>0</ProgressionCarryNumber>
+      <ProgressionPosition></ProgressionPosition>
+      <ExcludePosition></ExcludePosition>
+      <RandomPosition></RandomPosition>
+      <Search>AA BB</Search>
+      <Modify>FF</Modify>
+    </Filter>
+    <Filter>
+      <IsEnable>False</IsEnable>
+      <ID>11111111-1111-1111-1111-111111111112</ID>
+      <Name>defaults</Name>
+      <AppointHeader>False</AppointHeader>
+      <HeaderContent></HeaderContent>
+      <AppointSocket>False</AppointSocket>
+      <SocketContent></SocketContent>
+      <AppointLength>False</AppointLength>
+      <LengthContent></LengthContent>
+      <AppointPort>False</AppointPort>
+      <PortContent></PortContent>
+      <Mode>Normal</Mode>
+      <Action>NoModify_Display</Action>
+      <IsExecute>False</IsExecute>
+      <ExecuteType>Send</ExecuteType>
+      <ExecuteGUID>00000000-0000-0000-0000-000000000000</ExecuteGUID>
+      <Function>0:0:0:0:0:0:0:0:0:0:0:0</Function>
+      <StartFrom>Head</StartFrom>
+      <IsProgressionContinuous>False</IsProgressionContinuous>
+      <ProgressionStep>1</ProgressionStep>
+      <IsProgressionCarry>False</IsProgressionCarry>
+      <ProgressionCarryNumber>1</ProgressionCarryNumber>
+      <ProgressionPosition></ProgressionPosition>
+      <ExcludePosition></ExcludePosition>
+      <RandomPosition></RandomPosition>
+      <Search></Search>
+      <Modify></Modify>
+    </Filter>
+    <Filter>
+      <IsEnable>False</IsEnable>
+      <ID>00000000-0000-0000-0000-000000000000</ID>
+      <Name>zero guid filter</Name>
+      <AppointHeader>False</AppointHeader>
+      <HeaderContent></HeaderContent>
+      <AppointSocket>False</AppointSocket>
+      <SocketContent></SocketContent>
+      <AppointLength>False</AppointLength>
+      <LengthContent></LengthContent>
+      <AppointPort>False</AppointPort>
+      <PortContent></PortContent>
+      <Mode>Normal</Mode>
+      <Action>Replace</Action>
+      <IsExecute>False</IsExecute>
+      <ExecuteType>Filter</ExecuteType>
+      <ExecuteGUID>00000000-0000-0000-0000-000000000000</ExecuteGUID>
+      <Function>1:1:0:0:0:0:0:0:0:0:0:0</Function>
+      <StartFrom>Head</StartFrom>
+      <IsProgressionContinuous>False</IsProgressionContinuous>
+      <ProgressionStep>1</ProgressionStep>
+      <IsProgressionCarry>False</IsProgressionCarry>
+      <ProgressionCarryNumber>1</ProgressionCarryNumber>
+      <ProgressionPosition></ProgressionPosition>
+      <ExcludePosition></ExcludePosition>
+      <RandomPosition></RandomPosition>
+      <Search></Search>
+      <Modify></Modify>
+    </Filter>
+  </FilterList>
+  <SendList>
+    <Send>
+      <IsEnable>True</IsEnable>
+      <ID>22222222-2222-2222-2222-222222222222</ID>
+      <Name>发送 中文</Name>
+      <SystemSocket>False</SystemSocket>
+      <LoopCNT>1</LoopCNT>
+      <LoopINT>0</LoopINT>
+      <Notes>line 1
+line 2 &amp; 😀</Notes>
+      <SendCollection>
+        <Collection>
+          <Socket>17</Socket>
+          <Type>TCP_Req</Type>
+          <IPTo>127.0.0.1:1234</IPTo>
+          <Buffer>00 FF AA</Buffer>
+        </Collection>
+        <Collection>
+          <Socket>-1</Socket>
+          <Type>WebSocket_Resp</Type>
+          <IPTo></IPTo>
+          <Buffer></Buffer>
+        </Collection>
+      </SendCollection>
+    </Send>
+    <Send>
+      <IsEnable>False</IsEnable>
+      <ID>22222222-2222-2222-2222-222222222223</ID>
+      <Name>empty send</Name>
+      <SystemSocket>False</SystemSocket>
+      <LoopCNT>1</LoopCNT>
+      <LoopINT>1000</LoopINT>
+      <Notes></Notes>
+    </Send>
+  </SendList>
+  <RobotList>
+    <Robot>
+      <IsEnable>True</IsEnable>
+      <ID>33333333-3333-3333-3333-333333333333</ID>
+      <Name>机器人 &lt;&gt;</Name>
+      <Instructions>
+        <Inst Type="SendSendList">22222222-2222-2222-2222-222222222222</Inst>
+        <Inst Type="KeyBoard">Text|hello &amp; 中文</Inst>
+        <Inst Type="Delay">-3</Inst>
+        <Inst Type="Switch">Filter|11111111-1111-1111-1111-111111111111|true</Inst>
+        <Inst Type="123">unvalidated import text</Inst>
+      </Instructions>
+    </Robot>
+    <Robot>
+      <IsEnable>False</IsEnable>
+      <ID>33333333-3333-3333-3333-333333333334</ID>
+      <Name>empty robot</Name>
+    </Robot>
+  </RobotList>
+  <WareHouseList>
+    <WareHouse>
+      <ID>44444444-4444-4444-4444-444444444444</ID>
+      <Name>仓库</Name>
+      <Stores>
+        <Data>
+          <PacketData>AA BB</PacketData>
+        </Data>
+        <Data>
+          <PacketData>CC DD</PacketData>
+        </Data>
+      </Stores>
+    </WareHouse>
+    <WareHouse>
+      <ID>44444444-4444-4444-4444-444444444445</ID>
+      <Name>empty warehouse</Name>
+    </WareHouse>
+  </WareHouseList>
+</WPE64_BackUp>

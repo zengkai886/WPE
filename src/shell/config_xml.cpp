@@ -89,6 +89,19 @@ XmlNode InjectModeXml(const Json& config){return SettingsXml("InjectMode",config
 Json ParseInjectMode(const XmlNode& node,const Json& current){return ParseSettings(node,current,injectModeFields);}
 XmlNode ProxyModeXml(const Json& config){return SettingsXml("ProxyMode",config,proxyModeFields);}
 Json ParseProxyMode(const XmlNode& node,const Json& current){return ParseSettings(node,current,proxyModeFields);}
+XmlNode IpRuleListXml(bool black,const Json& rows){
+    XmlNode root(black?"BlackList":"WhiteList");const char* itemName=black?"Black":"White";
+    for(const auto& row:rows){XmlNode item(itemName);item.nodes.emplace_back("IPAddress",S(row,"IPAddress"));item.nodes.emplace_back("IsExpiry",B(row,"IsExpiry")?"true":"false");item.nodes.emplace_back("ExpiryTime",XmlDate(S(row,"ExpiryTime","8888-12-31 00:00:00")));item.nodes.emplace_back("CreateTime",XmlDate(S(row,"CreateTime")));root.nodes.push_back(std::move(item));}
+    return root;
+}
+Json ParseIpRuleList(bool,const XmlNode& root,const Json& current){
+    Json rows=current;std::set<std::string> existing;for(const auto& row:rows)existing.insert(Upper(S(row,"IPAddress")));
+    for(const auto& item:root.nodes){const auto ip=Trim(item.Value("IPAddress"));if(ip.empty()||existing.contains(Upper(ip)))continue;const auto range=IpRuleRange(ip);const bool expiry=item.Get("IsExpiry")?Boolean(item.Value("IsExpiry")):false;
+        const auto now=LocalDateTime();auto date=[&](const char* key,const std::string& fallback){const auto* node=item.Get(key);if(!node)return fallback;const auto parsed=DateTimeText(node->text.value_or(""));if(!parsed)throw std::runtime_error("IP 名单日期字段无效，未应用导入");return *parsed;};
+        const auto expires=date("ExpiryTime",now),created=date("CreateTime",now);
+        rows.push_back({{"IPAddress",ip},{"StartIP",range?static_cast<std::int64_t>(range->first):-1},{"EndIP",range?static_cast<std::int64_t>(range->second):-1},{"IsExpiry",expiry},{"ExpiryTime",expires},{"CreateTime",created},{"IPLocation",""},{"EffectCount",0}});existing.insert(Upper(ip));
+    }return rows;
+}
 XmlNode ParentListXml(int list,const Json& rows){
     XmlNode root(list==11?"WareHouseList":tables[list-8]+"List");
     for(const auto& row:rows){XmlNode parent(tables[list-8]);

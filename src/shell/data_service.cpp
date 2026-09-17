@@ -85,10 +85,16 @@ DataService::DataService(const std::filesystem::path& path,Emit emit):db_(path),
             if(list>8)row["_children"]=RuntimeChildren(db_.Query("SELECT * FROM "+children[list-8]+" WHERE GUID=? COLLATE NOCASE ORDER BY rowid",Json::array({row["GUID"]})),list,packet_id_);
         }lists_[list]=std::move(rows);
     }
+    for(int list=15;list<=16;++list){
+        auto rows=db_.Query("SELECT * FROM "+std::string(list==15?"WhiteList":"BlackList")+" ORDER BY rowid");
+        for(auto& row:rows){row["IsExpiry"]=B(row,"IsExpiry");row["IPLocation"]="";row["EffectCount"]=0;}
+        lists_[list]=std::move(rows);
+    }
 }
 std::vector<std::string> DataService::Methods(){return {
     "getPrefs","setAppearance","setLanguage","saveActionColor","getSystemSetting","saveSystemSetting","getLogSetting","saveLogSetting",
     "getProxySetting","saveProxySetting","getHookSetting","saveHookSetting","getFireWall","saveFireWall","saveListAutoClear",
+    "addIpRule","saveIPRule","deleteIPRule","ipRuleAction",
     "enterProxyMode","enterInjectMode","getStats","getClientConnections","clearLogs","getCountryTable",
     "getFilterExecute","getFilterEdit","saveFilterEdit","getExecuteTargets","addFilter","setFilterEnable","setAllFilterEnable","resetFilterCount","filterListAction","clearFilters",
     "getSendMeta","addSend","setSendEnable","setAllSendEnable","resetSendCount","sendListAction","clearSends","openSendEdit","closeSendEdit","getSendCollection","saveSendEdit","exportSendCollection",
@@ -99,7 +105,7 @@ std::vector<std::string> DataService::Methods(){return {
     "importFilters","exportFilters","importSends","exportSends","importRobots","exportRobots","importWareHouses","exportWareHouses","importBackup","exportBackup"
 };}
 bool DataService::NeedsConfirmation(const std::string& method,const Json& args){
-    if(method=="clearSendCollection"||((method=="robotInstructionAction"||method=="storesCommand"||method=="sendCollectionAction")&&N(args,"action",-1)==7))return true;
+    if(method=="deleteIPRule"||method=="clearSendCollection"||((method=="robotInstructionAction"||method=="storesCommand"||method=="sendCollectionAction"||method=="ipRuleAction")&&N(args,"action",-1)==7))return true;
     return method=="clearFilters"||method=="clearSends"||method=="clearRobots"||method=="clearWareHouses"||method=="clearLogs"||
         ((method=="filterListAction"||method=="sendListAction"||method=="robotListAction"||method=="wareHouseListAction")&&N(args,"action",-1)==6);
 }
@@ -157,9 +163,15 @@ void DataService::PersistList(int list,const Json& rows){
     db_.Replace(tables[list-8],parents);
     if(list>8)db_.Replace(children[list-8],child);
 }
+void DataService::PersistIpRules(int list,const Json& rows){
+    if(list!=15&&list!=16)throw std::invalid_argument("Invalid IP rule list");Json stored=rows;
+    for(auto& row:stored){row.erase("IPLocation");row.erase("EffectCount");}
+    db_.Replace(list==15?"WhiteList":"BlackList",stored);
+}
 void DataService::SaveList(int list,const Json& rows){
     db_.Transaction([&]{PersistList(list,rows);});lists_[list]=rows;RefreshExportAliases(list);Publish(list);
 }
+void DataService::SaveIpRules(int list,const Json& rows){db_.Transaction([&]{PersistIpRules(list,rows);});lists_[list]=rows;Publish(list);}
 Json DataService::Rows(int list)const{
     Json result=Json::array();
     if(list<8||list>11)return lists_[list];
@@ -181,6 +193,7 @@ void DataService::PublishAll(){
     // Only publish implemented collections. Empty unsupported tables are not fake data sources.
     for(int list=8;list<=11;++list)Publish(list);
     for(int list=2;list<=4;++list)Publish(list);
+    Publish(15);Publish(16);
 }
 Json DataService::FilterEdit(const Json& row)const{
     Json r{{"Id",row["GUID"]},{"Name",S(row,"Name")},{"FunctionMask",Mask(S(row,"Function"))},{"ExecuteId",Upper(S(row,"ExecuteGUID"))}};
@@ -342,6 +355,29 @@ Json DataService::Call(const std::string& method,const Json& args){
         SaveProxyConfig({{"EnableFireWall",B(args,"enable")},{"WhiteListMode",B(args,"whiteMode")},{"FireWall_AutoWhiteList_AuthSuccess",B(args,"autoWhiteAuthOk")},
             {"FireWall_AutoBlackList_UnSupport",B(args,"autoBlackUnsupport")},{"FireWall_AutoBlackList_AuthFail",B(args,"autoBlackAuthFail")},
             {"FireWall_AutoBlackList_Minutes",minutes},{"FireWall_AutoClear_Expiry",B(args,"autoClearExpiry")}});return Good();
+    }
+    if(method=="addIpRule"){
+        const int list=B(args,"black")?16:15;const auto ip=Trim(S(args,"ip"));const auto range=IpRuleRange(ip);if(ip.empty()||!range||ip.find('/')!=ip.npos)return Bad("empty ip");
+        for(const auto& row:lists_[list])if(Upper(S(row,"IPAddress"))==Upper(ip))return {{"ok",true},{"error",""}};
+        const int hours=N(args,"hours");if(hours>876000)return Bad("expiry out of range");const bool expiry=list==16&&hours>0;const auto now=LocalDateTime(),until=expiry?LocalDateTime(hours):"8888-12-31 00:00:00";auto rows=lists_[list];
+        rows.push_back({{"IPAddress",ip},{"StartIP",static_cast<std::int64_t>(range->first)},{"EndIP",static_cast<std::int64_t>(range->second)},{"IsExpiry",expiry},{"ExpiryTime",until},{"CreateTime",now},{"IPLocation",""},{"EffectCount",0}});SaveIpRules(list,rows);return {{"ok",true},{"error",""}};
+    }
+    if(method=="saveIPRule"){
+        const int list=B(args,"black")?16:15;const auto ip=Trim(S(args,"ip")),old=Trim(S(args,"oldIp"));const auto range=IpRuleRange(ip);
+        if(ip.empty()||!range||ip.find('/')!=ip.npos)return Bad(Text("FireWallSetting.IPAddress.Error","IP 地址不正确"));
+        if(range->first>range->second)return Bad(Text("FireWallSetting.IPAddress.Range","IP 段的起始地址不能大于结束地址"));
+        for(const auto& row:lists_[list])if(Upper(S(row,"IPAddress"))==Upper(ip)&&Upper(ip)!=Upper(old))return Bad(Text("FireWallSetting.IPAddress.Exists","这个 IP 已经在名单里了"));
+        const bool expiry=B(args,"isExpiry");const auto parsed=DateTimeText(S(args,"expiry"));const auto until=!expiry||!parsed?"8888-12-31 00:00:00":*parsed;auto rows=lists_[list];
+        if(old.empty())rows.push_back({{"IPAddress",ip},{"StartIP",static_cast<std::int64_t>(range->first)},{"EndIP",static_cast<std::int64_t>(range->second)},{"IsExpiry",expiry},{"ExpiryTime",until},{"CreateTime",LocalDateTime()},{"IPLocation",""},{"EffectCount",0}});
+        else {auto found=std::find_if(rows.begin(),rows.end(),[&](const Json& row){return Upper(S(row,"IPAddress"))==Upper(old);});if(found==rows.end())return Bad(Text("FireWallSetting.IPAddress.Gone","这一条已经不在名单里了"));found->at("IPAddress")=ip;found->at("IsExpiry")=expiry;found->at("ExpiryTime")=until;found->at("IPLocation")="";}
+        SaveIpRules(list,rows);return {{"ok",true},{"error",""}};
+    }
+    if(method=="deleteIPRule"){
+        const int list=B(args,"black")?16:15;const auto ip=Upper(Trim(S(args,"ip")));auto rows=lists_[list];const auto found=std::find_if(rows.begin(),rows.end(),[&](const Json& row){return Upper(S(row,"IPAddress"))==ip;});
+        if(ip.empty()||found==rows.end())return Json{{"ok",false}};rows.erase(found);SaveIpRules(list,rows);return Good();
+    }
+    if(method=="ipRuleAction"){
+        if(N(args,"action",-1)!=7)throw std::invalid_argument("Unsupported IP rule action");const int list=B(args,"black")?16:15;const auto before=lists_[list].size();SaveIpRules(list,Json::array());return {{"ok",true},{"delta",-static_cast<std::int64_t>(before)}};
     }
     if(method=="saveListAutoClear"){
         Json changes=Json::object();if(args.contains("autoClear"))changes["PacketList_AutoClear"]=B(args,"autoClear");if(args.contains("autoClearValue")){const int keep=N(args,"autoClearValue");if(keep<100||keep>500000)return Bad(Text("ListSettingsForm.Range","保留条数需在 100 ~ 500000 之间"));changes["PacketList_AutoClear_Value"]=keep;}SaveInjectConfig(changes);return Good();

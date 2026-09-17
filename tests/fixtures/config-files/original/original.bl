@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<BlackList>
+  <Black>
+    <IPAddress>203.0.113.7</IPAddress>
+    <IsExpiry>true</IsExpiry>
+    <ExpiryTime>2026/12/31 23:59:58</ExpiryTime>
+    <CreateTime>2026/09/18 03:04:05</CreateTime>
+  </Black>
+  <Black>
+    <IPAddress>198.51.100.1-198.51.100.200</IPAddress>
+    <IsExpiry>false</IsExpiry>
+    <ExpiryTime>8888/12/31 00:00:00</ExpiryTime>
+    <CreateTime>2026/09/18 04:05:06</CreateTime>
+  </Black>
+</BlackList>

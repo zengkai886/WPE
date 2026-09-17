@@ -1,7 +1,9 @@
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
 using WinsockPacketEditor;
@@ -58,8 +60,18 @@ static class ConfigFileOracle
         inject=Operate.SystemConfig.GetInjectMode_XML();proxy=Operate.SystemConfig.GetProxyMode_XML();
         Save(Path.Combine(output,"inject.xml"),inject);Save(Path.Combine(output,"proxy.xml"),proxy);
         Save(Path.Combine(output,"settings.sb"),new XElement("WPE64_BackUp",proxy,inject));
+        var white=new BindingList<WhiteListInfo> {
+            new WhiteListInfo("192.168.1.10","局域网",false,Operate.SystemConfig.MaxDateTime,new DateTime(2026,9,18,1,2,3)),
+            new WhiteListInfo("10.0.0.1-10.0.0.25","局域网",true,new DateTime(2027,1,2,3,4,5),new DateTime(2026,9,18,2,3,4)) };
+        var black=new BindingList<BlackListInfo> {
+            new BlackListInfo("203.0.113.7","测试网络",true,new DateTime(2026,12,31,23,59,58),new DateTime(2026,9,18,3,4,5)),
+            new BlackListInfo("198.51.100.1-198.51.100.200","测试网络",false,Operate.SystemConfig.MaxDateTime,new DateTime(2026,9,18,4,5,6)) };
+        var whiteXml=Operate.ProxyConfig.Proxy.GetWhiteList_XML(white);var blackXml=Operate.ProxyConfig.Proxy.GetBlackList_XML(black);
+        Save(Path.Combine(output,"original.wl"),whiteXml);Save(Path.Combine(output,"original.bl"),blackXml);
+        Save(Path.Combine(output,"ip-rules.sb"),new XElement("WPE64_BackUp",whiteXml,blackXml));
+        Save(Path.Combine(output,"supported-nine.sb"),new XElement("WPE64_BackUp",system,proxy,whiteXml,blackXml,inject,roots));
         var cases=new JArray();var passwords=new[]{"compatibility-test", "密码中文测试", "emoji-\U0001F512-\U0001F600", "\u00e9\u20ac\u0416\u3042\u3000", " leading and trailing ", "x", "\0embedded\0"};
-        foreach(var kind in kinds.Concat(new[]{"sb"}))for(int i=0;i<passwords.Length;i++)
+        foreach(var kind in kinds.Concat(new[]{"wl","bl","sb"}))for(int i=0;i<passwords.Length;i++)
         {
             var file=Path.Combine(output,kind+"-"+i+".encrypted");File.Copy(Path.Combine(output,"original."+kind),file);
             Operate.SystemConfig.EncryptXMLFile(file,passwords[i]);
@@ -68,7 +80,7 @@ static class ConfigFileOracle
         }
         string hash;using(var sha=System.Security.Cryptography.SHA256.Create())hash=BitConverter.ToString(sha.ComputeHash(File.ReadAllBytes(typeof(Operate).Assembly.Location))).Replace("-","");
         File.WriteAllText(Path.Combine(output,"crypto.json"),new JObject { ["sourceAssemblySha256"]=hash,["codePage"]=Encoding.Default.CodePage,["cases"]=cases }.ToString());
-        Console.WriteLine("PASS: original loaders and serializers, 4 parent lists + 5-section backup, "+cases.Count+" cipher vectors, ACP="+Encoding.Default.CodePage);return 0;
+        Console.WriteLine("PASS: original loaders and serializers, 4 parent lists + proxy/inject/IP-rule backups, "+cases.Count+" cipher vectors, ACP="+Encoding.Default.CodePage);return 0;
     }
     public static int Verify(string file,string password)
     {
@@ -81,5 +93,14 @@ static class ConfigFileOracle
         Operate.SystemConfig.LoadProxyMode_FromDB();Operate.SystemConfig.LoadInjectMode_FromDB();
         Save(output,new XElement("WPE64_BackUp",Operate.SystemConfig.GetProxyMode_XML(),Operate.SystemConfig.GetInjectMode_XML()));
         Console.WriteLine("PASS: unchanged original loaded native ProxyMode and InjectMode database rows");return 0;
+    }
+    public static int VerifyIpRulesDatabase(string database,string output)
+    {
+        var file=Path.GetFullPath(database);Operate.DataBase.dbPath=Path.GetDirectoryName(file);Operate.DataBase.dbName=Path.GetFileName(file);Operate.DataBase.InitConStr();
+        int whiteCount=Operate.DataBase.SelectTable_WhiteList().Rows.Count,blackCount=Operate.DataBase.SelectTable_BlackList().Rows.Count;
+        Operate.ProxyConfig.Proxy.LoadWhiteList_FromDB();Operate.ProxyConfig.Proxy.LoadBlackList_FromDB();
+        if(!SpinWait.SpinUntil(()=>Operate.ProxyConfig.Proxy.lstWhiteList.Count==whiteCount&&Operate.ProxyConfig.Proxy.lstBlackList.Count==blackCount,5000))throw new Exception("Original IP-rule loaders did not settle");
+        Save(output,new XElement("WPE64_BackUp",Operate.ProxyConfig.Proxy.GetWhiteList_XML(Operate.ProxyConfig.Proxy.lstWhiteList),Operate.ProxyConfig.Proxy.GetBlackList_XML(Operate.ProxyConfig.Proxy.lstBlackList)));
+        Console.WriteLine("PASS: unchanged original loaded native WhiteList and BlackList database rows");return 0;
     }
 }

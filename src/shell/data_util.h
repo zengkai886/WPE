@@ -52,6 +52,34 @@ inline bool Integer(const std::string& s,int& number){
     if(t.starts_with('+')){t.remove_prefix(1);if(t.empty()||t[0]<'0'||t[0]>'9')return false;}
     auto [end,ec]=std::from_chars(t.data(),t.data()+t.size(),number);return !t.empty()&&ec==std::errc{}&&end==t.data()+t.size();
 }
+inline std::optional<std::uint32_t> IPv4Value(const std::string& input){
+    const auto text=Trim(input);std::uint32_t value=0;std::size_t start=0;
+    for(int part=0;part<4;++part){const auto end=text.find('.',start);if((part<3&&end==text.npos)||(part==3&&end!=text.npos))return {};
+        const auto piece=text.substr(start,(end==text.npos?text.size():end)-start);if(piece.empty()||piece.size()>3)return {};int number=0;
+        const auto [last,ec]=std::from_chars(piece.data(),piece.data()+piece.size(),number);if(ec!=std::errc{}||last!=piece.data()+piece.size()||number<0||number>255)return {};
+        value=(value<<8)|static_cast<std::uint32_t>(number);start=end==text.npos?text.size():end+1;
+    }return value;
+}
+inline std::optional<std::pair<std::uint32_t,std::uint32_t>> IpRuleRange(const std::string& input){
+    const auto text=Trim(input);const auto dash=text.find('-');
+    if(dash!=std::string::npos){if(text.find('-',dash+1)!=std::string::npos)return {};const auto first=IPv4Value(text.substr(0,dash)),last=IPv4Value(text.substr(dash+1));if(!first||!last)return {};return std::pair{*first,*last};}
+    const auto slash=text.find('/');if(slash!=std::string::npos){if(text.find('/',slash+1)!=std::string::npos)return {};const auto base=IPv4Value(text.substr(0,slash));int bits=0;if(!base||!Integer(text.substr(slash+1),bits)||bits<0||bits>32)return {};
+        const std::uint32_t mask=bits==0?0u:0xffffffffu<<(32-bits);const auto first=*base&mask;return std::pair{first,static_cast<std::uint32_t>(first|~mask)};}
+    const auto value=IPv4Value(text);if(!value)return {};return std::pair{*value,*value};
+}
+inline int DaysInMonth(int year,int month){static constexpr int days[]={0,31,28,31,30,31,30,31,31,30,31,30,31};if(month<1||month>12)return 0;return month==2&&((year%4==0&&year%100!=0)||year%400==0)?29:days[month];}
+inline std::optional<std::string> DateTimeText(const std::string& input){
+    std::smatch match;static const std::regex pattern(R"(^\s*(\d{4})[-/](\d{1,2})[-/](\d{1,2})[ T](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?\s*$)");if(!std::regex_match(input,match,pattern))return {};
+    const int year=std::stoi(match[1].str()),month=std::stoi(match[2].str()),day=std::stoi(match[3].str()),hour=std::stoi(match[4].str()),minute=std::stoi(match[5].str()),second=match[6].matched?std::stoi(match[6].str()):0;
+    if(year<1||year>9999||day<1||day>DaysInMonth(year,month)||hour>23||minute>59||second>59)return {};
+    std::ostringstream out;out<<std::setfill('0')<<std::setw(4)<<year<<'-'<<std::setw(2)<<month<<'-'<<std::setw(2)<<day<<' '<<std::setw(2)<<hour<<':'<<std::setw(2)<<minute<<':'<<std::setw(2)<<second;return out.str();
+}
+inline std::string XmlDate(std::string text){std::replace(text.begin(),text.end(),'-','/');return text;}
+inline std::string LocalDateTime(int addHours=0){
+    FILETIME utc{};GetSystemTimeAsFileTime(&utc);ULARGE_INTEGER value{};value.LowPart=utc.dwLowDateTime;value.HighPart=utc.dwHighDateTime;value.QuadPart+=static_cast<std::uint64_t>(std::max(0,addHours))*3600ull*10000000ull;utc.dwLowDateTime=value.LowPart;utc.dwHighDateTime=value.HighPart;
+    FILETIME local{};SYSTEMTIME time{};if(!FileTimeToLocalFileTime(&utc,&local)||!FileTimeToSystemTime(&local,&time))throw std::runtime_error("Unable to read local time");
+    std::ostringstream out;out<<std::setfill('0')<<std::setw(4)<<time.wYear<<'-'<<std::setw(2)<<time.wMonth<<'-'<<std::setw(2)<<time.wDay<<' '<<std::setw(2)<<time.wHour<<':'<<std::setw(2)<<time.wMinute<<':'<<std::setw(2)<<time.wSecond;return out.str();
+}
 inline int Mask(const std::string& s){int value=0,i=0;for(const auto& part:Split(s,':')){if(i>=12)break;if(part=="1")value|=1<<i;++i;}return value;}
 inline std::string Function(int mask){std::string s;for(int i=0;i<12;++i){if(i)s+=':';s+=(mask&(1<<i))?'1':'0';}return s;}
 inline std::string Color(const Json& j,const char* key){std::ostringstream out;out<<'#'<<std::uppercase<<std::hex<<std::setw(6)<<std::setfill('0')<<(static_cast<std::uint32_t>(N(j,key))&0xFFFFFF);return out.str();}

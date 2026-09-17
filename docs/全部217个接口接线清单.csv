@@ -32,12 +32,12 @@ getListSetting,2218,否,未接线,没有原方法名处理器；调用返回尚�
 saveListAutoClear,2260,是,设置读写已接,稀疏保存 InjectMode 共用封包/代理列表自动清理设置；运行态清理引擎仍待接。
 saveListSetting,2293,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 getClientConnections,2361,是,运行态部分接线,当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。
-addIpRule,2367,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
+addIpRule,2367,是,数据读写已接,按原黑白名单分流并真实写入 SQLite；黑名单时长与白名单永久语义已接，IP 归属地查询仍未接。
 getFireWall,2418,是,设置读写已接,真实读取 ProxyMode 防火墙设置；名单与代理执行引擎仍待接。
 saveFireWall,2429,是,设置读写已接,按原范围校验并事务保存 ProxyMode 防火墙设置；名单与代理执行引擎仍待接。
-saveIPRule,2467,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-deleteIPRule,2487,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-ipRuleAction,2495,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
+saveIPRule,2467,是,数据读写已接,新增与编辑校验、重复检测、IPv4 范围、到期时间和 SQLite 持久化已接；保留原编辑时不重算 StartIP/EndIP 的行为。
+deleteIPRule,2487,是,数据读写已接,通过原 Vue 确认桥后按 IP 删除并持久化；确认框标题仍使用宿主通用文案。
+ipRuleAction,2495,是,数据读写已接,原 .wl/.bl 明文或 AES 导入导出及清空已接；当前页面只使用 5/7/8 三种动作。
 getHookSetting,2536,是,设置读写部分接线,注入 12 个钩子、代理拆包和本次运行方向标志已接；尚未推送到目标进程或代理引擎。
 saveHookSetting,2562,是,设置读写部分接线,稀疏保存注入钩子与代理拆包并执行格式校验；尚未推送到目标进程或代理引擎。
 getSystemSetting,2706,是,设置读写已接,真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。
@@ -151,8 +151,8 @@ saveExtProxySetting,4281,否,未接线,没有原方法名处理器；调用返�
 getHotkeySetting,4296,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 registerHotkey,4298,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 saveHotkeyType,4305,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-exportBackup,4318,是,文件接线已接（备份部分）,原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、InjectMode 与四父列表七组，其余七组整次拒绝；参见配置加密接线进度。
-importBackup,4351,是,文件接线已接（备份部分）,原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、InjectMode 与四父列表七组，其余七组整次拒绝；参见配置加密接线进度。
+exportBackup,4318,是,文件接线已接（备份部分）,原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、WhiteList、BlackList、InjectMode 与四父列表九组，其余五组整次拒绝；参见配置加密接线进度。
+importBackup,4351,是,文件接线已接（备份部分）,原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、WhiteList、BlackList、InjectMode 与四父列表九组，其余五组整次拒绝；参见配置加密接线进度。
 getRemoteSetting,4384,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 saveRemoteSetting,4386,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 copyProxyHex,4407,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。

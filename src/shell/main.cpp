@@ -505,7 +505,27 @@ void Host::BeginTest(){
         await call('setLanguage',{language:'ja-JP'});if((await call('getPrefs')).language!=='ja-JP')throw Error('language not saved');
         await call('setLanguage',{language:'zh-CN'});
         document.querySelector('.rack .cd.cy').click();
-        await wait(()=>document.querySelector('.side .sb-item')&&feeds.has(8));
+        await wait(()=>document.querySelector('.side .sb-item')&&feeds.has(8)&&feeds.has(15)&&feeds.has(16));
+        const firewallIp='192.0.2.77';
+        const settingsButton=[...document.querySelectorAll('.modebar .tb')].find(e=>e.textContent.includes('设置'));
+        if(!settingsButton)throw Error('original settings button missing');settingsButton.click();
+        await wait(()=>[...document.querySelectorAll('.cm-it')].some(e=>e.querySelector('.tx')?.textContent.trim()==='防火墙设置'));
+        const firewallItem=[...document.querySelectorAll('.cm-it')].find(e=>e.querySelector('.tx')?.textContent.trim()==='防火墙设置');
+        if(!firewallItem)throw Error('original firewall menu item missing');firewallItem.click();
+        const firewallDialog=()=>[...document.querySelectorAll('[role=dialog]')].find(d=>d.querySelector('.sub')?.textContent==='Access Control');
+        await wait(()=>firewallDialog()?.querySelector('.lbar .mini'));
+        if(!(feeds.get(15)||[]).some(r=>r.IPAddress===firewallIp)){
+          firewallDialog().querySelector('.lbar .mini').click();
+          const ruleDialog=()=>[...document.querySelectorAll('[role=dialog]')].find(d=>d.querySelector('.sub')?.textContent==='IP Rule');
+          await wait(()=>ruleDialog()?.querySelector('input[placeholder="192.168.1.100"]'));
+          input(ruleDialog().querySelector('input[placeholder="192.168.1.100"]'),firewallIp);
+          ruleDialog().querySelector('.ft .btn.primary').click();
+          await wait(()=>!ruleDialog()&&(feeds.get(15)||[]).some(r=>r.IPAddress===firewallIp));
+        }
+        await wait(()=>[...firewallDialog().querySelectorAll('.trow .ip')].some(e=>e.textContent.trim()===firewallIp));
+        firewallDialog().querySelector('.ft .btn:not(.primary)').click();
+        await wait(()=>!firewallDialog());
+        const firewallIpRuleRoundTrip=true;
         const filterNav=[...document.querySelectorAll('.side .sb-item')].find(e=>e.querySelector('.t')?.textContent.trim()==='滤镜列表');
         if(!filterNav)throw Error('original filter navigation missing');filterNav.click();
         await wait(()=>document.querySelector('.list-page .bar .btn.primary'));
@@ -514,7 +534,7 @@ void Host::BeginTest(){
           const restored=(await call('getFilterEdit',{id:old[0].Id})).row;
           if(restored.Modify[0].Index!==-1||!restored.Modify[0].Progression)throw Error('restart editor persistence failed');
           await wait(()=>document.querySelector('.list-page .row .name')?.textContent==='C++ 数据闭环测试');
-          const editorResult=await editors(true);await call('__testDone',{ok:true,restartPersistence:true,originalListDom:true,persistentFilterId:old[0].Id,dbFull:info.dbFull,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',...editorResult});return;
+          const editorResult=await editors(true);await call('__testDone',{ok:true,restartPersistence:true,firewallIpRuleRoundTrip,originalListDom:true,persistentFilterId:old[0].Id,dbFull:info.dbFull,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',...editorResult});return;
         }
         document.querySelector('.list-page .bar .btn.primary').click();
         await wait(()=>feeds.get(8)?.length===1&&document.querySelector('.list-page .row .name'));
@@ -530,7 +550,7 @@ void Host::BeginTest(){
         await wait(()=>document.querySelector('[role=alertdialog] .btn:not(.primary)'));
         document.querySelector('[role=alertdialog] .btn:not(.primary)').click();await deletion;
         if(!(await call('getFilterEdit',{id})).row)throw Error('cancelled deletion changed data');
-        const editorResult=await editors(false);await call('__testDone',{ok:true,titlebar:!!document.querySelector('.titlebar'),modeCards,unsupportedRejected:unsupported,windowRoundTrip:!!top.topMost,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',originalListDom:true,originalAddAndEnableButtons:true,negativeOffsetRoundTrip:true,cancelledDeletionKeptData:true,persistentFilterId:id,dbFull:info.dbFull,url:location.href,...editorResult});
+        const editorResult=await editors(false);await call('__testDone',{ok:true,titlebar:!!document.querySelector('.titlebar'),modeCards,unsupportedRejected:unsupported,windowRoundTrip:!!top.topMost,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',firewallIpRuleRoundTrip,originalListDom:true,originalAddAndEnableButtons:true,negativeOffsetRoundTrip:true,cancelledDeletionKeptData:true,persistentFilterId:id,dbFull:info.dbFull,url:location.href,...editorResult});
       })().catch(error=>call('__testDone',{ok:false,error:String(error)}));
     })())JS");
 }
