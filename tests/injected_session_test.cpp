@@ -225,17 +225,22 @@ int wmain(int argc, wchar_t** argv) {
                                           std::to_wstring(GetTickCount64());
         const std::wstring start_name = L"Local\\WPE64-NetworkStart-" + event_suffix;
         const std::wstring ready_name = L"Local\\WPE64-NetworkReady-" + event_suffix;
+        const std::wstring filter_send_name = L"Local\\WPE64-NetworkFilterSend-" + event_suffix;
+        const std::wstring filter_send_done_name = L"Local\\WPE64-NetworkFilterSendDone-" + event_suffix;
         const std::wstring replay_name = L"Local\\WPE64-NetworkReplay-" + event_suffix;
         const std::wstring replay_done_name = L"Local\\WPE64-NetworkReplayDone-" + event_suffix;
         const std::wstring send_list_name = L"Local\\WPE64-NetworkSendList-" + event_suffix;
         const std::wstring done_name = L"Local\\WPE64-NetworkDone-" + event_suffix;
         HandleCleanup start_event{CreateEventW(nullptr, TRUE, FALSE, start_name.c_str())};
         HandleCleanup ready_event{CreateEventW(nullptr, TRUE, FALSE, ready_name.c_str())};
+        HandleCleanup filter_send_event{CreateEventW(nullptr, TRUE, FALSE, filter_send_name.c_str())};
+        HandleCleanup filter_send_done_event{CreateEventW(nullptr, TRUE, FALSE, filter_send_done_name.c_str())};
         HandleCleanup replay_event{CreateEventW(nullptr, TRUE, FALSE, replay_name.c_str())};
         HandleCleanup replay_done_event{CreateEventW(nullptr, TRUE, FALSE, replay_done_name.c_str())};
         HandleCleanup send_list_event{CreateEventW(nullptr, TRUE, FALSE, send_list_name.c_str())};
         HandleCleanup done_event{CreateEventW(nullptr, TRUE, FALSE, done_name.c_str())};
-        if (!start_event.value || !ready_event.value || !replay_event.value ||
+        if (!start_event.value || !ready_event.value || !filter_send_event.value ||
+            !filter_send_done_event.value || !replay_event.value ||
             !replay_done_event.value || !send_list_event.value || !done_event.value)
             throw std::runtime_error("network test events could not be created");
 
@@ -282,6 +287,7 @@ int wmain(int argc, wchar_t** argv) {
         }, {}, wpe::ShellSessionOptions{50ms});
 
         const std::wstring target_arguments = L"\"" + start_name + L"\" \"" + ready_name +
+            L"\" \"" + filter_send_name + L"\" \"" + filter_send_done_name +
             L"\" \"" + replay_name + L"\" \"" + replay_done_name + L"\" \"" +
             send_list_name + L"\" \"" + done_name + L"\"";
         auto child = wpe::shell::ProcessInjector::LaunchSuspended(target, target_arguments);
@@ -335,31 +341,36 @@ int wmain(int argc, wchar_t** argv) {
         shell.CallVoid(set_config.ToArray());
         ++checks;
 
-        wpe::IpcWriter filter_payload;
-        filter_payload.I32(1);
-        filter_payload.Bool(true);
-        filter_payload.Guid_(wpe::Guid::Parse("00112233-4455-6677-8899-aabbccddeeff"));
-        filter_payload.Str(Text("cross-process-filter"));
-        filter_payload.Bool(false); filter_payload.Str(Text(""));
-        filter_payload.Bool(false); filter_payload.Str(Text(""));
-        filter_payload.Bool(false); filter_payload.Str(Text(""));
-        filter_payload.Bool(false); filter_payload.Str(Text(""));
-        filter_payload.I32(0); filter_payload.I32(0);
-        // A matching filter both replaces the packet and executes a
-        // WareHouse trigger.  This is the real target -> IPC StoreAdded path
-        // exercised by the P4-1 regression below.
-        filter_payload.Bool(true); filter_payload.I32(4);
-        filter_payload.Guid_(wpe::Guid::Parse(warehouse_id));
-        for (int i = 0; i < 12; ++i) filter_payload.Bool(i == 0);
-        filter_payload.I32(0); filter_payload.Bool(false); filter_payload.Bool(false);
-        filter_payload.I32(1); filter_payload.Bool(false); filter_payload.I32(1);
-        filter_payload.Str(Text("")); filter_payload.I32(0);
-        filter_payload.Str(Text("")); filter_payload.Str(Text(""));
-        filter_payload.Str(Text("0|63")); filter_payload.Str(Text("0|43"));
+        const auto make_filter_payload = [&](bool execute, std::int32_t execute_type,
+                                             const wpe::Guid& execute_id) {
+            wpe::IpcWriter payload;
+            payload.I32(1);
+            payload.Bool(true);
+            payload.Guid_(wpe::Guid::Parse("00112233-4455-6677-8899-aabbccddeeff"));
+            payload.Str(Text("cross-process-filter"));
+            payload.Bool(false); payload.Str(Text(""));
+            payload.Bool(false); payload.Str(Text(""));
+            payload.Bool(false); payload.Str(Text(""));
+            payload.Bool(false); payload.Str(Text(""));
+            payload.I32(0); payload.I32(0);
+            payload.Bool(execute); payload.I32(execute_type); payload.Guid_(execute_id);
+            for (int i = 0; i < 12; ++i) payload.Bool(i == 0);
+            payload.I32(0); payload.Bool(false); payload.Bool(false);
+            payload.I32(1); payload.Bool(false); payload.I32(1);
+            payload.Str(Text("")); payload.I32(0);
+            payload.Str(Text("")); payload.Str(Text(""));
+            payload.Str(Text("0|63")); payload.Str(Text("0|43"));
+            return payload.ToArray();
+        };
+        // The first generation is a WareHouse trigger.  A later generation
+        // in this same session switches the trigger to Send, covering both
+        // production callback paths without a synthetic hook.
+        const auto filter_payload = make_filter_payload(
+            true, 4, wpe::Guid::Parse(warehouse_id));
         wpe::IpcWriter set_filters;
         set_filters.U8(static_cast<std::uint8_t>(wpe::IpcCommand::SetConfig));
         set_filters.U8(static_cast<std::uint8_t>(wpe::ConfigKind::Filters));
-        set_filters.Bytes(filter_payload.ToArray());
+        set_filters.Bytes(filter_payload);
         shell.CallVoid(set_filters.ToArray());
         ++checks;
 
@@ -458,6 +469,42 @@ int wmain(int argc, wchar_t** argv) {
               socket_info_response.Remaining() == 0,
               "cross-process GetSocketInfo returns exact live endpoints");
 
+        // Exercise the other production trigger callback: a matching filter
+        // starts a configured send without any shell-side polling or manual
+        // StartSend command.  The target fixture releases a second matching
+        // packet only after this configuration is installed, then verifies
+        // both the filtered packet and the callback replay on its socket.
+        const auto filter_send_id = wpe::Guid::Parse("bbbbbbbb-cccc-dddd-eeee-ffffffffffff");
+        wpe::IpcWriter filter_sends;
+        filter_sends.I32(1); filter_sends.Bool(true); filter_sends.Guid_(filter_send_id);
+        filter_sends.Str(Text("filter-trigger-send"));
+        filter_sends.Bool(false); filter_sends.I32(1); filter_sends.I32(0); filter_sends.Str(Text(""));
+        filter_sends.I32(1); filter_sends.I32(static_cast<std::int32_t>(captured.socket)); filter_sends.I32(1);
+        filter_sends.Str(live_from); filter_sends.Str(live_to);
+        filter_sends.Bytes(wpe::ByteBuffer{'f', 'i', 'l', 't', 'e', 'r', '-', 's', 'e', 'n', 'd'});
+        wpe::IpcWriter set_filter_sends;
+        set_filter_sends.U8(static_cast<std::uint8_t>(wpe::IpcCommand::SetConfig));
+        set_filter_sends.U8(static_cast<std::uint8_t>(wpe::ConfigKind::Sends));
+        set_filter_sends.Bytes(filter_sends.ToArray());
+        shell.CallVoid(set_filter_sends.ToArray());
+        ++checks;
+        wpe::IpcWriter set_send_filter;
+        set_send_filter.U8(static_cast<std::uint8_t>(wpe::IpcCommand::SetConfig));
+        set_send_filter.U8(static_cast<std::uint8_t>(wpe::ConfigKind::Filters));
+        set_send_filter.Bytes(make_filter_payload(true, 0, filter_send_id));
+        shell.CallVoid(set_send_filter.ToArray());
+        ++checks;
+        Check(SetEvent(filter_send_event.value) != FALSE,
+              "target filter-send verification released");
+        Check(WaitForSingleObject(filter_send_done_event.value, 3000) == WAIT_OBJECT_0,
+              "target received the configured send started by a matching filter");
+        {
+            std::unique_lock lock(event_mutex);
+            Check(event_ready.wait_for(lock, 3s, [&] {
+                return ContainsSendSuccess(events, filter_send_id);
+            }), "filter-triggered send completion returned through Stats");
+        }
+
         wpe::IpcWriter replay_request;
         replay_request.U8(static_cast<std::uint8_t>(wpe::IpcCommand::SendPacket));
         replay_request.I32(static_cast<std::int32_t>(captured.socket));
@@ -538,8 +585,8 @@ int wmain(int argc, wchar_t** argv) {
               "automatically-ingested warehouse row persisted across worker restart");
 
         std::cout << "PASS: " << checks
-                  << " injected-session checks; production DLL, StoreAdded auto-ingestion, "
-                     "real capture, target socket info/replay and detach\n";
+                  << " injected-session checks; production DLL, Filter->Send, "
+                     "StoreAdded auto-ingestion, real capture, target socket info/replay and detach\n";
         return 0;
     } catch (const std::exception& error) {
         std::cerr << "FAIL: " << error.what() << '\n';
