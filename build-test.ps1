@@ -23,7 +23,7 @@ $manifest=[ordered]@{
     schemaVersion=1
     testId='CPP-EXCHANGE-WIRING-013'
     specificationSections=@('0','2.3','3.1','3.2','3.3','4.1','4.2','4.3','4.4','4.5','5.1','5.2','5.3','5.4','5.5','5.6','9.2','9.3','13.1')
-    scope='Protocol/ring, real three-channel Windows named-pipe transport with current-user ACL, shell/target session lifecycle, target headless command core, same-bitness Windows injection, x64-shell to Win32-helper WOW64 injection, production x64/Win32 target DLL bootstrap, official MinHook 1.3.4, all 13 documented Winsock capture signatures (the original-compatible x64 default omits WSARecvEx), lifecycle endpoint registry, target-process SendPacket/GetSocketInfo with replay-detour bypass, bounded non-blocking capture ring, dedicated address/frame writer, live target counters/speed mode, synchronous filter matching/mutation/interception and actual injected-process TCP capture/replay over the pkt pipe; native SQLite, editors, plaintext XML export, private-station OS clipboard, original Vue/HexView/export/clipboard buttons and restart. Non-null overlapped WSA completion filtering, proxy/send-list executor engines and complete acceptance remain unimplemented; injection UI is wired but manual target-window acceptance remains separate'
+    scope='Protocol/ring, real three-channel Windows named-pipe transport with current-user ACL, shell/target session lifecycle, target headless command core, same-bitness Windows injection, x64-shell to Win32-helper WOW64 injection, production x64/Win32 target DLL bootstrap, official MinHook 1.3.4, all 13 documented Winsock capture signatures (the original-compatible x64 default omits WSARecvEx), lifecycle endpoint registry, target-process SendPacket/GetSocketInfo with replay-detour bypass, bounded non-blocking capture ring, dedicated address/frame writer, live target counters/speed mode, synchronous filter matching/mutation/interception and actual injected-process TCP capture/replay over the pkt pipe; native SQLite, editors, plaintext XML export, private-station OS clipboard, original Vue/HexView/export/clipboard buttons and restart. P3-3 target-link error matrix covers missing DLL, StartHook failure, detach-before-resume, helper timeout and x86 running-target helper attach. Non-null overlapped WSA completion filtering, proxy/send-list executor engines and complete acceptance remain unimplemented; injection UI is wired but manual target-window acceptance remains separate'
     startedUtc=[DateTime]::UtcNow.ToString('o')
     finishedUtc=$null
     result='running'
@@ -130,7 +130,7 @@ try {
             parity=(Get-Content -LiteralPath (Join-Path $run "$arch-parity.log"))
             reverse=(Get-Content -LiteralPath (Join-Path $run "$arch-reverse.log"))
             ring=(Get-Content -LiteralPath (Join-Path $run "$arch-ring.log"))
-            artifacts=@($test,(Join-Path $build 'Release\wpe64-pipe-test.exe'),(Join-Path $build 'Release\wpe64-session-test.exe'),(Join-Path $build 'Release\wpe64-headless-core-test.exe'),(Join-Path $build 'Release\wpe64-hook-manager-test.exe'),(Join-Path $build 'Release\wpe64-winsock-hook-test.exe'),(Join-Path $build 'Release\wpe64-filter-engine-test.exe'),(Join-Path $build 'Release\wpe64-injector-test.exe'),(Join-Path $build 'Release\wpe64-inject-target.exe'),(Join-Path $build 'Release\wpe64-inject-probe.dll'),(Join-Path $build 'Release\wpe64-injected-session-test.exe'),(Join-Path $build 'Release\wpe64-injected-session-target.exe'),(Join-Path $build 'Release\wpe64-hook.dll'),(Join-Path $build 'Release\wpe64-common.lib'),(Join-Path $build 'Release\wpe64-target-core.lib'),(Join-Path $build 'Release\wpe64-hook-runtime.lib'),(Join-Path $build 'Release\wpe64-minhook.lib'),(Join-Path $build 'Release\wpe64-injector.lib'),$(if($arch -eq 'Win32'){Join-Path $build 'Release\wpe64-x86-helper.exe'}),$packets,(Join-Path $build 'CMakeCache.txt')) | Where-Object {$_ -and (Test-Path -LiteralPath $_)} | ForEach-Object {[ordered]@{path=$_;sha256=(Hash $_)}}
+            artifacts=@($test,(Join-Path $build 'Release\wpe64-pipe-test.exe'),(Join-Path $build 'Release\wpe64-session-test.exe'),(Join-Path $build 'Release\wpe64-headless-core-test.exe'),(Join-Path $build 'Release\wpe64-hook-manager-test.exe'),(Join-Path $build 'Release\wpe64-winsock-hook-test.exe'),(Join-Path $build 'Release\wpe64-filter-engine-test.exe'),(Join-Path $build 'Release\wpe64-injector-test.exe'),(Join-Path $build 'Release\wpe64-inject-target.exe'),(Join-Path $build 'Release\wpe64-inject-probe.dll'),(Join-Path $build 'Release\wpe64-injected-session-test.exe'),(Join-Path $build 'Release\wpe64-injected-session-target.exe'),(Join-Path $build 'Release\wpe64-hook.dll'),(Join-Path $build 'Release\wpe64-common.lib'),(Join-Path $build 'Release\wpe64-target-core.lib'),(Join-Path $build 'Release\wpe64-hook-runtime.lib'),(Join-Path $build 'Release\wpe64-minhook.lib'),(Join-Path $build 'Release\wpe64-injector.lib'),(Join-Path $build 'Release\wpe64-target-link-error-matrix.exe'),(Join-Path $build 'Release\wpe64-target-link-error-hook.dll'),(Join-Path $build 'Release\wpe64-target-link-helper-stub.exe'),$(if($arch -eq 'Win32'){Join-Path $build 'Release\wpe64-x86-helper.exe'}),$packets,(Join-Path $build 'CMakeCache.txt')) | Where-Object {$_ -and (Test-Path -LiteralPath $_)} | ForEach-Object {[ordered]@{path=$_;sha256=(Hash $_)}}
         }
     }
     if($Architecture -contains 'x64' -and $Architecture -contains 'Win32'){
@@ -153,6 +153,16 @@ try {
             (Join-Path $win32Release 'wpe64-hook.dll'),
             (Join-Path $win32Release 'wpe64-x86-helper.exe')) $targetLinkLog
         $manifest.crossArchitectureTargetLink=[ordered]@{result='passed';log=(Get-Content -LiteralPath $targetLinkLog);sha256=(Hash $targetLinkLog)}
+        $errorMatrixLog=Join-Path $run 'x64-to-win32-target-link-error-matrix.log'
+        Run (Join-Path $x64Release 'wpe64-target-link-error-matrix.exe') @(
+            (Join-Path $x64Release 'wpe64-target-link-launch-target.exe'),
+            (Join-Path $x64Release 'wpe64-hook.dll'),
+            (Join-Path $x64Release 'wpe64-target-link-error-hook.dll'),
+            (Join-Path $x64Release 'wpe64-target-link-helper-stub.exe'),
+            (Join-Path $win32Release 'wpe64-target-link-helper-stub.exe'),
+            (Join-Path $win32Release 'wpe64-hook.dll'),
+            (Join-Path $win32Release 'wpe64-x86-helper.exe')) $errorMatrixLog
+        $manifest.crossArchitectureTargetLinkErrorMatrix=[ordered]@{result='passed';log=(Get-Content -LiteralPath $errorMatrixLog);sha256=(Hash $errorMatrixLog)}
     }
     & (Join-Path $PSScriptRoot 'verify-assets.ps1')
     if(-not $?){throw 'Preserved frontend verification failed'}

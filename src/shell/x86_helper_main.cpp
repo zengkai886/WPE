@@ -56,9 +56,11 @@ Handle OpenNamed(const wchar_t* name, DWORD access) {
 }
 
 int Attach(int argc, wchar_t** argv) {
-    if (argc != 5) return ERROR_INVALID_PARAMETER;
+    if (argc != 6) return ERROR_INVALID_PARAMETER;
+    auto ready = OpenNamed(argv[5], EVENT_MODIFY_STATE);
     wpe::shell::InjectionOptions options{Narrow(argv[4]), 5000, false};
     wpe::shell::ProcessInjector::InjectAndStart(Number(argv[2]), argv[3], options);
+    if (!SetEvent(ready.get())) throw wpe::ProtocolError("x86 helper could not signal ready");
     return 0;
 }
 

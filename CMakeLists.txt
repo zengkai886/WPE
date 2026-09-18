@@ -128,6 +128,26 @@ if(BUILD_TESTING)
   add_dependencies(wpe64-target-link-test wpe64-hook wpe64-target-link-launch-target)
   add_test(NAME target-link-suspended-launch COMMAND wpe64-target-link-test
     "$<TARGET_FILE:wpe64-target-link-launch-target>" "$<TARGET_FILE:wpe64-hook>")
+  add_library(wpe64-target-link-error-hook SHARED tests/target_link_error_hook.cpp)
+  set_target_properties(wpe64-target-link-error-hook PROPERTIES PREFIX "" OUTPUT_NAME "wpe64-target-link-error-hook")
+  target_include_directories(wpe64-target-link-error-hook PRIVATE src)
+  target_link_libraries(wpe64-target-link-error-hook PRIVATE wpe64-common)
+  add_executable(wpe64-target-link-helper-stub tests/target_link_helper_stub.cpp)
+  add_executable(wpe64-target-link-error-matrix
+    tests/target_link_error_matrix_test.cpp src/shell/target_link.cpp)
+  target_compile_definitions(wpe64-target-link-error-matrix PRIVATE
+    WPE64_X86_HELPER_READY_TIMEOUT_MS=250
+    WPE64_X86_HELPER_PROCESS_TIMEOUT_MS=500
+    WPE64_X86_HELPER_CLEANUP_TIMEOUT_MS=250)
+  target_link_libraries(wpe64-target-link-error-matrix PRIVATE wpe64-injector)
+  add_dependencies(wpe64-target-link-error-matrix
+    wpe64-hook wpe64-target-link-error-hook wpe64-target-link-helper-stub
+    wpe64-target-link-launch-target)
+  add_test(NAME target-link-error-matrix COMMAND wpe64-target-link-error-matrix
+    "$<TARGET_FILE:wpe64-target-link-launch-target>"
+    "$<TARGET_FILE:wpe64-hook>"
+    "$<TARGET_FILE:wpe64-target-link-error-hook>"
+    "$<TARGET_FILE:wpe64-target-link-helper-stub>")
   add_executable(wpe64-bridge-test tests/web_bridge_test.cpp)
   target_link_libraries(wpe64-bridge-test PRIVATE wpe64-bridge)
   add_test(NAME web-bridge COMMAND wpe64-bridge-test)

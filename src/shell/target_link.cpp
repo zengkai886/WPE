@@ -11,6 +11,16 @@
 #include <utility>
 #include <vector>
 
+#ifndef WPE64_X86_HELPER_READY_TIMEOUT_MS
+#define WPE64_X86_HELPER_READY_TIMEOUT_MS 10000
+#endif
+#ifndef WPE64_X86_HELPER_PROCESS_TIMEOUT_MS
+#define WPE64_X86_HELPER_PROCESS_TIMEOUT_MS 10000
+#endif
+#ifndef WPE64_X86_HELPER_CLEANUP_TIMEOUT_MS
+#define WPE64_X86_HELPER_CLEANUP_TIMEOUT_MS 5000
+#endif
+
 namespace wpe::shell {
 
 namespace {
@@ -151,10 +161,10 @@ std::string TargetLink::NewSession() {
 void TargetLink::CleanupX86Helper(bool abort) noexcept {
     if (abort && x86_helper_abort_) (void)SetEvent(x86_helper_abort_);
     if (x86_helper_process_) {
-        const auto wait = WaitForSingleObject(x86_helper_process_, 5000);
+        const auto wait = WaitForSingleObject(x86_helper_process_, WPE64_X86_HELPER_CLEANUP_TIMEOUT_MS);
         if (wait == WAIT_TIMEOUT) {
             (void)TerminateProcess(x86_helper_process_, ERROR_CANCELLED);
-            (void)WaitForSingleObject(x86_helper_process_, 2000);
+            (void)WaitForSingleObject(x86_helper_process_, WPE64_X86_HELPER_CLEANUP_TIMEOUT_MS);
         }
         CloseHandle(x86_helper_process_);
     }
@@ -183,7 +193,8 @@ void TargetLink::StartX86Helper(const Job& job, bool launch, const std::string& 
     std::wstring command = QuoteArg(x86_helper_.wstring());
     if (!launch) {
         command += L" --attach " + std::to_wstring(job.pid) + L" " +
-                   QuoteArg(x86_hook_.wstring()) + L" " + QuoteArg(WideAscii(session_name));
+                   QuoteArg(x86_hook_.wstring()) + L" " + QuoteArg(WideAscii(session_name)) + L" " +
+                   QuoteArg(ready_name);
     } else {
         const auto resume_name = HelperEventName(session_name, L"resume");
         const auto abort_name = HelperEventName(session_name, L"abort");
@@ -213,14 +224,19 @@ void TargetLink::StartX86Helper(const Job& job, bool launch, const std::string& 
     CloseHandle(process.hThread);
     x86_helper_process_ = process.hProcess;
 
-    const auto ready_wait = WaitForSingleObject(ready.get(), 10000);
+    HANDLE ready_waits[] = {ready.get(), x86_helper_process_};
+    const auto ready_wait = WaitForMultipleObjects(
+        static_cast<DWORD>(std::size(ready_waits)), ready_waits, FALSE,
+        WPE64_X86_HELPER_READY_TIMEOUT_MS);
     if (ready_wait != WAIT_OBJECT_0) {
         CleanupX86Helper(true);
-        throw ProtocolError(ready_wait == WAIT_TIMEOUT ?
-            "x86 辅助注入器等待超时" : "x86 辅助注入器 ready 等待失败");
+        if (ready_wait == WAIT_TIMEOUT) throw ProtocolError("x86 辅助注入器等待超时");
+        if (ready_wait == WAIT_OBJECT_0 + 1)
+            throw ProtocolError("x86 辅助注入器在 ready 前退出");
+        throw ProtocolError("x86 辅助注入器 ready 等待失败");
     }
     if (!launch) {
-        const auto helper_wait = WaitForSingleObject(x86_helper_process_, 10000);
+        const auto helper_wait = WaitForSingleObject(x86_helper_process_, WPE64_X86_HELPER_PROCESS_TIMEOUT_MS);
         if (helper_wait != WAIT_OBJECT_0) {
             CleanupX86Helper(true);
             throw ProtocolError("x86 辅助注入器未正常退出");
@@ -301,7 +317,7 @@ void TargetLink::Run() {
                 } else if (x86_helper_resume_) {
                     if (!SetEvent(x86_helper_resume_))
                         throw ProtocolError("x86 辅助注入器恢复事件失败");
-                    if (WaitForSingleObject(x86_helper_process_, 10000) != WAIT_OBJECT_0) {
+                    if (WaitForSingleObject(x86_helper_process_, WPE64_X86_HELPER_PROCESS_TIMEOUT_MS) != WAIT_OBJECT_0) {
                         CleanupX86Helper(true);
                         throw ProtocolError("x86 辅助注入器恢复超时");
                     }

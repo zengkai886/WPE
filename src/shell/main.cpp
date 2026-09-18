@@ -128,6 +128,7 @@ private:
     void DrainTarget();
     void QueueTargetFrame(wpe::ByteBuffer frame,bool packet_channel);
     void QueueTargetResult(WebBridge::Completion done,Json value,std::string error);
+    void AbortTargetInjection(WebBridge::Completion done,std::string error);
     void HandleTargetFrame(wpe::ByteBuffer frame,bool packet_channel);
     void SyncTargetConfiguration(WebBridge::Completion done);
     std::filesystem::path HookDll() const;
@@ -530,6 +531,16 @@ void Host::DrainTarget(){
     }
     for(auto& frame:frames)if(bridge_&&!closing_)HandleTargetFrame(std::move(frame.first),frame.second);
 }
+void Host::AbortTargetInjection(WebBridge::Completion done,std::string error){
+    if(!target_){QueueTargetResult(std::move(done),Json{},std::move(error));return;}
+    target_->Detach([this,done=std::move(done),error=std::move(error)](bool ok,std::string detach_error) mutable {
+        if(!ok&&!detach_error.empty()){
+            if(!error.empty())error+="；";
+            error+="清理目标连接失败: "+detach_error;
+        }
+        QueueTargetResult(std::move(done),Json{},std::move(error));
+    });
+}
 void Host::SyncTargetConfiguration(WebBridge::Completion done){
     if(!data_||!target_||target_->State()!=wpe::IpcLinkState::Attached){done(nullptr,"尚未连接目标进程");return;}
     data_->SubmitTargetConfiguration([this,done=std::move(done)](Json config,std::string error) mutable {
@@ -573,16 +584,16 @@ void Host::RegisterTargetMethods(){
     bridge_->Register("enterInjectMode",[this](const Json&){return Json{{"ok",true},{"lastInject",last_inject_}};});
     bridge_->Register("getInjectStatus",[this](const Json&){return InjectStatus();});
     bridge_->Register("getInjectStats",[this](const Json&){return InjectStats();});
-    bridge_->RegisterAsync("injectAttach",[this](const Json& args,WebBridge::Completion done){
-        try{const auto pid=args.value("pid",0);const auto method=args.value("method",0);const auto dll=HookDll();auto finish=[this,done=std::move(done)](bool ok,std::string error) mutable {if(!ok){QueueTargetResult(std::move(done),nullptr,std::move(error));return;}SyncTargetConfiguration([this,done=std::move(done)](Json,std::string error) mutable {if(!error.empty()){QueueTargetResult(std::move(done),nullptr,std::move(error));return;}auto value=InjectStatus();value["ok"]=true;QueueTargetResult(std::move(done),std::move(value),{});});};if(pid<1){const auto path=fs::path(Wide(args.value("path",std::string{})));const auto command=Wide(args.value("args",std::string{}));RememberInjection(0,path,std::to_string(method),command);target_->AttachLaunched(path,command,dll,std::move(finish));}else{RememberInjection(static_cast<DWORD>(pid),{},std::to_string(method),{});target_->AttachPid(static_cast<DWORD>(pid),dll,std::move(finish));}}
+     bridge_->RegisterAsync("injectAttach",[this](const Json& args,WebBridge::Completion done){
+         try{const auto pid=args.value("pid",0);const auto method=args.value("method",0);const auto dll=HookDll();auto finish=[this,done=std::move(done)](bool ok,std::string error) mutable {if(!ok){QueueTargetResult(std::move(done),nullptr,std::move(error));return;}SyncTargetConfiguration([this,done=std::move(done)](Json,std::string error) mutable {if(!error.empty()){AbortTargetInjection(std::move(done),std::move(error));return;}auto value=InjectStatus();value["ok"]=true;QueueTargetResult(std::move(done),std::move(value),{});});};if(pid<1){const auto path=fs::path(Wide(args.value("path",std::string{})));const auto command=Wide(args.value("args",std::string{}));RememberInjection(0,path,std::to_string(method),command);target_->AttachLaunched(path,command,dll,std::move(finish));}else{RememberInjection(static_cast<DWORD>(pid),{},std::to_string(method),{});target_->AttachPid(static_cast<DWORD>(pid),dll,std::move(finish));}}
         catch(const std::exception& e){done(nullptr,e.what());}
     });
-    bridge_->RegisterAsync("injectQuick",[this](const Json&,WebBridge::Completion done){
-        if(!last_inject_.is_object()){done(nullptr,"没有可用的上次注入目标");return;}Json args=last_inject_;args["pid"]=last_inject_.value("pid",0);args["method"]=last_inject_.value("method",0);
-        try{const auto dll=HookDll();const auto pid=args.value("pid",0);auto finish=[this,done=std::move(done)](bool ok,std::string error) mutable {if(!ok){QueueTargetResult(std::move(done),nullptr,std::move(error));return;}SyncTargetConfiguration([this,done=std::move(done)](Json,std::string error) mutable {if(!error.empty()){QueueTargetResult(std::move(done),nullptr,std::move(error));return;}auto value=InjectStatus();value["ok"]=true;QueueTargetResult(std::move(done),std::move(value),{});});};if(pid>0)target_->AttachPid(static_cast<DWORD>(pid),dll,std::move(finish));else target_->AttachLaunched(fs::path(Wide(args.value("path",std::string{}))),Wide(args.value("args",std::string{})),dll,std::move(finish));}
+     bridge_->RegisterAsync("injectQuick",[this](const Json&,WebBridge::Completion done){
+         if(!last_inject_.is_object()){done(nullptr,"没有可用的上次注入目标");return;}Json args=last_inject_;args["pid"]=last_inject_.value("pid",0);args["method"]=last_inject_.value("method",0);
+         try{const auto dll=HookDll();const auto pid=args.value("pid",0);auto finish=[this,done=std::move(done)](bool ok,std::string error) mutable {if(!ok){QueueTargetResult(std::move(done),nullptr,std::move(error));return;}SyncTargetConfiguration([this,done=std::move(done)](Json,std::string error) mutable {if(!error.empty()){AbortTargetInjection(std::move(done),std::move(error));return;}auto value=InjectStatus();value["ok"]=true;QueueTargetResult(std::move(done),std::move(value),{});});};if(pid>0)target_->AttachPid(static_cast<DWORD>(pid),dll,std::move(finish));else target_->AttachLaunched(fs::path(Wide(args.value("path",std::string{}))),Wide(args.value("args",std::string{})),dll,std::move(finish));}
         catch(const std::exception& e){done(nullptr,e.what());}
     });
-    bridge_->RegisterAsync("injectStartHook",[this](const Json&,WebBridge::Completion done){SyncTargetConfiguration([this,done=std::move(done)](Json,std::string error) mutable {if(!error.empty()){done(nullptr,std::move(error));return;}wpe::IpcWriter r;r.U8(static_cast<std::uint8_t>(wpe::IpcCommand::StartHook));target_->CallVoid(r.ToArray(),[this,done=std::move(done)](bool ok,std::string error) mutable {if(!ok){QueueTargetResult(std::move(done),Json{},std::move(error));return;}target_->ResumeLaunched([this,done=std::move(done)](bool resumed,std::string resume_error) mutable {QueueTargetResult(std::move(done),resumed?Json{{"ok",true}}:Json{},std::move(resume_error));});});});});
+     bridge_->RegisterAsync("injectStartHook",[this](const Json&,WebBridge::Completion done){SyncTargetConfiguration([this,done=std::move(done)](Json,std::string error) mutable {if(!error.empty()){AbortTargetInjection(std::move(done),std::move(error));return;}wpe::IpcWriter r;r.U8(static_cast<std::uint8_t>(wpe::IpcCommand::StartHook));target_->CallVoid(r.ToArray(),[this,done=std::move(done)](bool ok,std::string error) mutable {if(!ok){AbortTargetInjection(std::move(done),std::move(error));return;}target_->ResumeLaunched([this,done=std::move(done)](bool resumed,std::string resume_error) mutable {if(!resumed){AbortTargetInjection(std::move(done),std::move(resume_error));return;}QueueTargetResult(std::move(done),Json{{"ok",true}},{});});});});});
     bridge_->RegisterAsync("injectStopHook",[this](const Json&,WebBridge::Completion done){wpe::IpcWriter r;r.U8(static_cast<std::uint8_t>(wpe::IpcCommand::StopHook));target_->CallVoid(r.ToArray(),[this,done=std::move(done)](bool ok,std::string error){QueueTargetResult(std::move(done),ok?Json{{"ok",true}}:Json{},std::move(error));});});
     bridge_->RegisterAsync("startSendList",[this](const Json&,WebBridge::Completion done){SyncTargetConfiguration([this,done=std::move(done)](Json,std::string error) mutable {if(!error.empty()){done(nullptr,std::move(error));return;}wpe::IpcWriter r;r.U8(static_cast<std::uint8_t>(wpe::IpcCommand::StartSendList));target_->CallVoid(r.ToArray(),[this,done=std::move(done)](bool ok,std::string error) mutable {QueueTargetResult(std::move(done),ok?Json{{"ok",true},{"running",send_running_}}:Json{},std::move(error));});});});
     bridge_->RegisterAsync("stopSendList",[this](const Json&,WebBridge::Completion done){wpe::IpcWriter r;r.U8(static_cast<std::uint8_t>(wpe::IpcCommand::StopSendList));target_->CallVoid(r.ToArray(),[this,done=std::move(done)](bool ok,std::string error) mutable {send_running_=false;QueueTargetResult(std::move(done),ok?Json{{"ok",true},{"running",false}}:Json{},std::move(error));});});
