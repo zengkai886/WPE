@@ -90,6 +90,25 @@ void VersionMismatch() {
     Check(shell.State() == wpe::IpcLinkState::Disconnected, "version failure disconnects shell");
 }
 
+void SilentPeerCannotPinHandshake() {
+    const std::string id = "a223456789abcdef0123456789abcdef";
+    wpe::ShellSessionOptions shell_options;
+    shell_options.heartbeat_interval = 1s;
+    shell_options.control_timeout_ms = 50;
+    wpe::ShellIpcSession shell(id, {}, {}, {}, shell_options);
+    // Connecting the three client pipes without running the target control
+    // loop reproduces a suspended/crashed injected process after injection.
+    wpe::TargetIpcSession target(id, 2000);
+    shell.Accept(2000);
+    const auto started = std::chrono::steady_clock::now();
+    Throws([&] { shell.Start(); }, "silent target times out during Hello");
+    const auto elapsed = std::chrono::steady_clock::now() - started;
+    Check(elapsed < 1s, "Hello timeout does not block the target-link worker");
+    Check(shell.State() == wpe::IpcLinkState::Disconnected,
+          "control timeout retires the session instead of reusing a broken stream");
+    shell.Stop();
+}
+
 void AnyCommandRefreshesHeartbeat() {
     const std::string id = "c123456789abcdef0123456789abcdef";
     wpe::ShellSessionOptions shell_options;
@@ -268,6 +287,7 @@ int main() {
     try {
         HappyLifecycle();
         VersionMismatch();
+        SilentPeerCannotPinHandshake();
         AnyCommandRefreshesHeartbeat();
         ErrorReply();
         CommandInProgressIsAlive();

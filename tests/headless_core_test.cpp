@@ -26,6 +26,11 @@ template<class F> void Throws(F&& operation, const char* message) {
     try { operation(); } catch (const wpe::ProtocolError&) { threw = true; }
     Check(threw, message);
 }
+template<class F> void ThrowsAny(F&& operation, const char* message) {
+    bool threw = false;
+    try { operation(); } catch (const std::exception&) { threw = true; }
+    Check(threw, message);
+}
 
 class Cleanup final {
 public:
@@ -63,7 +68,7 @@ public:
         ++filter_updates;
     }
     void StartHook() override { ++starts; if (fail_start) throw std::runtime_error("start failed"); }
-    void StopHook() override { ++stops; }
+    void StopHook() override { ++stops; if (fail_stop) throw std::runtime_error("stop failed"); }
     std::optional<std::array<std::int64_t, 11>> LivePacketCounters() const noexcept override {
         if (!expose_live) return std::nullopt;
         return live_counters;
@@ -96,6 +101,7 @@ public:
     bool expose_live{};
     bool fail_detect{};
     bool fail_start{};
+    bool fail_stop{};
     bool send_result{true};
     std::int32_t last_socket_query{};
     wpe::ReplayPacketSnapshot last_packet;
@@ -471,6 +477,34 @@ void FatalDetectionEvent() {
     Check(fatal.Str().has_value() && fatal.Remaining() == 0, "Fatal event text payload");
     core.Shutdown();
 }
+
+void StartHookRequiresSuccessfulDetection() {
+    FakeHooks hooks;
+    hooks.fail_detect = true;
+    std::vector<wpe::ByteBuffer> events;
+    wpe::HeadlessCore core(hooks, [&](wpe::ByteBuffer event) { events.push_back(std::move(event)); });
+    const wpe::ByteBuffer empty;
+    wpe::IpcReader reader(empty);
+    ThrowsAny([&] { core.HandleCommand(wpe::IpcCommand::StartHook, reader); },
+           "StartHook propagates detection failure");
+    Check(hooks.starts.load() == 0 && !core.HookInstalled(),
+          "failed detection never installs hooks");
+    core.Shutdown();
+}
+
+void StopHookFailureKeepsInstalledState() {
+    FakeHooks hooks;
+    hooks.fail_stop = true;
+    wpe::HeadlessCore core(hooks, [](wpe::ByteBuffer) {});
+    const wpe::ByteBuffer empty;
+    wpe::IpcReader start_reader(empty);
+    ExpectOk(core.HandleCommand(wpe::IpcCommand::StartHook, start_reader));
+    wpe::IpcReader stop_reader(empty);
+    ThrowsAny([&] { core.HandleCommand(wpe::IpcCommand::StopHook, stop_reader); },
+           "StopHook propagates controller failure");
+    Check(core.HookInstalled(), "failed stop does not report hooks as removed");
+    core.Shutdown();
+}
 } // namespace
 
 int main() {
@@ -480,6 +514,8 @@ int main() {
         SendExecutorCommands();
         LifecycleOverRealPipes();
         FatalDetectionEvent();
+        StartHookRequiresSuccessfulDetection();
+        StopHookFailureKeepsInstalledState();
         std::cout << "PASS: " << checks.load()
                   << " target-core checks; snapshots, replay/socket commands, stats/reset, hook states, fatal and detach cleanup\n";
         return 0;

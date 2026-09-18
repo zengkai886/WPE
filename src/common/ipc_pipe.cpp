@@ -124,13 +124,13 @@ private:
     OVERLAPPED value_{};
 };
 
-DWORD ReadOverlapped(HANDLE handle, void* buffer, DWORD size) {
+DWORD ReadOverlapped(HANDLE handle, void* buffer, DWORD size, DWORD timeout) {
     OverlappedOperation operation;
     DWORD transferred = 0;
     if (ReadFile(handle, buffer, size, &transferred, operation.Value())) return transferred;
     const DWORD error = GetLastError();
     if (error != ERROR_IO_PENDING) Fail("ReadFile(pipe)", error);
-    return operation.Complete(handle, INFINITE, "ReadFile(pipe)");
+    return operation.Complete(handle, timeout, "ReadFile(pipe)");
 }
 
 DWORD WriteOverlapped(HANDLE handle, const void* buffer, DWORD size, DWORD timeout) {
@@ -230,12 +230,12 @@ std::int32_t PipeEndpoint::FrameLimit() const noexcept {
     return channel_ == PipeChannel::Packet ? IpcProtocol::MaxPacketFrame : IpcProtocol::MaxControlFrame;
 }
 
-Bytes PipeEndpoint::ReadFrame() {
+Bytes PipeEndpoint::ReadFrame(std::uint32_t timeout_ms) {
     if (!IsOpen()) throw ProtocolError("Pipe is closed");
-    return IpcFrame::Read([this](std::span<std::uint8_t> output) -> std::size_t {
+    return IpcFrame::Read([this, timeout_ms](std::span<std::uint8_t> output) -> std::size_t {
         const DWORD requested = static_cast<DWORD>(std::min<std::size_t>(output.size(),
             static_cast<std::size_t>(std::numeric_limits<DWORD>::max())));
-        try { return ReadOverlapped(handle_, output.data(), requested); }
+        try { return ReadOverlapped(handle_, output.data(), requested, timeout_ms); }
         catch (const Win32ProtocolError& error) {
             if (error.Code() == ERROR_BROKEN_PIPE || error.Code() == ERROR_PIPE_NOT_CONNECTED ||
                 error.Code() == ERROR_OPERATION_ABORTED || error.Code() == ERROR_INVALID_HANDLE) return 0;

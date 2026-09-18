@@ -462,11 +462,16 @@ void Host::HandleTargetFrame(wpe::ByteBuffer frame,bool packet_channel){
         wpe::IpcReader reader(frame);const auto event=static_cast<wpe::IpcEvent>(reader.U8());
         switch(event){
         case wpe::IpcEvent::Stats:{
+            const auto read_count=[&](const char* what){
+                const auto count=reader.I32();
+                if(count<0||count>100000)throw std::runtime_error(std::string(what)+" count is invalid");
+                return count;
+            };
             const bool sends=reader.Bool(),robots=reader.Bool();Json filters=Json::array(),send_rows=Json::array();
-            const auto filter_count=reader.I32();for(std::int32_t i=0;i<filter_count;++i){const auto id=reader.Guid_().ToString();filters.push_back({{"id",id},{"count",reader.I64()}});}
-            const auto send_count=reader.I32();for(std::int32_t i=0;i<send_count;++i)send_rows.push_back({{"id",reader.Guid_().ToString()},{"count",reader.I64()},{"success",reader.I64()},{"fail",reader.I64()}});
+            const auto filter_count=read_count("Stats filter");for(std::int32_t i=0;i<filter_count;++i){const auto id=reader.Guid_().ToString();filters.push_back({{"id",id},{"count",reader.I64()}});}
+            const auto send_count=read_count("Stats send");for(std::int32_t i=0;i<send_count;++i)send_rows.push_back({{"id",reader.Guid_().ToString()},{"count",reader.I64()},{"success",reader.I64()},{"fail",reader.I64()}});
             Json globals=Json::array();for(int i=0;i<6;++i)globals.push_back(reader.I64());
-            Json packets=Json::array();const auto robot_count=reader.I32();for(std::int32_t i=0;i<robot_count;++i){reader.Guid_();reader.I64();}
+            Json packets=Json::array();const auto robot_count=read_count("Stats robot");for(std::int32_t i=0;i<robot_count;++i){reader.Guid_();reader.I64();}
             for(int i=0;i<11;++i)packets.push_back(reader.I64());
             if(reader.Remaining()!=0)throw std::runtime_error("Stats event has trailing bytes");
             send_running_=sends;target_stats_={{"sendRunning",sends},{"robotRunning",robots},{"filters",filters},{"sends",send_rows},{"filterGlobals",globals},{"packets",packets},{"dropped",target_stats_.value("dropped",0)}};
@@ -484,10 +489,10 @@ void Host::HandleTargetFrame(wpe::ByteBuffer frame,bool packet_channel){
             if(reader.Remaining()!=0)throw std::runtime_error("FilterLog event has trailing bytes");
             bridge_->PushEvent("filter:log",{{"name",name?Utf8(std::wstring(name->begin(),name->end())):""},{"action",action},{"matches",matches},{"type",type},{"length",length}});break;
         }
-        case wpe::IpcEvent::Dropped:{const auto count=reader.I64();target_stats_["dropped"]=count;bridge_->PushEvent("inject:dropped",{{"count",count}});break;}
-        case wpe::IpcEvent::Log:{const auto source=reader.Str(),message=reader.Str();bridge_->PushEvent("filter:log",{{"source",source?Utf8(std::wstring(source->begin(),source->end())):""},{"message",message?Utf8(std::wstring(message->begin(),message->end())):""}});break;}
-        case wpe::IpcEvent::Fatal:{const auto text=reader.Str();bridge_->PushEvent("toast",{{"level",4},{"text",text?Utf8(std::wstring(text->begin(),text->end())):"目标进程连接失败"}});break;}
-        default:break;
+        case wpe::IpcEvent::Dropped:{const auto count=reader.I64();if(reader.Remaining()!=0)throw std::runtime_error("Dropped event has trailing bytes");target_stats_["dropped"]=count;bridge_->PushEvent("inject:dropped",{{"count",count}});break;}
+        case wpe::IpcEvent::Log:{const auto source=reader.Str(),message=reader.Str();if(reader.Remaining()!=0)throw std::runtime_error("Log event has trailing bytes");bridge_->PushEvent("filter:log",{{"source",source?Utf8(std::wstring(source->begin(),source->end())):""},{"message",message?Utf8(std::wstring(message->begin(),message->end())):""}});break;}
+        case wpe::IpcEvent::Fatal:{const auto text=reader.Str();if(reader.Remaining()!=0)throw std::runtime_error("Fatal event has trailing bytes");bridge_->PushEvent("toast",{{"level",4},{"text",text?Utf8(std::wstring(text->begin(),text->end())):"目标进程连接失败"}});break;}
+        default:throw std::runtime_error("Unknown target event");
         }
     }catch(const std::exception& error){if(bridge_)bridge_->PushEvent("toast",{{"level",4},{"text",error.what()}});}
 }

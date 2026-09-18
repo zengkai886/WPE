@@ -30,7 +30,11 @@ public:
                                       std::uint32_t timeout_ms);
 
     void Accept(std::uint32_t timeout_ms = INFINITE);
-    Bytes ReadFrame();
+    // Read one framed payload.  A finite timeout applies to each overlapped
+    // read and is used by control calls so a silent peer cannot pin the
+    // owner thread forever.  Packet/event consumers intentionally keep the
+    // default infinite timeout and are cancelled by their session owner.
+    Bytes ReadFrame(std::uint32_t timeout_ms = INFINITE);
     void WriteFrame(std::span<const std::uint8_t> payload,
                     std::uint32_t timeout_ms = INFINITE);
     void Flush();

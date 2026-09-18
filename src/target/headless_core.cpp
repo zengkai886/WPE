@@ -171,8 +171,10 @@ void HeadlessCore::StartHook(IpcReader& reader) {
         support_ = detected;
     } catch (const std::exception& error) {
         EmitFatal(std::string("DetectWinsock: ") + error.what());
+        throw;
     } catch (...) {
         EmitFatal("DetectWinsock: unknown failure");
+        throw;
     }
     hooks_.StartHook();
     {
@@ -188,10 +190,17 @@ void HeadlessCore::StopHook(IpcReader& reader) {
     {
         std::lock_guard lock(mutex_);
         was_installed = hook_installed_;
-        hook_installed_ = false;
     }
     if (!was_installed) return;
-    try { hooks_.StopHook(); } catch (...) {}
+    // Keep the state latched while the controller is stopping.  If the
+    // underlying detour manager reports a failure, returning HookState=false
+    // would make the shell believe the target is clean when hooks may still
+    // be active.  The command error lets the caller retry or detach safely.
+    hooks_.StopHook();
+    {
+        std::lock_guard lock(mutex_);
+        hook_installed_ = false;
+    }
     EmitHookState(false);
 }
 

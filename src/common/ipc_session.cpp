@@ -64,7 +64,9 @@ ShellIpcSession::ShellIpcSession(std::string session, FrameHandler packet_handle
       event_(PipeEndpoint::CreateServer(session_, PipeChannel::Event)),
       packet_handler_(std::move(packet_handler)), event_handler_(std::move(event_handler)),
       state_handler_(std::move(state_handler)), options_(options) {
-    if (options_.heartbeat_interval.count() <= 0) throw ProtocolError("Heartbeat interval must be positive");
+    if (options_.heartbeat_interval.count() <= 0 || options_.control_timeout_ms == 0 ||
+        options_.control_timeout_ms == INFINITE)
+        throw ProtocolError("Shell IPC timing options are invalid");
 }
 
 ShellIpcSession::~ShellIpcSession() { Stop(); }
@@ -113,12 +115,20 @@ ByteBuffer ShellIpcSession::Call(std::span<const std::uint8_t> request) {
     if (State() == IpcLinkState::Disconnected ||
         (State() == IpcLinkState::Attached && !running_.load()))
         throw ProtocolError("IPC session is stopping");
-    return CallUnlocked(request);
+    try {
+        return CallUnlocked(request);
+    } catch (...) {
+        // A timed-out framed control read/write can leave a partial frame in
+        // the byte stream.  Do not let callers continue using a session whose
+        // framing boundary is no longer trustworthy.
+        MarkDisconnected();
+        throw;
+    }
 }
 
 ByteBuffer ShellIpcSession::CallUnlocked(std::span<const std::uint8_t> request) {
-    control_.WriteFrame(request);
-    const auto response = control_.ReadFrame();
+    control_.WriteFrame(request, options_.control_timeout_ms);
+    const auto response = control_.ReadFrame(options_.control_timeout_ms);
     if (!response) throw ProtocolError("Target disconnected from control pipe");
     return *response;
 }

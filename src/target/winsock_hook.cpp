@@ -143,12 +143,11 @@ bool CopyToBuffers(WSABUF* buffers, DWORD count,
 }
 
 std::string FormatIpv4(const sockaddr* address, int length) {
-    if (!address || length < static_cast<int>(sizeof(sockaddr_in)) ||
-        address->sa_family != AF_INET) return {};
-    const auto* ipv4 = reinterpret_cast<const sockaddr_in*>(address);
-    const auto* bytes = reinterpret_cast<const unsigned char*>(&ipv4->sin_addr.s_addr);
-    const auto port = static_cast<unsigned short>((ipv4->sin_port >> 8U) |
-                                                   (ipv4->sin_port << 8U));
+    if (!address || length < static_cast<int>(sizeof(sockaddr_in))) return {};
+    sockaddr_in copy{};
+    if (!TryCopyMemory(&copy, address, sizeof(copy)) || copy.sin_family != AF_INET) return {};
+    const auto* bytes = reinterpret_cast<const unsigned char*>(&copy.sin_addr.s_addr);
+    const auto port = ntohs(copy.sin_port);
     return std::to_string(bytes[0]) + "." + std::to_string(bytes[1]) + "." +
            std::to_string(bytes[2]) + "." + std::to_string(bytes[3]) + ":" +
            std::to_string(port);
@@ -202,9 +201,10 @@ private:
 };
 
 std::uint16_t Ipv4Port(const sockaddr* address, int length) noexcept {
-    if (!address || length < static_cast<int>(sizeof(sockaddr_in)) ||
-        address->sa_family != AF_INET) return 0;
-    return ntohs(reinterpret_cast<const sockaddr_in*>(address)->sin_port);
+    if (!address || length < static_cast<int>(sizeof(sockaddr_in))) return 0;
+    sockaddr_in copy{};
+    if (!TryCopyMemory(&copy, address, sizeof(copy)) || copy.sin_family != AF_INET) return 0;
+    return ntohs(copy.sin_port);
 }
 
 std::uint16_t TryIpv4Port(const sockaddr* address, int length) noexcept {
@@ -697,8 +697,10 @@ struct WinsockHookController::Impl final {
         context.packet_type = type;
         const auto append = [&](const sockaddr* candidate, int length) {
             if (!candidate || length < static_cast<int>(sizeof(sockaddr_in)) ||
-                candidate->sa_family != AF_INET || context.port_count >= context.ports.size()) return;
-            const auto port = ntohs(reinterpret_cast<const sockaddr_in*>(candidate)->sin_port);
+                context.port_count >= context.ports.size()) return;
+            sockaddr_in copy{};
+            if (!TryCopyMemory(&copy, candidate, sizeof(copy)) || copy.sin_family != AF_INET) return;
+            const auto port = ntohs(copy.sin_port);
             if (std::find(context.ports.begin(), context.ports.begin() +
                           static_cast<std::ptrdiff_t>(context.port_count), port) ==
                 context.ports.begin() + static_cast<std::ptrdiff_t>(context.port_count))

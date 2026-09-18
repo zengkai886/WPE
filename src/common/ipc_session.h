@@ -17,6 +17,9 @@ enum class IpcLinkState : std::uint8_t { Idle, Attaching, Attached, Disconnected
 
 struct ShellSessionOptions {
     std::chrono::milliseconds heartbeat_interval{1000};
+    // Control requests must not wait forever for a target handler that has
+    // crashed or deadlocked.  Packet/event streams remain cancellation based.
+    std::uint32_t control_timeout_ms{10000};
 };
 
 class ShellIpcSession final {
