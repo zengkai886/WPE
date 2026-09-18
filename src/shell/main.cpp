@@ -239,7 +239,12 @@ void Host::Initialize(){
 }
 void Host::Configure(){
     ComPtr<ICoreWebView2_3> resources;Check(view_.As(&resources),"WebView2 resource mapping interface");
-    Check(resources->SetVirtualHostNameToFolderMapping(L"app.wpe64.local",options_.assets.c_str(),COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_DENY),"Map original wwwroot");
+    // The mapped folder is the packaged frontend that the native host is
+    // expected to serve.  Using DENY here makes navigation succeed but blocks
+    // every resource under app.wpe64.local, leaving WebView2 as a blank white
+    // page.  Keep the origin restricted to this local virtual host while
+    // allowing the mapped folder to be read.
+    Check(resources->SetVirtualHostNameToFolderMapping(L"app.wpe64.local",options_.assets.c_str(),COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW),"Map original wwwroot");
     ComPtr<ICoreWebView2Settings> settings;Check(view_->get_Settings(&settings),"Get settings");
     Check(settings->put_IsWebMessageEnabled(TRUE),"Enable web messages");
     Check(settings->put_AreHostObjectsAllowed(FALSE),"Disable host objects");
