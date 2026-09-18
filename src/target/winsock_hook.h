@@ -31,6 +31,8 @@ public:
     void ResetLivePacketCounters() noexcept override;
     std::optional<FilterRuntimeStats> LiveFilterStats() const noexcept override;
     void ResetLiveFilterStats() noexcept override;
+    bool SendPacket(const ReplayPacketSnapshot& packet) override;
+    SocketInfo GetSocketInfo(std::int32_t socket) override;
 
     [[nodiscard]] std::size_t RegisteredHookCount() const noexcept;
     [[nodiscard]] std::uint32_t InFlightDetourCount() const noexcept;

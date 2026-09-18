@@ -117,6 +117,25 @@ ByteBuffer HeadlessCore::HandleCommand(IpcCommand command, IpcReader& reader) {
         ApplyConfig(kind, *payload);
         return IpcOk();
     }
+    case IpcCommand::SendPacket: {
+        auto packet = ReadPacket(reader);
+        RequireEnd(reader, "SendPacket command");
+        if (!packet.bytes) throw ProtocolError("SendPacket bytes cannot be null");
+        IpcWriter response;
+        response.U8(static_cast<std::uint8_t>(IpcStatus::Ok));
+        response.Bool(hooks_.SendPacket(packet));
+        return response.ToArray();
+    }
+    case IpcCommand::GetSocketInfo: {
+        const auto socket = reader.I32();
+        RequireEnd(reader, "GetSocketInfo command");
+        const auto info = hooks_.GetSocketInfo(socket);
+        IpcWriter response;
+        response.U8(static_cast<std::uint8_t>(IpcStatus::Ok));
+        response.Str(info.from);
+        response.Str(info.to);
+        return response.ToArray();
+    }
     case IpcCommand::ResetStats:
         ResetStats(reader);
         return IpcOk();

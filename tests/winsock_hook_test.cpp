@@ -11,6 +11,7 @@
 #include <condition_variable>
 #include <cstring>
 #include <iostream>
+#include <limits>
 #include <mutex>
 #include <stdexcept>
 #include <string>
@@ -209,6 +210,109 @@ int main() {
         Check(sent_packet && sent_packet->time_ticks >= before_send_ticks &&
               sent_packet->time_ticks <= after_send_ticks,
               "packet timestamp uses original DateTime.Now local ticks");
+
+        Check(static_cast<std::uint64_t>(tcp.first.value) <=
+                  static_cast<std::uint64_t>((std::numeric_limits<std::int32_t>::max)()),
+              "TCP fixture socket fits the v4 i32 handle field");
+        const auto tcp_handle = static_cast<std::int32_t>(tcp.first.value);
+        const auto socket_info = hooks.GetSocketInfo(tcp_handle);
+        Check(socket_info.from && socket_info.to && !socket_info.from->empty() &&
+              !socket_info.to->empty(),
+              "GetSocketInfo resolves connected local and remote endpoints");
+
+        collector.Clear();
+        wpe::ReplayPacketSnapshot replay;
+        replay.socket = tcp_handle;
+        replay.packet_type = 1;
+        replay.from = socket_info.from;
+        replay.to = socket_info.to;
+        replay.bytes = wpe::ByteBuffer{'r', 'e', 'p', 'l', 'a', 'y'};
+        Check(hooks.SendPacket(replay), "active TCP replay succeeds through target socket");
+        ReceiveExact(tcp.second.value, "replay");
+        packets = collector.WaitFor(5, "replay");
+        Check(Find(packets, 1, "replay") == nullptr,
+              "active replay bypasses the send capture detour");
+
+        Check(static_cast<std::uint64_t>(udp.sender.value) <=
+                  static_cast<std::uint64_t>((std::numeric_limits<std::int32_t>::max)()),
+              "UDP fixture socket fits the v4 i32 handle field");
+        replay.socket = static_cast<std::int32_t>(udp.sender.value);
+        replay.packet_type = 3;
+        replay.from = Text("invalid");
+        replay.to = Text("127.0.0.1:" + std::to_string(ntohs(udp.destination.sin_port)));
+        replay.bytes = wpe::ByteBuffer{'u', 'd', 'p'};
+        Check(hooks.SendPacket(replay), "active UDP request replay uses the to endpoint");
+        std::array<char, 16> replay_datagram{};
+        Check(recvfrom(udp.receiver.value, replay_datagram.data(),
+                       static_cast<int>(replay_datagram.size()), 0, nullptr, nullptr) == 3 &&
+              std::memcmp(replay_datagram.data(), "udp", 3) == 0,
+              "active UDP replay reaches the requested endpoint");
+        replay.packet_type = 7;
+        replay.from = replay.to;
+        replay.to = Text("invalid");
+        Check(hooks.SendPacket(replay), "UDP response replay uses the from endpoint");
+        Check(recvfrom(udp.receiver.value, replay_datagram.data(),
+                       static_cast<int>(replay_datagram.size()), 0, nullptr, nullptr) == 3,
+              "UDP response replay reaches the requested endpoint");
+        replay.packet_type = 17;
+        Check(!hooks.SendPacket(replay), "unsupported HTTP replay type returns false");
+        replay.packet_type = 3;
+        replay.to = Text("not-an-endpoint");
+        Check(!hooks.SendPacket(replay), "invalid UDP endpoint returns false");
+        Socket closed_socket{socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)};
+        Check(closed_socket.value != INVALID_SOCKET, "closed replay fixture created");
+        const auto closed_handle = static_cast<std::int32_t>(closed_socket.value);
+        Check(closesocket(closed_socket.value) == 0, "closed replay fixture closed");
+        closed_socket.value = INVALID_SOCKET;
+        replay.socket = closed_handle;
+        replay.packet_type = 1;
+        replay.bytes = wpe::ByteBuffer{'x'};
+        Check(!hooks.SendPacket(replay), "closed target socket replay returns false");
+        const auto closed_info = hooks.GetSocketInfo(closed_handle);
+        Check(closed_info.from == Text("") && closed_info.to == Text(""),
+              "closed target socket info returns empty endpoints");
+
+        wpe::FilterSnapshot first_packet_filter;
+        first_packet_filter.enabled = true;
+        first_packet_filter.id = wpe::Guid::Parse("10213243-5465-7687-98a9-bacbdcedfe0f");
+        first_packet_filter.name = Text("first-connected-packet-port-filter");
+        first_packet_filter.functions.fill(false);
+        first_packet_filter.functions[0] = true;
+        first_packet_filter.mode = 0;
+        first_packet_filter.action = 0;
+        first_packet_filter.search = Text("0|70");
+        first_packet_filter.modify = Text("0|50");
+        auto first_packet_pair = TcpPair();
+        sockaddr_in first_packet_peer{};
+        int first_packet_peer_length = sizeof(first_packet_peer);
+        Check(getpeername(first_packet_pair.first.value,
+                          reinterpret_cast<sockaddr*>(&first_packet_peer),
+                          &first_packet_peer_length) == 0,
+              "first-packet fixture peer endpoint available");
+        first_packet_filter.appoint_port = true;
+        first_packet_filter.port = Text(std::to_string(ntohs(first_packet_peer.sin_port)));
+        hooks.ConfigureFilters({first_packet_filter}, 0, false);
+        collector.Clear();
+        Check(send(first_packet_pair.first.value, "port", 4, 0) == 4,
+              "first connected packet send result");
+        ReceiveExact(first_packet_pair.second.value, "Port");
+        packets = collector.WaitFor(1, "port");
+        const auto* first_packet = Find(packets, 1, "port");
+        Check(first_packet && first_packet->modified &&
+              std::memcmp(first_packet->modified->data(), "Port", 4) == 0,
+              "socket lifecycle registry enables port filtering on first connected packet");
+        hooks.ConfigureFilters({}, 0, false);
+
+        // Keep the pre-existing counter assertions stable: replay verification
+        // and first-packet registry verification added packets before the
+        // original counter scenario.
+        hooks.ResetLivePacketCounters();
+        hooks.ResetLiveFilterStats();
+        collector.Clear();
+        Check(send(tcp.first.value, "alpha", 5, 0) == 5,
+              "counter baseline send after replay verification");
+        ReceiveExact(tcp.second.value, "alpha");
+        (void)collector.WaitFor(5, "alpha");
 
         wpe::FilterSnapshot filter;
         filter.enabled = true;
@@ -623,7 +727,7 @@ int main() {
         failing_writer.StopHook();
 
         std::cout << "PASS: " << checks
-                  << " Winsock hook checks; 13 production signatures, packet frames, speed mode, counters and teardown\n";
+                  << " Winsock hook checks; 13 capture signatures, endpoint registry, active replay, packet frames, counters and teardown\n";
         return 0;
     } catch (const std::exception& error) {
         std::cerr << "FAIL: " << error.what() << '\n';

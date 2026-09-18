@@ -7,7 +7,7 @@
 #include <cstring>
 
 namespace {
-bool NetworkRoundTrip() {
+bool NetworkRoundTrip(HANDLE ready, HANDLE replay) {
     WSADATA data{};
     if (WSAStartup(MAKEWORD(2, 2), &data) != 0) return false;
     SOCKET listener = INVALID_SOCKET;
@@ -37,10 +37,17 @@ bool NetworkRoundTrip() {
         constexpr char filtered[] = "Cross-process";
         success = count == static_cast<int>(sizeof(filtered) - 1) &&
                   std::memcmp(received.data(), filtered, sizeof(filtered) - 1) == 0;
-        // The production design deliberately resolves socket endpoints on the
-        // writer thread, not in the target's send/recv call. Keep this fixture's
-        // sockets alive long enough for that asynchronous lookup to complete.
-        Sleep(200);
+        if (!success) break;
+        if (!SetEvent(ready) || WaitForSingleObject(replay, 20000) != WAIT_OBJECT_0) {
+            success = false;
+            break;
+        }
+        constexpr char replayed[] = "ipc-replay";
+        received.fill(0);
+        const int replayed_count = recv(server, received.data(),
+                                        static_cast<int>(received.size()), 0);
+        success = replayed_count == static_cast<int>(sizeof(replayed) - 1) &&
+                  std::memcmp(received.data(), replayed, sizeof(replayed) - 1) == 0;
     } while (false);
     if (server != INVALID_SOCKET) closesocket(server);
     if (client != INVALID_SOCKET) closesocket(client);
@@ -51,18 +58,24 @@ bool NetworkRoundTrip() {
 } // namespace
 
 int wmain(int argc, wchar_t** argv) {
-    if (argc != 3) return ERROR_INVALID_PARAMETER;
+    if (argc != 5) return ERROR_INVALID_PARAMETER;
     const HANDLE start = OpenEventW(SYNCHRONIZE, FALSE, argv[1]);
-    const HANDLE done = OpenEventW(EVENT_MODIFY_STATE, FALSE, argv[2]);
-    if (!start || !done) {
+    const HANDLE ready = OpenEventW(EVENT_MODIFY_STATE, FALSE, argv[2]);
+    const HANDLE replay = OpenEventW(SYNCHRONIZE, FALSE, argv[3]);
+    const HANDLE done = OpenEventW(EVENT_MODIFY_STATE, FALSE, argv[4]);
+    if (!start || !ready || !replay || !done) {
         if (start) CloseHandle(start);
+        if (ready) CloseHandle(ready);
+        if (replay) CloseHandle(replay);
         if (done) CloseHandle(done);
         return static_cast<int>(GetLastError());
     }
     const DWORD wait = WaitForSingleObject(start, 20000);
-    const bool success = wait == WAIT_OBJECT_0 && NetworkRoundTrip();
+    const bool success = wait == WAIT_OBJECT_0 && NetworkRoundTrip(ready, replay);
     (void)SetEvent(done);
     CloseHandle(done);
+    CloseHandle(replay);
+    CloseHandle(ready);
     CloseHandle(start);
     if (!success) return ERROR_GEN_FAILURE;
     Sleep(30000);

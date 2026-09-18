@@ -1,0 +1,1 @@
+PASS: 14 process-injector checks; architecture, suspended launch, real remote LoadLibraryW and cleanup

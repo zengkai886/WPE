@@ -73,9 +73,20 @@ public:
         ++live_resets;
     }
     void ResetLiveFilterStats() noexcept override { ++filter_resets; }
+    bool SendPacket(const wpe::ReplayPacketSnapshot& packet) override {
+        last_packet = packet;
+        ++packet_sends;
+        return send_result;
+    }
+    wpe::SocketInfo GetSocketInfo(std::int32_t socket) override {
+        last_socket_query = socket;
+        ++socket_queries;
+        return socket_info;
+    }
     std::atomic<int> passive_detects{0}, load_detects{0}, starts{0}, stops{0};
     std::atomic<int> flag_updates{0}, speed_updates{0}, live_resets{0};
     std::atomic<int> filter_updates{0}, filter_resets{0};
+    std::atomic<int> packet_sends{0}, socket_queries{0};
     std::array<bool, 12> configured_flags{};
     std::array<std::int64_t, 11> live_counters{};
     std::vector<wpe::FilterSnapshot> configured_filters;
@@ -85,6 +96,10 @@ public:
     bool expose_live{};
     bool fail_detect{};
     bool fail_start{};
+    bool send_result{true};
+    std::int32_t last_socket_query{};
+    wpe::ReplayPacketSnapshot last_packet;
+    wpe::SocketInfo socket_info{T(u"127.0.0.1:1234"), T(u"127.0.0.1:4321")};
 };
 
 void ExpectOk(const wpe::ByteBuffer& response) {
@@ -259,6 +274,61 @@ void ConfigurationAndStats() {
            "ResetStats rejects unknown bits");
 }
 
+void ReplayAndSocketCommands() {
+    FakeHooks hooks;
+    wpe::HeadlessCore core(hooks, [](wpe::ByteBuffer) {});
+
+    wpe::IpcWriter send;
+    send.I32(123); send.I32(12); send.Str(T(u"127.0.0.1:4000"));
+    send.Str(T(u"127.0.0.1:5000")); send.Bytes(wpe::ByteBuffer{1, 2, 3});
+    auto send_bytes = send.ToArray();
+    wpe::IpcReader send_reader(send_bytes);
+    auto response = core.HandleCommand(wpe::IpcCommand::SendPacket, send_reader);
+    wpe::IpcReader response_reader(response);
+    Check(response_reader.U8() == static_cast<std::uint8_t>(wpe::IpcStatus::Ok) &&
+          response_reader.Bool() && response_reader.Remaining() == 0,
+          "SendPacket returns exact Ok + bool response");
+    Check(hooks.packet_sends == 1 && hooks.last_packet.socket == 123 &&
+          hooks.last_packet.packet_type == 12 && hooks.last_packet.from == T(u"127.0.0.1:4000") &&
+          hooks.last_packet.to == T(u"127.0.0.1:5000") &&
+          hooks.last_packet.bytes == wpe::Bytes(wpe::ByteBuffer{1, 2, 3}),
+          "SendPacket preserves all v4 request fields");
+
+    auto trailing_send = send.ToArray();
+    trailing_send.push_back(0xff);
+    wpe::IpcReader trailing_send_reader(trailing_send);
+    Throws([&] { core.HandleCommand(wpe::IpcCommand::SendPacket, trailing_send_reader); },
+           "SendPacket rejects trailing fields");
+
+    wpe::IpcWriter null_send;
+    null_send.I32(123); null_send.I32(1); null_send.Str(T(u"from"));
+    null_send.Str(T(u"to")); null_send.Bytes(std::nullopt);
+    auto null_send_bytes = null_send.ToArray();
+    wpe::IpcReader null_send_reader(null_send_bytes);
+    Throws([&] { core.HandleCommand(wpe::IpcCommand::SendPacket, null_send_reader); },
+           "SendPacket rejects null byte payload");
+
+    wpe::IpcWriter socket;
+    socket.I32(456);
+    auto socket_bytes = socket.ToArray();
+    wpe::IpcReader socket_reader(socket_bytes);
+    response = core.HandleCommand(wpe::IpcCommand::GetSocketInfo, socket_reader);
+    wpe::IpcReader socket_response(response);
+    Check(socket_response.U8() == static_cast<std::uint8_t>(wpe::IpcStatus::Ok) &&
+          socket_response.Str() == T(u"127.0.0.1:1234") &&
+          socket_response.Str() == T(u"127.0.0.1:4321") &&
+          socket_response.Remaining() == 0,
+          "GetSocketInfo returns exact Ok + from + to response");
+    Check(hooks.socket_queries == 1 && hooks.last_socket_query == 456,
+          "GetSocketInfo forwards the target-process socket handle");
+
+    auto trailing_socket = socket.ToArray();
+    trailing_socket.push_back(0);
+    wpe::IpcReader trailing_socket_reader(trailing_socket);
+    Throws([&] { core.HandleCommand(wpe::IpcCommand::GetSocketInfo, trailing_socket_reader); },
+           "GetSocketInfo rejects trailing fields");
+}
+
 void LifecycleOverRealPipes() {
     std::ostringstream session;
     session << "e123456789abcdef01234567" << std::hex << std::setw(8)
@@ -376,10 +446,11 @@ void FatalDetectionEvent() {
 int main() {
     try {
         ConfigurationAndStats();
+        ReplayAndSocketCommands();
         LifecycleOverRealPipes();
         FatalDetectionEvent();
         std::cout << "PASS: " << checks.load()
-                  << " target-core checks; all snapshots, stats/reset, hook states, fatal and detach cleanup\n";
+                  << " target-core checks; snapshots, replay/socket commands, stats/reset, hook states, fatal and detach cleanup\n";
         return 0;
     } catch (const std::exception& error) {
         std::cerr << "FAIL: " << error.what() << '\n';

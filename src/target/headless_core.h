@@ -28,6 +28,13 @@ struct WinsockSupport {
     bool operator==(const WinsockSupport&) const = default;
 };
 
+struct ReplayPacketSnapshot;
+
+struct SocketInfo {
+    Text from;
+    Text to;
+};
+
 class IHookController {
 public:
     virtual ~IHookController() = default;
@@ -51,6 +58,12 @@ public:
         return std::nullopt;
     }
     virtual void ResetLiveFilterStats() noexcept {}
+    // Active replay and endpoint lookup must execute in the target process:
+    // SOCKET values are process-local handles. Implementations return the
+    // original application's bool/empty-string semantics rather than throwing
+    // for an invalid or already-closed socket.
+    virtual bool SendPacket(const ReplayPacketSnapshot&) { return false; }
+    virtual SocketInfo GetSocketInfo(std::int32_t) { return {Text{u""}, Text{u""}}; }
 };
 
 struct FilterSnapshot {

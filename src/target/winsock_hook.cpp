@@ -11,6 +11,7 @@
 #include "common/packet_ring.h"
 #include <algorithm>
 #include <atomic>
+#include <charconv>
 #include <chrono>
 #include <condition_variable>
 #include <cstring>
@@ -43,6 +44,7 @@ constexpr std::size_t kMaximumCapturedBytes = IpcProtocol::MaxPacketFrame - 1024
 constexpr DWORD kMaximumWsaBufferCount = 65536;
 constexpr std::int64_t kFileTimeDateTimeTicks = 504911232000000000LL;
 SRWLOCK g_detour_entry_gate = SRWLOCK_INIT;
+thread_local bool g_replay_call = false;
 
 std::int64_t DateTimeTicksNow() noexcept {
     FILETIME utc{};
@@ -160,10 +162,56 @@ Text AsciiText(std::string_view value) {
     return result;
 }
 
+bool ParseIpv4Endpoint(const Text& value, sockaddr_in& endpoint) noexcept {
+    if (!value || value->empty()) return false;
+    try {
+        std::string text;
+        text.reserve(value->size());
+        for (const auto character : *value) {
+            if (character > 0x7f) return false;
+            text.push_back(static_cast<char>(character));
+        }
+        const auto separator = text.find(':');
+        if (separator == std::string::npos || separator == 0 ||
+            separator + 1 >= text.size() || text.find(':', separator + 1) != std::string::npos)
+            return false;
+        unsigned int port = 0;
+        const auto* first = text.data() + separator + 1;
+        const auto* last = text.data() + text.size();
+        const auto parsed = std::from_chars(first, last, port);
+        if (parsed.ec != std::errc{} || parsed.ptr != last || port == 0 || port > 65535)
+            return false;
+        endpoint = {};
+        endpoint.sin_family = AF_INET;
+        endpoint.sin_port = htons(static_cast<unsigned short>(port));
+        text.resize(separator);
+        return InetPtonA(AF_INET, text.c_str(), &endpoint.sin_addr) == 1;
+    } catch (...) {
+        return false;
+    }
+}
+
+class ReplayCallGuard final {
+public:
+    ReplayCallGuard() noexcept : previous_(g_replay_call) { g_replay_call = true; }
+    ~ReplayCallGuard() { g_replay_call = previous_; }
+    ReplayCallGuard(const ReplayCallGuard&) = delete;
+    ReplayCallGuard& operator=(const ReplayCallGuard&) = delete;
+private:
+    bool previous_{};
+};
+
 std::uint16_t Ipv4Port(const sockaddr* address, int length) noexcept {
     if (!address || length < static_cast<int>(sizeof(sockaddr_in)) ||
         address->sa_family != AF_INET) return 0;
     return ntohs(reinterpret_cast<const sockaddr_in*>(address)->sin_port);
+}
+
+std::uint16_t TryIpv4Port(const sockaddr* address, int length) noexcept {
+    if (!address || length < static_cast<int>(sizeof(sockaddr_in))) return 0;
+    sockaddr_in copy{};
+    if (!TryCopyMemory(&copy, address, sizeof(copy)) || copy.sin_family != AF_INET) return 0;
+    return ntohs(copy.sin_port);
 }
 
 // The writer populates endpoint metadata after its allowed getsockname/
@@ -201,6 +249,29 @@ public:
         replacement.ports.store(0, std::memory_order_relaxed);
         replacement.socket.store(key, std::memory_order_release);
         replacement.ports.store(packed, std::memory_order_release);
+    }
+
+    void Merge(SOCKET socket, std::uint16_t local, std::uint16_t remote) noexcept {
+        const auto previous = Lookup(socket);
+        Store(socket, local == 0 ? previous[0] : local,
+              remote == 0 ? previous[1] : remote);
+    }
+
+    void Forget(SOCKET socket) noexcept {
+        const auto key = static_cast<std::uintptr_t>(socket);
+        const auto start = Hash(key);
+        for (std::size_t probe = 0; probe < kProbeCount; ++probe) {
+            auto& entry = entries_[(start + probe) & (kCapacity - 1)];
+            const auto found = entry.socket.load(std::memory_order_acquire);
+            if (found == kEmpty) break;
+            if (found == key) {
+                // Keep the occupied key as a tombstone so a collision later in
+                // the probe chain remains reachable, but remove stale ports
+                // before Windows can reuse the numeric SOCKET handle.
+                entry.ports.store(0, std::memory_order_release);
+                return;
+            }
+        }
     }
 
     std::array<std::uint16_t, 2> Lookup(SOCKET socket) const noexcept {
@@ -255,6 +326,14 @@ struct WinsockHookController::Impl final {
                                         LPWSAOVERLAPPED_COMPLETION_ROUTINE);
     using WsaRecvExFn = int (WSAAPI*)(SOCKET, char*, int, int*);
     using GetNameFn = int (WSAAPI*)(SOCKET, sockaddr*, int*);
+    using BindFn = int (WSAAPI*)(SOCKET, const sockaddr*, int);
+    using ConnectFn = int (WSAAPI*)(SOCKET, const sockaddr*, int);
+    using WsaConnectFn = int (WSAAPI*)(SOCKET, const sockaddr*, int, LPWSABUF,
+                                       LPWSABUF, LPQOS, LPQOS);
+    using AcceptFn = SOCKET (WSAAPI*)(SOCKET, sockaddr*, int*);
+    using WsaAcceptFn = SOCKET (WSAAPI*)(SOCKET, sockaddr*, LPINT,
+        LPCONDITIONPROC, DWORD_PTR);
+    using CloseSocketFn = int (WSAAPI*)(SOCKET);
 
     Impl(bool suspended, FrameSender packets, FrameSender events)
         : suspended_launch(suspended), packet_sender(std::move(packets)),
@@ -281,6 +360,7 @@ struct WinsockHookController::Impl final {
     std::thread writer;
     std::uint64_t reported_dropped{};
     std::atomic<std::uint64_t> delivery_dropped{};
+    std::atomic<std::size_t> capture_hook_count{};
     SocketPortCache endpoint_ports;
 
     SendFn ws1_send{};
@@ -298,6 +378,21 @@ struct WinsockHookController::Impl final {
     WsaRecvExFn wsa_recv_ex{};
     GetNameFn get_sock_name{};
     GetNameFn get_peer_name{};
+    BindFn hook_bind{};
+    ConnectFn hook_connect{};
+    WsaConnectFn hook_wsa_connect{};
+    AcceptFn hook_accept{};
+    WsaAcceptFn hook_wsa_accept{};
+    CloseSocketFn hook_close_socket{};
+    GetNameFn hook_get_sock_name{};
+    GetNameFn hook_get_peer_name{};
+    // Raw exports used by active replay. When the export is detoured, the
+    // replay TLS guard makes the detour jump directly to its trampoline so a
+    // user-triggered replay is not filtered/captured a second time.
+    SendFn replay_ws1_send{};
+    SendToFn replay_ws1_send_to{};
+    SendFn replay_ws2_send{};
+    SendToFn replay_ws2_send_to{};
 
     static std::atomic<Impl*> active;
 
@@ -333,6 +428,17 @@ struct WinsockHookController::Impl final {
         get_peer_name = reinterpret_cast<GetNameFn>(GetProcAddress(module, "getpeername"));
     }
 
+    void ResolveReplayFunctions() noexcept {
+        if (const auto module = GetModuleHandleW(L"wsock32.dll")) {
+            replay_ws1_send = reinterpret_cast<SendFn>(GetProcAddress(module, "send"));
+            replay_ws1_send_to = reinterpret_cast<SendToFn>(GetProcAddress(module, "sendto"));
+        }
+        if (const auto module = GetModuleHandleW(L"ws2_32.dll")) {
+            replay_ws2_send = reinterpret_cast<SendFn>(GetProcAddress(module, "send"));
+            replay_ws2_send_to = reinterpret_cast<SendToFn>(GetProcAddress(module, "sendto"));
+        }
+    }
+
     WinsockSupport Detect(bool may_load) {
         if (may_load && suspended_launch) {
             if (!GetModuleHandleW(L"wsock32.dll")) (void)LoadLibraryW(L"wsock32.dll");
@@ -345,7 +451,72 @@ struct WinsockHookController::Impl final {
             GetModuleHandleW(L"mswsock.dll") != nullptr,
         };
         ResolveNameFunctions();
+        ResolveReplayFunctions();
         return support;
+    }
+
+    SocketInfo QuerySocketInfo(SOCKET socket) {
+        SocketInfo result{Text{u""}, Text{u""}};
+        sockaddr_storage local{};
+        sockaddr_storage remote{};
+        int local_length = sizeof(local);
+        int remote_length = sizeof(remote);
+        if (get_sock_name && get_sock_name(socket, reinterpret_cast<sockaddr*>(&local),
+                                           &local_length) != SOCKET_ERROR) {
+            const auto formatted = FormatIpv4(reinterpret_cast<const sockaddr*>(&local),
+                                              local_length);
+            if (!formatted.empty()) result.from = AsciiText(formatted);
+        }
+        if (get_peer_name && get_peer_name(socket, reinterpret_cast<sockaddr*>(&remote),
+                                           &remote_length) != SOCKET_ERROR) {
+            const auto formatted = FormatIpv4(reinterpret_cast<const sockaddr*>(&remote),
+                                              remote_length);
+            if (!formatted.empty()) result.to = AsciiText(formatted);
+        }
+        endpoint_ports.Store(socket,
+            Ipv4Port(reinterpret_cast<const sockaddr*>(&local), local_length),
+            Ipv4Port(reinterpret_cast<const sockaddr*>(&remote), remote_length));
+        return result;
+    }
+
+    bool Replay(const ReplayPacketSnapshot& packet) noexcept {
+        if (packet.socket <= 0 || !packet.bytes || packet.bytes->empty() ||
+            packet.bytes->size() > static_cast<std::size_t>((std::numeric_limits<int>::max)()))
+            return false;
+        const auto socket = static_cast<SOCKET>(static_cast<std::uint32_t>(packet.socket));
+        const auto* bytes = reinterpret_cast<const char*>(packet.bytes->data());
+        const auto length = static_cast<int>(packet.bytes->size());
+        SendFn stream = nullptr;
+        SendToFn datagram = nullptr;
+        const Text* address = nullptr;
+        switch (packet.packet_type) {
+        case 0: case 4:
+            stream = replay_ws1_send;
+            break;
+        case 1: case 5: case 8: case 10: case 11: case 13: case 15:
+            stream = replay_ws2_send;
+            break;
+        case 2:
+            datagram = replay_ws1_send_to; address = &packet.to;
+            break;
+        case 6:
+            datagram = replay_ws1_send_to; address = &packet.from;
+            break;
+        case 3: case 9: case 14:
+            datagram = replay_ws2_send_to; address = &packet.to;
+            break;
+        case 7: case 12: case 16:
+            datagram = replay_ws2_send_to; address = &packet.from;
+            break;
+        default:
+            return false;
+        }
+        ReplayCallGuard replay_guard;
+        if (stream) return stream(socket, bytes, length, 0) > 0;
+        sockaddr_in endpoint{};
+        if (!datagram || !address || !ParseIpv4Endpoint(*address, endpoint)) return false;
+        return datagram(socket, bytes, length, 0,
+                        reinterpret_cast<const sockaddr*>(&endpoint), sizeof(endpoint)) > 0;
     }
 
     void Count(std::uint8_t type, std::size_t length) noexcept {
@@ -587,6 +758,7 @@ struct WinsockHookController::Impl final {
         if (!WaitForDetours(timeout)) return false;
         if (!manager.Shutdown()) return false;
         targets.clear();
+        capture_hook_count.store(0, std::memory_order_release);
         return true;
     }
 
@@ -594,6 +766,90 @@ struct WinsockHookController::Impl final {
         StopWriter();
         while (!QuiesceAndShutdown(std::chrono::milliseconds(500)))
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    int OnBind(BindFn original, SOCKET socket, const sockaddr* address,
+               int address_length) noexcept {
+        const int result = original(socket, address, address_length);
+        const int saved_error = WSAGetLastError();
+        if (result != SOCKET_ERROR)
+            endpoint_ports.Merge(socket, TryIpv4Port(address, address_length), 0);
+        WSASetLastError(saved_error);
+        return result;
+    }
+
+    int OnConnect(ConnectFn original, SOCKET socket, const sockaddr* address,
+                  int address_length) noexcept {
+        const int result = original(socket, address, address_length);
+        const int saved_error = WSAGetLastError();
+        if (result != SOCKET_ERROR)
+            endpoint_ports.Merge(socket, 0, TryIpv4Port(address, address_length));
+        WSASetLastError(saved_error);
+        return result;
+    }
+
+    int OnWsaConnect(WsaConnectFn original, SOCKET socket, const sockaddr* address,
+                     int address_length, LPWSABUF caller_data, LPWSABUF callee_data,
+                     LPQOS sqos, LPQOS gqos) noexcept {
+        const int result = original(socket, address, address_length, caller_data,
+                                    callee_data, sqos, gqos);
+        const int saved_error = WSAGetLastError();
+        if (result != SOCKET_ERROR)
+            endpoint_ports.Merge(socket, 0, TryIpv4Port(address, address_length));
+        WSASetLastError(saved_error);
+        return result;
+    }
+
+    SOCKET OnAccept(AcceptFn original, SOCKET listener, sockaddr* address,
+                    int* address_length) noexcept {
+        const SOCKET accepted = original(listener, address, address_length);
+        const int saved_error = WSAGetLastError();
+        if (accepted != INVALID_SOCKET) {
+            int length = 0;
+            if (address_length) (void)TryReadInt(address_length, length);
+            endpoint_ports.Merge(accepted, endpoint_ports.Lookup(listener)[0],
+                                 TryIpv4Port(address, length));
+        }
+        WSASetLastError(saved_error);
+        return accepted;
+    }
+
+    SOCKET OnWsaAccept(WsaAcceptFn original, SOCKET listener, sockaddr* address,
+                       LPINT address_length, LPCONDITIONPROC condition,
+                       DWORD_PTR callback_data) noexcept {
+        const SOCKET accepted = original(listener, address, address_length,
+                                         condition, callback_data);
+        const int saved_error = WSAGetLastError();
+        if (accepted != INVALID_SOCKET) {
+            int length = 0;
+            if (address_length) (void)TryReadInt(address_length, length);
+            endpoint_ports.Merge(accepted, endpoint_ports.Lookup(listener)[0],
+                                 TryIpv4Port(address, length));
+        }
+        WSASetLastError(saved_error);
+        return accepted;
+    }
+
+    int OnCloseSocket(CloseSocketFn original, SOCKET socket) noexcept {
+        const int result = original(socket);
+        const int saved_error = WSAGetLastError();
+        if (result != SOCKET_ERROR) endpoint_ports.Forget(socket);
+        WSASetLastError(saved_error);
+        return result;
+    }
+
+    int OnGetName(GetNameFn original, SOCKET socket, sockaddr* address,
+                  int* address_length, bool peer) noexcept {
+        const int result = original(socket, address, address_length);
+        const int saved_error = WSAGetLastError();
+        if (result != SOCKET_ERROR) {
+            int length = 0;
+            if (address_length) (void)TryReadInt(address_length, length);
+            const auto port = TryIpv4Port(address, length);
+            endpoint_ports.Merge(socket, peer ? 0 : port, peer ? port : 0);
+        }
+        WSASetLastError(saved_error);
+        return result;
     }
 
     int OnSend(SendFn original, SOCKET socket, const char* buffer, int length,
@@ -935,15 +1191,74 @@ struct WinsockHookController::Impl final {
         return result;
     }
 
+    static int WSAAPI DetourBind(SOCKET s, const sockaddr* a, int n) noexcept {
+        CallGuard call;
+        auto* owner = call.owner;
+        return owner && owner->hook_bind ? owner->OnBind(owner->hook_bind, s, a, n)
+                                         : SOCKET_ERROR;
+    }
+    static int WSAAPI DetourConnect(SOCKET s, const sockaddr* a, int n) noexcept {
+        CallGuard call;
+        auto* owner = call.owner;
+        return owner && owner->hook_connect ? owner->OnConnect(owner->hook_connect, s, a, n)
+                                            : SOCKET_ERROR;
+    }
+    static int WSAAPI DetourWsaConnect(SOCKET s, const sockaddr* a, int n,
+                                       LPWSABUF caller, LPWSABUF callee,
+                                       LPQOS sqos, LPQOS gqos) noexcept {
+        CallGuard call;
+        auto* owner = call.owner;
+        return owner && owner->hook_wsa_connect
+            ? owner->OnWsaConnect(owner->hook_wsa_connect, s, a, n, caller, callee, sqos, gqos)
+            : SOCKET_ERROR;
+    }
+    static SOCKET WSAAPI DetourAccept(SOCKET s, sockaddr* a, int* n) noexcept {
+        CallGuard call;
+        auto* owner = call.owner;
+        return owner && owner->hook_accept ? owner->OnAccept(owner->hook_accept, s, a, n)
+                                           : INVALID_SOCKET;
+    }
+    static SOCKET WSAAPI DetourWsaAccept(SOCKET s, sockaddr* a, LPINT n,
+                                         LPCONDITIONPROC condition,
+                                         DWORD_PTR callback_data) noexcept {
+        CallGuard call;
+        auto* owner = call.owner;
+        return owner && owner->hook_wsa_accept
+            ? owner->OnWsaAccept(owner->hook_wsa_accept, s, a, n, condition, callback_data)
+            : INVALID_SOCKET;
+    }
+    static int WSAAPI DetourCloseSocket(SOCKET s) noexcept {
+        CallGuard call;
+        auto* owner = call.owner;
+        return owner && owner->hook_close_socket
+            ? owner->OnCloseSocket(owner->hook_close_socket, s) : SOCKET_ERROR;
+    }
+    static int WSAAPI DetourGetSockName(SOCKET s, sockaddr* a, int* n) noexcept {
+        CallGuard call;
+        auto* owner = call.owner;
+        return owner && owner->hook_get_sock_name
+            ? owner->OnGetName(owner->hook_get_sock_name, s, a, n, false) : SOCKET_ERROR;
+    }
+    static int WSAAPI DetourGetPeerName(SOCKET s, sockaddr* a, int* n) noexcept {
+        CallGuard call;
+        auto* owner = call.owner;
+        return owner && owner->hook_get_peer_name
+            ? owner->OnGetName(owner->hook_get_peer_name, s, a, n, true) : SOCKET_ERROR;
+    }
+
     static int WSAAPI DetourWs1Send(SOCKET s, const char* b, int n, int f) noexcept {
         CallGuard call;
         auto* owner = call.owner;
+        if (g_replay_call)
+            return owner && owner->ws1_send ? owner->ws1_send(s, b, n, f) : SOCKET_ERROR;
         return owner && owner->ws1_send ? owner->OnSend(owner->ws1_send, s, b, n, f, kWs1Send) : SOCKET_ERROR;
     }
     static int WSAAPI DetourWs1SendTo(SOCKET s, const char* b, int n, int f,
                                       const sockaddr* to, int to_length) noexcept {
         CallGuard call;
         auto* owner = call.owner;
+        if (g_replay_call)
+            return owner && owner->ws1_send_to ? owner->ws1_send_to(s, b, n, f, to, to_length) : SOCKET_ERROR;
         return owner && owner->ws1_send_to ? owner->OnSendTo(owner->ws1_send_to, s, b, n, f, to, to_length, kWs1SendTo) : SOCKET_ERROR;
     }
     static int WSAAPI DetourWs1Recv(SOCKET s, char* b, int n, int f) noexcept {
@@ -960,12 +1275,16 @@ struct WinsockHookController::Impl final {
     static int WSAAPI DetourWs2Send(SOCKET s, const char* b, int n, int f) noexcept {
         CallGuard call;
         auto* owner = call.owner;
+        if (g_replay_call)
+            return owner && owner->ws2_send ? owner->ws2_send(s, b, n, f) : SOCKET_ERROR;
         return owner && owner->ws2_send ? owner->OnSend(owner->ws2_send, s, b, n, f, kWs2Send) : SOCKET_ERROR;
     }
     static int WSAAPI DetourWs2SendTo(SOCKET s, const char* b, int n, int f,
                                       const sockaddr* to, int to_length) noexcept {
         CallGuard call;
         auto* owner = call.owner;
+        if (g_replay_call)
+            return owner && owner->ws2_send_to ? owner->ws2_send_to(s, b, n, f, to, to_length) : SOCKET_ERROR;
         return owner && owner->ws2_send_to ? owner->OnSendTo(owner->ws2_send_to, s, b, n, f, to, to_length, kWs2SendTo) : SOCKET_ERROR;
     }
     static int WSAAPI DetourWs2Recv(SOCKET s, char* b, int n, int f) noexcept {
@@ -1097,6 +1416,22 @@ void WinsockHookController::StartHook() {
         if (impl_->support.msws && impl_->flags[10] && sizeof(void*) == 4)
             impl_->Add("mswsock.dll", "WSARecvEx", reinterpret_cast<void*>(&Impl::DetourWsaRecvEx), impl_->wsa_recv_ex);
 
+        impl_->capture_hook_count.store(impl_->targets.size(), std::memory_order_release);
+        // These hooks only maintain fixed-size endpoint metadata. They never
+        // encode strings, write IPC or synchronously query socket names. This
+        // makes port filters correct for the first connected packet and clears
+        // stale metadata before numeric SOCKET handles are reused.
+        if (impl_->support.ws2) {
+            impl_->Add("ws2_32.dll", "bind", reinterpret_cast<void*>(&Impl::DetourBind), impl_->hook_bind);
+            impl_->Add("ws2_32.dll", "connect", reinterpret_cast<void*>(&Impl::DetourConnect), impl_->hook_connect);
+            impl_->Add("ws2_32.dll", "WSAConnect", reinterpret_cast<void*>(&Impl::DetourWsaConnect), impl_->hook_wsa_connect);
+            impl_->Add("ws2_32.dll", "accept", reinterpret_cast<void*>(&Impl::DetourAccept), impl_->hook_accept);
+            impl_->Add("ws2_32.dll", "WSAAccept", reinterpret_cast<void*>(&Impl::DetourWsaAccept), impl_->hook_wsa_accept);
+            impl_->Add("ws2_32.dll", "closesocket", reinterpret_cast<void*>(&Impl::DetourCloseSocket), impl_->hook_close_socket);
+            impl_->Add("ws2_32.dll", "getsockname", reinterpret_cast<void*>(&Impl::DetourGetSockName), impl_->hook_get_sock_name);
+            impl_->Add("ws2_32.dll", "getpeername", reinterpret_cast<void*>(&Impl::DetourGetPeerName), impl_->hook_get_peer_name);
+        }
+
         impl_->writer_running.store(true);
         impl_->writer = std::thread(&Impl::WriterLoop, impl_.get());
         Impl::active.store(impl_.get(), std::memory_order_release);
@@ -1139,8 +1474,25 @@ void WinsockHookController::ResetLiveFilterStats() noexcept {
     impl_->filter_engine.ResetStats();
 }
 
+bool WinsockHookController::SendPacket(const ReplayPacketSnapshot& packet) {
+    std::lock_guard lock(impl_->lifecycle_mutex);
+    // A target can load Winsock after Hello. Refresh exports here as well as at
+    // StartHook so active replay also works before capture has been enabled.
+    impl_->Detect(true);
+    return impl_->Replay(packet);
+}
+
+SocketInfo WinsockHookController::GetSocketInfo(std::int32_t socket) {
+    std::lock_guard lock(impl_->lifecycle_mutex);
+    impl_->Detect(true);
+    if (socket <= 0) return {Text{u""}, Text{u""}};
+    return impl_->QuerySocketInfo(
+        static_cast<SOCKET>(static_cast<std::uint32_t>(socket)));
+}
+
 std::size_t WinsockHookController::RegisteredHookCount() const noexcept {
-    return impl_->manager.HookCount();
+    if (impl_->manager.HookCount() == 0) return 0;
+    return impl_->capture_hook_count.load(std::memory_order_acquire);
 }
 
 std::uint32_t WinsockHookController::InFlightDetourCount() const noexcept {

@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <mutex>
 #include <sstream>
 #include <stdexcept>
@@ -113,10 +114,14 @@ int wmain(int argc, wchar_t** argv) {
         const std::wstring event_suffix = std::to_wstring(GetCurrentProcessId()) + L"-" +
                                           std::to_wstring(GetTickCount64());
         const std::wstring start_name = L"Local\\WPE64-NetworkStart-" + event_suffix;
+        const std::wstring ready_name = L"Local\\WPE64-NetworkReady-" + event_suffix;
+        const std::wstring replay_name = L"Local\\WPE64-NetworkReplay-" + event_suffix;
         const std::wstring done_name = L"Local\\WPE64-NetworkDone-" + event_suffix;
         HandleCleanup start_event{CreateEventW(nullptr, TRUE, FALSE, start_name.c_str())};
+        HandleCleanup ready_event{CreateEventW(nullptr, TRUE, FALSE, ready_name.c_str())};
+        HandleCleanup replay_event{CreateEventW(nullptr, TRUE, FALSE, replay_name.c_str())};
         HandleCleanup done_event{CreateEventW(nullptr, TRUE, FALSE, done_name.c_str())};
-        if (!start_event.value || !done_event.value)
+        if (!start_event.value || !ready_event.value || !replay_event.value || !done_event.value)
             throw std::runtime_error("network test events could not be created");
 
         std::mutex event_mutex;
@@ -139,7 +144,8 @@ int wmain(int argc, wchar_t** argv) {
             event_ready.notify_all();
         }, {}, wpe::ShellSessionOptions{50ms});
 
-        const std::wstring target_arguments = L"\"" + start_name + L"\" \"" + done_name + L"\"";
+        const std::wstring target_arguments = L"\"" + start_name + L"\" \"" + ready_name +
+            L"\" \"" + replay_name + L"\" \"" + done_name + L"\"";
         auto child = wpe::shell::ProcessInjector::LaunchSuspended(target, target_arguments);
         ProcessCleanup cleanup{child.ProcessHandle()};
         child.Resume();
@@ -226,8 +232,8 @@ int wmain(int argc, wchar_t** argv) {
                   "production target emitted HookState(true)");
         }
         Check(SetEvent(start_event.value) != FALSE, "target network scenario released");
-        Check(WaitForSingleObject(done_event.value, 3000) == WAIT_OBJECT_0,
-              "target completed real network round trip");
+        Check(WaitForSingleObject(ready_event.value, 3000) == WAIT_OBJECT_0,
+              "target completed initial real network round trip");
         {
             std::unique_lock lock(packet_mutex);
             Check(packet_ready.wait_for(lock, 3s, [&] {
@@ -235,6 +241,57 @@ int wmain(int argc, wchar_t** argv) {
                        ContainsPacket(packets, 5, "Cross-process");
             }), "injected DLL applied filter and returned raw/modified frames through pkt pipe");
         }
+
+        wpe::Packet captured;
+        {
+            std::lock_guard lock(packet_mutex);
+            bool found = false;
+            for (const auto& frame : packets) {
+                const auto candidate = wpe::PacketFrame::Decode(frame);
+                if (candidate.packet_type == 1 && candidate.raw &&
+                    candidate.raw->size() == std::string_view("cross-process").size() &&
+                    std::equal(candidate.raw->begin(), candidate.raw->end(),
+                               std::string_view("cross-process").begin())) {
+                    captured = candidate;
+                    found = true;
+                    break;
+                }
+            }
+            Check(found, "captured target socket selected for IPC replay");
+        }
+        Check(captured.socket > 0 && captured.socket <= (std::numeric_limits<std::int32_t>::max)(),
+              "captured socket fits the v4 i32 handle field");
+
+        wpe::IpcWriter socket_info_request;
+        socket_info_request.U8(static_cast<std::uint8_t>(wpe::IpcCommand::GetSocketInfo));
+        socket_info_request.I32(static_cast<std::int32_t>(captured.socket));
+        const auto socket_info_bytes = shell.Call(socket_info_request.ToArray());
+        wpe::IpcReader socket_info_response(socket_info_bytes);
+        Check(socket_info_response.U8() == static_cast<std::uint8_t>(wpe::IpcStatus::Ok),
+              "cross-process GetSocketInfo status");
+        const auto live_from = socket_info_response.Str();
+        const auto live_to = socket_info_response.Str();
+        Check(live_from && live_to && !live_from->empty() && !live_to->empty() &&
+              socket_info_response.Remaining() == 0,
+              "cross-process GetSocketInfo returns exact live endpoints");
+
+        wpe::IpcWriter replay_request;
+        replay_request.U8(static_cast<std::uint8_t>(wpe::IpcCommand::SendPacket));
+        replay_request.I32(static_cast<std::int32_t>(captured.socket));
+        replay_request.I32(1);
+        replay_request.Str(live_from);
+        replay_request.Str(live_to);
+        replay_request.Bytes(wpe::ByteBuffer{'i', 'p', 'c', '-', 'r', 'e', 'p', 'l', 'a', 'y'});
+        const auto replay_bytes = shell.Call(replay_request.ToArray());
+        wpe::IpcReader replay_response(replay_bytes);
+        Check(replay_response.U8() == static_cast<std::uint8_t>(wpe::IpcStatus::Ok) &&
+              replay_response.Bool() && replay_response.Remaining() == 0,
+              "cross-process SendPacket returns exact Ok + true response");
+        Check(SetEvent(replay_event.value) != FALSE, "target replay verification released");
+        Check(WaitForSingleObject(done_event.value, 3000) == WAIT_OBJECT_0,
+              "target received replay bytes through its process-local socket");
+        Check(WaitForSingleObject(child.ProcessHandle(), 0) == WAIT_TIMEOUT,
+              "target confirms replay before entering success hold");
         Throws([&] {
             wpe::shell::ProcessInjector::InjectAndStart(child.Pid(), hook, options, 2s);
         }, "second target worker rejected while the first session is active");
@@ -246,7 +303,7 @@ int wmain(int argc, wchar_t** argv) {
               "detaching DLL session does not terminate host process");
 
         std::cout << "PASS: " << checks
-                  << " injected-session checks; production DLL, MinHook Winsock capture, real pkt IPC and detach\n";
+                  << " injected-session checks; production DLL, real capture, target socket info/replay and detach\n";
         return 0;
     } catch (const std::exception& error) {
         std::cerr << "FAIL: " << error.what() << '\n';
