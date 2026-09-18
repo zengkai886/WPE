@@ -1,5 +1,6 @@
 .build/
 build-native2/
+evidence/manual-host/
 **/obj/
 **/bin/
 **/node_modules/
