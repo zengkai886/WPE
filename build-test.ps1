@@ -21,9 +21,9 @@ function Run([string]$Executable,[string[]]$Arguments,[string]$Log) {
 }
 $manifest=[ordered]@{
     schemaVersion=1
-    testId='CPP-EXCHANGE-WIRING-009'
-    specificationSections=@('0','2.3','3.1','3.2','3.3','4.1','4.2','4.3','4.4','4.5','5.4','5.5','9.2','9.3','13.1')
-    scope='Protocol/ring, real three-channel Windows named-pipe transport with current-user ACL, shell/target session lifecycle, and target headless command core with all five configuration snapshots, exact Stats/HookState/Fatal events, reset masks and controller cleanup; native SQLite, editors, plaintext XML export, private-station OS clipboard, original Vue/HexView/export/clipboard buttons and restart. The target-core hook controller is exercised by a stateful test double; there is still no injector, hook DLL, Winsock detour, real capture, proxy/executor engine or complete acceptance'
+    testId='CPP-EXCHANGE-WIRING-010'
+    specificationSections=@('0','2.3','3.1','3.2','3.3','4.1','4.2','4.3','4.4','4.5','5.1','5.4','5.5','9.2','9.3','13.1')
+    scope='Protocol/ring, real three-channel Windows named-pipe transport with current-user ACL, shell/target session lifecycle, target headless command core, and real same-bitness Windows process injection through remote LoadLibraryW plus suspended-process launch/cleanup; native SQLite, editors, plaintext XML export, private-station OS clipboard, original Vue/HexView/export/clipboard buttons and restart. The injector is exercised against an actual child process and probe DLL on x64 and Win32. There is still no production target DLL, MinHook/Winsock detour, pre-entry suspended-injection wake choreography, real capture, proxy/executor engine or complete acceptance'
     startedUtc=[DateTime]::UtcNow.ToString('o')
     finishedUtc=$null
     result='running'
@@ -124,8 +124,20 @@ try {
             parity=(Get-Content -LiteralPath (Join-Path $run "$arch-parity.log"))
             reverse=(Get-Content -LiteralPath (Join-Path $run "$arch-reverse.log"))
             ring=(Get-Content -LiteralPath (Join-Path $run "$arch-ring.log"))
-            artifacts=@($test,(Join-Path $build 'Release\wpe64-pipe-test.exe'),(Join-Path $build 'Release\wpe64-session-test.exe'),(Join-Path $build 'Release\wpe64-headless-core-test.exe'),(Join-Path $build 'Release\wpe64-common.lib'),(Join-Path $build 'Release\wpe64-target-core.lib'),$packets,(Join-Path $build 'CMakeCache.txt')) | ForEach-Object {[ordered]@{path=$_;sha256=(Hash $_)}}
+            artifacts=@($test,(Join-Path $build 'Release\wpe64-pipe-test.exe'),(Join-Path $build 'Release\wpe64-session-test.exe'),(Join-Path $build 'Release\wpe64-headless-core-test.exe'),(Join-Path $build 'Release\wpe64-injector-test.exe'),(Join-Path $build 'Release\wpe64-inject-target.exe'),(Join-Path $build 'Release\wpe64-inject-probe.dll'),(Join-Path $build 'Release\wpe64-common.lib'),(Join-Path $build 'Release\wpe64-target-core.lib'),(Join-Path $build 'Release\wpe64-injector.lib'),$packets,(Join-Path $build 'CMakeCache.txt')) | ForEach-Object {[ordered]@{path=$_;sha256=(Hash $_)}}
         }
+    }
+    if($Architecture -contains 'x64' -and $Architecture -contains 'Win32'){
+        $crossLogs=@()
+        foreach($injectorArch in @('x64','Win32')){
+            $otherArch=if($injectorArch -eq 'x64'){'Win32'}else{'x64'}
+            $release=Join-Path (Join-Path $run $injectorArch) 'Release'
+            $otherTarget=Join-Path (Join-Path (Join-Path $run $otherArch) 'Release') 'wpe64-inject-target.exe'
+            $log=Join-Path $run "$injectorArch-cross-inject.log"
+            Run (Join-Path $release 'wpe64-injector-test.exe') @((Join-Path $release 'wpe64-inject-target.exe'),(Join-Path $release 'wpe64-inject-probe.dll'),$otherTarget) $log
+            $crossLogs+=[ordered]@{injectorArchitecture=$injectorArch;targetArchitecture=$otherArch;result=(Get-Content -LiteralPath $log);sha256=(Hash $log)}
+        }
+        $manifest.crossArchitectureInjection=$crossLogs
     }
     & (Join-Path $PSScriptRoot 'verify-assets.ps1')
     if(-not $?){throw 'Preserved frontend verification failed'}
