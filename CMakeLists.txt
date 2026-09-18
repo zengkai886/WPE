@@ -61,6 +61,16 @@ if(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8)
     ole32 oleaut32 user32 shell32 shlwapi advapi32 dwmapi version)
   target_include_directories(wpe64-app SYSTEM PRIVATE third_party/webview2/include)
   target_compile_definitions(wpe64-app PRIVATE UNICODE _UNICODE _WIN32_WINNT=0x0A00)
+  add_dependencies(wpe64-app wpe64-hook)
+  # Keep a directly runnable Release/Debug folder self-contained.  The
+  # executable's default arguments look beside it for wwwroot and the hook;
+  # copying both at build time prevents the common blank-window / missing-DLL
+  # failure when someone double-clicks wpe64-app.exe.
+  add_custom_command(TARGET wpe64-app POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+      "${CMAKE_CURRENT_SOURCE_DIR}/wwwroot" "$<TARGET_FILE_DIR:wpe64-app>/wwwroot"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      "$<TARGET_FILE:wpe64-hook>" "$<TARGET_FILE_DIR:wpe64-app>/wpe64-hook.dll")
 endif()
 if(BUILD_TESTING)
   add_executable(wpe64-codec-test tests/codec_test.cpp)

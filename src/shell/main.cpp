@@ -65,18 +65,30 @@ Options Arguments(){
     if(count==0||count==path.size())throw std::runtime_error("Cannot determine executable path");path.resize(count);
     const auto folder=fs::path(path).parent_path();
     Options result{folder/L"wwwroot",folder/L"runtime",{},false};
+    bool assets_explicit=false;
     int argc=0;auto argv=CommandLineToArgvW(GetCommandLineW(),&argc);
     if(!argv)throw std::runtime_error("Cannot read command line");
     std::unique_ptr<wchar_t*,decltype(&LocalFree)> owner(argv,LocalFree);
     for(int i=1;i<argc;++i){
         const std::wstring arg=argv[i];
         if(i+1>=argc)throw std::runtime_error("Expected a value after command option");
-        if(arg==L"--assets")result.assets=argv[++i];
+        if(arg==L"--assets"){result.assets=argv[++i];assets_explicit=true;}
         else if(arg==L"--data-dir")result.data=argv[++i];
         else if(arg==L"--self-test"){result.test=true;result.report=argv[++i];}
         else throw std::runtime_error("Unknown option");
     }
     result.assets=fs::absolute(result.assets);result.data=fs::absolute(result.data);
+    // A developer build keeps wwwroot at the repository root while the
+    // executable lives in build/<config>.  Make a direct double-click work
+    // without requiring a fragile command-line --assets override.  An
+    // explicit --assets remains authoritative and still fails loudly when it
+    // points at an invalid package.
+    if(!assets_explicit&&!fs::is_regular_file(result.assets/L"index.html")){
+        const auto candidates={folder.parent_path()/L"wwwroot",folder.parent_path().parent_path()/L"wwwroot"};
+        for(const auto& candidate:candidates){
+            if(fs::is_regular_file(candidate/L"index.html")){result.assets=fs::absolute(candidate);break;}
+        }
+    }
     if(!fs::is_regular_file(result.assets/L"index.html"))throw std::runtime_error("Missing original wwwroot/index.html; use --assets");
     if(result.test){result.report=fs::absolute(result.report);fs::create_directories(result.report);}
     fs::create_directories(result.data);
@@ -364,10 +376,16 @@ void Host::RegisterMethods(){
     }
 }
 std::filesystem::path Host::HookDll() const {
-    const auto base=options_.assets.parent_path();
-    const auto path=base/L"wpe64-hook.dll";
-    if(!fs::is_regular_file(path))throw std::runtime_error("未找到 wpe64-hook.dll，请先构建目标注入模块");
-    return path;
+    const auto packaged=options_.assets.parent_path()/L"wpe64-hook.dll";
+    if(fs::is_regular_file(packaged))return packaged;
+    std::wstring module(32768,L'\0');
+    const auto count=GetModuleFileNameW(nullptr,module.data(),static_cast<DWORD>(module.size()));
+    if(count!=0&&count<module.size()){
+        module.resize(count);
+        const auto beside=fs::path(module).parent_path()/L"wpe64-hook.dll";
+        if(fs::is_regular_file(beside))return beside;
+    }
+    throw std::runtime_error("未找到 wpe64-hook.dll，请先构建目标注入模块");
 }
 void Host::RememberInjection(DWORD pid,const fs::path& path,const std::string& method,const std::wstring& args){
     last_inject_={{"pid",static_cast<std::int64_t>(pid)},{"path",Utf8(path.wstring())},
