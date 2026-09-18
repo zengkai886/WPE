@@ -121,6 +121,28 @@ bool ContainsSendSuccess(const std::vector<wpe::ByteBuffer>& events, const wpe::
     return false;
 }
 
+bool ContainsFilterExecution(const std::vector<wpe::ByteBuffer>& events) {
+    for (const auto& frame : events) {
+        try {
+            wpe::IpcReader reader(frame);
+            if (reader.U8() != static_cast<std::uint8_t>(wpe::IpcEvent::Stats)) continue;
+            (void)reader.Bool(); (void)reader.Bool();
+            const auto filter_count = reader.I32();
+            if (filter_count < 0 || filter_count > 1000) continue;
+            for (std::int32_t i = 0; i < filter_count; ++i) {
+                (void)reader.Guid_(); (void)reader.I64();
+            }
+            const auto send_count = reader.I32();
+            if (send_count < 0 || send_count > 1000) continue;
+            for (std::int32_t i = 0; i < send_count; ++i) {
+                (void)reader.Guid_(); (void)reader.I64(); (void)reader.I64(); (void)reader.I64();
+            }
+            return reader.I64() > 0;
+        } catch (...) {}
+    }
+    return false;
+}
+
 wpe::Text Text(std::string_view value) {
     std::u16string result;
     for (const unsigned char character : value) result.push_back(static_cast<char16_t>(character));
@@ -271,6 +293,12 @@ int wmain(int argc, wchar_t** argv) {
                 return ContainsFilteredPacket(packets, 1, "cross-process", "Cross-process") &&
                        ContainsPacket(packets, 5, "Cross-process");
             }), "injected DLL applied filter and returned raw/modified frames through pkt pipe");
+        }
+        {
+            std::unique_lock lock(event_mutex);
+            Check(event_ready.wait_for(lock, 3s, [&] {
+                return ContainsFilterExecution(events);
+            }), "filter execution count returned through Stats");
         }
 
         wpe::Packet captured;
