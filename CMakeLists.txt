@@ -114,6 +114,12 @@ if(BUILD_TESTING)
   add_test(NAME injected-target-session COMMAND wpe64-injected-session-test
     "$<TARGET_FILE:wpe64-injected-session-target>" "$<TARGET_FILE:wpe64-hook>"
     "$<TARGET_FILE:wpe64-inject-probe>")
+  add_executable(wpe64-target-link-launch-target tests/target_link_launch_target.cpp)
+  add_executable(wpe64-target-link-test tests/target_link_test.cpp src/shell/target_link.cpp)
+  target_link_libraries(wpe64-target-link-test PRIVATE wpe64-injector)
+  add_dependencies(wpe64-target-link-test wpe64-hook wpe64-target-link-launch-target)
+  add_test(NAME target-link-suspended-launch COMMAND wpe64-target-link-test
+    "$<TARGET_FILE:wpe64-target-link-launch-target>" "$<TARGET_FILE:wpe64-hook>")
   add_executable(wpe64-bridge-test tests/web_bridge_test.cpp)
   target_link_libraries(wpe64-bridge-test PRIVATE wpe64-bridge)
   add_test(NAME web-bridge COMMAND wpe64-bridge-test)

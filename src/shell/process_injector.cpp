@@ -94,13 +94,27 @@ bool HasRemoteModule(DWORD pid, const std::wstring& module_name) {
     return RemoteModuleBase(pid, module_name.c_str()) != 0;
 }
 
-LPTHREAD_START_ROUTINE RemoteLoadLibrary(DWORD pid) {
+LPTHREAD_START_ROUTINE RemoteLoadLibrary(DWORD pid, bool suspended_launch) {
     const auto local_module = GetModuleHandleW(L"kernel32.dll");
     if (!local_module) Fail("GetModuleHandleW(kernel32)");
     const auto local_proc = GetProcAddress(local_module, "LoadLibraryW");
     if (!local_proc) Fail("GetProcAddress(LoadLibraryW)");
-    const auto remote_base = RemoteModuleBase(pid, L"kernel32.dll");
-    if (!remote_base) throw ProtocolError("Target kernel32.dll was not found");
+    // A CREATE_SUSPENDED primary thread can still be inside the process
+    // loader's initialisation.  Toolhelp then cannot acquire the loader lock
+    // and may report ERROR_PARTIAL_COPY for the entire retry window.  System
+    // DLLs use the same image mapping for a given machine/boot session, so the
+    // local kernel32 base is a safe fallback until the suspended loader has
+    // published its module list.  Once the target is running normally the
+    // Toolhelp path remains the preferred (and independently verified) one.
+    std::uintptr_t remote_base = 0;
+    try { remote_base = RemoteModuleBase(pid, L"kernel32.dll"); }
+    catch (const ProtocolError&) {
+        if (!suspended_launch) throw;
+        remote_base = reinterpret_cast<std::uintptr_t>(local_module);
+    }
+    if (!remote_base && !suspended_launch)
+        throw ProtocolError("Target kernel32.dll was not found");
+    if (!remote_base) remote_base = reinterpret_cast<std::uintptr_t>(local_module);
     const auto offset = reinterpret_cast<std::uintptr_t>(local_proc) -
                         reinterpret_cast<std::uintptr_t>(local_module);
     return reinterpret_cast<LPTHREAD_START_ROUTINE>(remote_base + offset);
@@ -204,8 +218,8 @@ SuspendedProcess ProcessInjector::LaunchSuspended(const std::filesystem::path& e
     return SuspendedProcess(process.hProcess, process.hThread, process.dwProcessId);
 }
 
-void ProcessInjector::Inject(DWORD process_id, const std::filesystem::path& dll_path,
-                             std::chrono::milliseconds timeout) {
+void InjectModule(DWORD process_id, const std::filesystem::path& dll_path,
+                  bool suspended_launch, std::chrono::milliseconds timeout) {
     if (timeout.count() <= 0 || timeout.count() > static_cast<long long>(INFINITE - 1U))
         throw ProtocolError("Injection timeout is invalid");
     const auto dll = FullExistingFile(dll_path, "Injection DLL");
@@ -229,7 +243,8 @@ void ProcessInjector::Inject(DWORD process_id, const std::filesystem::path& dll_
         SIZE_T written = 0;
         if (!WriteProcessMemory(process.Get(), remote, text.c_str(), byte_count, &written) || written != byte_count)
             Fail("WriteProcessMemory");
-        Handle thread(CreateRemoteThread(process.Get(), nullptr, 0, RemoteLoadLibrary(process_id),
+        Handle thread(CreateRemoteThread(process.Get(), nullptr, 0,
+                                         RemoteLoadLibrary(process_id, suspended_launch),
                                          remote, 0, nullptr));
         if (!thread.Get()) Fail("CreateRemoteThread(LoadLibraryW)");
         const auto wait = WaitForSingleObject(thread.Get(), static_cast<DWORD>(timeout.count()));
@@ -247,12 +262,17 @@ void ProcessInjector::Inject(DWORD process_id, const std::filesystem::path& dll_
     if (!VirtualFreeEx(process.Get(), remote, 0, MEM_RELEASE)) Fail("VirtualFreeEx");
 }
 
+void ProcessInjector::Inject(DWORD process_id, const std::filesystem::path& dll_path,
+                             std::chrono::milliseconds timeout) {
+    InjectModule(process_id, dll_path, false, timeout);
+}
+
 void ProcessInjector::InjectAndStart(DWORD process_id, const std::filesystem::path& dll_path,
                                      const InjectionOptions& options,
                                      std::chrono::milliseconds timeout) {
     const auto bootstrap = MakeBootstrap(options);
     const auto dll = FullExistingFile(dll_path, "Injection DLL");
-    Inject(process_id, dll, timeout);
+    InjectModule(process_id, dll, options.suspended_launch, timeout);
 
     Handle process(OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION |
                                PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ,
