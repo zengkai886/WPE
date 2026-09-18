@@ -198,11 +198,14 @@ LRESULT Host::Message(UINT message,WPARAM wparam,LPARAM lparam){
         if(!closing_)DrainTarget();
         if(data_&&bridge_&&!closing_)data_->Drain([this](std::string name,Json value){bridge_->PushEvent(std::move(name),std::move(value));});
         if(options_.test && std::chrono::steady_clock::now()-started_>std::chrono::seconds(90))Fail("WebView2 self-test timed out");
-        if(!options_.test && !revealed_ && std::chrono::steady_clock::now()-started_>std::chrono::seconds(4)){revealed_=true;ShowWindow(window_,SW_SHOW);}
+        if(!options_.test && !revealed_ && std::chrono::steady_clock::now()-started_>std::chrono::seconds(4)){
+            revealed_=true;ShowWindow(window_,SW_SHOW);if(controller_)controller_->put_IsVisible(TRUE);Resize();
+            RedrawWindow(window_,nullptr,nullptr,RDW_INVALIDATE|RDW_ERASE|RDW_UPDATENOW|RDW_ALLCHILDREN);
+        }
         if(!options_.test && !ready_ && std::chrono::steady_clock::now()-started_>std::chrono::seconds(30))Fail("原 Vue 页面未在 30 秒内完成初始化，请检查 WebView2 Runtime 和 wwwroot 资源。");
         return 0;
     case app_ready:
-        if(!ready_){ready_=true;if(!options_.test){revealed_=true;ShowWindow(window_,SW_SHOW);}else BeginTest();}
+        if(!ready_){ready_=true;if(!options_.test){revealed_=true;ShowWindow(window_,SW_SHOW);if(controller_)controller_->put_IsVisible(TRUE);Resize();RedrawWindow(window_,nullptr,nullptr,RDW_INVALIDATE|RDW_ERASE|RDW_UPDATENOW|RDW_ALLCHILDREN);}else BeginTest();}
         return 0;
     case app_drag:ReleaseCapture();SendMessageW(window_,WM_NCLBUTTONDOWN,HTCAPTION,0);return 0;
     case app_test:CaptureAndFinish();return 0;
@@ -280,7 +283,13 @@ void Host::Configure(){
     Check(view_->add_NavigationCompleted(Callback<ICoreWebView2NavigationCompletedEventHandler>([this](ICoreWebView2*,ICoreWebView2NavigationCompletedEventArgs* args)->HRESULT{
         return Guard([&]{BOOL ok=FALSE;Check(args->get_IsSuccess(&ok),"Navigation status");if(!ok)Fail("Original frontend navigation failed");});
     }).Get(),&token),"Register navigation completion");
-    Resize();Check(view_->Navigate(origin),"Navigate original frontend");
+    Resize();
+    // The host starts hidden to avoid a white startup flash.  Explicitly
+    // enable the controller and repaint when it is shown; some DWM/GPU
+    // combinations otherwise leave a controller created on a hidden parent
+    // as a blank white surface.
+    Check(controller_->put_IsVisible(TRUE),"Show WebView2 controller");
+    Check(view_->Navigate(origin),"Navigate original frontend");
 }
 void Host::Resize(){if(controller_){RECT bounds{};GetClientRect(window_,&bounds);if(!IsZoomed(window_)){InflateRect(&bounds,-3,-3);}controller_->put_Bounds(bounds);}}
 void Host::State(){if(bridge_&&!closing_)bridge_->PushEvent("window:state",{{"maximized",IsZoomed(window_)!=FALSE}});}
