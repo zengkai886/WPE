@@ -166,6 +166,12 @@ void ReceiveExact(SOCKET socket, std::string_view expected) {
     Check(result == static_cast<int>(expected.size()), "recv length");
     Check(std::memcmp(buffer.data(), expected.data(), expected.size()) == 0, "recv bytes");
 }
+
+wpe::Text Text(std::string_view value) {
+    std::u16string result;
+    for (const unsigned char character : value) result.push_back(static_cast<char16_t>(character));
+    return result;
+}
 } // namespace
 
 int main() {
@@ -195,14 +201,94 @@ int main() {
         Check(sent_packet && sent_packet->time_ticks >= before_send_ticks &&
               sent_packet->time_ticks <= after_send_ticks,
               "packet timestamp uses original DateTime.Now local ticks");
+
+        wpe::FilterSnapshot filter;
+        filter.enabled = true;
+        filter.id = wpe::Guid::Parse("00112233-4455-6677-8899-aabbccddeeff");
+        filter.name = Text("live-send-filter");
+        filter.functions.fill(false);
+        filter.functions[0] = true;
+        filter.mode = 0;
+        filter.action = 0;
+        filter.search = Text("0|61");
+        filter.modify = Text("0|6f");
+        hooks.ConfigureFilters({filter}, 0, false);
+        collector.Clear();
+        Check(send(tcp.first.value, "alpha", 5, 0) == 5, "filtered send result");
+        ReceiveExact(tcp.second.value, "olpha");
+        packets = collector.WaitFor(1, "alpha");
+        sent_packet = Find(packets, 1, "alpha");
+        Check(sent_packet && sent_packet->modified &&
+              *sent_packet->modified == wpe::ByteBuffer({'o','l','p','h','a'}) &&
+              sent_packet->filter_action == 0,
+              "send detour transmits modified bytes and records both buffers");
+        auto filter_stats = *hooks.LiveFilterStats();
+        Check(filter_stats.filters.size() == 1 && filter_stats.filters[0].second == 1 &&
+              filter_stats.globals[0] == 1 && filter_stats.globals[1] == 1,
+              "live send filter updates item and global counters");
+
+        filter.name = Text("live-intercept-filter");
+        filter.action = 1;
+        filter.search = Text("0|64");
+        filter.modify = Text("");
+        hooks.ConfigureFilters({filter}, 0, false);
+        collector.Clear();
+        Check(send(tcp.first.value, "drop", 4, 0) == 4,
+              "intercepted send reports original length");
+        fd_set readable;
+        FD_ZERO(&readable);
+        FD_SET(tcp.second.value, &readable);
+        timeval short_wait{0, 50000};
+        Check(select(0, &readable, nullptr, nullptr, &short_wait) == 0,
+              "intercepted send does not reach peer");
+        packets = collector.WaitFor(1, "drop");
+        sent_packet = Find(packets, 1, "drop");
+        Check(sent_packet && sent_packet->filter_action == 1,
+              "intercepted send is captured with intercept action");
+
+        filter.name = Text("live-recv-filter");
+        filter.action = 0;
+        filter.functions.fill(false);
+        filter.functions[2] = true;
+        filter.search = Text("0|72");
+        filter.modify = Text("0|78");
+        hooks.ConfigureFilters({filter}, 0, false);
+        collector.Clear();
+        Check(send(tcp.second.value, "reply", 5, 0) == 5, "receive-filter fixture sent");
+        ReceiveExact(tcp.first.value, "xeply");
+        packets = collector.WaitFor(5, "reply");
+        const auto* received_packet = Find(packets, 5, "reply");
+        Check(received_packet && received_packet->modified &&
+              *received_packet->modified == wpe::ByteBuffer({'x','e','p','l','y'}) &&
+              received_packet->filter_action == 0,
+              "recv detour returns modified bytes and records original bytes");
+
+        filter.name = Text("live-recv-intercept-filter");
+        filter.action = 1;
+        filter.search = Text("0|68");
+        filter.modify = Text("");
+        hooks.ConfigureFilters({filter}, 0, false);
+        collector.Clear();
+        Check(send(tcp.second.value, "hide", 4, 0) == 4,
+              "receive-intercept fixture sent");
+        std::array<char, 8> intercepted_receive{};
+        Check(recv(tcp.first.value, intercepted_receive.data(),
+                   static_cast<int>(intercepted_receive.size()), 0) == 0,
+              "intercepted receive reports zero to caller");
+        packets = collector.WaitFor(5, "hide");
+        received_packet = Find(packets, 5, "hide");
+        Check(received_packet && received_packet->filter_action == 1,
+              "intercepted receive remains visible with original bytes and action");
+        hooks.ConfigureFilters({}, 0, false);
+
         Check(send(tcp.first.value,
                    reinterpret_cast<const char*>(static_cast<std::uintptr_t>(1)),
                    1, 0) == SOCKET_ERROR,
               "invalid send buffer is passed to Winsock without crashing the detour");
         auto counters = *hooks.LivePacketCounters();
-        Check(counters[0] == 2 && counters[1] == 1 && counters[3] == 1,
+        Check(counters[0] == 9 && counters[1] == 5 && counters[3] == 4,
               "basic counters by function family");
-        Check(counters[9] == 5 && counters[10] == 5, "basic byte counters");
+        Check(counters[9] == 23 && counters[10] == 19, "basic byte counters");
         hooks.ConfigureSpeedMode(true);
         const auto before_speed = collector.Count();
         Check(send(tcp.first.value, "fast", 4, 0) == 4, "speed-mode send result");
@@ -210,7 +296,7 @@ int main() {
         Sleep(50);
         Check(collector.Count() == before_speed, "speed mode counts without packet frames");
         counters = *hooks.LivePacketCounters();
-        Check(counters[0] == 4 && counters[9] == 9 && counters[10] == 9,
+        Check(counters[0] == 11 && counters[9] == 27 && counters[10] == 23,
               "speed mode preserves target counters");
         hooks.ResetLivePacketCounters();
         counters = *hooks.LivePacketCounters();
@@ -287,6 +373,52 @@ int main() {
         packets = collector.Wait(2);
         Check(Has(packets, 8, "multi") && Has(packets, 10, "multi"),
               "multi-buffer WSA send/recv captured");
+
+        filter.name = Text("wsa-send-filter");
+        filter.action = 0;
+        filter.functions.fill(false);
+        filter.functions[4] = true;
+        filter.search = Text("0|66");
+        filter.modify = Text("0|6c");
+        hooks.ConfigureFilters({filter}, 0, false);
+        collector.Clear();
+        std::array<char, 2> filter_part1{'f','i'};
+        std::array<char, 2> filter_part2{'v','e'};
+        WSABUF filter_outgoing[2]{{2, filter_part1.data()}, {2, filter_part2.data()}};
+        transferred = 0;
+        Check(WSASend(tcp.first.value, filter_outgoing, 2, &transferred, 0, nullptr, nullptr) == 0 &&
+              transferred == 4, "filtered WSASend result");
+        ReceiveExact(tcp.second.value, "live");
+        packets = collector.WaitFor(8, "five");
+        sent_packet = Find(packets, 8, "five");
+        Check(sent_packet && sent_packet->modified &&
+              *sent_packet->modified == wpe::ByteBuffer({'l','i','v','e'}) &&
+              sent_packet->filter_action == 0,
+              "synchronous WSASend filters a scatter buffer without changing caller storage");
+
+        filter.name = Text("wsa-recv-filter");
+        filter.functions.fill(false);
+        filter.functions[6] = true;
+        filter.search = Text("0|72");
+        filter.modify = Text("0|78");
+        hooks.ConfigureFilters({filter}, 0, false);
+        collector.Clear();
+        Check(send(tcp.second.value, "reply", 5, 0) == 5, "WSARecv filter fixture sent");
+        std::array<char, 2> filter_receive1{};
+        std::array<char, 3> filter_receive2{};
+        WSABUF filter_incoming[2]{{2, filter_receive1.data()}, {3, filter_receive2.data()}};
+        transferred = 0;
+        Check(WSARecv(tcp.first.value, filter_incoming, 2, &transferred, &receive_flags,
+                      nullptr, nullptr) == 0 && transferred == 5,
+              "filtered WSARecv result");
+        Check(std::string(filter_receive1.data(), 2) + std::string(filter_receive2.data(), 3) == "xeply",
+              "synchronous WSARecv writes modified bytes across caller buffers");
+        packets = collector.WaitFor(10, "reply");
+        received_packet = Find(packets, 10, "reply");
+        Check(received_packet && received_packet->modified &&
+              *received_packet->modified == wpe::ByteBuffer({'x','e','p','l','y'}),
+              "WSARecv packet frame preserves raw and modified buffers");
+        hooks.ConfigureFilters({}, 0, false);
         if constexpr (sizeof(void*) == 4) {
             using WsaRecvExFn = int (WSAAPI*)(SOCKET, char*, int, int*);
             const auto msws = GetModuleHandleW(L"mswsock.dll");

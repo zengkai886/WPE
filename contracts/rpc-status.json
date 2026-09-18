@@ -299,14 +299,14 @@
       "originalLine": 2706,
       "registered": true,
       "status": "设置读写已接",
-      "note": "真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。"
+      "note": "真实 SQLite 设置读写；目标侧已能消费速度与滤镜执行顺序快照，原 Vue 注入会话推送尚未接，自动清理仍待运行接线。"
     },
     {
       "method": "saveSystemSetting",
       "originalLine": 2713,
       "registered": true,
       "status": "设置读写已接",
-      "note": "真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。"
+      "note": "真实 SQLite 设置读写；目标侧已能消费速度与滤镜执行顺序快照，原 Vue 注入会话推送尚未接，自动清理仍待运行接线。"
     },
     {
       "method": "saveActionColor",
@@ -446,7 +446,7 @@
       "originalLine": 3354,
       "registered": true,
       "status": "设置读写已接",
-      "note": "真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。"
+      "note": "真实 SQLite 设置读写；目标侧已实现 Priority/Sequence 执行顺序，但原 Vue 注入入口尚未把该设置推送到目标会话。"
     },
     {
       "method": "getFilterEdit",

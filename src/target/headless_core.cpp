@@ -165,6 +165,9 @@ void HeadlessCore::ApplyConfig(ConfigKind kind, std::span<const std::uint8_t> pa
     IpcReader reader(payload);
     std::optional<std::array<bool, 12>> hook_flags;
     std::optional<bool> speed_mode;
+    std::optional<std::vector<FilterSnapshot>> filters;
+    std::int32_t filter_execute = 0;
+    bool filter_speed_mode = false;
     {
         std::lock_guard lock(mutex_);
         auto fresh_config = config_;
@@ -246,9 +249,15 @@ void HeadlessCore::ApplyConfig(ConfigKind kind, std::span<const std::uint8_t> pa
         config_ = std::move(fresh_config);
         if (kind == ConfigKind::HookFlags) hook_flags = config_.hook_flags;
         if (kind == ConfigKind::Runtime) speed_mode = config_.runtime.speed_mode;
+        if (kind == ConfigKind::Filters || kind == ConfigKind::Runtime) {
+            filters = config_.filters;
+            filter_execute = config_.runtime.filter_execute;
+            filter_speed_mode = config_.runtime.speed_mode;
+        }
     }
     if (hook_flags) hooks_.ConfigureHookFlags(*hook_flags);
     if (speed_mode) hooks_.ConfigureSpeedMode(*speed_mode);
+    if (filters) hooks_.ConfigureFilters(*filters, filter_execute, filter_speed_mode);
 }
 
 void HeadlessCore::ResetStats(IpcReader& reader) {
@@ -272,6 +281,8 @@ void HeadlessCore::ResetStats(IpcReader& reader) {
             for (auto& item : config_.robots) item.execution_count = 0;
     }
     if (reset_live_packets) hooks_.ResetLivePacketCounters();
+    if ((raw & static_cast<std::uint8_t>(ResetWhat::FilterStats)) != 0)
+        hooks_.ResetLiveFilterStats();
 }
 
 void HeadlessCore::Emit(ByteBuffer event) noexcept {
@@ -302,19 +313,30 @@ void HeadlessCore::EmitFatal(std::string_view message) noexcept {
 
 ByteBuffer HeadlessCore::EncodeStatsEvent() const {
     const auto live_packets = hooks_.LivePacketCounters();
+    const auto live_filters = hooks_.LiveFilterStats();
     std::lock_guard lock(mutex_);
     IpcWriter writer;
     writer.U8(static_cast<std::uint8_t>(IpcEvent::Stats));
     writer.Bool(counters_.send_list_running);
     writer.Bool(counters_.robot_list_running);
     writer.I32(static_cast<std::int32_t>(config_.filters.size()));
-    for (const auto& item : config_.filters) { writer.Guid_(item.id); writer.I64(item.execution_count); }
+    for (const auto& item : config_.filters) {
+        writer.Guid_(item.id);
+        auto count = item.execution_count;
+        if (live_filters) {
+            const auto found = std::find_if(live_filters->filters.begin(), live_filters->filters.end(),
+                [&](const auto& candidate) { return candidate.first == item.id; });
+            if (found != live_filters->filters.end()) count = found->second;
+        }
+        writer.I64(count);
+    }
     writer.I32(static_cast<std::int32_t>(config_.sends.size()));
     for (const auto& item : config_.sends) {
         writer.Guid_(item.id); writer.I64(item.execution_count);
         writer.I64(item.success_count); writer.I64(item.fail_count);
     }
-    for (const auto value : counters_.filter_globals) writer.I64(value);
+    for (const auto value : live_filters ? live_filters->globals : counters_.filter_globals)
+        writer.I64(value);
     writer.I32(static_cast<std::int32_t>(config_.robots.size()));
     for (const auto& item : config_.robots) { writer.Guid_(item.id); writer.I64(item.execution_count); }
     const auto& packets = live_packets ? *live_packets : counters_.packets;

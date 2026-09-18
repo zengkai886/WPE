@@ -10,9 +10,16 @@
 #include <mutex>
 #include <optional>
 #include <thread>
+#include <utility>
 #include <vector>
 
 namespace wpe {
+
+struct FilterSnapshot;
+struct FilterRuntimeStats {
+    std::vector<std::pair<Guid, std::int64_t>> filters;
+    std::array<std::int64_t, 6> globals{};
+};
 
 struct WinsockSupport {
     bool ws1{};
@@ -29,6 +36,8 @@ public:
     // consume these without reaching back into HeadlessCore from a detour.
     virtual void ConfigureHookFlags(const std::array<bool, 12>&) {}
     virtual void ConfigureSpeedMode(bool) noexcept {}
+    virtual void ConfigureFilters(const std::vector<FilterSnapshot>&,
+                                  std::int32_t, bool) {}
     virtual void StartHook() = 0;
     virtual void StopHook() = 0;
     // A production controller owns lock-free packet counters because they are
@@ -38,6 +47,10 @@ public:
         return std::nullopt;
     }
     virtual void ResetLivePacketCounters() noexcept {}
+    virtual std::optional<FilterRuntimeStats> LiveFilterStats() const noexcept {
+        return std::nullopt;
+    }
+    virtual void ResetLiveFilterStats() noexcept {}
 };
 
 struct FilterSnapshot {

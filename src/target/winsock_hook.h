@@ -23,10 +23,14 @@ public:
     WinsockSupport DetectWinsock(bool may_load) override;
     void ConfigureHookFlags(const std::array<bool, 12>& flags) override;
     void ConfigureSpeedMode(bool enabled) noexcept override;
+    void ConfigureFilters(const std::vector<FilterSnapshot>& filters,
+                          std::int32_t execute_mode, bool speed_mode) override;
     void StartHook() override;
     void StopHook() override;
     std::optional<std::array<std::int64_t, 11>> LivePacketCounters() const noexcept override;
     void ResetLivePacketCounters() noexcept override;
+    std::optional<FilterRuntimeStats> LiveFilterStats() const noexcept override;
+    void ResetLiveFilterStats() noexcept override;
 
     [[nodiscard]] std::size_t RegisteredHookCount() const noexcept;
     [[nodiscard]] std::uint32_t InFlightDetourCount() const noexcept;

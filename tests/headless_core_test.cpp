@@ -55,6 +55,13 @@ public:
         configured_speed = value;
         ++speed_updates;
     }
+    void ConfigureFilters(const std::vector<wpe::FilterSnapshot>& value,
+                          std::int32_t execute_mode, bool speed_mode) override {
+        configured_filters = value;
+        configured_filter_execute = execute_mode;
+        configured_filter_speed = speed_mode;
+        ++filter_updates;
+    }
     void StartHook() override { ++starts; if (fail_start) throw std::runtime_error("start failed"); }
     void StopHook() override { ++stops; }
     std::optional<std::array<std::int64_t, 11>> LivePacketCounters() const noexcept override {
@@ -65,10 +72,15 @@ public:
         live_counters.fill(0);
         ++live_resets;
     }
+    void ResetLiveFilterStats() noexcept override { ++filter_resets; }
     std::atomic<int> passive_detects{0}, load_detects{0}, starts{0}, stops{0};
     std::atomic<int> flag_updates{0}, speed_updates{0}, live_resets{0};
+    std::atomic<int> filter_updates{0}, filter_resets{0};
     std::array<bool, 12> configured_flags{};
     std::array<std::int64_t, 11> live_counters{};
+    std::vector<wpe::FilterSnapshot> configured_filters;
+    std::int32_t configured_filter_execute{};
+    bool configured_filter_speed{};
     bool configured_speed{};
     bool expose_live{};
     bool fail_detect{};
@@ -130,6 +142,8 @@ void ConfigurationAndStats() {
     filters.Bool(true); filters.I32(7); filters.Str(T(u"1,2")); filters.I32(8);
     filters.Str(T(u"9")); filters.Str(T(u"10")); filters.Str(T(u"AB")); filters.Str(T(u"CD"));
     ExpectOk(SetConfig(core, wpe::ConfigKind::Filters, filters.ToArray()));
+    Check(hooks.filter_updates == 1 && hooks.configured_filters.size() == 1,
+          "filter snapshot is published to hook controller");
     config = core.Configuration();
     Check(config.filters.size() == 1, "filter snapshot row count");
     Check(config.filters[0].id == filter_id && config.filters[0].execute_id == execute_id,
@@ -168,6 +182,9 @@ void ConfigurationAndStats() {
     runtime.I32(99); runtime.I32(10); runtime.Str(T(u"a")); runtime.Str(T(u"b"));
     runtime.Bytes(wpe::ByteBuffer{4,5,6});
     ExpectOk(SetConfig(core, wpe::ConfigKind::Runtime, runtime.ToArray()));
+    Check(hooks.filter_updates == 2 && hooks.configured_filter_execute == 1 &&
+          hooks.configured_filter_speed,
+          "runtime update republishes filter execution mode and speed mode");
     config = core.Configuration();
     Check(config.runtime.speed_mode && config.runtime.system_socket == 88, "runtime scalar fields");
     Check(config.runtime.selected_packet && config.runtime.selected_packet->socket == 99 &&
@@ -220,6 +237,7 @@ void ConfigurationAndStats() {
     const auto counters = core.Counters();
     Check(counters.filter_globals[5] == 0 && counters.packets[10] == 310,
           "ResetStats mask isolates global groups");
+    Check(hooks.filter_resets == 1, "filter reset reaches production controller boundary");
 
     hooks.expose_live = true;
     for (std::size_t i = 0; i < hooks.live_counters.size(); ++i)

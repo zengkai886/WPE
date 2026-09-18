@@ -78,6 +78,28 @@ bool ContainsPacket(const std::vector<wpe::ByteBuffer>& frames, std::uint8_t typ
     }
     return false;
 }
+
+bool ContainsFilteredPacket(const std::vector<wpe::ByteBuffer>& frames, std::uint8_t type,
+                            std::string_view raw, std::string_view modified) {
+    for (const auto& frame : frames) {
+        try {
+            const auto packet = wpe::PacketFrame::Decode(frame);
+            if (packet.packet_type == type && packet.filter_action == 0 && packet.raw &&
+                packet.modified && packet.raw->size() == raw.size() &&
+                packet.modified->size() == modified.size() &&
+                std::equal(packet.raw->begin(), packet.raw->end(), raw.begin()) &&
+                std::equal(packet.modified->begin(), packet.modified->end(), modified.begin()))
+                return true;
+        } catch (...) {}
+    }
+    return false;
+}
+
+wpe::Text Text(std::string_view value) {
+    std::u16string result;
+    for (const unsigned char character : value) result.push_back(static_cast<char16_t>(character));
+    return result;
+}
 } // namespace
 
 int wmain(int argc, wchar_t** argv) {
@@ -169,6 +191,31 @@ int wmain(int argc, wchar_t** argv) {
         shell.CallVoid(set_config.ToArray());
         ++checks;
 
+        wpe::IpcWriter filter_payload;
+        filter_payload.I32(1);
+        filter_payload.Bool(true);
+        filter_payload.Guid_(wpe::Guid::Parse("00112233-4455-6677-8899-aabbccddeeff"));
+        filter_payload.Str(Text("cross-process-filter"));
+        filter_payload.Bool(false); filter_payload.Str(Text(""));
+        filter_payload.Bool(false); filter_payload.Str(Text(""));
+        filter_payload.Bool(false); filter_payload.Str(Text(""));
+        filter_payload.Bool(false); filter_payload.Str(Text(""));
+        filter_payload.I32(0); filter_payload.I32(0);
+        filter_payload.Bool(false); filter_payload.I32(2);
+        filter_payload.Guid_(wpe::Guid{});
+        for (int i = 0; i < 12; ++i) filter_payload.Bool(i == 0);
+        filter_payload.I32(0); filter_payload.Bool(false); filter_payload.Bool(false);
+        filter_payload.I32(1); filter_payload.Bool(false); filter_payload.I32(1);
+        filter_payload.Str(Text("")); filter_payload.I32(0);
+        filter_payload.Str(Text("")); filter_payload.Str(Text(""));
+        filter_payload.Str(Text("0|63")); filter_payload.Str(Text("0|43"));
+        wpe::IpcWriter set_filters;
+        set_filters.U8(static_cast<std::uint8_t>(wpe::IpcCommand::SetConfig));
+        set_filters.U8(static_cast<std::uint8_t>(wpe::ConfigKind::Filters));
+        set_filters.Bytes(filter_payload.ToArray());
+        shell.CallVoid(set_filters.ToArray());
+        ++checks;
+
         wpe::IpcWriter start_hook;
         start_hook.U8(static_cast<std::uint8_t>(wpe::IpcCommand::StartHook));
         shell.CallVoid(start_hook.ToArray());
@@ -184,9 +231,9 @@ int wmain(int argc, wchar_t** argv) {
         {
             std::unique_lock lock(packet_mutex);
             Check(packet_ready.wait_for(lock, 3s, [&] {
-                return ContainsPacket(packets, 1, "cross-process") &&
-                       ContainsPacket(packets, 5, "cross-process");
-            }), "injected DLL returned real send/recv frames through pkt pipe");
+                return ContainsFilteredPacket(packets, 1, "cross-process", "Cross-process") &&
+                       ContainsPacket(packets, 5, "Cross-process");
+            }), "injected DLL applied filter and returned raw/modified frames through pkt pipe");
         }
         Throws([&] {
             wpe::shell::ProcessInjector::InjectAndStart(child.Pid(), hook, options, 2s);

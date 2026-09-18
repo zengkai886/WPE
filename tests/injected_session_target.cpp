@@ -34,8 +34,9 @@ bool NetworkRoundTrip() {
             static_cast<int>(sizeof(payload) - 1)) break;
         std::array<char, 32> received{};
         const int count = recv(server, received.data(), static_cast<int>(received.size()), 0);
-        success = count == static_cast<int>(sizeof(payload) - 1) &&
-                  std::memcmp(received.data(), payload, sizeof(payload) - 1) == 0;
+        constexpr char filtered[] = "Cross-process";
+        success = count == static_cast<int>(sizeof(filtered) - 1) &&
+                  std::memcmp(received.data(), filtered, sizeof(filtered) - 1) == 0;
         // The production design deliberately resolves socket endpoints on the
         // writer thread, not in the target's send/recv call. Keep this fixture's
         // sockets alive long enough for that asynchronous lookup to complete.

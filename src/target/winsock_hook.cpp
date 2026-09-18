@@ -4,6 +4,7 @@
 #include <WinSock2.h>
 #include <ws2tcpip.h>
 #include "winsock_hook.h"
+#include "filter_engine.h"
 #include "hook_manager.h"
 #include "common/ipc_protocol.h"
 #include "common/packet_frame.h"
@@ -69,6 +70,10 @@ bool TryReadDword(const DWORD* source, DWORD& value) noexcept {
     return TryCopyMemory(&value, source, sizeof(value));
 }
 
+bool TryWriteDword(DWORD* destination, DWORD value) noexcept {
+    return TryCopyMemory(destination, &value, sizeof(value));
+}
+
 bool TryReadInt(const int* source, int& value) noexcept {
     return TryCopyMemory(&value, source, sizeof(value));
 }
@@ -121,6 +126,20 @@ std::optional<std::size_t> TotalBufferLength(const WSABUF* buffers, DWORD count)
     return total;
 }
 
+bool CopyToBuffers(WSABUF* buffers, DWORD count,
+                   std::span<const std::uint8_t> bytes) noexcept {
+    if (!buffers || count == 0 || count > kMaximumWsaBufferCount) return false;
+    std::size_t offset = 0;
+    for (DWORD i = 0; i < count && offset < bytes.size(); ++i) {
+        WSABUF buffer{};
+        if (!TryReadWsaBuffer(buffers, i, buffer)) return false;
+        const auto take = (std::min)(static_cast<std::size_t>(buffer.len), bytes.size() - offset);
+        if (take != 0 && !TryCopyMemory(buffer.buf, bytes.data() + offset, take)) return false;
+        offset += take;
+    }
+    return offset == bytes.size();
+}
+
 std::string FormatIpv4(const sockaddr* address, int length) {
     if (!address || length < static_cast<int>(sizeof(sockaddr_in)) ||
         address->sa_family != AF_INET) return {};
@@ -163,11 +182,13 @@ struct WinsockHookController::Impl final {
 
     Impl(bool suspended, FrameSender packets, FrameSender events)
         : suspended_launch(suspended), packet_sender(std::move(packets)),
-          event_sender(std::move(events)) {}
+          event_sender(std::move(events)),
+          filter_engine([this](const FilterLogRecord& record) { EmitFilterLog(record); }) {}
 
     bool suspended_launch{};
     FrameSender packet_sender;
     FrameSender event_sender;
+    FilterEngine filter_engine;
     HookManager manager;
     PacketRing ring;
     mutable std::mutex lifecycle_mutex;
@@ -272,15 +293,67 @@ struct WinsockHookController::Impl final {
                                              std::memory_order_relaxed);
     }
 
+    void EmitFilterLog(const FilterLogRecord& record) noexcept {
+        if (!event_sender) return;
+        try {
+            IpcWriter writer_event;
+            writer_event.U8(static_cast<std::uint8_t>(IpcEvent::FilterLog));
+            writer_event.Str(record.name);
+            writer_event.I32(static_cast<std::int32_t>(record.action));
+            writer_event.I32(record.matches);
+            writer_event.I32(record.packet_type);
+            writer_event.I32(record.packet_length);
+            event_sender(writer_event.ToArray());
+        } catch (...) {}
+    }
+
+    FilterContext Context(SOCKET socket, std::uint8_t type,
+                          const sockaddr* address, int address_length) const noexcept {
+        FilterContext context;
+        context.socket = static_cast<std::int64_t>(socket);
+        context.packet_type = type;
+        const auto append = [&](const sockaddr* candidate, int length) {
+            if (!candidate || length < static_cast<int>(sizeof(sockaddr_in)) ||
+                candidate->sa_family != AF_INET || context.port_count >= context.ports.size()) return;
+            const auto port = ntohs(reinterpret_cast<const sockaddr_in*>(candidate)->sin_port);
+            if (std::find(context.ports.begin(), context.ports.begin() +
+                          static_cast<std::ptrdiff_t>(context.port_count), port) ==
+                context.ports.begin() + static_cast<std::ptrdiff_t>(context.port_count))
+                context.ports[context.port_count++] = port;
+        };
+        append(address, address_length);
+        sockaddr_storage endpoint{};
+        int endpoint_length = sizeof(endpoint);
+        if (get_sock_name && get_sock_name(socket, reinterpret_cast<sockaddr*>(&endpoint),
+                                            &endpoint_length) == 0)
+            append(reinterpret_cast<const sockaddr*>(&endpoint), endpoint_length);
+        endpoint = {};
+        endpoint_length = sizeof(endpoint);
+        if (get_peer_name && get_peer_name(socket, reinterpret_cast<sockaddr*>(&endpoint),
+                                            &endpoint_length) == 0)
+            append(reinterpret_cast<const sockaddr*>(&endpoint), endpoint_length);
+        return context;
+    }
+
     void Capture(SOCKET socket, std::uint8_t type,
-                 std::shared_ptr<const ByteBuffer> bytes,
+                 std::shared_ptr<const ByteBuffer> raw,
+                 std::shared_ptr<const ByteBuffer> modified,
+                 std::uint8_t filter_action,
                  std::size_t logical_length,
                  const sockaddr* address = nullptr, int address_length = 0,
                  std::int64_t time_ticks = 0) noexcept {
-        if (logical_length == 0 || !accepting.load(std::memory_order_acquire)) return;
-        Count(type, logical_length);
+        if (!accepting.load(std::memory_order_acquire)) return;
+        if (filter_action == static_cast<std::uint8_t>(FilterAction::NoModifyNoDisplay)) return;
+        if (filter_action != static_cast<std::uint8_t>(FilterAction::Intercept) &&
+            logical_length == 0) return;
+        // Match the original OnPacket order: intercepted receives are still
+        // counted/displayed even though the caller observes a zero return, and
+        // byte counters describe the post-filter buffer rather than a partial
+        // send return. If capture allocation failed, the supplied logical
+        // length remains the best available accounting value.
+        Count(type, modified ? modified->size() : logical_length);
         if (speed_mode.load(std::memory_order_relaxed)) return;
-        if (!bytes || bytes->empty()) {
+        if (!raw || raw->empty() || !modified || modified->empty()) {
             delivery_dropped.fetch_add(1, std::memory_order_relaxed);
             ring.Wake();
             return;
@@ -291,9 +364,9 @@ struct WinsockHookController::Impl final {
             packet->time_ticks = time_ticks == 0 ? DateTimeTicksNow() : time_ticks;
             packet->socket = static_cast<std::int64_t>(socket);
             packet->packet_type = type;
-            packet->filter_action = kFilterNone;
-            packet->raw = bytes;
-            packet->modified = bytes;
+            packet->filter_action = filter_action;
+            packet->raw = std::move(raw);
+            packet->modified = std::move(modified);
             if (address && address_length > 0) {
                 const auto length = std::min<std::size_t>(
                     static_cast<std::size_t>(address_length), packet->socket_address.size());
@@ -439,13 +512,33 @@ struct WinsockHookController::Impl final {
                int flags_value, std::uint8_t type) noexcept {
         const auto time_ticks = DateTimeTicksNow();
         std::shared_ptr<const ByteBuffer> raw;
+        FilterResult filtered;
         try {
-            if (length > 0) raw = CopyBytes(buffer, static_cast<std::size_t>(length));
+            if (length > 0) {
+                raw = CopyBytes(buffer, static_cast<std::size_t>(length));
+                if (raw) filtered = filter_engine.Apply(Context(socket, type, nullptr, 0), *raw);
+            }
         } catch (...) {}
-        const int result = original(socket, buffer, length, flags_value);
-        if (result > 0)
-            Capture(socket, type, std::move(raw), static_cast<std::size_t>(length),
+        const auto action = filtered.bytes.empty() ? FilterAction::None : filtered.action;
+        int result = 0;
+        if (action == FilterAction::Intercept) result = length;
+        else {
+            const char* outgoing = filtered.bytes.empty() ? buffer :
+                reinterpret_cast<const char*>(filtered.bytes.data());
+            const int outgoing_length = filtered.bytes.empty() ? length :
+                static_cast<int>(filtered.bytes.size());
+            result = original(socket, outgoing, outgoing_length, flags_value);
+        }
+        const int saved_error = WSAGetLastError();
+        if (result > 0) {
+            auto modified = filtered.bytes.empty() ? raw :
+                std::shared_ptr<const ByteBuffer>(std::make_shared<ByteBuffer>(std::move(filtered.bytes)));
+            const auto filtered_length = modified ? modified->size() : static_cast<std::size_t>(length);
+            Capture(socket, type, std::move(raw), std::move(modified),
+                    static_cast<std::uint8_t>(action), filtered_length,
                     nullptr, 0, time_ticks);
+        }
+        WSASetLastError(saved_error);
         return result;
     }
 
@@ -454,41 +547,97 @@ struct WinsockHookController::Impl final {
                  std::uint8_t type) noexcept {
         const auto time_ticks = DateTimeTicksNow();
         std::shared_ptr<const ByteBuffer> raw;
+        FilterResult filtered;
         try {
-            if (length > 0) raw = CopyBytes(buffer, static_cast<std::size_t>(length));
+            if (length > 0) {
+                raw = CopyBytes(buffer, static_cast<std::size_t>(length));
+                if (raw) filtered = filter_engine.Apply(Context(socket, type, to, to_length), *raw);
+            }
         } catch (...) {}
-        const int result = original(socket, buffer, length, flags_value, to, to_length);
-        if (result > 0)
-            Capture(socket, type, std::move(raw), static_cast<std::size_t>(length),
+        const auto action = filtered.bytes.empty() ? FilterAction::None : filtered.action;
+        int result = 0;
+        if (action == FilterAction::Intercept) result = length;
+        else {
+            const char* outgoing = filtered.bytes.empty() ? buffer :
+                reinterpret_cast<const char*>(filtered.bytes.data());
+            const int outgoing_length = filtered.bytes.empty() ? length :
+                static_cast<int>(filtered.bytes.size());
+            result = original(socket, outgoing, outgoing_length, flags_value, to, to_length);
+        }
+        const int saved_error = WSAGetLastError();
+        if (result > 0) {
+            auto modified = filtered.bytes.empty() ? raw :
+                std::shared_ptr<const ByteBuffer>(std::make_shared<ByteBuffer>(std::move(filtered.bytes)));
+            const auto filtered_length = modified ? modified->size() : static_cast<std::size_t>(length);
+            Capture(socket, type, std::move(raw), std::move(modified),
+                    static_cast<std::uint8_t>(action), filtered_length,
                     to, to_length, time_ticks);
+        }
+        WSASetLastError(saved_error);
         return result;
     }
 
     int OnRecv(RecvFn original, SOCKET socket, char* buffer, int length,
                int flags_value, std::uint8_t type) noexcept {
-        const int result = original(socket, buffer, length, flags_value);
+        int result = original(socket, buffer, length, flags_value);
+        const int saved_error = WSAGetLastError();
         if (result > 0) {
             try {
-                Capture(socket, type, CopyBytes(buffer, static_cast<std::size_t>(result)),
-                        static_cast<std::size_t>(result));
+                auto raw = CopyBytes(buffer, static_cast<std::size_t>(result));
+                if (raw) {
+                    auto filtered = filter_engine.Apply(Context(socket, type, nullptr, 0), *raw);
+                    const auto action = filtered.action;
+                    if (action == FilterAction::Intercept) result = 0;
+                    else {
+                        const auto returned = (std::min)(filtered.bytes.size(), static_cast<std::size_t>(result));
+                        if (TryCopyMemory(buffer, filtered.bytes.data(), returned))
+                            result = static_cast<int>(returned);
+                        else
+                            filtered.bytes = *raw;
+                    }
+                    auto modified = std::shared_ptr<const ByteBuffer>(
+                        std::make_shared<ByteBuffer>(std::move(filtered.bytes)));
+                    Capture(socket, type, std::move(raw), std::move(modified),
+                            static_cast<std::uint8_t>(action), static_cast<std::size_t>(result));
+                }
             }
             catch (...) {}
         }
+        WSASetLastError(saved_error);
         return result;
     }
 
     int OnRecvFrom(RecvFromFn original, SOCKET socket, char* buffer, int length,
                    int flags_value, sockaddr* from, int* from_length,
                    std::uint8_t type) noexcept {
-        const int result = original(socket, buffer, length, flags_value, from, from_length);
+        int result = original(socket, buffer, length, flags_value, from, from_length);
+        const int saved_error = WSAGetLastError();
         if (result > 0) {
             try {
                 int captured_from_length = 0;
                 if (from_length) (void)TryReadInt(from_length, captured_from_length);
-                Capture(socket, type, CopyBytes(buffer, static_cast<std::size_t>(result)),
-                        static_cast<std::size_t>(result), from, captured_from_length);
+                auto raw = CopyBytes(buffer, static_cast<std::size_t>(result));
+                if (raw) {
+                    auto filtered = filter_engine.Apply(
+                        Context(socket, type, from, captured_from_length), *raw);
+                    const auto action = filtered.action;
+                    if (action == FilterAction::Intercept) result = 0;
+                    else {
+                        const auto returned = (std::min)(filtered.bytes.size(), static_cast<std::size_t>(result));
+                        if (TryCopyMemory(buffer, filtered.bytes.data(), returned))
+                            result = static_cast<int>(returned);
+                        else
+                            filtered.bytes = *raw;
+                    }
+                    auto modified = std::shared_ptr<const ByteBuffer>(
+                        std::make_shared<ByteBuffer>(std::move(filtered.bytes)));
+                    Capture(socket, type, std::move(raw), std::move(modified),
+                            static_cast<std::uint8_t>(action), static_cast<std::size_t>(result),
+                            from, captured_from_length);
+                }
             } catch (...) {}
         }
+        WSASetLastError(saved_error);
         return result;
     }
 
@@ -498,19 +647,41 @@ struct WinsockHookController::Impl final {
         const auto time_ticks = DateTimeTicksNow();
         const auto total_length = TotalBufferLength(buffers, count);
         std::shared_ptr<const ByteBuffer> raw;
+        FilterResult filtered;
         try {
-            if (total_length) raw = FlattenBuffers(buffers, count, *total_length);
+            if (total_length) {
+                raw = FlattenBuffers(buffers, count, *total_length);
+                if (raw && !overlapped)
+                    filtered = filter_engine.Apply(Context(socket, kWsaSend, nullptr, 0), *raw);
+            }
         }
         catch (...) {}
-        const int result = original(socket, buffers, count, bytes_sent, flags_value,
-                                    overlapped, completion);
+        const auto action = filtered.bytes.empty() ? FilterAction::None : filtered.action;
+        int result = 0;
+        if (action == FilterAction::Intercept) {
+            const auto length = total_length.value_or(0);
+            result = length <= (std::numeric_limits<DWORD>::max)() && bytes_sent &&
+                     TryWriteDword(bytes_sent, static_cast<DWORD>(length)) ? 0 : SOCKET_ERROR;
+        } else if (!filtered.bytes.empty()) {
+            WSABUF outgoing{static_cast<ULONG>(filtered.bytes.size()),
+                            reinterpret_cast<char*>(filtered.bytes.data())};
+            result = original(socket, &outgoing, 1, bytes_sent, flags_value, overlapped, completion);
+        } else {
+            result = original(socket, buffers, count, bytes_sent, flags_value, overlapped, completion);
+        }
+        const int saved_error = WSAGetLastError();
         DWORD captured_bytes = 0;
         if (result == 0 && bytes_sent && TryReadDword(bytes_sent, captured_bytes) &&
-            captured_bytes > 0)
-            Capture(socket, kWsaSend, std::move(raw),
-                    total_length && *total_length != 0
-                        ? *total_length : static_cast<std::size_t>(captured_bytes),
+            captured_bytes > 0) {
+            auto modified = filtered.bytes.empty() ? raw :
+                std::shared_ptr<const ByteBuffer>(std::make_shared<ByteBuffer>(std::move(filtered.bytes)));
+            const auto filtered_length = modified ? modified->size() : total_length.value_or(captured_bytes);
+            Capture(socket, kWsaSend, std::move(raw), std::move(modified),
+                    static_cast<std::uint8_t>(action),
+                    filtered_length,
                     nullptr, 0, time_ticks);
+        }
+        WSASetLastError(saved_error);
         return result;
     }
 
@@ -521,19 +692,43 @@ struct WinsockHookController::Impl final {
         const auto time_ticks = DateTimeTicksNow();
         const auto total_length = TotalBufferLength(buffers, count);
         std::shared_ptr<const ByteBuffer> raw;
+        FilterResult filtered;
         try {
-            if (total_length) raw = FlattenBuffers(buffers, count, *total_length);
+            if (total_length) {
+                raw = FlattenBuffers(buffers, count, *total_length);
+                if (raw && !overlapped)
+                    filtered = filter_engine.Apply(Context(socket, kWsaSendTo, to, to_length), *raw);
+            }
         }
         catch (...) {}
-        const int result = original(socket, buffers, count, bytes_sent, flags_value, to,
-                                    to_length, overlapped, completion);
+        const auto action = filtered.bytes.empty() ? FilterAction::None : filtered.action;
+        int result = 0;
+        if (action == FilterAction::Intercept) {
+            const auto length = total_length.value_or(0);
+            result = length <= (std::numeric_limits<DWORD>::max)() && bytes_sent &&
+                     TryWriteDword(bytes_sent, static_cast<DWORD>(length)) ? 0 : SOCKET_ERROR;
+        } else if (!filtered.bytes.empty()) {
+            WSABUF outgoing{static_cast<ULONG>(filtered.bytes.size()),
+                            reinterpret_cast<char*>(filtered.bytes.data())};
+            result = original(socket, &outgoing, 1, bytes_sent, flags_value, to, to_length,
+                              overlapped, completion);
+        } else {
+            result = original(socket, buffers, count, bytes_sent, flags_value, to,
+                              to_length, overlapped, completion);
+        }
+        const int saved_error = WSAGetLastError();
         DWORD captured_bytes = 0;
         if (result == 0 && bytes_sent && TryReadDword(bytes_sent, captured_bytes) &&
-            captured_bytes > 0)
-            Capture(socket, kWsaSendTo, std::move(raw),
-                    total_length && *total_length != 0
-                        ? *total_length : static_cast<std::size_t>(captured_bytes),
+            captured_bytes > 0) {
+            auto modified = filtered.bytes.empty() ? raw :
+                std::shared_ptr<const ByteBuffer>(std::make_shared<ByteBuffer>(std::move(filtered.bytes)));
+            const auto filtered_length = modified ? modified->size() : total_length.value_or(captured_bytes);
+            Capture(socket, kWsaSendTo, std::move(raw), std::move(modified),
+                    static_cast<std::uint8_t>(action),
+                    filtered_length,
                     to, to_length, time_ticks);
+        }
+        WSASetLastError(saved_error);
         return result;
     }
 
@@ -542,15 +737,33 @@ struct WinsockHookController::Impl final {
                   LPWSAOVERLAPPED_COMPLETION_ROUTINE completion) noexcept {
         const int result = original(socket, buffers, count, bytes_received, flags_value,
                                     overlapped, completion);
+        const int saved_error = WSAGetLastError();
         DWORD captured_bytes = 0;
         if (result == 0 && bytes_received && TryReadDword(bytes_received, captured_bytes) &&
             captured_bytes > 0) {
             try {
-                Capture(socket, kWsaRecv, FlattenBuffers(buffers, count, captured_bytes),
-                        static_cast<std::size_t>(captured_bytes));
+                auto raw = FlattenBuffers(buffers, count, captured_bytes);
+                auto filtered = raw && !overlapped
+                    ? filter_engine.Apply(Context(socket, kWsaRecv, nullptr, 0), *raw)
+                    : FilterResult{};
+                const auto action = filtered.bytes.empty() ? FilterAction::None : filtered.action;
+                DWORD returned = captured_bytes;
+                if (action == FilterAction::Intercept) returned = 0;
+                else if (!filtered.bytes.empty()) {
+                    returned = static_cast<DWORD>((std::min)(filtered.bytes.size(),
+                                                            static_cast<std::size_t>(captured_bytes)));
+                    if (!CopyToBuffers(buffers, count,
+                        std::span<const std::uint8_t>(filtered.bytes.data(), returned))) returned = captured_bytes;
+                }
+                (void)TryWriteDword(bytes_received, returned);
+                auto modified = filtered.bytes.empty() ? raw :
+                    std::shared_ptr<const ByteBuffer>(std::make_shared<ByteBuffer>(std::move(filtered.bytes)));
+                Capture(socket, kWsaRecv, std::move(raw), std::move(modified),
+                        static_cast<std::uint8_t>(action), static_cast<std::size_t>(returned));
             }
             catch (...) {}
         }
+        WSASetLastError(saved_error);
         return result;
     }
 
@@ -560,31 +773,62 @@ struct WinsockHookController::Impl final {
                       LPWSAOVERLAPPED_COMPLETION_ROUTINE completion) noexcept {
         const int result = original(socket, buffers, count, bytes_received, flags_value, from,
                                     from_length, overlapped, completion);
+        const int saved_error = WSAGetLastError();
         DWORD captured_bytes = 0;
         if (result == 0 && bytes_received && TryReadDword(bytes_received, captured_bytes) &&
             captured_bytes > 0) {
             try {
                 int captured_from_length = 0;
                 if (from_length) (void)TryReadInt(from_length, captured_from_length);
-                Capture(socket, kWsaRecvFrom,
-                        FlattenBuffers(buffers, count, captured_bytes),
-                        static_cast<std::size_t>(captured_bytes), from, captured_from_length);
+                auto raw = FlattenBuffers(buffers, count, captured_bytes);
+                auto filtered = raw && !overlapped
+                    ? filter_engine.Apply(Context(socket, kWsaRecvFrom, from, captured_from_length), *raw)
+                    : FilterResult{};
+                const auto action = filtered.bytes.empty() ? FilterAction::None : filtered.action;
+                DWORD returned = captured_bytes;
+                if (action == FilterAction::Intercept) returned = 0;
+                else if (!filtered.bytes.empty()) {
+                    returned = static_cast<DWORD>((std::min)(filtered.bytes.size(),
+                                                            static_cast<std::size_t>(captured_bytes)));
+                    if (!CopyToBuffers(buffers, count,
+                        std::span<const std::uint8_t>(filtered.bytes.data(), returned))) returned = captured_bytes;
+                }
+                (void)TryWriteDword(bytes_received, returned);
+                auto modified = filtered.bytes.empty() ? raw :
+                    std::shared_ptr<const ByteBuffer>(std::make_shared<ByteBuffer>(std::move(filtered.bytes)));
+                Capture(socket, kWsaRecvFrom, std::move(raw), std::move(modified),
+                        static_cast<std::uint8_t>(action), static_cast<std::size_t>(returned),
+                        from, captured_from_length);
             } catch (...) {}
         }
+        WSASetLastError(saved_error);
         return result;
     }
 
     int OnWsaRecvEx(WsaRecvExFn original, SOCKET socket, char* buffer, int length,
                     int* flags_value) noexcept {
-        const int result = original(socket, buffer, length, flags_value);
+        int result = original(socket, buffer, length, flags_value);
+        const int saved_error = WSAGetLastError();
         if (result > 0) {
             try {
-                Capture(socket, kWsaRecvEx,
-                        CopyBytes(buffer, static_cast<std::size_t>(result)),
-                        static_cast<std::size_t>(result));
+                auto raw = CopyBytes(buffer, static_cast<std::size_t>(result));
+                auto filtered = raw
+                    ? filter_engine.Apply(Context(socket, kWsaRecvEx, nullptr, 0), *raw)
+                    : FilterResult{};
+                const auto action = filtered.bytes.empty() ? FilterAction::None : filtered.action;
+                if (action == FilterAction::Intercept) result = 0;
+                else if (!filtered.bytes.empty()) {
+                    const auto returned = (std::min)(filtered.bytes.size(), static_cast<std::size_t>(result));
+                    if (TryCopyMemory(buffer, filtered.bytes.data(), returned)) result = static_cast<int>(returned);
+                }
+                auto modified = filtered.bytes.empty() ? raw :
+                    std::shared_ptr<const ByteBuffer>(std::make_shared<ByteBuffer>(std::move(filtered.bytes)));
+                Capture(socket, kWsaRecvEx, std::move(raw), std::move(modified),
+                        static_cast<std::uint8_t>(action), static_cast<std::size_t>(result));
             }
             catch (...) {}
         }
+        WSASetLastError(saved_error);
         return result;
     }
 
@@ -714,6 +958,12 @@ void WinsockHookController::ConfigureSpeedMode(bool enabled) noexcept {
     impl_->speed_mode.store(enabled, std::memory_order_release);
 }
 
+void WinsockHookController::ConfigureFilters(const std::vector<FilterSnapshot>& filters,
+                                             std::int32_t execute_mode,
+                                             bool speed_mode) {
+    impl_->filter_engine.Publish(filters, execute_mode, speed_mode);
+}
+
 void WinsockHookController::StartHook() {
     std::lock_guard lock(impl_->lifecycle_mutex);
     if (impl_->accepting.load()) return;
@@ -774,6 +1024,15 @@ WinsockHookController::LivePacketCounters() const noexcept {
 
 void WinsockHookController::ResetLivePacketCounters() noexcept {
     for (auto& counter : impl_->counters) counter.store(0, std::memory_order_relaxed);
+}
+
+std::optional<FilterRuntimeStats> WinsockHookController::LiveFilterStats() const noexcept {
+    const auto stats = impl_->filter_engine.Stats();
+    return FilterRuntimeStats{stats.filters, stats.globals};
+}
+
+void WinsockHookController::ResetLiveFilterStats() noexcept {
+    impl_->filter_engine.ResetStats();
 }
 
 std::size_t WinsockHookController::RegisteredHookCount() const noexcept {
