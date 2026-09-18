@@ -54,6 +54,9 @@ target_link_libraries(wpe64-clipboard PUBLIC user32)
 add_library(wpe64-injector STATIC src/shell/process_injector.cpp)
 target_include_directories(wpe64-injector PUBLIC src)
 target_link_libraries(wpe64-injector PUBLIC wpe64-common)
+add_library(wpe64-proxy-runtime STATIC src/shell/socks5_runtime.cpp)
+target_include_directories(wpe64-proxy-runtime PUBLIC src)
+target_link_libraries(wpe64-proxy-runtime PUBLIC ws2_32)
 if(WIN32)
   # This target is deliberately excluded from the default build.  It must be
   # generated with a Win32 generator and shipped beside the x64 shell so the
@@ -65,6 +68,7 @@ endif()
 if(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8)
   add_executable(wpe64-app WIN32 src/shell/main.cpp src/shell/target_link.cpp src/shell/app.manifest)
   target_link_libraries(wpe64-app PRIVATE wpe64-data wpe64-clipboard wpe64-injector
+    wpe64-proxy-runtime
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/webview2/x64/WebView2LoaderStatic.lib"
     ole32 oleaut32 user32 shell32 shlwapi advapi32 dwmapi version)
   target_include_directories(wpe64-app SYSTEM PRIVATE third_party/webview2/include)
@@ -169,4 +173,7 @@ if(BUILD_TESTING)
   add_executable(wpe64-clipboard-test tests/clipboard_test.cpp)
   target_link_libraries(wpe64-clipboard-test PRIVATE wpe64-clipboard)
   add_test(NAME native-clipboard COMMAND wpe64-clipboard-test)
+  add_executable(wpe64-proxy-runtime-test tests/socks5_runtime_test.cpp)
+  target_link_libraries(wpe64-proxy-runtime-test PRIVATE wpe64-proxy-runtime ws2_32)
+  add_test(NAME socks5-runtime COMMAND wpe64-proxy-runtime-test)
 endif()

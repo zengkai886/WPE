@@ -534,6 +534,25 @@ Json DataService::Call(const std::string& method,const Json& args){
             {"maxConnectionDefault",5000},{"connBufferKB",16},{"memoryGB",gb},{"enableHttp",B(proxy_config_,"Enable_HTTP",true)},
             {"httpPort",N(proxy_config_,"HTTP_Port",1080)},{"enableSystemProxy",false},{"running",false}};
     }
+    // Native-only snapshot consumed by the SOCKS5 listener.  It deliberately
+    // is not part of Methods(), so browser code cannot ask the bridge for
+    // decrypted proxy credentials.
+    if(method=="__proxyRuntimeConfiguration"){
+        Json accounts=Json::array();
+        for(const auto& row:lists_[5]){
+            if(!B(row,"IsEnable"))continue;
+            const auto user=Trim(S(row,"UserName")),password=PasswordDecrypt(S(row,"PassWord"));
+            if(!user.empty()&&!password.empty())accounts.push_back({{"user",user},{"password",password}});
+        }
+        return {{"proxyIpAuto",B(proxy_config_,"ProxyIP_Auto",true)},
+                {"proxyIp",S(proxy_config_,"ProxyIP")},
+                {"enableSocks5",B(proxy_config_,"Enable_SOCKS5",true)},
+                {"socks5Port",N(proxy_config_,"SOCKS5_Port",1080)},
+                {"enableAuth",B(proxy_config_,"EnableAuth",true)},
+                {"onlyWpc",B(proxy_config_,"Only_WPC_Client")},
+                {"maxConnection",N(proxy_config_,"MaxConnectionNumber",5000)},
+                {"accounts",std::move(accounts)}};
+    }
     if(method=="saveProxySetting"){
         const bool socks=B(args,"enableSocks5"),http=B(args,"enableHttp"),automatic=B(args,"proxyIpAuto"),auth=B(args,"enableAuth"),only=B(args,"onlyWpc");
         const int socksPort=N(args,"socks5Port",1080),httpPort=N(args,"httpPort",1081),maximum=N(args,"maxConnection",5000);const auto ip=Trim(S(args,"proxyIp"));

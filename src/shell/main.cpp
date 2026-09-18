@@ -1,5 +1,6 @@
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
 #include <windows.h>
 #include <windowsx.h>
 #include <shellapi.h>
@@ -12,11 +13,13 @@
 #include "data_worker.h"
 #include "clipboard_worker.h"
 #include "target_link.h"
+#include "socks5_runtime.h"
 #include "common/ipc_codec.h"
 #include "common/packet_frame.h"
 #include <TlHelp32.h>
 #include <filesystem>
 #include <fstream>
+#include <algorithm>
 #include <memory>
 #include <sstream>
 #include <deque>
@@ -99,6 +102,7 @@ public:
     explicit Host(Options options):options_(std::move(options)),exit_code_(options_.test?1:0){}
     ~Host(){
         closing_=true;lifetime_.reset();
+        if(proxy_)proxy_->Stop();
         if(target_)target_->Stop();
         clipboard_.reset();data_.reset();
         // Complete callbacks while the report/window state they capture still exists.
@@ -155,6 +159,7 @@ private:
     ComPtr<ICoreWebView2> view_;
     std::unique_ptr<WebBridge> bridge_;
     std::unique_ptr<wpe::shell::DataWorker> data_;
+    std::unique_ptr<wpe::shell::Socks5Runtime> proxy_;
     std::unique_ptr<wpe::shell::TargetLink> target_;
     struct TargetResult {WebBridge::Completion done;Json value;std::string error;};
     std::mutex target_mutex_;
@@ -299,6 +304,7 @@ void Host::State(){if(bridge_&&!closing_)bridge_->PushEvent("window:state",{{"ma
 void Host::RegisterMethods(){
     const auto db=options_.data/L"2.3.0"/L"WPE.db";
     data_=std::make_unique<wpe::shell::DataWorker>(db);
+    proxy_=std::make_unique<wpe::shell::Socks5Runtime>();
     target_=std::make_unique<wpe::shell::TargetLink>(
         [this](wpe::ByteBuffer frame,bool packet){QueueTargetFrame(std::move(frame),packet);},
         [this](wpe::IpcLinkState state){
@@ -598,12 +604,62 @@ void Host::RegisterTargetMethods(){
     bridge_->RegisterAsync("startSendList",[this](const Json&,WebBridge::Completion done){SyncTargetConfiguration([this,done=std::move(done)](Json,std::string error) mutable {if(!error.empty()){done(nullptr,std::move(error));return;}wpe::IpcWriter r;r.U8(static_cast<std::uint8_t>(wpe::IpcCommand::StartSendList));target_->CallVoid(r.ToArray(),[this,done=std::move(done)](bool ok,std::string error) mutable {QueueTargetResult(std::move(done),ok?Json{{"ok",true},{"running",send_running_}}:Json{},std::move(error));});});});
     bridge_->RegisterAsync("stopSendList",[this](const Json&,WebBridge::Completion done){wpe::IpcWriter r;r.U8(static_cast<std::uint8_t>(wpe::IpcCommand::StopSendList));target_->CallVoid(r.ToArray(),[this,done=std::move(done)](bool ok,std::string error) mutable {send_running_=false;QueueTargetResult(std::move(done),ok?Json{{"ok",true},{"running",false}}:Json{},std::move(error));});});
     bridge_->RegisterAsync("getSendMeta",[this](const Json&,WebBridge::Completion done){data_->Submit("getSendMeta",Json::object(),[this,done=std::move(done)](Json value,std::string error) mutable {if(value.is_object())value["running"]=send_running_;done(std::move(value),std::move(error));});});
+    bridge_->RegisterAsync("startProxy",[this](const Json&,WebBridge::Completion done){
+        if(!proxy_){done(nullptr,"代理运行时未初始化");return;}
+        if(proxy_->Running()){
+            const auto stats=proxy_->Stats();
+            done({{"ok",true},{"running",true},{"socks5Addr",std::string("127.0.0.1:")+std::to_string(stats.port)}},{});return;
+        }
+        data_->Submit("__proxyRuntimeConfiguration",Json::object(),[this,done=std::move(done)](Json config,std::string error) mutable {
+            if(!error.empty()){done(nullptr,std::move(error));return;}
+            try{
+                if(!config.value("enableSocks5",false)){done(nullptr,"SOCKS5 未启用，请先在代理设置中启用");return;}
+                if(config.value("onlyWpc",false)){done(nullptr,"仅允许 WPC 客户端模式尚未接入 SOCKS5 监听器");return;}
+                wpe::shell::Socks5Config runtime;
+                runtime.bind_address=config.value("proxyIpAuto",true)?"0.0.0.0":config.value("proxyIp",std::string{});
+                if(runtime.bind_address.empty())runtime.bind_address="0.0.0.0";
+                const auto port=config.value("socks5Port",1080);
+                if(port<1||port>65535){done(nullptr,"SOCKS5 端口必须在 1 ~ 65535 之间");return;}
+                runtime.port=static_cast<std::uint16_t>(port);
+                runtime.max_connections=static_cast<std::size_t>(std::max(1,config.value("maxConnection",5000)));
+                runtime.require_auth=config.value("enableAuth",true);
+                for(const auto& account:config.value("accounts",Json::array())){
+                    if(account.is_object())runtime.credentials.push_back({account.value("user",std::string{}),account.value("password",std::string{})});
+                }
+                std::string start_error;
+                if(!proxy_->Start(std::move(runtime),start_error)){done(nullptr,std::move(start_error));return;}
+                const auto stats=proxy_->Stats();
+                const auto host=config.value("proxyIpAuto",true)?std::string("127.0.0.1"):config.value("proxyIp",std::string{});
+                const auto address=(host.find(':')==host.npos?host:"["+host+"]")+":"+std::to_string(stats.port);
+                if(bridge_)bridge_->PushEvent("proxy:state",{{"running",true},{"socks5Addr",address}});
+                done({{"ok",true},{"running",true},{"socks5Addr",address}},{});
+            }catch(const std::exception& exception){done(nullptr,exception.what());}
+        });
+    });
+    bridge_->RegisterAsync("stopProxy",[this](const Json&,WebBridge::Completion done){
+        if(proxy_)proxy_->Stop();
+        if(bridge_)bridge_->PushEvent("proxy:state",{{"running",false}});
+        done({{"ok",true},{"running",false}},{});
+    });
     bridge_->Register("getStats",[this](const Json&){
         Json value={{"queue",0},{"list",send_running_?1:0},{"total",0},{"proxyRunning",false},
             {"tcpReq",0},{"tcpResp",0},{"udpReq",0},{"udpResp",0},{"httpReq",0},{"httpResp",0},
             {"filterExecute",0},{"filterProxy",0},{"tcpConn",0},{"udpConn",0},{"onlineInfo",""},
             {"totalRequest",0},{"totalResponse",0},{"speedUp",0},{"speedDown",0}};
-        if(target_stats_.is_object())value.update(target_stats_);return value;
+        if(target_stats_.is_object())value.update(target_stats_);
+        if(proxy_){
+            const auto stats=proxy_->Stats();
+            value["proxyRunning"]=stats.running;
+            value["tcpConn"]=static_cast<std::int64_t>(stats.active);
+            value["tcpReq"]=static_cast<std::int64_t>(stats.requests);
+            value["tcpResp"]=static_cast<std::int64_t>(stats.responses);
+            value["totalRequest"]=static_cast<std::int64_t>(stats.requests);
+            value["totalResponse"]=static_cast<std::int64_t>(stats.responses);
+            value["speedUp"]=static_cast<std::int64_t>(stats.bytes_up);
+            value["speedDown"]=static_cast<std::int64_t>(stats.bytes_down);
+            value["proxyErrors"]=static_cast<std::int64_t>(stats.errors);
+        }
+        return value;
     });
     bridge_->Register("getFilterStats",[this](const Json&){
         const auto globals=target_stats_.value("filterGlobals",Json::array());

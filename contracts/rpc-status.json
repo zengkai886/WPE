@@ -2,8 +2,8 @@
   "scope": "Registration inventory, not a functional-completion percentage. Partial and offline methods are explicitly distinguished. Robot runtime execution was explicitly removed from the requested delivery scope on 2026-09-18; robot data/editor compatibility remains.",
   "originalRpcCount": 217,
   "nativeDataRegistered": 128,
-  "nativeHostRegistered": 10,
-  "remainingUnregistered": 79,
+  "nativeHostRegistered": 12,
+  "remainingUnregistered": 77,
   "originalSource": "WinsockPacketEditor/ShellForm.cs",
   "originalSourceSha256": "86d277408d233903ec82ffe8f06a2cd1995898617c477a1f181046ebe0f72f12",
   "methods": [
@@ -157,16 +157,16 @@
     {
       "method": "startProxy",
       "originalLine": 1883,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "SOCKS5 TCP CONNECT 运行链",
+      "note": "原 Vue startProxy 已接入 native SOCKS5 TCP CONNECT；支持配置监听、可选账号认证、目标连接超时、双向 relay 和真实统计。HTTP/UDP/WPC-only 仍明确未接入。"
     },
     {
       "method": "stopProxy",
       "originalLine": 1905,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "SOCKS5 TCP CONNECT 运行链",
+      "note": "停止原生 SOCKS5 监听，关闭监听 socket 并等待 accept/client worker 收尾；HTTP/UDP/WPC-only 仍明确未接入。"
     },
     {
       "method": "setListEnable",
@@ -187,14 +187,14 @@
       "originalLine": 1992,
       "registered": true,
       "status": "设置读写已接",
-      "note": "真实读取 ProxyMode、本机地址、物理内存与连接上限；代理监听运行引擎尚未接。"
+      "note": "真实读取 ProxyMode、本机地址、物理内存与连接上限；SOCKS5 TCP CONNECT 由 native Host 启动并回传运行状态。"
     },
     {
       "method": "saveProxySetting",
       "originalLine": 2039,
       "registered": true,
       "status": "设置读写已接",
-      "note": "按原业务规则校验并事务保存 ProxyMode；代理监听运行引擎尚未接。"
+      "note": "按原业务规则校验并事务保存 ProxyMode；SOCKS5 TCP CONNECT 启动读取该配置，HTTP/UDP 仍未接。"
     },
     {
       "method": "setSystemProxy",

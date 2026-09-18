@@ -20,12 +20,12 @@ pickWindow,1820,否,未接线,没有原方法名处理器；调用返回尚未�
 cancelPickWindow,1822,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 getInjectStatus,1828,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 getInjectStats,1842,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-startProxy,1883,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-stopProxy,1905,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
+startProxy,1883,是,SOCKS5 TCP CONNECT 运行链,原 Vue startProxy 已接入 native SOCKS5 TCP CONNECT；支持配置监听、可选账号认证、目标连接超时、双向 relay 和真实统计；HTTP/UDP/WPC-only 仍明确未接入。
+stopProxy,1905,是,SOCKS5 TCP CONNECT 运行链,停止原生 SOCKS5 监听，关闭监听 socket 并等待 accept/client worker 收尾；HTTP/UDP/WPC-only 仍明确未接入。
 setListEnable,1918,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 getCountryTable,1988,是,静态数据已接,原国家代码字典；不是 IP 归属地数据库，归属地查询仍未接。
-getProxySetting,1992,是,设置读写已接,真实读取 ProxyMode、本机地址、物理内存与连接上限；代理监听运行引擎尚未接。
-saveProxySetting,2039,是,设置读写已接,按原业务规则校验并事务保存 ProxyMode；代理监听运行引擎尚未接。
+getProxySetting,1992,是,设置读写已接,真实读取 ProxyMode、本机地址、物理内存与连接上限；SOCKS5 TCP CONNECT 由 native Host 启动并回传运行状态。
+saveProxySetting,2039,是,设置读写已接,按原业务规则校验并事务保存 ProxyMode；SOCKS5 TCP CONNECT 启动读取该配置，HTTP/UDP 仍未接。
 setSystemProxy,2147,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 exportCert,2169,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 getListSetting,2218,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
