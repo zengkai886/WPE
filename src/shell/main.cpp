@@ -131,6 +131,8 @@ private:
     void HandleTargetFrame(wpe::ByteBuffer frame,bool packet_channel);
     void SyncTargetConfiguration(WebBridge::Completion done);
     std::filesystem::path HookDll() const;
+    std::filesystem::path X86HookDll() const;
+    std::filesystem::path X86Helper() const;
     Json InjectStatus() const;
     Json InjectStats() const;
     Json EnumerateProcesses() const;
@@ -305,8 +307,8 @@ void Host::RegisterMethods(){
                        {"pid",target_?target_->TargetPid():0},
                        {"is64",target_?target_->TargetIs64():false},
                        {"hooked",false}};
-            QueueTargetResult({},Json{{"__event","inject:state"},{"value",std::move(value)}},{});
-        });
+             QueueTargetResult({},Json{{"__event","inject:state"},{"value",std::move(value)}},{});
+        }, X86HookDll(), X86Helper());
     for(const auto& method:wpe::shell::DataService::Methods()){
         bridge_->RegisterAsync(method,[this,method](const Json& args,WebBridge::Completion done){
             if(wpe::shell::DataService::NeedsOpenFile(method,args)||wpe::shell::DataService::NeedsSaveFile(method,args)){
@@ -401,6 +403,18 @@ std::filesystem::path Host::HookDll() const {
         if(fs::is_regular_file(beside))return beside;
     }
     throw std::runtime_error("未找到 wpe64-hook.dll，请先构建目标注入模块");
+}
+std::filesystem::path Host::X86HookDll() const {
+    const auto packaged_next=options_.assets.parent_path()/L"wpe64-hook-x86.next.dll";
+    if(fs::is_regular_file(packaged_next))return packaged_next;
+    const auto packaged=options_.assets.parent_path()/L"wpe64-hook-x86.dll";
+    if(fs::is_regular_file(packaged))return packaged;
+    return {};
+}
+std::filesystem::path Host::X86Helper() const {
+    const auto packaged=options_.assets.parent_path()/L"wpe64-x86-helper.exe";
+    if(fs::is_regular_file(packaged))return packaged;
+    return {};
 }
 void Host::RememberInjection(DWORD pid,const fs::path& path,const std::string& method,const std::wstring& args){
     last_inject_={{"pid",static_cast<std::int64_t>(pid)},{"path",Utf8(path.wstring())},

@@ -71,9 +71,12 @@ void SetEventChecked(HANDLE event, const char* message) {
 
 int wmain(int argc, wchar_t** argv) {
     try {
-        if (argc != 3) throw std::runtime_error("launch target and hook DLL paths required");
+        if (argc != 3 && argc != 5)
+            throw std::runtime_error("launch target and hook DLL paths required");
         const std::filesystem::path launch_target = argv[1];
         const std::filesystem::path hook = argv[2];
+        const std::filesystem::path x86_hook = argc == 5 ? argv[3] : std::filesystem::path{};
+        const std::filesystem::path x86_helper = argc == 5 ? argv[4] : std::filesystem::path{};
 
         const auto entered_name = EventName(L"entered");
         const auto release_name = EventName(L"release");
@@ -94,7 +97,7 @@ int wmain(int argc, wchar_t** argv) {
                     states.push_back(state);
                 }
                 state_changed.notify_all();
-            });
+            }, x86_hook, x86_helper);
 
         const std::wstring arguments = L"\"" + entered_name + L"\" \"" +
             release_name + L"\" \"" + exited_name + L"\"";

@@ -27,7 +27,9 @@ public:
     using EventHandler = std::function<void(ByteBuffer, bool packet_channel)>;
     using StateHandler = std::function<void(IpcLinkState)>;
 
-    TargetLink(EventHandler event_handler, StateHandler state_handler);
+    TargetLink(EventHandler event_handler, StateHandler state_handler,
+               std::filesystem::path x86_hook = {},
+               std::filesystem::path x86_helper = {});
     ~TargetLink();
     TargetLink(const TargetLink&) = delete;
     TargetLink& operator=(const TargetLink&) = delete;
@@ -63,6 +65,9 @@ private:
     void Attach(Job& job, bool launch);
     void Complete(Completion& done, bool ok, std::string error) noexcept;
     void SetState(IpcLinkState state) noexcept;
+    void CleanupX86Helper(bool abort) noexcept;
+    bool TargetIsX86(const Job& job, bool launch) const;
+    void StartX86Helper(const Job& job, bool launch, const std::string& session_name);
     static std::string NewSession();
 
     EventHandler event_handler_;
@@ -77,6 +82,15 @@ private:
     // unresumed SuspendedProcess terminates the child for deterministic
     // rollback instead of leaving a frozen target behind.
     std::unique_ptr<SuspendedProcess> suspended_;
+    // A 64-bit shell cannot create a remote thread in a WOW64 target.  The
+    // optional 32-bit helper owns that injection and, for launched targets,
+    // keeps the child suspended until ResumeLaunched signals it.
+    std::filesystem::path x86_hook_;
+    std::filesystem::path x86_helper_;
+    HANDLE x86_helper_process_{};
+    HANDLE x86_helper_resume_{};
+    HANDLE x86_helper_abort_{};
+    bool x86_helper_launch_{};
     std::atomic<IpcLinkState> state_{IpcLinkState::Idle};
     std::atomic<DWORD> target_pid_{};
     std::atomic_bool target_is_64_{};

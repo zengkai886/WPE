@@ -54,6 +54,14 @@ target_link_libraries(wpe64-clipboard PUBLIC user32)
 add_library(wpe64-injector STATIC src/shell/process_injector.cpp)
 target_include_directories(wpe64-injector PUBLIC src)
 target_link_libraries(wpe64-injector PUBLIC wpe64-common)
+if(WIN32)
+  # This target is deliberately excluded from the default build.  It must be
+  # generated with a Win32 generator and shipped beside the x64 shell so the
+  # shell can inject into WOW64 targets without crossing architectures.
+  add_executable(wpe64-x86-helper EXCLUDE_FROM_ALL src/shell/x86_helper_main.cpp)
+  target_link_libraries(wpe64-x86-helper PRIVATE wpe64-injector)
+  set_target_properties(wpe64-x86-helper PROPERTIES OUTPUT_NAME "wpe64-x86-helper")
+endif()
 if(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8)
   add_executable(wpe64-app WIN32 src/shell/main.cpp src/shell/target_link.cpp src/shell/app.manifest)
   target_link_libraries(wpe64-app PRIVATE wpe64-data wpe64-clipboard wpe64-injector
