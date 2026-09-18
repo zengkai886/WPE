@@ -129,7 +129,12 @@ int main(int argc,char** argv){
             Require(feeds.contains(13)&&feeds[13].empty()&&feeds.contains(14)&&feeds[14].empty()&&feeds.contains(17)&&feeds[17].empty()&&feeds.contains(18)&&feeds[18].empty(),"fresh configuration feeds");
             Require(Call(service,"saveMapLocal",{{"host"," example.test "},{"port",8080},{"remotePath"," /api "},{"localPath"," C:\\映射\\file.bin "}})["error"]=="","local mapping save");mapLocalId=feeds[13][0]["Id"];
             Require(Call(service,"saveMapRemote",{{"hostFrom","from.test"},{"portFrom",80},{"pathFrom","/old"},{"hostTo","to.test"},{"portTo",8081},{"pathTo","/new"}})["error"]=="","remote mapping save");mapRemoteId=feeds[14][0]["Id"];
-            Require(Call(service,"setMapEnable",{{"id",mapLocalId},{"enable",true}})["ok"]==true&&feeds[13][0]["IsEnable"]==true,"local mapping enable");Call(service,"saveMapSetting",{{"enableLocal",true},{"enableRemote",true}});Require(Call(service,"getMapSetting")["enableRemote"]==true,"mapping switches");
+            Require(Call(service,"setMapEnable",{{"id",mapLocalId},{"enable",true}})["ok"]==true&&feeds[13][0]["IsEnable"]==true,"local mapping enable");Call(service,"setMapEnable",{{"id",mapRemoteId},{"remote",true},{"enable",true}});Call(service,"saveMapSetting",{{"enableLocal",true},{"enableRemote",true}});Require(Call(service,"getMapSetting")["enableRemote"]==true,"mapping switches");
+            const auto proxy_snapshot=Call(service,"__proxyRuntimeConfiguration");
+            Require(proxy_snapshot["enableLocalMap"]==true&&proxy_snapshot["enableRemoteMap"]==true&&
+                    proxy_snapshot["localMaps"].size()==1&&proxy_snapshot["remoteMaps"].size()==1&&
+                    proxy_snapshot["localMaps"][0]["localPath"]=="C:\\映射\\file.bin"&&
+                    proxy_snapshot["remoteMaps"][0]["hostTo"]=="to.test","mapping runtime snapshot");
             Require(Call(service,"saveServer",{{"enable",true},{"name"," 主节点 "},{"ip","127.0.0.1"},{"port",1080},{"forgotUrl"," /forgot "},{"registerUrl","/register"},{"verifyUrl","/verify"}})["error"]=="","server save");serverId=feeds[17][0]["Id"];
             Require(Call(service,"saveServerRule",{{"sid",serverId},{"enable",true},{"type",1},{"argument","example.com; example.org"},{"ruleAction",0}})["error"]==""&&feeds[17][0]["RuleCount"]==2,"server multi-rule save");auto rules=Call(service,"getServerRules",{{"sid",serverId}})["rows"];Require(rules.size()==2&&rules[0]["TypeName"]=="DOMAIN-SUFFIX","server rule DTO");
             Require(Call(service,"setServerRuleEnable",{{"sid",serverId},{"id",rules[0]["Id"]},{"enable",false}})["ok"]==true,"server rule enable");
@@ -151,6 +156,9 @@ int main(int argc,char** argv){
             auto meta=Call(reopened,"getAutoStoresMeta");Require(meta["enable"]==false&&meta["limitValue"]==1,"auto-store runtime switch persisted or limit lost");
             Require(feeds[13].size()==1&&feeds[13][0]["Host"]=="example.test"&&feeds[13][0]["IsEnable"]==true&&feeds[14].size()==1&&feeds[14][0]["HostTo"]=="to.test","mapping restart persistence");
             Require(Call(reopened,"getMapSetting")["enableLocal"]==true&&Call(reopened,"getMapSetting")["enableRemote"]==true,"mapping switch restart persistence");
+            const auto reopened_snapshot=Call(reopened,"__proxyRuntimeConfiguration");
+            Require(reopened_snapshot["localMaps"].size()==1&&reopened_snapshot["remoteMaps"].size()==1&&
+                    reopened_snapshot["remoteMaps"][0]["hostFrom"]=="from.test","mapping snapshot restart persistence");
             Require(feeds[17].size()==1&&feeds[17][0]["Name"]=="主节点"&&feeds[17][0]["RuleCount"]==2&&Call(reopened,"getServerRules",{{"sid",serverId}})["rows"].size()==2,"server/rule restart persistence");
             Require(feeds[18].size()==1&&feeds[18][0]["Id"]==noticeId&&feeds[18][0]["Content"]=="正文","notice restart persistence");
             autoStoreId=feeds[12][0]["Id"].get<std::string>();Call(reopened,"autoStoresAction",{{"action",7}});Require(feeds[12].empty(),"auto-store clear");

@@ -665,6 +665,35 @@ void Host::RegisterTargetMethods(){
                     wpe::shell::HttpProxyConfig runtime;
                     runtime.bind_address=bind_address;runtime.port=http_port;runtime.max_connections=max_connections;
                     runtime.require_auth=require_auth;runtime.credentials=credentials;
+                    runtime.enable_local_map=config.value("enableLocalMap",false);
+                    runtime.enable_remote_map=config.value("enableRemoteMap",false);
+                    const auto read_map_port=[&](const Json& row,const char* key,const char* label,std::uint16_t& result){
+                        const auto value=row.value(key,80);
+                        if(value<1||value>65535){done(nullptr,std::string(label)+" 映射端口必须在 1 ~ 65535 之间");return false;}
+                        result=static_cast<std::uint16_t>(value);return true;
+                    };
+                    for(const auto& item:config.value("localMaps",Json::array())){
+                        if(!item.is_object())continue;
+                        wpe::shell::HttpProxyConfig::LocalMapRule rule;
+                        rule.enabled=item.value("enabled",true);rule.protocol=item.value("protocol",std::string("Http"));
+                        rule.host=item.value("host",std::string{});rule.remote_path=item.value("remotePath",std::string{});
+                        rule.local_path=item.value("localPath",std::string{});
+                        if(rule.host.empty()||rule.local_path.empty()){done(nullptr,"本地映射缺少源地址或本地文件");return;}
+                        if(!read_map_port(item,"port","本地",rule.port))return;
+                        runtime.local_maps.push_back(std::move(rule));
+                    }
+                    for(const auto& item:config.value("remoteMaps",Json::array())){
+                        if(!item.is_object())continue;
+                        wpe::shell::HttpProxyConfig::RemoteMapRule rule;
+                        rule.enabled=item.value("enabled",true);
+                        rule.protocol_from=item.value("protocolFrom",std::string("Http"));
+                        rule.host_from=item.value("hostFrom",std::string{});rule.path_from=item.value("pathFrom",std::string{});
+                        rule.protocol_to=item.value("protocolTo",std::string("Http"));
+                        rule.host_to=item.value("hostTo",std::string{});rule.path_to=item.value("pathTo",std::string{});
+                        if(rule.host_from.empty()||rule.host_to.empty()){done(nullptr,"远程映射缺少源地址或目标地址");return;}
+                        if(!read_map_port(item,"portFrom","远程源",rule.port_from)||!read_map_port(item,"portTo","远程目标",rule.port_to))return;
+                        runtime.remote_maps.push_back(std::move(rule));
+                    }
                     if(!http_proxy_->Start(std::move(runtime),start_error)){
                         if(socks_started)proxy_->Stop();
                         done(nullptr,std::move(start_error));return;
@@ -698,7 +727,8 @@ void Host::RegisterTargetMethods(){
         Json value={{"queue",0},{"list",send_running_?1:0},{"total",0},{"proxyRunning",false},
             {"tcpReq",0},{"tcpResp",0},{"udpReq",0},{"udpResp",0},{"httpReq",0},{"httpResp",0},
             {"filterExecute",0},{"filterProxy",0},{"tcpConn",0},{"udpConn",0},{"onlineInfo",""},
-            {"totalRequest",0},{"totalResponse",0},{"speedUp",0},{"speedDown",0}};
+            {"totalRequest",0},{"totalResponse",0},{"speedUp",0},{"speedDown",0},
+            {"mappingHits",0},{"mappingMisses",0},{"mappingErrors",0}};
         if(target_stats_.is_object())value.update(target_stats_);
         const auto socks=proxy_?proxy_->Stats():wpe::shell::Socks5Stats{};
         const auto http=http_proxy_?http_proxy_->Stats():wpe::shell::Socks5Stats{};
@@ -713,6 +743,9 @@ void Host::RegisterTargetMethods(){
         value["speedUp"]=static_cast<std::int64_t>(socks.bytes_up+http.bytes_up);
         value["speedDown"]=static_cast<std::int64_t>(socks.bytes_down+http.bytes_down);
         value["proxyErrors"]=static_cast<std::int64_t>(socks.errors+http.errors);
+        value["mappingHits"]=static_cast<std::int64_t>(http.map_hits);
+        value["mappingMisses"]=static_cast<std::int64_t>(http.map_misses);
+        value["mappingErrors"]=static_cast<std::int64_t>(http.map_errors);
         return value;
     });
     bridge_->Register("getFilterStats",[this](const Json&){

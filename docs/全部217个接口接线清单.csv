@@ -2,7 +2,7 @@
 getPacketDetail,1328,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 getPrefs,1367,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
 setAppearance,1403,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
-getStats,1443,是,运行态部分接线,目标注入与发送执行器仍按连接状态提供数据；SOCKS5 与 HTTP/HTTPS 代理运行时会回传真实活动连接、请求/响应、上下行字节和错误计数，UDP/映射/WPC 仍未接。
+getStats,1443,是,运行态部分接线,目标注入与发送执行器仍按连接状态提供数据；SOCKS5 与 HTTP/HTTPS 代理运行时会回传真实活动连接、请求/响应、上下行字节、错误计数和 HTTP 映射命中/未命中/错误计数，UDP/WPC 仍未接。
 clearPackets,1506,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 openExternal,1549,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 setLanguage,1589,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
@@ -25,7 +25,7 @@ stopProxy,1905,是,SOCKS5 TCP CONNECT 与 HTTP/HTTPS 正向代理运行链,停�
 setListEnable,1918,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 getCountryTable,1988,是,静态数据已接,原国家代码字典；不是 IP 归属地数据库，归属地查询仍未接。
 getProxySetting,1992,是,设置读写已接,真实读取 ProxyMode、本机地址、物理内存与连接上限；SOCKS5 TCP CONNECT 与 HTTP/HTTPS 正向代理由 native Host 启动并回传运行状态。
-saveProxySetting,2039,是,设置读写已接,按原业务规则校验并事务保存 ProxyMode；SOCKS5 与 HTTP/HTTPS 启动读取各自端口、认证和连接上限，UDP/映射/WPC 仍未接。
+saveProxySetting,2039,是,设置读写已接,按原业务规则校验并事务保存 ProxyMode；SOCKS5 与 HTTP/HTTPS 启动读取各自端口、认证和连接上限，HTTP 代理同时读取映射开关和规则，UDP/WPC 仍未接。
 setSystemProxy,2147,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 exportCert,2169,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 getListSetting,2218,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
@@ -138,13 +138,13 @@ removeSelectProcessName,4159,否,未接线,没有原方法名处理器；调用�
 uninstallDriver,4164,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 saveProcessSetting,4167,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 testSocksProxy,4190,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-getMapSetting,4202,是,代理映射数据与文件已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；代理映射执行链路未接。
-saveMapSetting,4208,是,代理映射数据与文件已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；代理映射执行链路未接。
-saveMapLocal,4216,是,代理映射数据与文件已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；代理映射执行链路未接。
-saveMapRemote,4227,是,代理映射数据与文件已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；代理映射执行链路未接。
-setMapEnable,4241,是,代理映射数据与文件已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；代理映射执行链路未接。
-mapAction,4250,是,代理映射数据与文件已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；代理映射执行链路未接。
-mapCommand,4261,是,代理映射数据与文件已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；代理映射执行链路未接。
+getMapSetting,4202,是,代理映射数据与 HTTP 运行时已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；HTTP 代理已接本地文件映射、远程目标重写、未命中回退和映射统计，CONNECT 加密隧道不匹配路径。
+saveMapSetting,4208,是,代理映射数据与 HTTP 运行时已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；HTTP 代理已接本地文件映射、远程目标重写、未命中回退和映射统计，CONNECT 加密隧道不匹配路径。
+saveMapLocal,4216,是,代理映射数据与 HTTP 运行时已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；HTTP 代理已接本地文件映射、远程目标重写、未命中回退和映射统计，CONNECT 加密隧道不匹配路径。
+saveMapRemote,4227,是,代理映射数据与 HTTP 运行时已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；HTTP 代理已接本地文件映射、远程目标重写、未命中回退和映射统计，CONNECT 加密隧道不匹配路径。
+setMapEnable,4241,是,代理映射数据与 HTTP 运行时已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；HTTP 代理已接本地文件映射、远程目标重写、未命中回退和映射统计，CONNECT 加密隧道不匹配路径。
+mapAction,4250,是,代理映射数据与 HTTP 运行时已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；HTTP 代理已接本地文件映射、远程目标重写、未命中回退和映射统计，CONNECT 加密隧道不匹配路径。
+mapCommand,4261,是,代理映射数据与 HTTP 运行时已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；HTTP 代理已接本地文件映射、远程目标重写、未命中回退和映射统计，CONNECT 加密隧道不匹配路径。
 pickLocalFile,4272,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 getExtProxySetting,4279,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 saveExtProxySetting,4281,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。

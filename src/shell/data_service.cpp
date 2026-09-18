@@ -544,6 +544,22 @@ Json DataService::Call(const std::string& method,const Json& args){
             const auto user=Trim(S(row,"UserName")),password=PasswordDecrypt(S(row,"PassWord"));
             if(!user.empty()&&!password.empty())accounts.push_back({{"user",user},{"password",password}});
         }
+        Json local_maps=Json::array();
+        for(const auto& row:lists_[13]){
+            if(!B(row,"IsEnable"))continue;
+            local_maps.push_back({{"enabled",true},{"protocol",S(row,"ProtocolType","Http")},
+                                  {"host",S(row,"Host")},{"port",N(row,"Port",80)},
+                                  {"remotePath",S(row,"RemotePath")},{"localPath",S(row,"LocalPath")}});
+        }
+        Json remote_maps=Json::array();
+        for(const auto& row:lists_[14]){
+            if(!B(row,"IsEnable"))continue;
+            remote_maps.push_back({{"enabled",true},{"protocolFrom",S(row,"ProtocolType_From","Http")},
+                                   {"hostFrom",S(row,"Host_From")},{"portFrom",N(row,"Port_From",80)},
+                                   {"pathFrom",S(row,"Path_From")},{"protocolTo",S(row,"ProtocolType_To","Http")},
+                                   {"hostTo",S(row,"Host_To")},{"portTo",N(row,"Port_To",80)},
+                                   {"pathTo",S(row,"Path_To")}});
+        }
         return {{"proxyIpAuto",B(proxy_config_,"ProxyIP_Auto",true)},
                 {"proxyIp",S(proxy_config_,"ProxyIP")},
                 {"enableSocks5",B(proxy_config_,"Enable_SOCKS5",true)},
@@ -553,6 +569,10 @@ Json DataService::Call(const std::string& method,const Json& args){
                 {"enableAuth",B(proxy_config_,"EnableAuth",true)},
                 {"onlyWpc",B(proxy_config_,"Only_WPC_Client")},
                 {"maxConnection",N(proxy_config_,"MaxConnectionNumber",5000)},
+                {"enableLocalMap",B(proxy_config_,"Enable_MapLocal")},
+                {"enableRemoteMap",B(proxy_config_,"Enable_MapRemote")},
+                {"localMaps",std::move(local_maps)},
+                {"remoteMaps",std::move(remote_maps)},
                 {"accounts",std::move(accounts)}};
     }
     if(method=="saveProxySetting"){
@@ -710,7 +730,7 @@ Json DataService::Call(const std::string& method,const Json& args){
     if(method=="enterProxyMode"){PublishAll();return Good();}
     if(method=="enterInjectMode")return {{"ok",true},{"lastInject",nullptr}};
     if(method=="getClientConnections")return {{"rows",Json::array()}};
-    if(method=="getStats")return {{"queue",0},{"list",0},{"total",0},{"proxyRunning",false},{"tcpReq",0},{"tcpResp",0},{"udpReq",0},{"udpResp",0},{"httpReq",0},{"httpResp",0},{"filterExecute",0},{"filterProxy",0},{"tcpConn",0},{"udpConn",0},{"onlineInfo",""},{"totalRequest",0},{"totalResponse",0},{"speedUp",0},{"speedDown",0}};
+    if(method=="getStats")return {{"queue",0},{"list",0},{"total",0},{"proxyRunning",false},{"tcpReq",0},{"tcpResp",0},{"udpReq",0},{"udpResp",0},{"httpReq",0},{"httpResp",0},{"filterExecute",0},{"filterProxy",0},{"tcpConn",0},{"udpConn",0},{"onlineInfo",""},{"totalRequest",0},{"totalResponse",0},{"speedUp",0},{"speedDown",0},{"mappingHits",0},{"mappingMisses",0},{"mappingErrors",0}};
     if(method=="clearLogs"){const auto kind=N(args,"kind");if(kind<0||kind>2)return Bad("Invalid log kind");lists_[kind+2].clear();Publish(kind+2);return Good();}
     const std::array<std::string,4> singular={"Filter","Send","Robot","WareHouse"},plural={"Filters","Sends","Robots","WareHouses"};
     for(int list=8;list<=11;++list){

@@ -10,8 +10,10 @@
 #include <array>
 #include <cctype>
 #include <cstring>
+#include <fstream>
 #include <sstream>
 #include <string_view>
+#include <vector>
 
 namespace wpe::shell {
 namespace {
@@ -171,6 +173,45 @@ void SendError(SOCKET socket, int code, std::string_view reason) {
         "Content-Length: " + std::to_string(body.size()) + "\r\nConnection: close\r\n\r\n" + body;
     SendAll(socket, reinterpret_cast<const std::uint8_t*>(response.data()), response.size());
 }
+
+bool IsHttpProtocol(std::string value) {
+    return Lower(Trim(std::move(value))) == "http";
+}
+
+bool PathMatches(std::string_view path, std::string rule) {
+    rule = Trim(std::move(rule));
+    if (!rule.empty() && rule.front() != '/') rule.insert(rule.begin(), '/');
+    if (rule.empty() || rule == "/") return true;
+    if (path == rule) return true;
+    if (path.size() <= rule.size() || path.substr(0, rule.size()) != rule) return false;
+    const auto next = path[rule.size()];
+    return next == '/' || next == '?';
+}
+
+std::string JoinMappedPath(std::string_view request, std::string from, std::string to) {
+    from = Trim(std::move(from));
+    to = Trim(std::move(to));
+    if (!from.empty() && from.front() != '/') from.insert(from.begin(), '/');
+    if (!to.empty() && to.front() != '/') to.insert(to.begin(), '/');
+    if (from.empty() || from == "/") {
+        if (to.empty()) return std::string(request);
+        if (request.empty()) return to;
+        if (to.back() == '/' && request.front() == '/') return to + std::string(request.substr(1));
+        if (to.back() != '/' && request.front() != '/') return to + "/" + std::string(request);
+        return to + std::string(request);
+    }
+    auto suffix = request.substr(std::min(from.size(), request.size()));
+    if (suffix.empty()) return to.empty() ? "/" : to;
+    if (to.empty()) return suffix.front() == '/' ? std::string(suffix) : "/" + std::string(suffix);
+    if (to.back() == '/' && suffix.front() == '/') return to + std::string(suffix.substr(1));
+    if (to.back() != '/' && suffix.front() != '/' && suffix.front() != '?') return to + "/" + std::string(suffix);
+    return to + std::string(suffix);
+}
+
+bool MapEndpointMatches(const std::string& host, std::uint16_t port, const std::string& rule_host,
+                        std::uint16_t rule_port, std::string_view path, const std::string& rule_path) {
+    return Lower(host) == Lower(Trim(rule_host)) && port == rule_port && PathMatches(path, rule_path);
+}
 } // namespace
 
 HttpProxyRuntime::~HttpProxyRuntime() { Stop(); }
@@ -255,6 +296,7 @@ bool HttpProxyRuntime::Start(HttpProxyConfig config, std::string& error) {
     config_ = std::move(config);
     port_ = actual_port;
     accepted_ = completed_ = active_ = requests_ = responses_ = bytes_up_ = bytes_down_ = errors_ = 0;
+    map_hits_ = map_misses_ = map_errors_ = 0;
     stopping_ = false;
     listener_.store(AsHandle(socket), std::memory_order_release);
     running_ = true;
@@ -298,7 +340,9 @@ Socks5Stats HttpProxyRuntime::Stats() const noexcept {
             accepted_.load(std::memory_order_relaxed), completed_.load(std::memory_order_relaxed),
             active_.load(std::memory_order_relaxed), requests_.load(std::memory_order_relaxed),
             responses_.load(std::memory_order_relaxed), bytes_up_.load(std::memory_order_relaxed),
-            bytes_down_.load(std::memory_order_relaxed), errors_.load(std::memory_order_relaxed)};
+            bytes_down_.load(std::memory_order_relaxed), errors_.load(std::memory_order_relaxed),
+            map_hits_.load(std::memory_order_relaxed), map_misses_.load(std::memory_order_relaxed),
+            map_errors_.load(std::memory_order_relaxed)};
 }
 
 bool HttpProxyRuntime::Running() const noexcept { return running_.load(std::memory_order_acquire); }
@@ -444,7 +488,86 @@ bool HttpProxyRuntime::HandleRequest(std::uintptr_t client, std::uintptr_t& remo
         }
         forwarded_target = path;
     }
+
+    bool mapped_remote = false;
+    // Mapping is intentionally applied only to ordinary HTTP requests.  A
+    // CONNECT tunnel carries encrypted HTTPS bytes, so its host/path cannot be
+    // inspected without terminating TLS and is forwarded unchanged.
+    if (!is_connect && (config_.enable_local_map || config_.enable_remote_map)) {
+        const HttpProxyConfig::LocalMapRule* local_match = nullptr;
+        if (config_.enable_local_map) {
+            for (const auto& rule : config_.local_maps) {
+                if (rule.enabled && MapEndpointMatches(host, port, rule.host, rule.port, path, rule.remote_path)) {
+                    local_match = &rule;
+                    break;
+                }
+            }
+        }
+        if (local_match) {
+            map_hits_.fetch_add(1, std::memory_order_relaxed);
+            if (!IsHttpProtocol(local_match->protocol)) {
+                map_errors_.fetch_add(1, std::memory_order_relaxed);
+                SendError(socket, 501, "Unsupported Mapping Protocol");
+                return false;
+            }
+            std::ifstream file(local_match->local_path, std::ios::binary | std::ios::ate);
+            constexpr std::streamoff maximum_file_size = 64ll * 1024ll * 1024ll;
+            const auto end = file ? file.tellg() : std::streampos(-1);
+            if (!file || end < 0 || end > maximum_file_size) {
+                map_errors_.fetch_add(1, std::memory_order_relaxed);
+                SendError(socket, end > maximum_file_size ? 413 : 404,
+                          end > maximum_file_size ? "Mapped File Too Large" : "Mapped File Not Found");
+                return false;
+            }
+            std::vector<std::uint8_t> body(static_cast<std::size_t>(end));
+            file.seekg(0, std::ios::beg);
+            if (!body.empty() && !file.read(reinterpret_cast<char*>(body.data()), static_cast<std::streamsize>(body.size()))) {
+                map_errors_.fetch_add(1, std::memory_order_relaxed);
+                SendError(socket, 500, "Mapped File Read Failed");
+                return false;
+            }
+            const auto response = std::string("HTTP/1.1 200 OK\r\nContent-Length: ") + std::to_string(body.size()) +
+                "\r\nContent-Type: application/octet-stream\r\nConnection: close\r\n\r\n";
+            if (!SendAll(socket, reinterpret_cast<const std::uint8_t*>(response.data()), response.size()) ||
+                (!body.empty() && !SendAll(socket, body.data(), body.size()))) {
+                map_errors_.fetch_add(1, std::memory_order_relaxed);
+                return false;
+            }
+            requests_.fetch_add(1, std::memory_order_relaxed);
+            responses_.fetch_add(1, std::memory_order_relaxed);
+            bytes_up_.fetch_add(pending.size(), std::memory_order_relaxed);
+            bytes_down_.fetch_add(response.size() + body.size(), std::memory_order_relaxed);
+            return true;
+        }
+
+        const HttpProxyConfig::RemoteMapRule* remote_match = nullptr;
+        if (config_.enable_remote_map) {
+            for (const auto& rule : config_.remote_maps) {
+                if (rule.enabled && MapEndpointMatches(host, port, rule.host_from, rule.port_from, path, rule.path_from)) {
+                    remote_match = &rule;
+                    break;
+                }
+            }
+        }
+        if (remote_match) {
+            map_hits_.fetch_add(1, std::memory_order_relaxed);
+            if (!IsHttpProtocol(remote_match->protocol_from) || !IsHttpProtocol(remote_match->protocol_to) ||
+                remote_match->host_to.empty() || remote_match->port_to == 0) {
+                map_errors_.fetch_add(1, std::memory_order_relaxed);
+                SendError(socket, 501, "Unsupported Mapping Protocol");
+                return false;
+            }
+            host = remote_match->host_to;
+            port = remote_match->port_to;
+            path = JoinMappedPath(path, remote_match->path_from, remote_match->path_to);
+            forwarded_target = path;
+            mapped_remote = true;
+        } else {
+            map_misses_.fetch_add(1, std::memory_order_relaxed);
+        }
+    }
     if (!ConnectTarget(host, port, remote)) {
+        if (mapped_remote) map_errors_.fetch_add(1, std::memory_order_relaxed);
         SendError(socket, 502, "Bad Gateway");
         return false;
     }
@@ -460,13 +583,27 @@ bool HttpProxyRuntime::HandleRequest(std::uintptr_t client, std::uintptr_t& remo
         return true;
     }
 
+    std::string mapped_host_header;
+    if (mapped_remote) {
+        mapped_host_header = host;
+        if (mapped_host_header.find(':') != std::string::npos && mapped_host_header.front() != '[')
+            mapped_host_header = "[" + mapped_host_header + "]";
+        if (port != 80) mapped_host_header += ":" + std::to_string(port);
+    }
     std::string forwarded=method+" "+forwarded_target+" "+version+"\r\n";
+    bool host_header_written = false;
     for (const auto& line : headers) {
         const auto colon = line.find(':');
         const auto key = colon == std::string::npos ? std::string{} : Lower(Trim(line.substr(0, colon)));
         if (key == "proxy-connection" || key == "proxy-authorization" || key == "connection") continue;
+        if (mapped_remote && key == "host") {
+            forwarded += "Host: " + mapped_host_header + "\r\n";
+            host_header_written = true;
+            continue;
+        }
         forwarded += line + "\r\n";
     }
+    if (mapped_remote && !host_header_written) forwarded += "Host: " + mapped_host_header + "\r\n";
     forwarded += "Connection: close\r\n\r\n";
     if (!SendAll(AsSocket(remote), reinterpret_cast<const std::uint8_t*>(forwarded.data()), forwarded.size())) return false;
     requests_.fetch_add(1, std::memory_order_relaxed);

@@ -9,6 +9,8 @@
 #include <array>
 #include <chrono>
 #include <cstring>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -93,12 +95,14 @@ std::string ReceiveUntil(SOCKET socket, std::string_view marker) {
     return result;
 }
 
-void RunHttpDestination(Socket& listener, std::string expected_path) {
+void RunHttpDestination(Socket& listener, std::string expected_path, std::string expected_host = {}) {
     Socket server(accept(listener.value, nullptr, nullptr));
     Check(server.value != INVALID_SOCKET, "HTTP destination accept failed");
     const auto request = ReceiveUntil(server.value, "\r\n\r\n");
     Check(request.find("GET " + expected_path + " HTTP/1.1") != std::string::npos,
           "HTTP origin-form request mismatch");
+    if (!expected_host.empty()) Check(request.find("Host: " + expected_host) != std::string::npos,
+                                      "HTTP mapped Host header mismatch");
     Check(request.find("Proxy-Authorization") == std::string::npos, "proxy authorization leaked upstream");
     const std::string response="HTTP/1.1 200 OK\r\nContent-Length: 4\r\nConnection: close\r\n\r\npong";
     SendAll(server.value, response);
@@ -153,6 +157,56 @@ int main() {
         Check(stats.requests==2&&stats.responses>=2&&stats.bytes_up>=4&&stats.bytes_down>=4,"HTTP relay counters mismatch");
         runtime.Stop();
         Check(!runtime.Running()&&runtime.Stats().port==0,"HTTP runtime did not stop");
+
+        // P5-1: local-file mapping takes precedence over remote rewriting, and
+        // remote mappings rewrite the origin-form path before connecting.
+        const auto mapped_file=std::filesystem::temp_directory_path()/"wpe64-http-proxy-map-test.bin";
+        {
+            std::ofstream file(mapped_file,std::ios::binary|std::ios::trunc);
+            Check(static_cast<bool>(file),"mapped file create failed");
+            file<<"mapped-body";
+        }
+        std::uint16_t mapped_destination_port{};
+        auto mapped_listener=Listener(mapped_destination_port);
+        std::thread mapped_destination([&]{RunHttpDestination(mapped_listener,"/mapped/foo",
+                                                              "127.0.0.1:"+std::to_string(mapped_destination_port));});
+        HttpProxyConfig mapped_config{"127.0.0.1",0,8,false,{}};
+        mapped_config.enable_local_map=true;
+        mapped_config.enable_remote_map=true;
+        mapped_config.local_maps.push_back({true,"Http","local-map.test",80,"/asset",mapped_file.string()});
+        mapped_config.remote_maps.push_back({true,"Http","map-source.test",mapped_destination_port,"/original","Http","127.0.0.1",mapped_destination_port,"/mapped"});
+        Check(runtime.Start(std::move(mapped_config),error),error.c_str());
+        {
+            auto client=Connect(runtime.Stats().port);
+            SendAll(client.value,"GET http://local-map.test/asset HTTP/1.1\r\nHost: local-map.test\r\n\r\n");
+            const auto response=ReceiveUntil(client.value,"mapped-body");
+            Check(response.find("HTTP/1.1 200 OK")!=std::string::npos,"local mapping response status mismatch");
+        }
+        {
+            auto client=Connect(runtime.Stats().port);
+            SendAll(client.value,"GET http://map-source.test:"+std::to_string(mapped_destination_port)+"/original/foo HTTP/1.1\r\n"
+                               "Host: map-source.test\r\n\r\n");
+            const auto response=ReceiveUntil(client.value,"pong");
+            Check(response.find("200 OK")!=std::string::npos,"remote mapping response status mismatch");
+        }
+        mapped_destination.join();
+        std::uint16_t mapped_miss_port{};
+        auto mapped_miss_listener=Listener(mapped_miss_port);
+        std::thread mapped_miss_destination([&]{RunHttpDestination(mapped_miss_listener,"/miss");});
+        {
+            auto client=Connect(runtime.Stats().port);
+            SendAll(client.value,"GET http://127.0.0.1:"+std::to_string(mapped_miss_port)+"/miss HTTP/1.1\r\n"
+                               "Host: 127.0.0.1\r\n\r\n");
+            const auto response=ReceiveUntil(client.value,"pong");
+            Check(response.find("200 OK")!=std::string::npos,"unmatched mapping fallback failed");
+        }
+        mapped_miss_destination.join();
+        for(int i=0;i!=50&&runtime.Stats().active!=0;++i)std::this_thread::sleep_for(10ms);
+        const auto mapping_stats=runtime.Stats();
+        Check(mapping_stats.map_hits==2&&mapping_stats.map_misses>=1&&mapping_stats.map_errors==0,"mapping counters mismatch");
+        runtime.Stop();
+        std::error_code remove_error;
+        std::filesystem::remove(mapped_file,remove_error);
 
         Check(runtime.Start(HttpProxyConfig{"127.0.0.1",0,8,true,{Socks5Credential{"user","pass"}}},error),error.c_str());
         {

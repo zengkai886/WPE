@@ -18,6 +18,30 @@ struct HttpProxyConfig {
     std::size_t max_connections{256};
     bool require_auth{};
     std::vector<Socks5Credential> credentials;
+    bool enable_local_map{};
+    bool enable_remote_map{};
+
+    struct LocalMapRule {
+        bool enabled{};
+        std::string protocol{"Http"};
+        std::string host;
+        std::uint16_t port{80};
+        std::string remote_path;
+        std::string local_path;
+    };
+    struct RemoteMapRule {
+        bool enabled{};
+        std::string protocol_from{"Http"};
+        std::string host_from;
+        std::uint16_t port_from{80};
+        std::string path_from;
+        std::string protocol_to{"Http"};
+        std::string host_to;
+        std::uint16_t port_to{80};
+        std::string path_to;
+    };
+    std::vector<LocalMapRule> local_maps;
+    std::vector<RemoteMapRule> remote_maps;
 };
 
 // HTTP forward proxy runtime.  It supports ordinary absolute-form HTTP
@@ -59,6 +83,9 @@ private:
     std::atomic<std::uint64_t> bytes_up_{0};
     std::atomic<std::uint64_t> bytes_down_{0};
     std::atomic<std::uint64_t> errors_{0};
+    std::atomic<std::uint64_t> map_hits_{0};
+    std::atomic<std::uint64_t> map_misses_{0};
+    std::atomic<std::uint64_t> map_errors_{0};
     bool winsock_started_{};
 };
 

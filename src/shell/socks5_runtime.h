@@ -35,6 +35,12 @@ struct Socks5Stats {
     std::uint64_t bytes_up{};
     std::uint64_t bytes_down{};
     std::uint64_t errors{};
+    // HTTP mapping counters are zero for SOCKS5 and populated by the HTTP
+    // runtime.  Keeping them in the shared snapshot makes the native status
+    // path additive without introducing a second statistics DTO.
+    std::uint64_t map_hits{};
+    std::uint64_t map_misses{};
+    std::uint64_t map_errors{};
 };
 
 // Small, self-contained SOCKS5 CONNECT runtime used by the native proxy mode.
