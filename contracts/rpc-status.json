@@ -1,5 +1,5 @@
 {
-  "scope": "Registration inventory, not a functional-completion percentage. Partial and offline methods are explicitly distinguished.",
+  "scope": "Registration inventory, not a functional-completion percentage. Partial and offline methods are explicitly distinguished. Robot runtime execution was explicitly removed from the requested delivery scope on 2026-09-18; robot data/editor compatibility remains.",
   "originalRpcCount": 217,
   "nativeDataRegistered": 126,
   "nativeHostRegistered": 10,
@@ -683,15 +683,15 @@
       "method": "startRobotList",
       "originalLine": 3732,
       "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "status": "按用户要求不实现",
+      "note": "机器人运行执行器已由用户明确移出交付范围；保留原数据、文件和编辑兼容，不注册虚假运行处理器。"
     },
     {
       "method": "stopRobotList",
       "originalLine": 3747,
       "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "status": "按用户要求不实现",
+      "note": "机器人运行执行器已由用户明确移出交付范围；保留原数据、文件和编辑兼容，不注册虚假运行处理器。"
     },
     {
       "method": "openRobotEdit",
@@ -739,22 +739,22 @@
       "method": "startRobotEdit",
       "originalLine": 3821,
       "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "status": "按用户要求不实现",
+      "note": "机器人编辑数据仍保留，但编辑器内实际运行与进度执行已由用户明确移出交付范围。"
     },
     {
       "method": "stopRobotEdit",
       "originalLine": 3827,
       "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "status": "按用户要求不实现",
+      "note": "机器人编辑数据仍保留，但编辑器内实际运行与进度执行已由用户明确移出交付范围。"
     },
     {
       "method": "getRobotEditProgress",
       "originalLine": 3833,
       "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "status": "按用户要求不实现",
+      "note": "机器人编辑数据仍保留，但编辑器内实际运行与进度执行已由用户明确移出交付范围。"
     },
     {
       "method": "textDuplicates",
