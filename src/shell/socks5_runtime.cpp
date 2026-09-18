@@ -80,6 +80,40 @@ std::string ErrorText(const char* operation, int code = WSAGetLastError()) {
     return std::string(operation) + " failed (WSA " + std::to_string(code) + ")";
 }
 
+int SockaddrLength(const sockaddr_storage& address) noexcept {
+    return address.ss_family == AF_INET6 ? sizeof(sockaddr_in6) : sizeof(sockaddr_in);
+}
+
+std::uint16_t SockaddrPort(const sockaddr_storage& address) noexcept {
+    return address.ss_family == AF_INET6
+        ? ntohs(reinterpret_cast<const sockaddr_in6*>(&address)->sin6_port)
+        : ntohs(reinterpret_cast<const sockaddr_in*>(&address)->sin_port);
+}
+
+void SetSockaddrPort(sockaddr_storage& address, std::uint16_t port) noexcept {
+    if (address.ss_family == AF_INET6) reinterpret_cast<sockaddr_in6*>(&address)->sin6_port = htons(port);
+    else reinterpret_cast<sockaddr_in*>(&address)->sin_port = htons(port);
+}
+
+bool EncodeSocksAddress(const sockaddr_storage& address, std::vector<std::uint8_t>& output) {
+    output.clear();
+    if (address.ss_family == AF_INET) {
+        const auto* value = reinterpret_cast<const sockaddr_in*>(&address);
+        output.push_back(1);
+        const auto* bytes = reinterpret_cast<const std::uint8_t*>(&value->sin_addr);
+        output.insert(output.end(), bytes, bytes + sizeof(value->sin_addr));
+    } else if (address.ss_family == AF_INET6) {
+        const auto* value = reinterpret_cast<const sockaddr_in6*>(&address);
+        output.push_back(4);
+        const auto* bytes = reinterpret_cast<const std::uint8_t*>(&value->sin6_addr);
+        output.insert(output.end(), bytes, bytes + sizeof(value->sin6_addr));
+    } else return false;
+    const auto port = SockaddrPort(address);
+    output.push_back(static_cast<std::uint8_t>(port >> 8));
+    output.push_back(static_cast<std::uint8_t>(port & 0xff));
+    return true;
+}
+
 } // namespace
 
 Socks5Runtime::~Socks5Runtime() { Stop(); }
@@ -178,6 +212,9 @@ bool Socks5Runtime::Start(Socks5Config config, std::string& error) {
     bytes_up_ = 0;
     bytes_down_ = 0;
     errors_ = 0;
+    udp_requests_ = 0;
+    udp_responses_ = 0;
+    udp_active_ = 0;
     stopping_ = false;
     listener_.store(AsHandle(socket), std::memory_order_release);
     running_ = true;
@@ -221,7 +258,10 @@ Socks5Stats Socks5Runtime::Stats() const noexcept {
             accepted_.load(std::memory_order_relaxed), completed_.load(std::memory_order_relaxed),
             active_.load(std::memory_order_relaxed), requests_.load(std::memory_order_relaxed),
             responses_.load(std::memory_order_relaxed), bytes_up_.load(std::memory_order_relaxed),
-            bytes_down_.load(std::memory_order_relaxed), errors_.load(std::memory_order_relaxed)};
+            bytes_down_.load(std::memory_order_relaxed), errors_.load(std::memory_order_relaxed),
+            0, 0, 0,
+            udp_requests_.load(std::memory_order_relaxed), udp_responses_.load(std::memory_order_relaxed),
+            udp_active_.load(std::memory_order_relaxed)};
 }
 
 bool Socks5Runtime::Running() const noexcept { return running_.load(std::memory_order_acquire); }
@@ -298,7 +338,8 @@ bool Socks5Runtime::Authenticate(std::uintptr_t client) const {
 bool Socks5Runtime::ConnectRequest(std::uintptr_t client, std::uintptr_t& remote) {
     const SOCKET socket = AsSocket(client);
     std::array<std::uint8_t, 4> header{};
-    if (!ReceiveAll(socket, header.data(), header.size()) || header[0] != 5 || header[1] != 1 || header[2] != 0)
+    if (!ReceiveAll(socket, header.data(), header.size()) || header[0] != 5 || header[2] != 0 ||
+        (header[1] != 1 && header[1] != 3))
         return false;
     std::string host;
     if (header[3] == 1) {
@@ -326,7 +367,46 @@ bool Socks5Runtime::ConnectRequest(std::uintptr_t client, std::uintptr_t& remote
     std::array<std::uint8_t, 2> port{};
     if (!ReceiveAll(socket, port.data(), port.size())) return false;
     const auto destination_port = static_cast<std::uint16_t>((static_cast<std::uint16_t>(port[0]) << 8) | port[1]);
-    if (destination_port == 0 || host.empty()) return false;
+    if (host.empty() || (header[1] == 1 && destination_port == 0)) return false;
+
+    if (header[1] == 3) {
+        sockaddr_storage local{};
+        int local_length = sizeof(local);
+        if (getsockname(socket, reinterpret_cast<sockaddr*>(&local), &local_length) != 0 ||
+            (local.ss_family != AF_INET && local.ss_family != AF_INET6)) return false;
+        SOCKET udp = ::socket(local.ss_family, SOCK_DGRAM, IPPROTO_UDP);
+        if (udp == INVALID_SOCKET) return false;
+        BOOL reuse = TRUE;
+        setsockopt(udp, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&reuse), sizeof(reuse));
+        SetSockaddrPort(local, 0);
+        if (bind(udp, reinterpret_cast<const sockaddr*>(&local), SockaddrLength(local)) != 0) {
+            Close(AsHandle(udp));
+            return false;
+        }
+        sockaddr_storage bound{};
+        int bound_length = sizeof(bound);
+        if (getsockname(udp, reinterpret_cast<sockaddr*>(&bound), &bound_length) != 0) {
+            Close(AsHandle(udp));
+            return false;
+        }
+        std::vector<std::uint8_t> encoded;
+        if (!EncodeSocksAddress(bound, encoded)) {
+            Close(AsHandle(udp));
+            return false;
+        }
+        std::vector<std::uint8_t> reply{5, 0, 0};
+        reply.insert(reply.end(), encoded.begin(), encoded.end());
+        if (!SendAll(socket, reply.data(), reply.size())) {
+            Close(AsHandle(udp));
+            return false;
+        }
+        udp_active_.fetch_add(1, std::memory_order_relaxed);
+        const auto result = RelayUdp(client, AsHandle(udp));
+        udp_active_.fetch_sub(1, std::memory_order_relaxed);
+        Close(AsHandle(udp));
+        return result;
+    }
+
     const auto service = std::to_string(destination_port);
     addrinfo hints{};
     hints.ai_socktype = SOCK_STREAM;
@@ -351,6 +431,153 @@ bool Socks5Runtime::ConnectRequest(std::uintptr_t client, std::uintptr_t& remote
         return false;
     }
     requests_.fetch_add(1, std::memory_order_relaxed);
+    return true;
+}
+
+bool Socks5Runtime::RelayUdp(std::uintptr_t client, std::uintptr_t udp_socket) {
+    const SOCKET control = AsSocket(client);
+    const SOCKET relay = AsSocket(udp_socket);
+    std::array<std::uint8_t, 64 * 1024> buffer{};
+    sockaddr_storage client_address{};
+    int client_address_length = 0;
+    bool client_address_known = false;
+
+    const auto same_client = [](const sockaddr_storage& left, const sockaddr_storage& right) {
+        if (left.ss_family != right.ss_family) return false;
+        if (left.ss_family == AF_INET) {
+            return reinterpret_cast<const sockaddr_in*>(&left)->sin_addr.S_un.S_addr ==
+                   reinterpret_cast<const sockaddr_in*>(&right)->sin_addr.S_un.S_addr;
+        }
+        if (left.ss_family == AF_INET6) {
+            return std::memcmp(&reinterpret_cast<const sockaddr_in6*>(&left)->sin6_addr,
+                               &reinterpret_cast<const sockaddr_in6*>(&right)->sin6_addr,
+                               sizeof(IN6_ADDR)) == 0;
+        }
+        return false;
+    };
+
+    while (!stopping_.load(std::memory_order_acquire)) {
+        fd_set read{};
+        FD_SET(control, &read);
+        FD_SET(relay, &read);
+        timeval timeout{0, 100000};
+        const auto selected = select(0, &read, nullptr, nullptr, &timeout);
+        if (selected == SOCKET_ERROR) {
+            if (!stopping_.load(std::memory_order_acquire)) errors_.fetch_add(1, std::memory_order_relaxed);
+            return false;
+        }
+        if (selected == 0) continue;
+        if (FD_ISSET(control, &read)) {
+            std::uint8_t probe{};
+            const auto count = recv(control, reinterpret_cast<char*>(&probe), 1, MSG_PEEK);
+            if (count <= 0) return true;
+            return false;
+        }
+        if (!FD_ISSET(relay, &read)) continue;
+
+        sockaddr_storage source{};
+        int source_length = sizeof(source);
+        const auto count = recvfrom(relay, reinterpret_cast<char*>(buffer.data()), static_cast<int>(buffer.size()), 0,
+                                    reinterpret_cast<sockaddr*>(&source), &source_length);
+        if (count <= 0) {
+            if (!stopping_.load(std::memory_order_acquire)) errors_.fetch_add(1, std::memory_order_relaxed);
+            continue;
+        }
+        const auto size = static_cast<std::size_t>(count);
+        const auto same_endpoint = [&](const sockaddr_storage& left, const sockaddr_storage& right) {
+            return same_client(left, right) && SockaddrPort(left) == SockaddrPort(right);
+        };
+        if (!client_address_known) {
+            client_address = source;
+            client_address_length = source_length;
+            client_address_known = true;
+        } else if (!same_endpoint(client_address, source)) {
+            std::vector<std::uint8_t> encoded;
+            if (!EncodeSocksAddress(source, encoded) || encoded.size() + 3 + size > buffer.size()) {
+                errors_.fetch_add(1, std::memory_order_relaxed);
+                continue;
+            }
+            std::vector<std::uint8_t> packet{0, 0, 0};
+            packet.insert(packet.end(), encoded.begin(), encoded.end());
+            packet.insert(packet.end(), buffer.begin(), buffer.begin() + count);
+            if (sendto(relay, reinterpret_cast<const char*>(packet.data()), static_cast<int>(packet.size()), 0,
+                       reinterpret_cast<const sockaddr*>(&client_address), client_address_length) != static_cast<int>(packet.size())) {
+                errors_.fetch_add(1, std::memory_order_relaxed);
+                continue;
+            }
+            udp_responses_.fetch_add(1, std::memory_order_relaxed);
+            bytes_down_.fetch_add(static_cast<std::size_t>(count), std::memory_order_relaxed);
+            continue;
+        }
+
+        if (size < 4 || buffer[0] != 0 || buffer[1] != 0 || buffer[2] != 0) {
+            errors_.fetch_add(1, std::memory_order_relaxed);
+            continue;
+        }
+        std::size_t offset = 4;
+        sockaddr_storage destination{};
+        bool destination_ready = false;
+        if (buffer[3] == 1) {
+            if (size < offset + 4 + 2) { errors_.fetch_add(1, std::memory_order_relaxed); continue; }
+            auto* value = reinterpret_cast<sockaddr_in*>(&destination);
+            value->sin_family = AF_INET;
+            std::memcpy(&value->sin_addr, buffer.data() + offset, 4);
+            offset += 4;
+            value->sin_port = htons(static_cast<std::uint16_t>((buffer[offset] << 8) | buffer[offset + 1]));
+            offset += 2;
+            destination_ready = value->sin_port != 0;
+        } else if (buffer[3] == 4) {
+            if (size < offset + 16 + 2) { errors_.fetch_add(1, std::memory_order_relaxed); continue; }
+            auto* value = reinterpret_cast<sockaddr_in6*>(&destination);
+            value->sin6_family = AF_INET6;
+            std::memcpy(&value->sin6_addr, buffer.data() + offset, 16);
+            offset += 16;
+            value->sin6_port = htons(static_cast<std::uint16_t>((buffer[offset] << 8) | buffer[offset + 1]));
+            offset += 2;
+            destination_ready = value->sin6_port != 0;
+        } else if (buffer[3] == 3) {
+            if (size < offset + 1) { errors_.fetch_add(1, std::memory_order_relaxed); continue; }
+            const auto length = static_cast<std::size_t>(buffer[offset++]);
+            if (length == 0 || size < offset + length + 2) { errors_.fetch_add(1, std::memory_order_relaxed); continue; }
+            std::string host(reinterpret_cast<const char*>(buffer.data() + offset), length);
+            offset += length;
+            const auto port = static_cast<std::uint16_t>((buffer[offset] << 8) | buffer[offset + 1]);
+            offset += 2;
+            addrinfo hints{};
+            hints.ai_socktype = SOCK_DGRAM;
+            hints.ai_protocol = IPPROTO_UDP;
+            addrinfo* addresses = nullptr;
+            if (port == 0 || getaddrinfo(host.c_str(), std::to_string(port).c_str(), &hints, &addresses) != 0) {
+                errors_.fetch_add(1, std::memory_order_relaxed);
+                continue;
+            }
+            for (auto* item = addresses; item; item = item->ai_next) {
+                if (item->ai_addrlen <= sizeof(destination) &&
+                    (item->ai_family == AF_INET || item->ai_family == AF_INET6)) {
+                    std::memcpy(&destination, item->ai_addr, static_cast<std::size_t>(item->ai_addrlen));
+                    destination_ready = true;
+                    break;
+                }
+            }
+            freeaddrinfo(addresses);
+        } else {
+            errors_.fetch_add(1, std::memory_order_relaxed);
+            continue;
+        }
+        if (!destination_ready || offset > size) {
+            errors_.fetch_add(1, std::memory_order_relaxed);
+            continue;
+        }
+        const auto payload_size = size - offset;
+        const auto sent = sendto(relay, reinterpret_cast<const char*>(buffer.data() + offset), static_cast<int>(payload_size), 0,
+                                  reinterpret_cast<const sockaddr*>(&destination), SockaddrLength(destination));
+        if (sent != static_cast<int>(payload_size)) {
+            errors_.fetch_add(1, std::memory_order_relaxed);
+            continue;
+        }
+        udp_requests_.fetch_add(1, std::memory_order_relaxed);
+        bytes_up_.fetch_add(payload_size, std::memory_order_relaxed);
+    }
     return true;
 }
 

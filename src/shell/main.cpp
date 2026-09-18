@@ -733,9 +733,12 @@ void Host::RegisterTargetMethods(){
         const auto socks=proxy_?proxy_->Stats():wpe::shell::Socks5Stats{};
         const auto http=http_proxy_?http_proxy_->Stats():wpe::shell::Socks5Stats{};
         value["proxyRunning"]=socks.running||http.running;
-        value["tcpConn"]=static_cast<std::int64_t>(socks.active+http.active);
+        value["tcpConn"]=static_cast<std::int64_t>(socks.active-socks.udp_active+http.active);
         value["tcpReq"]=static_cast<std::int64_t>(socks.requests);
         value["tcpResp"]=static_cast<std::int64_t>(socks.responses);
+        value["udpReq"]=static_cast<std::int64_t>(socks.udp_requests);
+        value["udpResp"]=static_cast<std::int64_t>(socks.udp_responses);
+        value["udpConn"]=static_cast<std::int64_t>(socks.udp_active);
         value["httpReq"]=static_cast<std::int64_t>(http.requests);
         value["httpResp"]=static_cast<std::int64_t>(http.responses);
         value["totalRequest"]=static_cast<std::int64_t>(socks.requests+http.requests);

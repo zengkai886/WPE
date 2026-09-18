@@ -41,11 +41,14 @@ struct Socks5Stats {
     std::uint64_t map_hits{};
     std::uint64_t map_misses{};
     std::uint64_t map_errors{};
+    std::uint64_t udp_requests{};
+    std::uint64_t udp_responses{};
+    std::uint64_t udp_active{};
 };
 
-// Small, self-contained SOCKS5 CONNECT runtime used by the native proxy mode.
-// It intentionally implements TCP CONNECT only; HTTP/HTTPS uses the sibling
-// HttpProxyRuntime while UDP and WPC transport remain separate protocol work.
+// Small, self-contained SOCKS5 runtime used by the native proxy mode.  It
+// implements TCP CONNECT and RFC 1928 UDP ASSOCIATE; HTTP/HTTPS uses the
+// sibling HttpProxyRuntime while WPC transport remains a separate protocol.
 class Socks5Runtime final {
 public:
     Socks5Runtime() = default;
@@ -63,6 +66,7 @@ private:
     void Client(std::uintptr_t client);
     bool Authenticate(std::uintptr_t client) const;
     bool ConnectRequest(std::uintptr_t client, std::uintptr_t& remote);
+    bool RelayUdp(std::uintptr_t client, std::uintptr_t udp_socket);
     void Relay(std::uintptr_t client, std::uintptr_t remote);
     static void Close(std::uintptr_t socket) noexcept;
 
@@ -82,6 +86,9 @@ private:
     std::atomic<std::uint64_t> bytes_up_{0};
     std::atomic<std::uint64_t> bytes_down_{0};
     std::atomic<std::uint64_t> errors_{0};
+    std::atomic<std::uint64_t> udp_requests_{0};
+    std::atomic<std::uint64_t> udp_responses_{0};
+    std::atomic<std::uint64_t> udp_active_{0};
     bool winsock_started_{};
 };
 
