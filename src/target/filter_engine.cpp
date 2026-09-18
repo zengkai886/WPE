@@ -217,6 +217,18 @@ std::uint8_t StepByte(std::uint8_t value, std::int64_t step, int& carry) noexcep
 } // namespace
 
 struct FilterEngine::Table {
+    struct RuntimeState {
+        explicit RuntimeState(std::int64_t execution_count = 0,
+                              std::int64_t progression = 0) noexcept
+            : executions(execution_count), progression_count(progression) {}
+        std::atomic<std::int64_t> executions{};
+        std::atomic<std::int64_t> progression_count{};
+    };
+
+    struct GlobalState {
+        std::array<std::atomic<std::int64_t>, 6> values{};
+    };
+
     struct Item {
         FilterSnapshot source;
         std::vector<int> sockets;
@@ -230,17 +242,16 @@ struct FilterEngine::Table {
         std::vector<Modification> modifications;
         std::vector<int> progression_positions;
         std::vector<int> random_positions;
-        mutable std::atomic<std::int64_t> executions{};
-        mutable std::atomic<std::int64_t> progression_count{};
+        std::shared_ptr<RuntimeState> runtime;
     };
 
     std::vector<std::shared_ptr<Item>> filters;
-    mutable std::array<std::atomic<std::int64_t>, 6> globals{};
+    std::shared_ptr<GlobalState> globals{std::make_shared<GlobalState>()};
     std::int32_t execute_mode{};
     bool speed_mode{};
 };
 
-FilterEngine::FilterEngine(LogSink log_sink) : log_sink_(std::move(log_sink)) {
+FilterEngine::FilterEngine() {
     owned_table_ = std::make_unique<const Table>();
     table_.store(owned_table_.get());
 }
@@ -254,8 +265,9 @@ void FilterEngine::Publish(const std::vector<FilterSnapshot>& filters,
     auto fresh = std::make_unique<Table>();
     fresh->execute_mode = execute_mode;
     fresh->speed_mode = speed_mode;
-    for (std::size_t i = 0; i < fresh->globals.size(); ++i)
-        fresh->globals[i].store(old->globals[i].load(std::memory_order_relaxed), std::memory_order_relaxed);
+    // Counts are runtime state, not snapshot state. Sharing them prevents a
+    // publisher from resurrecting stale values or losing concurrent updates.
+    fresh->globals = old->globals;
 
     for (const auto& source : filters) {
         auto item = std::make_shared<Table::Item>();
@@ -279,14 +291,12 @@ void FilterEngine::Publish(const std::vector<FilterSnapshot>& filters,
         item->modifications = ParseModifications(Narrow(source.modify));
         item->progression_positions = ParsePositions(Narrow(source.progression_position));
         item->random_positions = ParsePositions(Narrow(source.random_position));
-        item->executions.store(source.execution_count, std::memory_order_relaxed);
-        item->progression_count.store(source.progression_count, std::memory_order_relaxed);
         const auto prior = std::find_if(old->filters.begin(), old->filters.end(),
             [&](const auto& candidate) { return candidate->source.id == source.id; });
-        if (prior != old->filters.end()) {
-            item->executions.store((*prior)->executions.load(std::memory_order_relaxed), std::memory_order_relaxed);
-            item->progression_count.store((*prior)->progression_count.load(std::memory_order_relaxed), std::memory_order_relaxed);
-        }
+        item->runtime = prior != old->filters.end()
+            ? (*prior)->runtime
+            : std::make_shared<Table::RuntimeState>(source.execution_count,
+                                                    source.progression_count);
         fresh->filters.push_back(std::move(item));
     }
     const auto* fresh_pointer = fresh.get();
@@ -401,7 +411,7 @@ bool ApplyProgression(const FilterEngine::Table::Item& item, ByteBuffer& bytes,
 bool ApplyReplace(const FilterEngine::Table::Item& item, ByteBuffer& bytes,
                   const std::vector<int>& matches) noexcept {
     bool changed = false;
-    const auto progression = item.progression_count.load(std::memory_order_relaxed);
+    const auto progression = item.runtime->progression_count.load(std::memory_order_relaxed);
     const auto apply_at = [&](int base) {
         bool local = false;
         for (const auto& modification : item.modifications) {
@@ -423,7 +433,7 @@ bool ApplyReplace(const FilterEngine::Table::Item& item, ByteBuffer& bytes,
     if (item.source.mode == 0) changed = apply_at(0);
     else for (const int match : matches) changed = apply_at(match); // original keeps the final result
     if (changed && !item.progression_positions.empty() && item.source.progression_continuous)
-        item.progression_count.fetch_add(1, std::memory_order_relaxed);
+        item.runtime->progression_count.fetch_add(1, std::memory_order_relaxed);
     return changed;
 }
 
@@ -436,10 +446,10 @@ bool ApplyChange(const FilterEngine::Table::Item& item, ByteBuffer& bytes) {
     for (const auto& modification : item.modifications)
         if (modification.position >= 0 && static_cast<std::size_t>(modification.position) < bytes.size())
             bytes[static_cast<std::size_t>(modification.position)] = modification.value;
-    const auto progression = item.progression_count.load(std::memory_order_relaxed);
+    const auto progression = item.runtime->progression_count.load(std::memory_order_relaxed);
     const bool progressed = ApplyProgression(item, bytes, 0, progression);
     if (progressed && item.source.progression_continuous)
-        item.progression_count.fetch_add(1, std::memory_order_relaxed);
+        item.runtime->progression_count.fetch_add(1, std::memory_order_relaxed);
     return !bytes.empty();
 }
 
@@ -452,13 +462,24 @@ FilterResult FilterEngine::Apply(const FilterContext& context,
         result.bytes.assign(input.begin(), input.end());
         ReaderGuard reader(readers_);
         const auto* table = table_.load();
-        for (const auto& item : table->filters) {
-            if (!Effective(*item, context, result.bytes)) continue;
+        struct Outcome {
+            bool applied{};
+            FilterAction action{FilterAction::None};
+        };
+        std::array<Guid, 16> execution_stack{};
+        const auto apply_item = [&](auto&& self, const std::shared_ptr<Table::Item>& item,
+                                    std::size_t depth) -> Outcome {
+            if (depth >= execution_stack.size()) return {};
+            for (std::size_t i = 0; i < depth; ++i)
+                if (execution_stack[i] == item->source.id) return {};
+            execution_stack[depth] = item->source.id;
+
+            if (!Effective(*item, context, result.bytes)) return {};
             std::vector<int> matches;
             const bool matched = item->source.mode == 0
                 ? NormalMatch(*item, result.bytes)
                 : !(matches = AdvancedMatches(*item, result.bytes)).empty();
-            if (!matched) continue;
+            if (!matched) return {};
 
             bool applied = false;
             const auto action = static_cast<FilterAction>(item->source.action);
@@ -470,13 +491,24 @@ FilterResult FilterEngine::Apply(const FilterContext& context,
             case FilterAction::NoModifyNoDisplay: applied = true; break;
             default: break;
             }
-            if (item->source.execute && !IsZero(item->source.execute_id)) applied = true;
-            if (!applied) continue;
 
-            result.action = action;
-            item->executions.fetch_add(1, std::memory_order_relaxed);
-            table->globals[0].fetch_add(1, std::memory_order_relaxed);
-            std::size_t counter = table->globals.size();
+            // Filter is the only trigger type whose executor belongs to this
+            // P0 slice. Unsupported Send/Robot/WareHouse triggers must not be
+            // reported as successful merely because their GUID is populated.
+            if (item->source.execute && item->source.execute_type == 3 &&
+                !IsZero(item->source.execute_id)) {
+                const auto target = std::find_if(table->filters.begin(), table->filters.end(),
+                    [&](const auto& candidate) {
+                        return candidate->source.id == item->source.execute_id;
+                    });
+                if (target != table->filters.end())
+                    applied = self(self, *target, depth + 1).applied || applied;
+            }
+            if (!applied) return {};
+
+            item->runtime->executions.fetch_add(1, std::memory_order_relaxed);
+            table->globals->values[0].fetch_add(1, std::memory_order_relaxed);
+            std::size_t counter = table->globals->values.size();
             switch (action) {
             case FilterAction::Replace: counter = 1; break;
             case FilterAction::Change: counter = 2; break;
@@ -485,19 +517,30 @@ FilterResult FilterEngine::Apply(const FilterContext& context,
             case FilterAction::NoModifyNoDisplay: counter = 5; break;
             default: break;
             }
-            if (counter < table->globals.size())
-                table->globals[counter].fetch_add(1, std::memory_order_relaxed);
-            if (!table->speed_mode && log_sink_) {
-                log_sink_(FilterLogRecord{item->source.name, action,
+            if (counter < table->globals->values.size())
+                table->globals->values[counter].fetch_add(1, std::memory_order_relaxed);
+            if (!table->speed_mode) {
+                result.logs.push_back(PendingFilterLog{
+                    item->source.name, static_cast<std::int32_t>(action),
                     static_cast<std::int32_t>(matches.empty() ? 1 : matches.size()),
                     context.packet_type, static_cast<std::int32_t>(input.size())});
             }
-            if (action == FilterAction::Intercept || action == FilterAction::Change ||
-                action == FilterAction::NoModifyDisplay || action == FilterAction::NoModifyNoDisplay ||
-                table->execute_mode == 0) break;
+            return {true, action};
+        };
+
+        for (const auto& item : table->filters) {
+            const auto outcome = apply_item(apply_item, item, 0);
+            if (!outcome.applied) continue;
+            result.action = outcome.action;
+            const auto action = outcome.action;
+            if (action != FilterAction::None &&
+                (action == FilterAction::Intercept || action == FilterAction::Change ||
+                 action == FilterAction::NoModifyDisplay ||
+                 action == FilterAction::NoModifyNoDisplay || table->execute_mode == 0)) break;
         }
     } catch (...) {
         result.action = FilterAction::None;
+        result.logs.clear();
         try { result.bytes.assign(input.begin(), input.end()); } catch (...) { result.bytes.clear(); }
     }
     return result;
@@ -510,9 +553,10 @@ FilterStats FilterEngine::Stats() const noexcept {
         const auto* table = table_.load();
         result.filters.reserve(table->filters.size());
         for (const auto& item : table->filters)
-            result.filters.emplace_back(item->source.id, item->executions.load(std::memory_order_relaxed));
+            result.filters.emplace_back(item->source.id,
+                item->runtime->executions.load(std::memory_order_relaxed));
         for (std::size_t i = 0; i < result.globals.size(); ++i)
-            result.globals[i] = table->globals[i].load(std::memory_order_relaxed);
+            result.globals[i] = table->globals->values[i].load(std::memory_order_relaxed);
     } catch (...) {}
     return result;
 }
@@ -520,8 +564,9 @@ FilterStats FilterEngine::Stats() const noexcept {
 void FilterEngine::ResetStats() noexcept {
     ReaderGuard reader(readers_);
     const auto* table = table_.load();
-    for (const auto& item : table->filters) item->executions.store(0, std::memory_order_relaxed);
-    for (auto& counter : table->globals) counter.store(0, std::memory_order_relaxed);
+    for (const auto& item : table->filters)
+        item->runtime->executions.store(0, std::memory_order_relaxed);
+    for (auto& counter : table->globals->values) counter.store(0, std::memory_order_relaxed);
 }
 
 } // namespace wpe

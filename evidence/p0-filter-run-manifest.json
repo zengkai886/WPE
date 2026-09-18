@@ -23,11 +23,11 @@
     "13.1"
   ],
   "scope": "Protocol/ring, real three-channel Windows named-pipe transport with current-user ACL, shell/target session lifecycle, target headless command core, same-bitness Windows injection, production x64/Win32 target DLL bootstrap, official MinHook 1.3.4, all 13 documented Winsock signatures (the original-compatible x64 default omits WSARecvEx), bounded non-blocking capture ring, dedicated address/frame writer, live target counters/speed mode, synchronous filter matching/mutation/interception and actual injected-process TCP packet delivery over the pkt pipe; native SQLite, editors, plaintext XML export, private-station OS clipboard, original Vue/HexView/export/clipboard buttons and restart. Non-null overlapped WSA completion filtering, pre-entry suspended wake choreography, shell injection UI/x86 helper, SendPacket/GetSocketInfo, proxy/executor engines and complete acceptance remain unimplemented",
-  "startedUtc": "2026-09-18T06:32:30.1342068Z",
-  "finishedUtc": "2026-09-18T06:36:26.8486268Z",
+  "startedUtc": "2026-09-18T07:12:18.1762214Z",
+  "finishedUtc": "2026-09-18T07:16:10.4947483Z",
   "result": "passed",
-  "runDirectory": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1",
-  "command": "E:\\codex\\2026-09-17\\bi-a\\outputs\\WPE64-Cpp\\build-test.ps1 -BuildRoot E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2 -Architecture x64,Win32",
+  "runDirectory": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d",
+  "command": "E:\\codex\\2026-09-17\\bi-a\\outputs\\WPE64-Cpp\\build-test.ps1 -BuildRoot E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3 -Architecture x64,Win32",
   "architectures": [
     {
       "architecture": "x64",
@@ -37,84 +37,84 @@
       "ring": "PASS: packet ring edges/concurrency; 6416 original state-transition vectors",
       "artifacts": [
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\Release\\wpe64-parity-test.exe",
-          "sha256": "C6C1B8761B786D14A7769C610407A90016912E5764E139A7BE4B8B1CC9E7A606"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\Release\\wpe64-parity-test.exe",
+          "sha256": "52F63E64A76B330DC3E9C43EED0A8CE9137561326A82537314FC9C5D88776D7E"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\Release\\wpe64-pipe-test.exe",
-          "sha256": "8B6BB947EB7323943BA824802DB72589EFD27403826BB3EFB54700377CD11FBB"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\Release\\wpe64-pipe-test.exe",
+          "sha256": "35AA6EDC65EAB990985E04100802233AF44E05AD00BB2062E661AF959CC9A78D"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\Release\\wpe64-session-test.exe",
-          "sha256": "18FA3391B35491AFDA961E1CC8C266A679B5886C5DA17D69FEFDD1BA64232FC3"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\Release\\wpe64-session-test.exe",
+          "sha256": "42D4F4756E59FE4807DD97104471DDA3B5320FDE37294DBA6D47DBB3F8D6D81E"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\Release\\wpe64-headless-core-test.exe",
-          "sha256": "94FC0236C25F6C913267AC6BBB56A8E91B7FFD4F5D22E7E34E252DB379A5184D"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\Release\\wpe64-headless-core-test.exe",
+          "sha256": "5F1571A48BF46150593A4D824BF2315BB2504A714118469669A0E2C358A53C96"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\Release\\wpe64-hook-manager-test.exe",
-          "sha256": "3EA1B7263E75841ECCAFCC120C88CEE65056C35E51564955117D4622FAEEEC61"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\Release\\wpe64-hook-manager-test.exe",
+          "sha256": "795144D7DF59F8154850C4231EBEE4D6D5D013AFD026E7246114D29710CE7710"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\Release\\wpe64-winsock-hook-test.exe",
-          "sha256": "01C0D6C60985EC83DA0FA9FCF120C131F2D607DE6235CF4DF660BFF154D38D83"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\Release\\wpe64-winsock-hook-test.exe",
+          "sha256": "D6C87AD47DA84507140102113A3CF380C2DD87EB42455D4ED37CC7B381686A24"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\Release\\wpe64-filter-engine-test.exe",
-          "sha256": "C853E03D7D36F37326BB432076206278FA5D841896CED0960D4F7F0A4C480AB9"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\Release\\wpe64-filter-engine-test.exe",
+          "sha256": "D2C29FD0E2996FB59D093F79C5BCE0CA672ADD006CF5CCFD4645A6667E798222"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\Release\\wpe64-injector-test.exe",
-          "sha256": "087FF006B6D02A7081398E8DFE11339A390303FCC1BF0733E07629B8AAD4C28D"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\Release\\wpe64-injector-test.exe",
+          "sha256": "77360F84033D4371849B231378A53264528C8470B67539EC6FBDB4A8F0CCC28A"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\Release\\wpe64-inject-target.exe",
-          "sha256": "37F8AFF7B03565C60C30AEB915599FA553867825E17400CE452E7DDF2F512C7A"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\Release\\wpe64-inject-target.exe",
+          "sha256": "553E3FB4C9935D5A4D002CDF543C33A7928B2697007591B6783D51692FB3CA32"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\Release\\wpe64-inject-probe.dll",
-          "sha256": "789459FDA8893612B144C5E7C7AE3BAFCA28462AA68E7980EB4050041D2C6926"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\Release\\wpe64-inject-probe.dll",
+          "sha256": "8F796B82F23D25F6B3B3339B4C49AD964454F6D5D0D80EAE4D726F010CFA3CF3"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\Release\\wpe64-injected-session-test.exe",
-          "sha256": "D8D1523F53D5E21DEBBE4147624DE8066F697BB0B407612C158B213F5DF683EB"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\Release\\wpe64-injected-session-test.exe",
+          "sha256": "98CBD565ABA1D95DF213B468F674DF0584F8A3A48484CF3FE154DB7429347665"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\Release\\wpe64-injected-session-target.exe",
-          "sha256": "89E5EE623992C87740733FD2A9E41254936AF1DDD153BD3E797BC0E5F6BFC5D0"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\Release\\wpe64-injected-session-target.exe",
+          "sha256": "75CFB94C2A56A8D7AF57BED575E7488235685132CA8AA126D816185135B00A36"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\Release\\wpe64-hook.dll",
-          "sha256": "98A0439DE15B3435DDBE9AB314F26FDC41605D975972977FB22111BC36F9AB28"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\Release\\wpe64-hook.dll",
+          "sha256": "5536816F7BEE9FB049D93F927EF4EABB370C9A94FB27891DB5501D5E47A1C931"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\Release\\wpe64-common.lib",
-          "sha256": "D7E73093926A0365A5D90C6A8D495822D4A4F236F1B624C341A998FDDF47E8DD"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\Release\\wpe64-common.lib",
+          "sha256": "08EFDC21932B600F64429D5E5E9F5E9DB39DBEC069A9B6EFBEF5FC45EBC8E5C8"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\Release\\wpe64-target-core.lib",
-          "sha256": "1C906CF813439F7CBC6568479BAB58CA4DE27C1720F6E685E85129A6B8FAF3DA"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\Release\\wpe64-target-core.lib",
+          "sha256": "1BDCEEBFD49C1DBDC8CB88E72C61DBF31174C13F413E81BDF12ACFEC8F03AB09"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\Release\\wpe64-hook-runtime.lib",
-          "sha256": "691E0F8E4F4657BA526C474226AF7F46BAFE5DF2A1A8C668F6A8392A216A472A"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\Release\\wpe64-hook-runtime.lib",
+          "sha256": "7AE8D48367772FC6C84B2C78A76F8265A04F9A331490E8709C5A2A769730AEB8"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\Release\\wpe64-minhook.lib",
-          "sha256": "352A31A154C79276E4D70FFCF88049A604D4FD4A9F0BE87DE5B38C7EC010716E"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\Release\\wpe64-minhook.lib",
+          "sha256": "A44C5DB363DA27374C12AAC77447711AEEE0468A16E9C972CB5EF93341528E95"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\Release\\wpe64-injector.lib",
-          "sha256": "3A6611722B20ABF86E020A69A2C159843ADC77A6B0D17B7654820DB5151B5298"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\Release\\wpe64-injector.lib",
+          "sha256": "DAE5BC1597B7FF5021CBC10A67C30202603C0762ECA4186B23627F6DFCF64612"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64-packets.tsv",
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64-packets.tsv",
           "sha256": "982050FA8F316304A79A30ED787A390BC6F2220E48E0AE40E757151F0C8EEE47"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\CMakeCache.txt",
-          "sha256": "2BAC20B46E818FBF4D8A4B1016EE1A7058B530C436E1E8ECCB273844A91EC830"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\CMakeCache.txt",
+          "sha256": "4F719C905BF89D1FC046E6F9162190B7609E8ABBE8C6A0D90D2530AB0DD0F354"
         }
       ]
     },
@@ -126,84 +126,84 @@
       "ring": "PASS: packet ring edges/concurrency; 6416 original state-transition vectors",
       "artifacts": [
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32\\Release\\wpe64-parity-test.exe",
-          "sha256": "BEDA145473282DA416408AD0E45039DE16816210216FEABD8CD90BF45EADA497"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32\\Release\\wpe64-parity-test.exe",
+          "sha256": "70389EA55D83F73D165C97232D1554080296B9FA8511B3F1B41495328002A803"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32\\Release\\wpe64-pipe-test.exe",
-          "sha256": "336DA5AFCD938D23C1E27EDDE4A176C568A953AAC75954A035B302C9AE9928E7"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32\\Release\\wpe64-pipe-test.exe",
+          "sha256": "4F0AD4417966E813FC2E09677B4C0276CA8C891981831760754B0F2CC19DDDF4"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32\\Release\\wpe64-session-test.exe",
-          "sha256": "F5B3BB4DD4D193F946C77E8E54FFB49BE33559E8956057578C631B7201EF3C69"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32\\Release\\wpe64-session-test.exe",
+          "sha256": "CF85117AA017BC9F584FAAF1F04998B0ACED749A737D5326EFCC2191BF99BC06"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32\\Release\\wpe64-headless-core-test.exe",
-          "sha256": "5991B7839E551DB1583B88D7413F09A66A5F77BC6E7DB5F040683732ECC26583"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32\\Release\\wpe64-headless-core-test.exe",
+          "sha256": "26AECB48DA91318502F379F9C496234406866C1E1E35C0857AD8DDADBC6440E9"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32\\Release\\wpe64-hook-manager-test.exe",
-          "sha256": "973262C2B69CF497BD48FEF1733499268DF883A8829A90D6B65F3597DBD039EC"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32\\Release\\wpe64-hook-manager-test.exe",
+          "sha256": "1BA3E4088B0814B8A12F4FDDEC14368F363AC46F0FEBB645DE254081E25DE863"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32\\Release\\wpe64-winsock-hook-test.exe",
-          "sha256": "E0A844109F0F55D55C07DC42495AD2D74818B9A879D272F2856911305C4711A3"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32\\Release\\wpe64-winsock-hook-test.exe",
+          "sha256": "2A90E32614D291CA5BB0BEC6D43448D6A706EB3A0E0D14F2B69A034A7D00CEA7"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32\\Release\\wpe64-filter-engine-test.exe",
-          "sha256": "D2823C0DF6898CD1F9F376E510198F0FC4DA56CD7DB87AEAAF4B672CC7670AA4"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32\\Release\\wpe64-filter-engine-test.exe",
+          "sha256": "AD892FA8B2CA36D908D938C93772213A4511D5B3E41DBEF8A3FF8D5D70018AF8"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32\\Release\\wpe64-injector-test.exe",
-          "sha256": "2EFF67F74A160B6D2760CB35D8900EE083DDCA3BF39A22AF376360347928B702"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32\\Release\\wpe64-injector-test.exe",
+          "sha256": "48F14CBD85F62288D79B272E87DD18011C726849041C337373E8CF71FFE9A17B"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32\\Release\\wpe64-inject-target.exe",
-          "sha256": "255D2BBE2E768DEC68D35B3EBA7319B43C1DE6894E71B8B96C5E1000782660E7"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32\\Release\\wpe64-inject-target.exe",
+          "sha256": "7A8DFED79D8419C1C0A572913D1A8A5B6EB01607DA8BD074F90B37FE90F0BB77"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32\\Release\\wpe64-inject-probe.dll",
-          "sha256": "F67873DAA1F409318CFA38FB25AC507402061F06E3A6D5E822D29B270CB090D2"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32\\Release\\wpe64-inject-probe.dll",
+          "sha256": "3881710B8C4828BF557FF95A782A1CA7F00A5EF73CFD76EC28B3CC70309B2D15"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32\\Release\\wpe64-injected-session-test.exe",
-          "sha256": "519AD89A5E36D92EACDC5B9FA9B1766285ABCFD4755F962E67974C2C3659141F"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32\\Release\\wpe64-injected-session-test.exe",
+          "sha256": "7B3C33B647A112DA3E0EB4AB96D27F7A3BBFD3434A4AA50A2650DE32F9DD3273"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32\\Release\\wpe64-injected-session-target.exe",
-          "sha256": "5D12490605C6594E12C32EAACFB37B83BE2FFAB3456FAB14137A2275BA115382"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32\\Release\\wpe64-injected-session-target.exe",
+          "sha256": "7EDF702EF78C723CDFBB13BBB8B416F76DD9C4468F0E53E2B2091856BC27AE96"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32\\Release\\wpe64-hook.dll",
-          "sha256": "20B031197824FEF1C89A5FC26375FEF1338D30111E4652FE630257ADF1AE0DD1"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32\\Release\\wpe64-hook.dll",
+          "sha256": "5EFBBB17F5A5C98B310B3EE0E116D8E20CB60FCDD1BD061EF8814F40134D2DD7"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32\\Release\\wpe64-common.lib",
-          "sha256": "BD746E1EACBB53C7AEEE3CCD049A10189D1B0C3A0869DE14A9D02258439DADBC"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32\\Release\\wpe64-common.lib",
+          "sha256": "2387916A0503BCF95A186A4B6EC2D5047CF6A1E8CCCA8760637213F6242DAEC2"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32\\Release\\wpe64-target-core.lib",
-          "sha256": "90A5D9D9CFE169A0188F8EDA9685BC7760AC19004065EF6C7E9988796983FB67"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32\\Release\\wpe64-target-core.lib",
+          "sha256": "4E438DE8D4C6CA56855E55007080936976BCA4E10CD9DBF2CF85E50CE269E53C"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32\\Release\\wpe64-hook-runtime.lib",
-          "sha256": "EDDC15C2326F7CE37CDF4687CFFAEFC492A61330B08349CC692EC1DC0A891245"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32\\Release\\wpe64-hook-runtime.lib",
+          "sha256": "3DE0043E9F8EF4A2146D6414617C4D48D5124BB9636B315616BA926CAAA61904"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32\\Release\\wpe64-minhook.lib",
-          "sha256": "94743F454EB97E2594FA87A51C837AAD46F78ECF56EA0C137F88A1F1DE419B3C"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32\\Release\\wpe64-minhook.lib",
+          "sha256": "C633A46AD26727B9C1F5E0B4EB8C028231C2295FC812C7216BA58AF2557A9DA2"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32\\Release\\wpe64-injector.lib",
-          "sha256": "3EFC595017C8E433FB045991F9555EE0E34A337CC1C82D97FFA99D490B27028B"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32\\Release\\wpe64-injector.lib",
+          "sha256": "2A3B02E8D7F2FE52B537771A707E79E1B13E065BFF2E357D58F4C141C3513514"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32-packets.tsv",
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32-packets.tsv",
           "sha256": "982050FA8F316304A79A30ED787A390BC6F2220E48E0AE40E757151F0C8EEE47"
         },
         {
-          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\Win32\\CMakeCache.txt",
-          "sha256": "D764C80D7F4C95B2A9680DC16FAA858C8BEF5AFF1F07D8D3F344B578473C3DA2"
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\Win32\\CMakeCache.txt",
+          "sha256": "354C21E147E8A8C9BB15D44882C8BBDF49A9273758EE2426639E1013F98DF21A"
         }
       ]
     }
@@ -867,11 +867,11 @@
     },
     {
       "path": "src\\common\\packet_ring.cpp",
-      "sha256": "A8B986FFC65F2E450254FE75C6F838D4980EA6D624727ECBF31CAABF205B40FD"
+      "sha256": "2F3ECF340F7719F2136296907127F498DE701B13C6F2D1A1E66EF2A576CE4206"
     },
     {
       "path": "src\\common\\packet_ring.h",
-      "sha256": "C1AB68D822D7FD5E66D7E62AFD02BD4213E51CB11D7A96969789B63456F5E2C1"
+      "sha256": "8173570CA472AF4A34704D2178F3FE6FA253DD19CD7E898D2DF6736086E2FCC0"
     },
     {
       "path": "src\\shell\\app.manifest",
@@ -1003,11 +1003,11 @@
     },
     {
       "path": "src\\target\\filter_engine.cpp",
-      "sha256": "D0AE75D5C04F0F12505D90A8087CA4EA7518EF92D90D820ABCD3E0A162244941"
+      "sha256": "3C5413E335E038BFE275FD7651227119D9C90F7AFDA41F1513CB8F4602BF5DE2"
     },
     {
       "path": "src\\target\\filter_engine.h",
-      "sha256": "5F6350F53BAAD6B958D04C8494D02711E950FB27DA0ED4A3F5A0FA2743858355"
+      "sha256": "AD4A608BA7559AEAAACCB19BFC3D986A8F0F49731D585076D0FE522EB6C0FECE"
     },
     {
       "path": "src\\target\\headless_core.cpp",
@@ -1035,7 +1035,7 @@
     },
     {
       "path": "src\\target\\winsock_hook.cpp",
-      "sha256": "59C89D536B210C8FC5CF2CDB21B73949264E80BF7F2123C8ECA0A29F0F61FA22"
+      "sha256": "EC305D39BD7BA6BD1213117626BA4615232B144C38F03481DA68A1327CB20B2B"
     },
     {
       "path": "src\\target\\winsock_hook.h",
@@ -1103,7 +1103,7 @@
     },
     {
       "path": "tests\\filter_engine_test.cpp",
-      "sha256": "FB86D598F6041B4FE4BEF178E55FE018880BFC21BC667C188302A9E60259DA54"
+      "sha256": "D385431B14405E578B7EE17CABA031DCC1C7020F869ED37037693769B7F19ECA"
     },
     {
       "path": "tests\\fixtures\\config-files\\original\\crypto.json",
@@ -1195,7 +1195,7 @@
     },
     {
       "path": "tests\\winsock_hook_test.cpp",
-      "sha256": "93E1AAC743569B03398506C97FA16AE13317C886E1C9DB3E144CF51074B7DC71"
+      "sha256": "FAB73087152D6C2029610514A762EBC6BE2B6727D5EC715658EC1AA8EBAABE44"
     },
     {
       "path": "verify-assets.ps1",
@@ -1203,7 +1203,7 @@
     }
   ],
   "git": {
-    "commit": "f9756c76e43820b59a7d23d20eaccf88fa11479a",
+    "commit": "15eff334f30080bed3808c80e3f372b6d51dd0e6",
     "dirty": true,
     "available": true
   },
@@ -1235,7 +1235,7 @@
       "chooserTest": "fixed-path seam; production Windows picker UI not automated",
       "clipboardTest": "UI uses isolated memory clipboard; real OS clipboard tested separately in private window station",
       "configurationListsRoundTrip": true,
-      "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\webview-profile\\2.3.0\\WPE.db",
+      "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\webview-profile\\2.3.0\\WPE.db",
       "editorCounts": [
         2,
         3,
@@ -1255,7 +1255,7 @@
       "originalExportButtons": true,
       "originalHexViewEdited": true,
       "originalListDom": true,
-      "persistentFilterId": "BC1A7E2D-3175-428B-B9F1-E3E354BC4725",
+      "persistentFilterId": "C88C335A-180B-47BE-872A-37F97977D541",
       "robotCancelKeptSavedInstructions": true,
       "titlebar": true,
       "topmostProbe": "passed",
@@ -1288,34 +1288,34 @@
   },
   "exportArtifacts": [
     {
-      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\host\\export.sc",
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\host\\export.sc",
       "sha256": "9B59B331B4BD141934A05D4F570D1D121E32A88C899CEA6E6CA80E573BB81DF5"
     },
     {
-      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\host\\export.whs",
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\host\\export.whs",
       "sha256": "5F36873E382E83CA3A238F19BB762E10854EB8136DAEB839708A1896E6628EA8"
     },
     {
-      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\host\\encrypted-export.sc",
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\host\\encrypted-export.sc",
       "sha256": "E6DBD867F1E61CAE36418DF0A7B87EBD7AB7A2D24C4C4FB3DD177FEFAC86A115"
     },
     {
-      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\host\\export.xls",
-      "sha256": "FDF82EF7A9BA6C6F01ACDED6D2FB415A1065A97AF0FDC54FDD18644055C55EB3"
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\host\\export.xls",
+      "sha256": "F4B6CEE10AB71C046A49B26B83541AB0466BF3DA3A7EDCF1DB3841D3916C97CB"
     }
   ],
   "hostArtifacts": [
     {
-      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\x64\\Release\\wpe64-app.exe",
-      "sha256": "FA9375949DDCC7002385EA72D8304CAA41BDB0FF1ACB2B1F67458BB73AF4E00B"
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\x64\\Release\\wpe64-app.exe",
+      "sha256": "D68585B266E0048A305288CE24E5CAE180591DEF871221656C416A0C42A0BFBF"
     },
     {
-      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\host\\host-self-test.json",
-      "sha256": "30FBBF594E80DF359595879EF10B7A128EA86674DF542A6F67D9643FFC0D690C"
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\host\\host-self-test.json",
+      "sha256": "C21F72DCA03749A51965F2BB79734566271777A99C8979E409DE9465A90CDFC4"
     },
     {
-      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\host\\original-vue.png",
-      "sha256": "4E9862A5BD6B57DAC8A1A86DCAB90572DAC85EF009BF2A2473754E94F7C93C49"
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\host\\original-vue.png",
+      "sha256": "54131B005C00E0171167667D8736CDC6CAF4AB9A30BA3902D8987883E8EA2A77"
     }
   ],
   "hostRestart": {
@@ -1327,7 +1327,7 @@
       "chooserTest": "fixed-path seam; production Windows picker UI not automated",
       "clipboardTest": "UI uses isolated memory clipboard; real OS clipboard tested separately in private window station",
       "configurationListsRoundTrip": true,
-      "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final2\\run-276f750a2473443a82117fce869f48e1\\webview-profile\\2.3.0\\WPE.db",
+      "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\p0-filter-final3\\run-c208c0efa8be48c6a41f66d4139fbb4d\\webview-profile\\2.3.0\\WPE.db",
       "editorCounts": [
         2,
         3,
@@ -1344,7 +1344,7 @@
       "originalExportButtons": false,
       "originalHexViewEdited": true,
       "originalListDom": true,
-      "persistentFilterId": "BC1A7E2D-3175-428B-B9F1-E3E354BC4725",
+      "persistentFilterId": "C88C335A-180B-47BE-872A-37F97977D541",
       "restartPersistence": true,
       "robotCancelKeptSavedInstructions": true,
       "topmostProbe": "passed",

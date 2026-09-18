@@ -1,10 +1,10 @@
 #pragma once
 
+#include "common/packet_ring.h"
 #include "headless_core.h"
 #include <array>
 #include <atomic>
 #include <cstdint>
-#include <functional>
 #include <memory>
 #include <mutex>
 #include <span>
@@ -32,14 +32,7 @@ struct FilterContext {
 struct FilterResult {
     FilterAction action{FilterAction::None};
     ByteBuffer bytes;
-};
-
-struct FilterLogRecord {
-    Text name;
-    FilterAction action{FilterAction::None};
-    std::int32_t matches{};
-    std::uint8_t packet_type{};
-    std::int32_t packet_length{};
+    std::vector<PendingFilterLog> logs;
 };
 
 struct FilterStats {
@@ -52,9 +45,8 @@ struct FilterStats {
 class FilterEngine final {
 public:
     struct Table;
-    using LogSink = std::function<void(const FilterLogRecord&)>;
 
-    explicit FilterEngine(LogSink log_sink = {});
+    FilterEngine();
     ~FilterEngine();
     FilterEngine(const FilterEngine&) = delete;
     FilterEngine& operator=(const FilterEngine&) = delete;
@@ -75,7 +67,6 @@ private:
     std::unique_ptr<const Table> owned_table_;
     std::vector<std::unique_ptr<const Table>> retired_tables_;
     std::mutex publish_mutex_;
-    LogSink log_sink_;
 };
 
 } // namespace wpe

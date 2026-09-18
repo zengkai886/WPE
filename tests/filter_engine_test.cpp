@@ -50,8 +50,7 @@ wpe::FilterContext Context(std::int64_t socket = 42, std::uint8_t type = 1) {
 } // namespace
 
 int main() {
-    std::vector<wpe::FilterLogRecord> logs;
-    wpe::FilterEngine engine([&](const auto& record) { logs.push_back(record); });
+    wpe::FilterEngine engine;
     auto filter = Base("00112233-4455-6677-8899-aabbccddeeff");
     engine.Publish({filter}, 0, false);
 
@@ -60,7 +59,8 @@ int main() {
     Check(result.action == wpe::FilterAction::Replace, "normal wildcard match applies replace");
     Check(result.bytes == std::vector<std::uint8_t>({0x10, 0x7f, 0xff, 0x40}),
           "normal replacement uses absolute position");
-    Check(logs.size() == 1 && logs[0].matches == 1 && logs[0].packet_length == 4,
+    Check(result.logs.size() == 1 && result.logs[0].matches == 1 &&
+          result.logs[0].packet_length == 4,
           "non-speed mode emits one compact filter log");
 
     result = engine.Apply(Context(), std::vector<std::uint8_t>{0x11, 0x2a, 0xff});
@@ -98,7 +98,8 @@ int main() {
     Check(result.action == wpe::FilterAction::Replace, "advanced pattern matches");
     Check(result.bytes == std::vector<std::uint8_t>({0xaa,0xcc,0x00,0xaa,0xcc}),
           "advanced position-relative replace applies to every non-overlapping match");
-    Check(logs.back().matches == 2, "advanced log records match count");
+    Check(result.logs.size() == 1 && result.logs.back().matches == 2,
+          "advanced log records match count");
 
     auto change = Base("21112233-4455-6677-8899-aabbccddeeff");
     change.action = static_cast<std::int32_t>(wpe::FilterAction::Change);
@@ -141,6 +142,10 @@ int main() {
     result = engine.Apply(Context(), std::vector<std::uint8_t>{0xff,0x01});
     Check(result.bytes == std::vector<std::uint8_t>({0xff,0x03}),
           "continuous progression increments multiplier");
+    engine.Publish({progression}, 0, false);
+    result = engine.Apply(Context(), std::vector<std::uint8_t>{0xff,0x01});
+    Check(result.bytes == std::vector<std::uint8_t>({0xff,0x04}),
+          "snapshot publication shares progression state by GUID");
 
     auto random = Base("51112233-4455-6677-8899-aabbccddeeff");
     random.search = Text("0|10"); random.modify = Text(""); random.random_position = Text("1");
@@ -167,9 +172,8 @@ int main() {
     stats = engine.Stats();
     Check(stats.filters[0].second == 2 && stats.filters[1].second == 1,
           "snapshot publication preserves counts by GUID");
-    const auto log_count = logs.size();
-    (void)engine.Apply(Context(), packet);
-    Check(logs.size() == log_count, "speed mode suppresses filter log events");
+    Check(engine.Apply(Context(), packet).logs.empty(),
+          "speed mode suppresses filter log events");
     engine.ResetStats();
     stats = engine.Stats();
     Check(stats.filters[0].second == 0 && stats.filters[1].second == 0,
@@ -203,16 +207,60 @@ int main() {
     Check(engine.Apply(Context(), packet).action == wpe::FilterAction::None,
           "malformed normal search is rejected instead of becoming a vacuous match");
 
+    auto nested = Base("a1112233-4455-6677-8899-aabbccddeeff");
+    nested.search = Text("0|10");
+    nested.modify = Text("2|ee");
+    nested.name = Text("nested-filter");
+    auto parent = Base("b1112233-4455-6677-8899-aabbccddeeff");
+    parent.search = Text("0|10");
+    parent.modify = Text("");
+    parent.action = static_cast<std::int32_t>(wpe::FilterAction::NoModifyDisplay);
+    parent.execute = true;
+    parent.execute_type = 3;
+    parent.execute_id = nested.id;
+    engine.ResetStats();
+    engine.Publish({parent, nested}, 0, false);
+    result = engine.Apply(Context(), packet);
+    Check(result.action == wpe::FilterAction::NoModifyDisplay && result.bytes[2] == 0xee,
+          "filter trigger executes the linked filter before returning parent action");
+    Check(result.logs.size() == 2 && result.logs[0].name == nested.name &&
+          result.logs[1].name == parent.name,
+          "nested and parent filter logs are returned for deferred delivery");
+    stats = engine.Stats();
+    Check(stats.filters[0].second == 1 && stats.filters[1].second == 1 &&
+          stats.globals[0] == 2,
+          "nested execution updates both shared runtime counters");
+
+    parent.action = static_cast<std::int32_t>(wpe::FilterAction::None);
+    parent.execute_type = 0;
+    engine.ResetStats();
+    engine.Publish({parent}, 0, false);
+    result = engine.Apply(Context(), packet);
+    Check(result.action == wpe::FilterAction::None && result.logs.empty() &&
+          engine.Stats().filters[0].second == 0,
+          "unimplemented trigger types do not report a fake success");
+
+    auto cycle_a = parent;
+    auto cycle_b = parent;
+    cycle_a.id = wpe::Guid::Parse("c1112233-4455-6677-8899-aabbccddeeff");
+    cycle_b.id = wpe::Guid::Parse("d1112233-4455-6677-8899-aabbccddeeff");
+    cycle_a.execute_type = cycle_b.execute_type = 3;
+    cycle_a.execute_id = cycle_b.id;
+    cycle_b.execute_id = cycle_a.id;
+    engine.Publish({cycle_a, cycle_b}, 0, false);
+    result = engine.Apply(Context(), packet);
+    Check(result.action == wpe::FilterAction::None && result.logs.empty(),
+          "cyclic filter triggers stop without recursion or false execution");
+
     auto published = Base("91112233-4455-6677-8899-aabbccddeeff");
     published.search = Text("0|10");
     published.modify = Text("1|11");
     engine.Publish({published}, 0, true);
-    std::atomic<bool> stop{};
     std::atomic<bool> concurrent_results_valid{true};
     std::vector<std::thread> readers;
     for (int i = 0; i < 4; ++i) {
         readers.emplace_back([&] {
-            while (!stop.load(std::memory_order_relaxed)) {
+            for (int packet_index = 0; packet_index < 2000; ++packet_index) {
                 const auto concurrent = engine.Apply(Context(), packet);
                 if (concurrent.action != wpe::FilterAction::Replace || concurrent.bytes.size() != packet.size() ||
                     (concurrent.bytes[1] != 0x11 && concurrent.bytes[1] != 0x22))
@@ -224,10 +272,18 @@ int main() {
         published.modify = Text((i & 1) == 0 ? "1|11" : "1|22");
         engine.Publish({published}, 0, true);
     }
-    stop.store(true, std::memory_order_relaxed);
     for (auto& reader : readers) reader.join();
     Check(concurrent_results_valid.load(std::memory_order_relaxed),
           "atomic table publication remains valid under concurrent packet reads");
+    stats = engine.Stats();
+    Check(stats.filters.size() == 1 && stats.filters[0].second == 8000 &&
+          stats.filters[0].second == stats.globals[0],
+          "publication shares live item and global counters without divergent copies");
+    engine.ResetStats();
+    engine.Publish({published}, 0, true);
+    stats = engine.Stats();
+    Check(stats.filters[0].second == 0 && stats.globals[0] == 0,
+          "publishing after reset cannot resurrect stale counter values");
 
     std::cout << "PASS: " << checks
               << " filter-engine checks; gates, wildcards, actions, progression, ordering and counters\n";

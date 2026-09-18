@@ -2,127 +2,127 @@
 
   1>Checking Build System
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
-  clipboard.cpp
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  clipboard.cpp
+  web_bridge.cpp
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   sqlite3.c
-  web_bridge.cpp
   clipboard_worker.cpp
   正在生成代码...
-  wpe64-clipboard.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-clipboard.lib
+  wpe64-clipboard.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-clipboard.lib
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   ipc_codec.cpp
   ipc_frame.cpp
-  wpe64-bridge.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-bridge.lib
+  wpe64-bridge.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-bridge.lib
   ipc_pipe.cpp
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   clipboard_test.cpp
   ipc_session.cpp
-  wpe64-clipboard-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-clipboard-test.exe
+  wpe64-clipboard-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-clipboard-test.exe
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   web_bridge_test.cpp
   packet_frame.cpp
   packet_ring.cpp
   正在生成代码...
-  wpe64-common.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-common.lib
+  wpe64-common.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-common.lib
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   codec_test.cpp
-  wpe64-codec-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-codec-test.exe
+  wpe64-bridge-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-bridge-test.exe
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   buffer.c
-  wpe64-bridge-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-bridge-test.exe
+  wpe64-codec-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-codec-test.exe
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   hook.c
   headless_core.cpp
-  wpe64-sqlite.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-sqlite.lib
   trampoline.c
+  wpe64-sqlite.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-sqlite.lib
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   hde64.c
   inject_probe.cpp
   正在生成代码...
-  wpe64-minhook.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-minhook.lib
-  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
-  wpe64-inject-probe.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-inject-probe.dll
+  wpe64-minhook.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-minhook.lib
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   hook_manager.cpp
-  inject_target.cpp
-  filter_engine.cpp
-  wpe64-inject-target.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-inject-target.exe
-  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
-  injected_session_target.cpp
-  wpe64-target-core.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-target-core.lib
+  wpe64-inject-probe.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-inject-probe.dll
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   database.cpp
-  wpe64-injected-session-target.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-injected-session-target.exe
+  filter_engine.cpp
+  wpe64-target-core.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-target-core.lib
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
-  process_injector.cpp
-  winsock_hook.cpp
+  inject_target.cpp
   data_service.cpp
-  正在生成代码...
-  wpe64-injector.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-injector.lib
+  winsock_hook.cpp
+  wpe64-inject-target.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-inject-target.exe
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
-  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
-  injected_session_test.cpp
-  wpe64-hook-runtime.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-hook-runtime.lib
-  process_injector_test.cpp
-  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
-  wpe64-injected-session-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-injected-session-test.exe
   headless_core_test.cpp
-  wpe64-injector-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-injector-test.exe
-  data_edit.cpp
+  正在生成代码...
+  wpe64-headless-core-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-headless-core-test.exe
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
-  protocol_parity_test.cpp
+  injected_session_target.cpp
+  wpe64-hook-runtime.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-hook-runtime.lib
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   filter_engine_test.cpp
-  wpe64-headless-core-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-headless-core-test.exe
-  wpe64-parity-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-parity-test.exe
-  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
-  dllmain.cpp
-  data_config_lists.cpp
-  injected_runtime.cpp
-  wpe64-filter-engine-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-filter-engine-test.exe
-  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   hook_manager_test.cpp
+  data_edit.cpp
+  wpe64-hook-manager-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-hook-manager-test.exe
+  dllmain.cpp
+  injected_runtime.cpp
+  wpe64-filter-engine-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-filter-engine-test.exe
+  wpe64-injected-session-target.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-injected-session-target.exe
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  process_injector.cpp
+  data_config_lists.cpp
   正在生成代码...
-    正在创建库 E:/codex/2026-09-17/bi-a/work/p0-filter-final2/run-276f750a2473443a82117fce869f48e1/x64/Release/wpe64-hook.lib 和对象 E:/codex/2026-09-17/bi-a/work/p0-filter-final2/run-276f750a2473443a82117fce869f48e1/x64/Release/wpe64-hook.exp
-  wpe64-hook.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-hook.dll
+    正在创建库 E:/codex/2026-09-17/bi-a/work/p0-filter-final3/run-c208c0efa8be48c6a41f66d4139fbb4d/x64/Release/wpe64-hook.lib 和对象 E:/codex/2026-09-17/bi-a/work/p0-filter-final3/run-c208c0efa8be48c6a41f66d4139fbb4d/x64/Release/wpe64-hook.exp
+  wpe64-hook.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-hook.dll
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  protocol_parity_test.cpp
+  wpe64-injector.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-injector.lib
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   ipc_pipe_test.cpp
-  wpe64-hook-manager-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-hook-manager-test.exe
+  wpe64-parity-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-parity-test.exe
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   editor_xml.cpp
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
-  packet_ring_test.cpp
-  wpe64-pipe-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-pipe-test.exe
+  injected_session_test.cpp
+  wpe64-pipe-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-pipe-test.exe
+  process_injector_test.cpp
+  wpe64-injector-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-injector-test.exe
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  packet_ring_test.cpp
+  wpe64-injected-session-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-injected-session-test.exe
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  data_worker.cpp
   ipc_session_test.cpp
-  wpe64-ring-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-ring-test.exe
+  xml_document.cpp
+  wpe64-ring-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-ring-test.exe
+  wpe64-session-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-session-test.exe
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   winsock_hook_test.cpp
-  data_worker.cpp
-  wpe64-session-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-session-test.exe
-  xml_document.cpp
-  wpe64-winsock-hook-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-winsock-hook-test.exe
   xml_crypto.cpp
   config_xml.cpp
+  wpe64-winsock-hook-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-winsock-hook-test.exe
   data_files.cpp
   正在生成代码...
-  wpe64-data.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-data.lib
+  wpe64-data.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-data.lib
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
-  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
-  config_file_test.cpp
-  main.cpp
-  export_test.cpp
-  wpe64-export-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-export-test.exe
-  editor_test.cpp
-  wpe64-app.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-app.exe
   data_worker_test.cpp
-  wpe64-data-worker-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-data-worker-test.exe
+  config_file_test.cpp
+  export_test.cpp
   data_service_test.cpp
-  wpe64-editor-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-editor-test.exe
-  wpe64-data-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-data-test.exe
-  wpe64-config-file-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final2\run-276f750a2473443a82117fce869f48e1\x64\Release\wpe64-config-file-test.exe
+  wpe64-export-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-export-test.exe
+  editor_test.cpp
+  wpe64-editor-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-editor-test.exe
+  Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt
+  main.cpp
+  wpe64-data-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-data-test.exe
+  wpe64-data-worker-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-data-worker-test.exe
+  wpe64-app.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-app.exe
+  wpe64-config-file-test.vcxproj -> E:\codex\2026-09-17\bi-a\work\p0-filter-final3\run-c208c0efa8be48c6a41f66d4139fbb4d\x64\Release\wpe64-config-file-test.exe
   Building Custom Rule E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/CMakeLists.txt

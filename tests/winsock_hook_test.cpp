@@ -180,8 +180,16 @@ int main() {
         auto tcp = TcpPair();
         UdpPair udp;
         Collector collector;
+        std::atomic<std::int64_t> filter_log_events{};
         wpe::WinsockHookController hooks(true,
-            [&](wpe::ByteBuffer frame) { collector.Push(std::move(frame)); });
+            [&](wpe::ByteBuffer frame) { collector.Push(std::move(frame)); },
+            [&](wpe::ByteBuffer frame) {
+                try {
+                    wpe::IpcReader event(frame);
+                    if (event.U8() == static_cast<std::uint8_t>(wpe::IpcEvent::FilterLog))
+                        filter_log_events.fetch_add(1, std::memory_order_relaxed);
+                } catch (...) {}
+            });
         const auto support = hooks.DetectWinsock(true);
         Check(support.ws1 && support.ws2 && support.msws, "three Winsock modules detected");
 
@@ -212,6 +220,13 @@ int main() {
         filter.action = 0;
         filter.search = Text("0|61");
         filter.modify = Text("0|6f");
+        sockaddr_in peer{};
+        int peer_length = sizeof(peer);
+        Check(getpeername(tcp.first.value, reinterpret_cast<sockaddr*>(&peer),
+                          &peer_length) == 0,
+              "connected peer endpoint available for port-filter fixture");
+        filter.appoint_port = true;
+        filter.port = Text(std::to_string(ntohs(peer.sin_port)));
         hooks.ConfigureFilters({filter}, 0, false);
         collector.Clear();
         Check(send(tcp.first.value, "alpha", 5, 0) == 5, "filtered send result");
@@ -221,13 +236,16 @@ int main() {
         Check(sent_packet && sent_packet->modified &&
               *sent_packet->modified == wpe::ByteBuffer({'o','l','p','h','a'}) &&
               sent_packet->filter_action == 0,
-              "send detour transmits modified bytes and records both buffers");
+              "cached endpoint port gates and modifies a connected send");
+        Check(filter_log_events.load(std::memory_order_relaxed) >= 1,
+              "writer thread delivers deferred filter log events");
         auto filter_stats = *hooks.LiveFilterStats();
         Check(filter_stats.filters.size() == 1 && filter_stats.filters[0].second == 1 &&
               filter_stats.globals[0] == 1 && filter_stats.globals[1] == 1,
               "live send filter updates item and global counters");
 
         filter.name = Text("live-intercept-filter");
+        filter.appoint_port = false;
         filter.action = 1;
         filter.search = Text("0|64");
         filter.modify = Text("");
@@ -245,6 +263,26 @@ int main() {
         sent_packet = Find(packets, 1, "drop");
         Check(sent_packet && sent_packet->filter_action == 1,
               "intercepted send is captured with intercept action");
+
+        filter.name = Text("live-no-display-filter");
+        filter.action = 3;
+        filter.search = Text("0|71");
+        const auto log_events_before_hidden =
+            filter_log_events.load(std::memory_order_relaxed);
+        hooks.ConfigureFilters({filter}, 0, false);
+        collector.Clear();
+        Check(send(tcp.first.value, "quiet", 5, 0) == 5,
+              "no-display filter preserves send result");
+        for (int i = 0; i < 2000 &&
+             filter_log_events.load(std::memory_order_relaxed) == log_events_before_hidden; ++i)
+            Sleep(1);
+        Check(filter_log_events.load(std::memory_order_relaxed) ==
+              log_events_before_hidden + 1,
+              "log-only ring item delivers no-display filter event");
+        Check(collector.Count() == 0,
+              "no-display action suppresses packet frame without suppressing its log");
+        hooks.ConfigureFilters({}, 0, false);
+        ReceiveExact(tcp.second.value, "quiet");
 
         filter.name = Text("live-recv-filter");
         filter.action = 0;
@@ -286,9 +324,9 @@ int main() {
                    1, 0) == SOCKET_ERROR,
               "invalid send buffer is passed to Winsock without crashing the detour");
         auto counters = *hooks.LivePacketCounters();
-        Check(counters[0] == 9 && counters[1] == 5 && counters[3] == 4,
+        Check(counters[0] == 10 && counters[1] == 5 && counters[3] == 5,
               "basic counters by function family");
-        Check(counters[9] == 23 && counters[10] == 19, "basic byte counters");
+        Check(counters[9] == 23 && counters[10] == 24, "basic byte counters");
         hooks.ConfigureSpeedMode(true);
         const auto before_speed = collector.Count();
         Check(send(tcp.first.value, "fast", 4, 0) == 4, "speed-mode send result");
@@ -296,7 +334,7 @@ int main() {
         Sleep(50);
         Check(collector.Count() == before_speed, "speed mode counts without packet frames");
         counters = *hooks.LivePacketCounters();
-        Check(counters[0] == 11 && counters[9] == 27 && counters[10] == 23,
+        Check(counters[0] == 12 && counters[9] == 27 && counters[10] == 28,
               "speed mode preserves target counters");
         hooks.ResetLivePacketCounters();
         counters = *hooks.LivePacketCounters();

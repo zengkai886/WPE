@@ -6,8 +6,17 @@
 #include <deque>
 #include <memory>
 #include <mutex>
+#include <vector>
 
 namespace wpe {
+struct PendingFilterLog {
+    Text name;
+    std::int32_t action{};
+    std::int32_t matches{};
+    std::uint8_t packet_type{};
+    std::int32_t packet_length{};
+};
+
 struct PendingPacket {
     std::int64_t id{};
     std::int64_t time_ticks{};
@@ -19,6 +28,10 @@ struct PendingPacket {
     std::size_t socket_address_length{};
     std::shared_ptr<const ByteBuffer> raw;
     std::shared_ptr<const ByteBuffer> modified;
+    // Filter logs travel with the packet work item so a detour performs only
+    // one bounded ring enqueue. Encoding and IPC delivery stay on the writer.
+    std::vector<PendingFilterLog> filter_logs;
+    bool suppress_packet{};
     std::int64_t Size() const noexcept;
 };
 class PacketRing {

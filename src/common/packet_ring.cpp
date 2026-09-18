@@ -5,6 +5,9 @@ std::int64_t PendingPacket::Size() const noexcept {
     std::int64_t size=64;
     if(raw) size+=static_cast<std::int64_t>(raw->size());
     if(modified && modified!=raw) size+=static_cast<std::int64_t>(modified->size());
+    size+=static_cast<std::int64_t>(filter_logs.size()*sizeof(PendingFilterLog));
+    for(const auto& log:filter_logs)
+        if(log.name) size+=static_cast<std::int64_t>(log.name->size()*sizeof(char16_t));
     return size;
 }
 PacketRing::PacketRing(std::int32_t max_count,std::int64_t max_bytes):max_count_(max_count),max_bytes_(max_bytes) {}
