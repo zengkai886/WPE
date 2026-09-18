@@ -8,8 +8,9 @@
 namespace wpe {
 
 // Production WinSock detour owner. Detours only copy immutable packet bytes,
-// update atomics and enqueue into the bounded PacketRing. Address lookup,
-// frame encoding and named-pipe writes run on the dedicated writer thread.
+// update atomics and enqueue into bounded packet/trigger queues. Address
+// lookup, frame encoding, target callbacks and named-pipe writes run on
+// dedicated worker threads.
 class WinsockHookController final : public IHookController {
 public:
     using FrameSender = std::function<void(ByteBuffer)>;
@@ -25,6 +26,7 @@ public:
     void ConfigureSpeedMode(bool enabled) noexcept override;
     void ConfigureFilters(const std::vector<FilterSnapshot>& filters,
                           std::int32_t execute_mode, bool speed_mode) override;
+    void ConfigureFilterTriggers(SendTrigger send, StoreTrigger store) override;
     void StartHook() override;
     void StopHook() override;
     std::optional<std::array<std::int64_t, 11>> LivePacketCounters() const noexcept override;
@@ -37,6 +39,7 @@ public:
     [[nodiscard]] std::size_t RegisteredHookCount() const noexcept;
     [[nodiscard]] std::uint32_t InFlightDetourCount() const noexcept;
     [[nodiscard]] std::uint64_t DroppedPacketCount() const noexcept;
+    [[nodiscard]] std::uint64_t DroppedTriggerCount() const noexcept;
 
 private:
     struct Impl;

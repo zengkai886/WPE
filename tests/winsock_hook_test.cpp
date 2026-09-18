@@ -4,6 +4,7 @@
 #include <WinSock2.h>
 #include <Windows.h>
 #include "target/winsock_hook.h"
+#include "target/filter_engine.h"
 #include "common/packet_frame.h"
 #include <array>
 #include <atomic>
@@ -15,6 +16,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include <span>
 #include <thread>
 #include <vector>
 
@@ -348,6 +350,51 @@ int main() {
               filter_stats.globals[0] == 1 && filter_stats.globals[1] == 1,
               "live send filter updates item and global counters");
 
+        std::atomic<int> send_triggers{};
+        std::atomic<int> store_triggers{};
+        std::atomic<bool> trigger_off_detour_thread{};
+        const auto detour_thread = std::this_thread::get_id();
+        wpe::Guid trigger_send_id = wpe::Guid::Parse("aaaaaaaa-1111-2222-3333-444444444444");
+        wpe::Guid trigger_store_id = wpe::Guid::Parse("bbbbbbbb-1111-2222-3333-444444444444");
+        wpe::ByteBuffer stored_trigger_bytes;
+        hooks.ConfigureFilterTriggers(
+            [&](const wpe::Guid& id) {
+                if (id == trigger_send_id) {
+                    trigger_off_detour_thread.store(std::this_thread::get_id() != detour_thread);
+                    ++send_triggers;
+                }
+            },
+            [&](const wpe::Guid& id, std::span<const std::uint8_t> bytes) {
+                if (id == trigger_store_id) {
+                    trigger_off_detour_thread.store(std::this_thread::get_id() != detour_thread);
+                    ++store_triggers;
+                    stored_trigger_bytes.assign(bytes.begin(), bytes.end());
+                }
+            });
+        auto trigger_filter = filter;
+        trigger_filter.id = wpe::Guid::Parse("cccccccc-1111-2222-3333-444444444444");
+        trigger_filter.action = static_cast<std::int32_t>(wpe::FilterAction::None);
+        trigger_filter.search = Text("0|74");
+        trigger_filter.modify = Text("");
+        trigger_filter.execute = true;
+        trigger_filter.execute_type = 0;
+        trigger_filter.execute_id = trigger_send_id;
+        hooks.ConfigureFilters({trigger_filter}, 0, false);
+        Check(send(tcp.first.value, "trigger", 7, 0) == 7, "send trigger filter result");
+        ReceiveExact(tcp.second.value, "trigger");
+        Check(send_triggers.load() == 1 && trigger_off_detour_thread.load(),
+              "filter send trigger is delivered off the detour thread");
+        trigger_filter.execute_type = 4;
+        trigger_filter.execute_id = trigger_store_id;
+        trigger_filter.search = Text("0|73");
+        hooks.ConfigureFilters({trigger_filter}, 0, false);
+        Check(send(tcp.first.value, "store", 5, 0) == 5, "warehouse trigger filter result");
+        ReceiveExact(tcp.second.value, "store");
+        for (int i = 0; i < 2000 && store_triggers.load(std::memory_order_relaxed) == 0; ++i)
+            Sleep(1);
+        Check(store_triggers.load() == 1 && stored_trigger_bytes == wpe::ByteBuffer({'s','t','o','r','e'}),
+              "filter warehouse trigger carries post-filter bytes");
+
         filter.name = Text("live-intercept-filter");
         filter.appoint_port = false;
         filter.action = 1;
@@ -428,9 +475,9 @@ int main() {
                    1, 0) == SOCKET_ERROR,
               "invalid send buffer is passed to Winsock without crashing the detour");
         auto counters = *hooks.LivePacketCounters();
-        Check(counters[0] == 10 && counters[1] == 5 && counters[3] == 5,
+        Check(counters[0] == 14 && counters[1] == 7 && counters[3] == 7,
               "basic counters by function family");
-        Check(counters[9] == 23 && counters[10] == 24, "basic byte counters");
+        Check(counters[9] == 35 && counters[10] == 36, "basic byte counters");
         hooks.ConfigureSpeedMode(true);
         const auto before_speed = collector.Count();
         Check(send(tcp.first.value, "fast", 4, 0) == 4, "speed-mode send result");
@@ -438,7 +485,7 @@ int main() {
         Sleep(50);
         Check(collector.Count() == before_speed, "speed mode counts without packet frames");
         counters = *hooks.LivePacketCounters();
-        Check(counters[0] == 12 && counters[9] == 27 && counters[10] == 28,
+        Check(counters[0] == 16 && counters[9] == 39 && counters[10] == 40,
               "speed mode preserves target counters");
         hooks.ResetLivePacketCounters();
         counters = *hooks.LivePacketCounters();

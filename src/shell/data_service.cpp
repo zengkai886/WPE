@@ -8,6 +8,8 @@
 #include "data_service.h"
 #include "data_schema.h"
 #include "data_l10n.h"
+#include "common/ipc_codec.h"
+#include "common/ipc_protocol.h"
 #include <algorithm>
 #include <charconv>
 #include <iomanip>
@@ -117,6 +119,63 @@ DataService::DataService(const std::filesystem::path& path,Emit emit):db_(path),
     {auto rows=db_.Query("SELECT * FROM ProxyMapRemote ORDER BY rowid");for(auto& row:rows){row["IsEnable"]=B(row,"IsEnable");row["_id"]=Guid();}lists_[14]=std::move(rows);}
     {auto rows=db_.Query("SELECT * FROM ServerInfo ORDER BY rowid"),rules=db_.Query("SELECT * FROM ServerRuleInfo ORDER BY rowid");for(auto& row:rows){row["SID"]=Upper(S(row,"SID"));row["IsEnable"]=B(row,"IsEnable");row["_rules"]=Json::array();for(auto rule:rules)if(Upper(S(rule,"SID"))==S(row,"SID")){rule["RID"]=Upper(S(rule,"RID"));rule["IsEnable"]=B(rule,"IsEnable");rule.erase("SID");row["_rules"].push_back(std::move(rule));}}lists_[17]=std::move(rows);}
     {auto rows=db_.Query("SELECT * FROM NoticeInfo ORDER BY rowid");for(auto& row:rows){row["NID"]=Upper(S(row,"NID"));}lists_[18]=std::move(rows);}
+}
+bool DataService::ApplyStoreEvent(std::span<const std::uint8_t> frame){
+    if(frame.empty()||frame.size()>static_cast<std::size_t>(wpe::IpcProtocol::MaxControlFrame))
+        throw wpe::ProtocolError("StoreAdded event frame is out of bounds");
+    wpe::IpcReader reader(frame);
+    if(static_cast<wpe::IpcEvent>(reader.U8())!=wpe::IpcEvent::StoreAdded)
+        throw wpe::ProtocolError("Unexpected target event for warehouse ingestion");
+    const auto warehouse_id=data_detail::Upper(reader.Guid_().ToString());
+    const auto bytes=reader.Bytes();
+    if(!bytes)throw wpe::ProtocolError("StoreAdded event bytes cannot be null");
+    if(reader.Remaining()!=0)throw wpe::ProtocolError("StoreAdded event has trailing fields");
+    auto* warehouse=Find(11,warehouse_id);
+    if(!warehouse)return false; // A deleted warehouse is a benign stale event.
+    const auto stored_guid=S(*warehouse,"GUID");
+    const auto limit_enabled=B(config_,"StoresLimit",true);
+    const auto limit=std::max(1,N(config_,"StoresLimit_Value",5000));
+    const auto blob=Json::binary(*bytes);
+    // Build and trim the next in-memory mirror before touching SQLite. Any
+    // allocation/validation failure therefore leaves both stores unchanged.
+    auto next_children = warehouse->at("_children");
+    next_children.push_back({{"_id",data_detail::Guid()},{"Buffer",blob}});
+    TrimStores(next_children);
+    Json next_feed = Json::array();
+    for (const auto& row : lists_[11]) {
+        const auto& feed_children = Upper(S(row,"GUID")) == warehouse_id
+            ? next_children : row.at("_children");
+        next_feed.push_back({{"Id",row["GUID"]},{"Name",S(row,"Name")},
+                             {"IsEnable",B(row,"IsEnable")},{"DataCount",feed_children.size()}});
+    }
+    db_.Transaction([&]{
+        db_.Execute("INSERT INTO WareHouseData (GUID,Buffer) VALUES (?,?)",
+                    Json::array({stored_guid,blob}));
+        if(limit_enabled){
+            const auto count_rows=db_.Query(
+                "SELECT COUNT(*) AS Count FROM WareHouseData WHERE GUID=? COLLATE NOCASE",
+                Json::array({stored_guid}));
+            const auto count=count_rows.empty()?0:count_rows.front().at("Count").get<std::int64_t>();
+            if(count>limit){
+                db_.Execute("DELETE FROM WareHouseData WHERE rowid IN ("
+                            "SELECT rowid FROM WareHouseData WHERE GUID=? COLLATE NOCASE "
+                            "ORDER BY rowid LIMIT ?)",
+                            Json::array({stored_guid,count-static_cast<std::int64_t>(limit)}));
+            }
+        }
+    });
+    // Json::swap is noexcept for the configured JSON value type. The commit
+    // is now reflected atomically in the worker-owned mirror; a UI/feed sink
+    // failure is reported as a committed event rather than rolling back SQL.
+    warehouse->at("_children").swap(next_children);
+    try { emit_("feed:replace", {{"list",11},{"rows",std::move(next_feed)}}); }
+    catch (const std::exception& error) {
+        throw StoreEventCommittedError("数据已提交，但界面更新失败：" +
+                                       std::string(error.what()));
+    } catch (...) {
+        throw StoreEventCommittedError("数据已提交，但界面更新失败");
+    }
+    return true;
 }
 std::vector<std::string> DataService::Methods(){return {
     "getPrefs","setAppearance","setLanguage","saveActionColor","getSystemSetting","saveSystemSetting","getLogSetting","saveLogSetting",

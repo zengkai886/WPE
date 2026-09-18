@@ -492,17 +492,27 @@ FilterResult FilterEngine::Apply(const FilterContext& context,
             default: break;
             }
 
-            // Filter is the only trigger type whose executor belongs to this
-            // P0 slice. Unsupported Send/Robot/WareHouse triggers must not be
-            // reported as successful merely because their GUID is populated.
-            if (item->source.execute && item->source.execute_type == 3 &&
-                !IsZero(item->source.execute_id)) {
-                const auto target = std::find_if(table->filters.begin(), table->filters.end(),
-                    [&](const auto& candidate) {
-                        return candidate->source.id == item->source.execute_id;
-                    });
-                if (target != table->filters.end())
-                    applied = self(self, *target, depth + 1).applied || applied;
+            if (item->source.execute && !IsZero(item->source.execute_id)) {
+                // Filter recursion stays inline. Send and warehouse actions
+                // are emitted as small, immutable trigger records; the hook
+                // controller dispatches them without touching shell state.
+                const auto execute_type = static_cast<FilterExecuteType>(item->source.execute_type);
+                if (execute_type == FilterExecuteType::Filter) {
+                    const auto target = std::find_if(table->filters.begin(), table->filters.end(),
+                        [&](const auto& candidate) {
+                            return candidate->source.id == item->source.execute_id;
+                        });
+                    if (target != table->filters.end())
+                        applied = self(self, *target, depth + 1).applied || applied;
+                } else if (execute_type == FilterExecuteType::Send ||
+                           execute_type == FilterExecuteType::WareHouse) {
+                    FilterTrigger trigger;
+                    trigger.type = execute_type;
+                    trigger.id = item->source.execute_id;
+                    if (trigger.type == FilterExecuteType::WareHouse) trigger.bytes = result.bytes;
+                    result.triggers.push_back(std::move(trigger));
+                    applied = true;
+                }
             }
             if (!applied) return {};
 
@@ -541,6 +551,7 @@ FilterResult FilterEngine::Apply(const FilterContext& context,
     } catch (...) {
         result.action = FilterAction::None;
         result.logs.clear();
+        result.triggers.clear();
         try { result.bytes.assign(input.begin(), input.end()); } catch (...) { result.bytes.clear(); }
     }
     return result;

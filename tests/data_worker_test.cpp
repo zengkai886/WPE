@@ -1,4 +1,6 @@
 #include "shell/data_worker.h"
+#include "common/ipc_codec.h"
+#include "common/ipc_protocol.h"
 #include <chrono>
 #include <filesystem>
 #include <iostream>
@@ -24,6 +26,20 @@ int main(){try{
         Require(errors==1,"committed write must report failed feed delivery");
         worker.Submit("getPrefs",{},[](Json,std::string){throw std::runtime_error("consumer failed");});
         worker.Submit("getPrefs",{},[&](Json,std::string){++done;});Pump(worker,[&]{return done==3;});
+    }
+    {
+        DataWorker worker(root/"target-events.db");std::string wid;bool stored=false;int done=0;
+        worker.Submit("addWareHouse",{},[&](Json value,std::string error){
+            Require(error.empty(),"warehouse setup for target event");wid=value.at("id").get<std::string>();
+            wpe::IpcWriter writer;writer.U8(static_cast<std::uint8_t>(wpe::IpcEvent::StoreAdded));
+            writer.Guid_(wpe::Guid::Parse(wid));writer.Bytes(wpe::Bytes{std::vector<std::uint8_t>{0xAA,0xBB}});
+            worker.SubmitStoreEvent(writer.ToArray(),[&](Json result,std::string eventError){
+                Require(eventError.empty()&&result["stored"]==true,"target event was not committed");stored=true;++done;});
+        });
+        Pump(worker,[&]{return stored;});
+        worker.Submit("getStoreRows",{{"wid",wid}},[&](Json result,std::string error){
+            Require(error.empty()&&result["rows"].size()==1&&result["rows"][0]["Len"]==2,"target event warehouse feed");++done;});
+        Pump(worker,[&]{return done==2;});
     }
     {
         auto worker=std::make_unique<DataWorker>(root/"locked.db");bool ready=false;

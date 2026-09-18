@@ -3,6 +3,7 @@
 #include "common/ipc_protocol.h"
 #include "common/ipc_codec.h"
 #include <array>
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <cstdint>
@@ -16,9 +17,26 @@
 namespace wpe {
 
 struct FilterSnapshot;
+enum class FilterExecuteType : std::int32_t {
+    Send = 0,
+    Robot = 1,
+    None = 2,
+    Filter = 3,
+    WareHouse = 4,
+};
 struct FilterRuntimeStats {
     std::vector<std::pair<Guid, std::int64_t>> filters;
     std::array<std::int64_t, 6> globals{};
+};
+
+// A filter can request a target-local send or an event-backed warehouse write.
+// The trigger is produced on the detour thread and consumed without touching
+// shell/database state. Robot triggers intentionally have no runtime callback
+// in this build.
+struct FilterTrigger {
+    FilterExecuteType type{FilterExecuteType::None};
+    Guid id{};
+    ByteBuffer bytes;
 };
 
 struct WinsockSupport {
@@ -37,6 +55,8 @@ struct SocketInfo {
 
 class IHookController {
 public:
+    using SendTrigger = std::function<void(const Guid&)>;
+    using StoreTrigger = std::function<void(const Guid&, std::span<const std::uint8_t>)>;
     virtual ~IHookController() = default;
     virtual WinsockSupport DetectWinsock(bool may_load) = 0;
     // Configuration is published before StartHook. Production controllers
@@ -45,6 +65,7 @@ public:
     virtual void ConfigureSpeedMode(bool) noexcept {}
     virtual void ConfigureFilters(const std::vector<FilterSnapshot>&,
                                   std::int32_t, bool) {}
+    virtual void ConfigureFilterTriggers(SendTrigger, StoreTrigger) {}
     virtual void StartHook() = 0;
     virtual void StopHook() = 0;
     // A production controller owns lock-free packet counters because they are
@@ -193,8 +214,16 @@ private:
     void ApplyConfig(ConfigKind kind, std::span<const std::uint8_t> payload);
     void StartHook(IpcReader& reader);
     void StopHook(IpcReader& reader);
+    void StartSend(IpcReader& reader);
+    void StartSendById(const Guid& id) noexcept;
+    void StartSendList();
+    bool LaunchSendWorker(std::vector<SendSnapshot> sends, RuntimeSnapshot runtime) noexcept;
+    void StartSendWorker(std::vector<SendSnapshot> sends, RuntimeSnapshot runtime);
+    void StopSendList(IpcReader& reader);
+    void AddSendCount(const Guid& id, bool succeeded) noexcept;
     void ResetStats(IpcReader& reader);
     void Emit(ByteBuffer event) noexcept;
+    void EmitStoreAdded(const Guid& id, std::span<const std::uint8_t> bytes) noexcept;
     void EmitHookState(bool on) noexcept;
     void EmitFatal(std::string_view message) noexcept;
     void StatsLoop() noexcept;
@@ -203,6 +232,9 @@ private:
     EventSender event_sender_;
     HeadlessCoreOptions options_;
     mutable std::mutex mutex_;
+    // Serializes send-thread ownership transitions with Shutdown/Stop. The
+    // worker itself never takes this lock, so joining while it is held is safe.
+    mutable std::mutex send_lifecycle_mutex_;
     std::condition_variable stop_wait_;
     TargetConfigurationSnapshot config_;
     TargetCounters counters_;
@@ -210,6 +242,9 @@ private:
     bool hook_installed_{};
     bool started_{};
     bool stopping_{};
+    std::atomic<bool> send_stop_{};
+    std::condition_variable send_wait_;
+    std::thread send_thread_;
     std::thread stats_thread_;
 };
 

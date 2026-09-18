@@ -1,9 +1,19 @@
 #pragma once
 #include "database.h"
 #include <array>
+#include <cstdint>
 #include <set>
 #include <optional>
+#include <span>
+#include <stdexcept>
+#include <string>
+#include <utility>
 namespace wpe::shell {
+class StoreEventCommittedError final : public std::runtime_error {
+public:
+    explicit StoreEventCommittedError(std::string message)
+        : std::runtime_error(std::move(message)) {}
+};
 // Business/data seam: original RPC argument/result names and original FeedRow fields.
 // Single-worker confined; the browser has no access to SQL, paths or model mutation.
 class DataService {
@@ -12,6 +22,10 @@ public:
     DataService(const std::filesystem::path& database,Emit emit);
     static std::vector<std::string> Methods();
     Json Call(const std::string& method,const Json& args);
+    // Applies one target-side StoreAdded event. This is intentionally a
+    // native seam rather than a browser RPC: the target event pipe is parsed
+    // and committed on the data worker before the warehouse feed is emitted.
+    bool ApplyStoreEvent(std::span<const std::uint8_t> frame);
     void PublishAll();
     Json Prefs() const;
     static bool NeedsConfirmation(const std::string& method,const Json& args);

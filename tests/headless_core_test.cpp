@@ -329,6 +329,36 @@ void ReplayAndSocketCommands() {
            "GetSocketInfo rejects trailing fields");
 }
 
+void SendExecutorCommands() {
+    FakeHooks hooks;
+    wpe::HeadlessCore core(hooks, [](wpe::ByteBuffer) {});
+    const auto send_id = wpe::Guid::Parse("12121212-3434-5656-7878-909090909090");
+    wpe::IpcWriter sends;
+    sends.I32(1); sends.Bool(true); sends.Guid_(send_id); sends.Str(T(u"loop"));
+    sends.Bool(false); sends.I32(3); sends.I32(0); sends.Str(T(u""));
+    sends.I32(1); sends.I32(17); sends.I32(1); sends.Str(T(u"from")); sends.Str(T(u"to"));
+    sends.Bytes(wpe::ByteBuffer{0xaa, 0xbb});
+    ExpectOk(SetConfig(core, wpe::ConfigKind::Sends, sends.ToArray()));
+
+    wpe::IpcWriter start; start.Guid_(send_id);
+    auto start_bytes = start.ToArray();
+    wpe::IpcReader start_reader(start_bytes);
+    ExpectOk(core.HandleCommand(wpe::IpcCommand::StartSend, start_reader));
+    for (int i = 0; i < 100 && hooks.packet_sends.load() != 3; ++i)
+        std::this_thread::sleep_for(5ms);
+    Check(hooks.packet_sends.load() == 3, "StartSend executes the configured loop count");
+    const auto config = core.Configuration();
+    Check(config.sends.size() == 1 && config.sends[0].execution_count == 3 &&
+          config.sends[0].success_count == 3 && config.sends[0].fail_count == 0,
+          "send executor updates execution counters");
+
+    wpe::IpcWriter stop;
+    auto stop_bytes = stop.ToArray();
+    wpe::IpcReader stop_reader(stop_bytes);
+    ExpectOk(core.HandleCommand(wpe::IpcCommand::StopSendList, stop_reader));
+    Check(!core.Counters().send_list_running, "StopSendList clears the running state");
+}
+
 void LifecycleOverRealPipes() {
     std::ostringstream session;
     session << "e123456789abcdef01234567" << std::hex << std::setw(8)
@@ -447,6 +477,7 @@ int main() {
     try {
         ConfigurationAndStats();
         ReplayAndSocketCommands();
+        SendExecutorCommands();
         LifecycleOverRealPipes();
         FatalDetectionEvent();
         std::cout << "PASS: " << checks.load()

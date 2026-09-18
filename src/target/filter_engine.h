@@ -33,6 +33,7 @@ struct FilterResult {
     FilterAction action{FilterAction::None};
     ByteBuffer bytes;
     std::vector<PendingFilterLog> logs;
+    std::vector<FilterTrigger> triggers;
 };
 
 struct FilterStats {

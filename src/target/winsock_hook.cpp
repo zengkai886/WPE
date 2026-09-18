@@ -342,6 +342,26 @@ struct WinsockHookController::Impl final {
     bool suspended_launch{};
     FrameSender packet_sender;
     FrameSender event_sender;
+    struct TriggerCallbacks {
+        SendTrigger send;
+        StoreTrigger store;
+    };
+    std::atomic<std::shared_ptr<const TriggerCallbacks>> trigger_callbacks;
+    struct TriggerNode {
+        FilterTrigger trigger;
+        TriggerNode* next{};
+        explicit TriggerNode(FilterTrigger value) : trigger(std::move(value)) {}
+    };
+    static constexpr std::size_t kMaximumTriggerCount = 8192;
+    static constexpr std::size_t kMaximumTriggerBytes = 16U * 1024U * 1024U;
+    std::atomic<TriggerNode*> trigger_head{};
+    std::atomic<std::size_t> trigger_count{};
+    std::atomic<std::size_t> trigger_bytes{};
+    std::atomic<std::uint64_t> trigger_dropped{};
+    std::atomic<bool> trigger_running{};
+    std::mutex trigger_wait_mutex;
+    std::condition_variable trigger_changed;
+    std::thread trigger_worker;
     FilterEngine filter_engine;
     HookManager manager;
     PacketRing ring;
@@ -362,6 +382,122 @@ struct WinsockHookController::Impl final {
     std::atomic<std::uint64_t> delivery_dropped{};
     std::atomic<std::size_t> capture_hook_count{};
     SocketPortCache endpoint_ports;
+
+    FilterResult ApplyFilter(const FilterContext& context,
+                             std::span<const std::uint8_t> bytes) noexcept {
+        auto result = filter_engine.Apply(context, bytes);
+        // Detours only transfer immutable trigger records to the bounded
+        // lock-free stack. Callbacks (locks, thread creation, IPC encoding)
+        // run on trigger_worker, never on the target's Winsock thread.
+        for (auto& trigger : result.triggers) (void)EnqueueTrigger(std::move(trigger));
+        return result;
+    }
+
+    static bool Reserve(std::atomic<std::size_t>& value, std::size_t amount,
+                        std::size_t limit) noexcept {
+        auto current = value.load(std::memory_order_relaxed);
+        for (;;) {
+            if (current > limit || amount > limit - current) return false;
+            if (value.compare_exchange_weak(current, current + amount,
+                                             std::memory_order_acq_rel,
+                                             std::memory_order_relaxed)) return true;
+        }
+    }
+
+    bool EnqueueTrigger(FilterTrigger trigger) noexcept {
+        if (!trigger_running.load(std::memory_order_acquire)) {
+            trigger_dropped.fetch_add(1, std::memory_order_relaxed);
+            return false;
+        }
+        TriggerNode* node = nullptr;
+        try { node = new TriggerNode(std::move(trigger)); }
+        catch (...) {
+            trigger_dropped.fetch_add(1, std::memory_order_relaxed);
+            return false;
+        }
+        const auto bytes = node->trigger.bytes.size();
+        const bool count_reserved = Reserve(trigger_count, 1, kMaximumTriggerCount);
+        const bool bytes_reserved = count_reserved &&
+            Reserve(trigger_bytes, bytes, kMaximumTriggerBytes);
+        if (!count_reserved || !bytes_reserved) {
+            if (count_reserved) trigger_count.fetch_sub(1, std::memory_order_acq_rel);
+            trigger_dropped.fetch_add(1, std::memory_order_relaxed);
+            delete node;
+            return false;
+        }
+        if (!trigger_running.load(std::memory_order_acquire)) {
+            trigger_count.fetch_sub(1, std::memory_order_acq_rel);
+            trigger_bytes.fetch_sub(bytes, std::memory_order_acq_rel);
+            trigger_dropped.fetch_add(1, std::memory_order_relaxed);
+            delete node;
+            return false;
+        }
+        auto* head = trigger_head.load(std::memory_order_relaxed);
+        do { node->next = head; }
+        while (!trigger_head.compare_exchange_weak(head, node,
+                                                   std::memory_order_release,
+                                                   std::memory_order_relaxed));
+        trigger_changed.notify_one();
+        return true;
+    }
+
+    void TriggerLoop() noexcept {
+        for (;;) {
+            auto* list = trigger_head.exchange(nullptr, std::memory_order_acq_rel);
+            if (!list) {
+                if (!trigger_running.load(std::memory_order_acquire)) break;
+                std::unique_lock lock(trigger_wait_mutex);
+                trigger_changed.wait_for(lock, std::chrono::milliseconds(10), [&] {
+                    return !trigger_running.load(std::memory_order_acquire) ||
+                           trigger_head.load(std::memory_order_acquire) != nullptr;
+                });
+                continue;
+            }
+            TriggerNode* ordered = nullptr;
+            std::size_t count = 0;
+            std::size_t bytes = 0;
+            while (list) {
+                auto* next = list->next;
+                list->next = ordered;
+                ordered = list;
+                ++count;
+                bytes += list->trigger.bytes.size();
+                list = next;
+            }
+            trigger_count.fetch_sub(count, std::memory_order_acq_rel);
+            trigger_bytes.fetch_sub(bytes, std::memory_order_acq_rel);
+            while (ordered) {
+                auto* next = ordered->next;
+                try {
+                    const auto callbacks = trigger_callbacks.load(std::memory_order_acquire);
+                    if (callbacks && ordered->trigger.type == FilterExecuteType::Send && callbacks->send)
+                        callbacks->send(ordered->trigger.id);
+                    else if (callbacks && ordered->trigger.type == FilterExecuteType::WareHouse && callbacks->store)
+                        callbacks->store(ordered->trigger.id, ordered->trigger.bytes);
+                } catch (...) {}
+                delete ordered;
+                ordered = next;
+            }
+        }
+        // StopHook quiesces detours before calling this routine, so no new
+        // producers remain. Drain anything published just before the stop.
+        auto* list = trigger_head.exchange(nullptr, std::memory_order_acq_rel);
+        while (list) { auto* next = list->next; delete list; list = next; }
+        trigger_count.store(0, std::memory_order_release);
+        trigger_bytes.store(0, std::memory_order_release);
+    }
+
+    void StopTriggerWorker() noexcept {
+        trigger_running.store(false, std::memory_order_release);
+        trigger_changed.notify_all();
+        if (trigger_worker.joinable() && trigger_worker.get_id() != std::this_thread::get_id())
+            trigger_worker.join();
+        else if (trigger_worker.joinable()) trigger_worker.detach();
+        auto* list = trigger_head.exchange(nullptr, std::memory_order_acq_rel);
+        while (list) { auto* next = list->next; delete list; list = next; }
+        trigger_count.store(0, std::memory_order_release);
+        trigger_bytes.store(0, std::memory_order_release);
+    }
 
     SendFn ws1_send{};
     SendToFn ws1_send_to{};
@@ -766,6 +902,7 @@ struct WinsockHookController::Impl final {
         StopWriter();
         while (!QuiesceAndShutdown(std::chrono::milliseconds(500)))
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        StopTriggerWorker();
     }
 
     int OnBind(BindFn original, SOCKET socket, const sockaddr* address,
@@ -860,7 +997,7 @@ struct WinsockHookController::Impl final {
         try {
             if (length > 0) {
                 raw = CopyBytes(buffer, static_cast<std::size_t>(length));
-                if (raw) filtered = filter_engine.Apply(Context(socket, type, nullptr, 0), *raw);
+                if (raw) filtered = ApplyFilter(Context(socket, type, nullptr, 0), *raw);
             }
         } catch (...) {}
         const auto action = filtered.bytes.empty() ? FilterAction::None : filtered.action;
@@ -897,7 +1034,7 @@ struct WinsockHookController::Impl final {
         try {
             if (length > 0) {
                 raw = CopyBytes(buffer, static_cast<std::size_t>(length));
-                if (raw) filtered = filter_engine.Apply(Context(socket, type, to, to_length), *raw);
+                if (raw) filtered = ApplyFilter(Context(socket, type, to, to_length), *raw);
             }
         } catch (...) {}
         const auto action = filtered.bytes.empty() ? FilterAction::None : filtered.action;
@@ -933,7 +1070,7 @@ struct WinsockHookController::Impl final {
             try {
                 auto raw = CopyBytes(buffer, static_cast<std::size_t>(result));
                 if (raw) {
-                    auto filtered = filter_engine.Apply(Context(socket, type, nullptr, 0), *raw);
+                    auto filtered = ApplyFilter(Context(socket, type, nullptr, 0), *raw);
                     const auto action = filtered.action;
                     if (action == FilterAction::Intercept) result = 0;
                     else {
@@ -967,7 +1104,7 @@ struct WinsockHookController::Impl final {
                 if (from_length) (void)TryReadInt(from_length, captured_from_length);
                 auto raw = CopyBytes(buffer, static_cast<std::size_t>(result));
                 if (raw) {
-                    auto filtered = filter_engine.Apply(
+                    auto filtered = ApplyFilter(
                         Context(socket, type, from, captured_from_length), *raw);
                     const auto action = filtered.action;
                     if (action == FilterAction::Intercept) result = 0;
@@ -1002,7 +1139,7 @@ struct WinsockHookController::Impl final {
             if (total_length) {
                 raw = FlattenBuffers(buffers, count, *total_length);
                 if (raw && !overlapped)
-                    filtered = filter_engine.Apply(Context(socket, kWsaSend, nullptr, 0), *raw);
+                    filtered = ApplyFilter(Context(socket, kWsaSend, nullptr, 0), *raw);
             }
         }
         catch (...) {}
@@ -1050,7 +1187,7 @@ struct WinsockHookController::Impl final {
             if (total_length) {
                 raw = FlattenBuffers(buffers, count, *total_length);
                 if (raw && !overlapped)
-                    filtered = filter_engine.Apply(Context(socket, kWsaSendTo, to, to_length), *raw);
+                    filtered = ApplyFilter(Context(socket, kWsaSendTo, to, to_length), *raw);
             }
         }
         catch (...) {}
@@ -1100,7 +1237,7 @@ struct WinsockHookController::Impl final {
             try {
                 auto raw = FlattenBuffers(buffers, count, captured_bytes);
                 auto filtered = raw && !overlapped
-                    ? filter_engine.Apply(Context(socket, kWsaRecv, nullptr, 0), *raw)
+                    ? ApplyFilter(Context(socket, kWsaRecv, nullptr, 0), *raw)
                     : FilterResult{};
                 const auto action = filtered.bytes.empty() ? FilterAction::None : filtered.action;
                 DWORD returned = captured_bytes;
@@ -1139,7 +1276,7 @@ struct WinsockHookController::Impl final {
                 if (from_length) (void)TryReadInt(from_length, captured_from_length);
                 auto raw = FlattenBuffers(buffers, count, captured_bytes);
                 auto filtered = raw && !overlapped
-                    ? filter_engine.Apply(Context(socket, kWsaRecvFrom, from, captured_from_length), *raw)
+                    ? ApplyFilter(Context(socket, kWsaRecvFrom, from, captured_from_length), *raw)
                     : FilterResult{};
                 const auto action = filtered.bytes.empty() ? FilterAction::None : filtered.action;
                 DWORD returned = captured_bytes;
@@ -1171,7 +1308,7 @@ struct WinsockHookController::Impl final {
             try {
                 auto raw = CopyBytes(buffer, static_cast<std::size_t>(result));
                 auto filtered = raw
-                    ? filter_engine.Apply(Context(socket, kWsaRecvEx, nullptr, 0), *raw)
+                    ? ApplyFilter(Context(socket, kWsaRecvEx, nullptr, 0), *raw)
                     : FilterResult{};
                 const auto action = filtered.bytes.empty() ? FilterAction::None : filtered.action;
                 if (action == FilterAction::Intercept) result = 0;
@@ -1346,7 +1483,7 @@ WinsockHookController::~WinsockHookController() {
     StopHook();
     if (!impl_ || (!impl_->manager.Initialized() &&
                    Impl::active.load(std::memory_order_acquire) != impl_.get() &&
-                   !impl_->writer.joinable())) return;
+                   !impl_->writer.joinable() && !impl_->trigger_worker.joinable())) return;
 
     // A target thread may remain blocked inside an already-entered recv. Never
     // hang Detach and never free its owner/trampoline. The injected DLL remains
@@ -1384,6 +1521,15 @@ void WinsockHookController::ConfigureFilters(const std::vector<FilterSnapshot>& 
                                              std::int32_t execute_mode,
                                              bool speed_mode) {
     impl_->filter_engine.Publish(filters, execute_mode, speed_mode);
+}
+
+void WinsockHookController::ConfigureFilterTriggers(SendTrigger send, StoreTrigger store) {
+    auto callbacks = std::make_shared<Impl::TriggerCallbacks>();
+    callbacks->send = std::move(send);
+    callbacks->store = std::move(store);
+    impl_->trigger_callbacks.store(
+        std::shared_ptr<const Impl::TriggerCallbacks>(std::move(callbacks)),
+        std::memory_order_release);
 }
 
 void WinsockHookController::StartHook() {
@@ -1432,6 +1578,8 @@ void WinsockHookController::StartHook() {
             impl_->Add("ws2_32.dll", "getpeername", reinterpret_cast<void*>(&Impl::DetourGetPeerName), impl_->hook_get_peer_name);
         }
 
+        impl_->trigger_running.store(true, std::memory_order_release);
+        impl_->trigger_worker = std::thread(&Impl::TriggerLoop, impl_.get());
         impl_->writer_running.store(true);
         impl_->writer = std::thread(&Impl::WriterLoop, impl_.get());
         Impl::active.store(impl_.get(), std::memory_order_release);
@@ -1440,7 +1588,8 @@ void WinsockHookController::StartHook() {
     } catch (...) {
         impl_->accepting.store(false);
         impl_->StopWriter();
-        (void)impl_->QuiesceAndShutdown(std::chrono::milliseconds(500));
+        if (impl_->QuiesceAndShutdown(std::chrono::milliseconds(500)))
+            impl_->StopTriggerWorker();
         throw;
     }
 }
@@ -1450,7 +1599,8 @@ void WinsockHookController::StopHook() {
     std::lock_guard lock(impl_->lifecycle_mutex);
     impl_->accepting.store(false, std::memory_order_release);
     impl_->StopWriter();
-    (void)impl_->QuiesceAndShutdown(std::chrono::milliseconds(500));
+    if (impl_->QuiesceAndShutdown(std::chrono::milliseconds(500)))
+        impl_->StopTriggerWorker();
 }
 
 std::optional<std::array<std::int64_t, 11>>
@@ -1501,6 +1651,10 @@ std::uint32_t WinsockHookController::InFlightDetourCount() const noexcept {
 
 std::uint64_t WinsockHookController::DroppedPacketCount() const noexcept {
     return impl_->ring.Dropped() + impl_->delivery_dropped.load(std::memory_order_relaxed);
+}
+
+std::uint64_t WinsockHookController::DroppedTriggerCount() const noexcept {
+    return impl_->trigger_dropped.load(std::memory_order_relaxed);
 }
 
 } // namespace wpe

@@ -236,9 +236,11 @@ int main() {
     engine.ResetStats();
     engine.Publish({parent}, 0, false);
     result = engine.Apply(Context(), packet);
-    Check(result.action == wpe::FilterAction::None && result.logs.empty() &&
-          engine.Stats().filters[0].second == 0,
-          "unimplemented trigger types do not report a fake success");
+    Check(result.action == wpe::FilterAction::None && result.logs.size() == 1 &&
+          result.triggers.size() == 1 &&
+          result.triggers[0].type == wpe::FilterExecuteType::Send &&
+          engine.Stats().filters[0].second == 1,
+          "send trigger is reported without changing the packet action");
 
     auto cycle_a = parent;
     auto cycle_b = parent;
@@ -252,6 +254,7 @@ int main() {
     Check(result.action == wpe::FilterAction::None && result.logs.empty(),
           "cyclic filter triggers stop without recursion or false execution");
 
+    engine.ResetStats();
     auto published = Base("91112233-4455-6677-8899-aabbccddeeff");
     published.search = Text("0|10");
     published.modify = Text("1|11");

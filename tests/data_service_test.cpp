@@ -1,5 +1,7 @@
 #include "shell/data_service.h"
 #include "shell/data_worker.h"
+#include "common/ipc_codec.h"
+#include "common/ipc_protocol.h"
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -135,6 +137,23 @@ int main(int argc,char** argv){
             Require(previews[1].get<std::string>().ends_with(" ...")&&previews[1].get<std::string>().size()==183,"original preview truncation suffix");
             Require(previews[2]=="","empty warehouse preview");
             Require(Call(service,"copyStoresHex",{{"wid",wid},{"ids",Json::array({rows[0]["Id"],rows[2]["Id"]})}})["text"]=="00 FF 80\r\n\r\n","copy must preserve original CRLF, including empty rows");
+        }
+        {
+            const auto eventFile=dir/"target-events.db";std::string eventWid;
+            DataService service(eventFile,emit);
+            eventWid=Call(service,"addWareHouse")["id"].get<std::string>();
+            Call(service,"setAutoStoresSwitch",{{"enable",false},{"limit",true},{"limitValue",2}});
+            const auto makeEvent=[](const std::string& id,std::vector<std::uint8_t> bytes){
+                wpe::IpcWriter writer;writer.U8(static_cast<std::uint8_t>(wpe::IpcEvent::StoreAdded));
+                writer.Guid_(wpe::Guid::Parse(id));writer.Bytes(wpe::Bytes{std::move(bytes)});return writer.ToArray();
+            };
+            Require(service.ApplyStoreEvent(makeEvent(eventWid,{1}))&&service.ApplyStoreEvent(makeEvent(eventWid,{2}))&&
+                    service.ApplyStoreEvent(makeEvent(eventWid,{3})),"target store events were not accepted");
+            auto rows=Call(service,"getStorePreviews",{{"wid",eventWid},{"from",0},{"count",10}})["items"];
+            Require(rows==Json::array({"02","03"}),"store event limit/order mismatch");
+            Require(!service.ApplyStoreEvent(makeEvent("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",{4})),"stale warehouse event mutated state");
+            auto malformed=makeEvent(eventWid,{5});malformed.push_back(0xff);Throws([&]{service.ApplyStoreEvent(malformed);});
+            DataService reopened(eventFile,emit);Require(Call(reopened,"getStorePreviews",{{"wid",eventWid},{"from",0},{"count",10}})["items"]==Json::array({"02","03"}),"store event persistence");
         }
         if(argc>1){
             std::ifstream input(argv[1]);const auto fixture=Json::parse(input);DataService service(dir/"oracle-parity.db",emit);const auto fid=Call(service,"addFilter")["id"];
