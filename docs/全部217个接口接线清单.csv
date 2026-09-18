@@ -2,7 +2,7 @@
 getPacketDetail,1328,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 getPrefs,1367,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
 setAppearance,1403,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
-getStats,1443,是,运行态部分接线,目标注入与发送执行器仍按连接状态提供数据；SOCKS5 与 HTTP/HTTPS 代理运行时会回传真实活动连接、TCP/UDP 请求与响应、上下行字节、错误计数和 HTTP 映射命中/未命中/错误计数，WPC 仍未接。
+getStats,1443,是,运行态部分接线,目标注入与发送执行器仍按连接状态提供数据；SOCKS5 与 HTTP/HTTPS 代理运行时会回传真实活动连接、TCP/UDP 请求与响应、上下行字节、错误计数和 HTTP 映射命中/未命中/错误计数；WPC HTTP 服务运行、连接、请求/响应和错误计数也会回传，私有 SOCKS 控制连接仍未接。
 clearPackets,1506,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 openExternal,1549,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 setLanguage,1589,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
@@ -111,19 +111,19 @@ transcode,3860,否,未接线,没有原方法名处理器；调用返回尚未实
 extractPick,3868,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 extractBytes,3872,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 saveExtraction,3880,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-saveServer,3896,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
-setServerEnable,3909,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
-serverListAction,3915,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
-clearServers,3923,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
-getRuleTypes,3929,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
-getServerRules,3931,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
-saveServerRule,3936,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
-setServerRuleEnable,3947,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
-serverRuleAction,3955,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
-clearServerRules,3963,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；远程 WPC 服务运行链路未接。
-saveNotice,3969,是,WPC 公告数据已接,原公告表、feed 18、原 Vue CRUD/排序与备份已接；远程 WPC 服务运行链路未接。
-noticeListAction,3979,是,WPC 公告数据已接,原公告表、feed 18、原 Vue CRUD/排序与备份已接；远程 WPC 服务运行链路未接。
-clearNotices,3987,是,WPC 公告数据已接,原公告表、feed 18、原 Vue CRUD/排序与备份已接；远程 WPC 服务运行链路未接。
+saveServer,3896,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制连接仍未接。
+setServerEnable,3909,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制连接仍未接。
+serverListAction,3915,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制连接仍未接。
+clearServers,3923,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制连接仍未接。
+getRuleTypes,3929,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制连接仍未接。
+getServerRules,3931,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制连接仍未接。
+saveServerRule,3936,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制连接仍未接。
+setServerRuleEnable,3947,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制连接仍未接。
+serverRuleAction,3955,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制连接仍未接。
+clearServerRules,3963,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制连接仍未接。
+saveNotice,3969,是,WPC 公告数据已接,原公告表、feed 18、原 Vue CRUD/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetNoticeList 公告下发和快照更新，私有 SOCKS 控制连接仍未接。
+noticeListAction,3979,是,WPC 公告数据已接,原公告表、feed 18、原 Vue CRUD/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetNoticeList 公告下发和快照更新，私有 SOCKS 控制连接仍未接。
+clearNotices,3987,是,WPC 公告数据已接,原公告表、feed 18、原 Vue CRUD/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetNoticeList 公告下发和快照更新，私有 SOCKS 控制连接仍未接。
 getFilterStats,3997,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 resetFilterStats,4003,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 getLogSetting,4040,是,设置读写已接,真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。
@@ -153,8 +153,8 @@ registerHotkey,4298,否,未接线,没有原方法名处理器；调用返回尚�
 saveHotkeyType,4305,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 exportBackup,4318,是,文件接线已接（备份部分）,原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、ProxyAccountList、WhiteList、BlackList、InjectMode、AutoStores 与四父列表共十一组，其余三组整次拒绝；参见配置加密接线进度。
 importBackup,4351,是,文件接线已接（备份部分）,原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、ProxyAccountList、WhiteList、BlackList、InjectMode、AutoStores 与四父列表共十一组，其余三组整次拒绝；参见配置加密接线进度。
-getRemoteSetting,4384,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-saveRemoteSetting,4386,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
+getRemoteSetting,4384,是,WPC HTTP 服务设置已接,读取 WPC HTTP 服务监听地址、端口、Basic 管理账号、运行状态和本机地址列表；运行状态来自真实 WpcRuntime。
+saveRemoteSetting,4386,是,WPC HTTP 服务设置已接,事务保存 WPC HTTP 服务设置；启用时真实启动监听、发布节点/规则/公告快照，禁用时停止并等待全部连接收尾；监听失败会回传错误。
 copyProxyHex,4407,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 addProxyToSend,4412,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
 addProxyToWareHouse,4418,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。

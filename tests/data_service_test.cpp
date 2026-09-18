@@ -139,6 +139,10 @@ int main(int argc,char** argv){
             Require(Call(service,"saveServerRule",{{"sid",serverId},{"enable",true},{"type",1},{"argument","example.com; example.org"},{"ruleAction",0}})["error"]==""&&feeds[17][0]["RuleCount"]==2,"server multi-rule save");auto rules=Call(service,"getServerRules",{{"sid",serverId}})["rows"];Require(rules.size()==2&&rules[0]["TypeName"]=="DOMAIN-SUFFIX","server rule DTO");
             Require(Call(service,"setServerRuleEnable",{{"sid",serverId},{"id",rules[0]["Id"]},{"enable",false}})["ok"]==true,"server rule enable");
             Require(Call(service,"saveNotice",{{"type",3},{"title"," 维护公告 "},{"content"," 正文 "},{"more"," https://example.test "}})["error"]=="","notice save");noticeId=feeds[18][0]["Id"];Require(feeds[18][0]["Title"]=="维护公告"&&feeds[18][0]["Type"]==3,"notice feed");
+            const auto remote=Call(service,"getRemoteSetting");Require(remote.contains("IPs")&&remote.contains("Running")&&!remote["Running"].get<bool>(),"remote setting DTO");
+            Require(Call(service,"saveRemoteSetting",{{"isRemote",true},{"ip","bad"},{"port",88},{"userName","admin"},{"passWord","secret"}})["ok"]==false,"invalid remote address accepted");
+            Require(Call(service,"saveRemoteSetting",{{"isRemote",true},{"ip","127.0.0.1"},{"port",18988},{"userName","admin"},{"passWord","secret"}})["ok"]==true,"remote setting save");
+            const auto wpc_snapshot=Call(service,"__wpcSnapshot");Require(wpc_snapshot["servers"].size()==1&&wpc_snapshot["notices"].size()==1,"WPC runtime snapshot");
             Throws([&]{Call(service,"startProxy");});Require(Call(service,"filterListAction",{{"action",5},{"ids",Json::array({id})}})["ok"]==true,"cancelled filter export should preserve original successful cancellation");
         }
         {
@@ -161,6 +165,7 @@ int main(int argc,char** argv){
                     reopened_snapshot["remoteMaps"][0]["hostFrom"]=="from.test","mapping snapshot restart persistence");
             Require(feeds[17].size()==1&&feeds[17][0]["Name"]=="主节点"&&feeds[17][0]["RuleCount"]==2&&Call(reopened,"getServerRules",{{"sid",serverId}})["rows"].size()==2,"server/rule restart persistence");
             Require(feeds[18].size()==1&&feeds[18][0]["Id"]==noticeId&&feeds[18][0]["Content"]=="正文","notice restart persistence");
+            const auto remote=Call(reopened,"getRemoteSetting");Require(remote["IsRemote"]==true&&remote["IP"]=="127.0.0.1"&&remote["Port"]==18988&&remote["UserName"]=="admin","remote setting persistence");
             autoStoreId=feeds[12][0]["Id"].get<std::string>();Call(reopened,"autoStoresAction",{{"action",7}});Require(feeds[12].empty(),"auto-store clear");
         }
         {Database schema(file);const auto tables=schema.Query("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('ProxyAccount','ProxyAccountIPInfo','AutoStores','ProxyMapLocal','ProxyMapRemote','ServerInfo','ServerRuleInfo','NoticeInfo')");Require(tables.size()==8,"configuration schema tables missing");}

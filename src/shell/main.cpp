@@ -15,6 +15,7 @@
 #include "target_link.h"
 #include "socks5_runtime.h"
 #include "http_proxy_runtime.h"
+#include "wpc_runtime.h"
 #include "common/ipc_codec.h"
 #include "common/packet_frame.h"
 #include <TlHelp32.h>
@@ -105,6 +106,7 @@ public:
         closing_=true;lifetime_.reset();
         if(http_proxy_)http_proxy_->Stop();
         if(proxy_)proxy_->Stop();
+        if(wpc_)wpc_->Stop();
         if(target_)target_->Stop();
         clipboard_.reset();data_.reset();
         // Complete callbacks while the report/window state they capture still exists.
@@ -137,6 +139,7 @@ private:
     void AbortTargetInjection(WebBridge::Completion done,std::string error);
     void HandleTargetFrame(wpe::ByteBuffer frame,bool packet_channel);
     void SyncTargetConfiguration(WebBridge::Completion done);
+    bool StartWpc(const Json& setting,const Json& snapshot,std::string& error);
     std::filesystem::path HookDll() const;
     std::filesystem::path X86HookDll() const;
     std::filesystem::path X86Helper() const;
@@ -163,6 +166,8 @@ private:
     std::unique_ptr<wpe::shell::DataWorker> data_;
     std::unique_ptr<wpe::shell::Socks5Runtime> proxy_;
     std::unique_ptr<wpe::shell::HttpProxyRuntime> http_proxy_;
+    std::unique_ptr<wpe::shell::WpcRuntime> wpc_;
+    bool wpc_refresh_pending_{};
     std::string proxy_display_host_="127.0.0.1";
     std::unique_ptr<wpe::shell::TargetLink> target_;
     struct TargetResult {WebBridge::Completion done;Json value;std::string error;};
@@ -208,7 +213,18 @@ LRESULT Host::Message(UINT message,WPARAM wparam,LPARAM lparam){
         if(bridge_)bridge_->Tick();
         if(!closing_)DrainClipboard();
         if(!closing_)DrainTarget();
-        if(data_&&bridge_&&!closing_)data_->Drain([this](std::string name,Json value){bridge_->PushEvent(std::move(name),std::move(value));});
+        if(data_&&bridge_&&!closing_)data_->Drain([this](std::string name,Json value){
+            const bool wpc_feed = name == "feed:replace" && value.is_object() &&
+                                  (value.value("list",0) == 17 || value.value("list",0) == 18);
+            bridge_->PushEvent(name, value);
+            if(wpc_feed && wpc_ && wpc_->Running() && !wpc_refresh_pending_){
+                wpc_refresh_pending_=true;
+                data_->Submit("__wpcSnapshot",Json::object(),[this](Json snapshot,std::string error){
+                    wpc_refresh_pending_=false;
+                    if(error.empty()&&wpc_&&wpc_->Running())wpc_->Update(snapshot.value("servers",Json::array()),snapshot.value("notices",Json::array()));
+                });
+            }
+        });
         if(options_.test && std::chrono::steady_clock::now()-started_>std::chrono::seconds(90))Fail("WebView2 self-test timed out");
         if(!options_.test && !revealed_ && std::chrono::steady_clock::now()-started_>std::chrono::seconds(4)){
             revealed_=true;ShowWindow(window_,SW_SHOW);if(controller_)controller_->put_IsVisible(TRUE);Resize();
@@ -305,11 +321,28 @@ void Host::Configure(){
 }
 void Host::Resize(){if(controller_){RECT bounds{};GetClientRect(window_,&bounds);if(!IsZoomed(window_)){InflateRect(&bounds,-3,-3);}controller_->put_Bounds(bounds);}}
 void Host::State(){if(bridge_&&!closing_)bridge_->PushEvent("window:state",{{"maximized",IsZoomed(window_)!=FALSE}});}
+bool Host::StartWpc(const Json& setting,const Json& snapshot,std::string& error){
+    wpe::shell::WpcConfig config;
+    config.bind_address=setting.value("IP",std::string("127.0.0.1"));
+    const auto configured_port=setting.value("Port",88);
+    if(configured_port<1||configured_port>65535){error="WPC 监听端口必须在 1 ~ 65535 之间";return false;}
+    config.port=static_cast<std::uint16_t>(configured_port);
+    config.user=setting.value("UserName",std::string{});
+    config.password=setting.value("PassWord",std::string{});
+    config.servers=snapshot.value("servers",Json::array());
+    config.notices=snapshot.value("notices",Json::array());
+    if(wpc_)wpc_->Stop();
+    if(!wpc_||!wpc_->Start(std::move(config),error))return false;
+    const auto stats=wpc_->Stats();
+    if(bridge_)bridge_->PushEvent("wpc:state",{{"running",true},{"port",stats.port}});
+    return true;
+}
 void Host::RegisterMethods(){
     const auto db=options_.data/L"2.3.0"/L"WPE.db";
     data_=std::make_unique<wpe::shell::DataWorker>(db);
     proxy_=std::make_unique<wpe::shell::Socks5Runtime>();
     http_proxy_=std::make_unique<wpe::shell::HttpProxyRuntime>();
+    wpc_=std::make_unique<wpe::shell::WpcRuntime>();
     target_=std::make_unique<wpe::shell::TargetLink>(
         [this](wpe::ByteBuffer frame,bool packet){QueueTargetFrame(std::move(frame),packet);},
         [this](wpe::IpcLinkState state){
@@ -323,6 +356,35 @@ void Host::RegisterMethods(){
         }, X86HookDll(), X86Helper());
     for(const auto& method:wpe::shell::DataService::Methods()){
         bridge_->RegisterAsync(method,[this,method](const Json& args,WebBridge::Completion done){
+            if(method=="getRemoteSetting"){
+                data_->Submit(method,args,[this,done=std::move(done)](Json value,std::string error) mutable {
+                    if(!error.empty()){done(nullptr,std::move(error));return;}
+                    const auto stats=wpc_?wpc_->Stats():wpe::shell::WpcStats{};
+                    if(value.is_object()){
+                        value["Running"]=stats.running;
+                        if(stats.running){value["IP"]=value.value("IP",std::string("127.0.0.1"));value["Port"]=stats.port;}
+                    }
+                    done(std::move(value),{});
+                });
+                return;
+            }
+            if(method=="saveRemoteSetting"){
+                data_->Submit(method,args,[this,args,done=std::move(done)](Json value,std::string error) mutable {
+                    (void)value;
+                    if(!error.empty()){done(nullptr,std::move(error));return;}
+                    const bool enabled=args.value("isRemote",false);
+                    if(!enabled){if(wpc_)wpc_->Stop();if(bridge_)bridge_->PushEvent("wpc:state",{{"running",false},{"port",0}});done({{"ok",true},{"running",false}},{});return;}
+                    data_->Submit("__wpcSnapshot",Json::object(),[this,args,done=std::move(done)](Json snapshot,std::string snapshot_error) mutable {
+                        if(!snapshot_error.empty()){done(nullptr,std::move(snapshot_error));return;}
+                        std::string start_error;
+                        Json setting{{"IP",args.value("ip",std::string("127.0.0.1"))},{"Port",args.value("port",88)},
+                                     {"UserName",args.value("userName",std::string{})},{"PassWord",args.value("passWord",std::string{})}};
+                        if(!StartWpc(setting,snapshot,start_error)){done(nullptr,start_error.empty()?"WPC 服务初始化失败":std::move(start_error));return;}
+                        done({{"ok",true},{"running",true},{"port",wpc_->Stats().port}},{});
+                    });
+                });
+                return;
+            }
             if(wpe::shell::DataService::NeedsOpenFile(method,args)||wpe::shell::DataService::NeedsSaveFile(method,args)){
                 if(file_jobs_.size()>=8){done(nullptr,"文件选择请求过多");return;}
                 auto safe=args;safe.erase("_filePath");safe.erase("_password"); // Only the native chooser may grant a file path.
@@ -387,6 +449,17 @@ void Host::RegisterMethods(){
         clipboard_->Submit(true,std::move(text),[done](bool ok,std::wstring){done({{"ok",ok}},{});});
     });
     RegisterTargetMethods();
+    // Remote management is a persisted setting in the original application.
+    // Restore it after the data worker is ready so a restart does not silently
+    // leave an enabled service stopped.
+    data_->Submit("getRemoteSetting",Json::object(),[this](Json setting,std::string error){
+        if(closing_||!error.empty()||!setting.value("IsRemote",false))return;
+        data_->Submit("__wpcSnapshot",Json::object(),[this,setting=std::move(setting)](Json snapshot,std::string snapshot_error){
+            if(closing_||!snapshot_error.empty()){if(!snapshot_error.empty()&&bridge_)bridge_->PushEvent("wpc:state",{{"running",false},{"error",snapshot_error}});return;}
+            std::string start_error;
+            if(!StartWpc(setting,snapshot,start_error)&&bridge_)bridge_->PushEvent("wpc:state",{{"running",false},{"error",start_error.empty()?"WPC 服务初始化失败":start_error}});
+        });
+    });
     if(options_.test){
         bridge_->Register("__testStage",[this](const Json& args){report_["lastStage"]=args;return Json{{"ok",true}};});
         bridge_->Register("__testCancelNextFile",[this](const Json&){test_cancel_file_=true;return Json{{"ok",true}};});
@@ -749,6 +822,12 @@ void Host::RegisterTargetMethods(){
         value["mappingHits"]=static_cast<std::int64_t>(http.map_hits);
         value["mappingMisses"]=static_cast<std::int64_t>(http.map_misses);
         value["mappingErrors"]=static_cast<std::int64_t>(http.map_errors);
+        const auto wpc=wpc_?wpc_->Stats():wpe::shell::WpcStats{};
+        value["wpcRunning"]=wpc.running;
+        value["wpcConn"]=static_cast<std::int64_t>(wpc.active);
+        value["wpcReq"]=static_cast<std::int64_t>(wpc.requests);
+        value["wpcResp"]=static_cast<std::int64_t>(wpc.responses);
+        value["wpcErrors"]=static_cast<std::int64_t>(wpc.errors);
         return value;
     });
     bridge_->Register("getFilterStats",[this](const Json&){

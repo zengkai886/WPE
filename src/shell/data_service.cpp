@@ -179,7 +179,7 @@ bool DataService::ApplyStoreEvent(std::span<const std::uint8_t> frame){
 }
 std::vector<std::string> DataService::Methods(){return {
     "getPrefs","setAppearance","setLanguage","saveActionColor","getSystemSetting","saveSystemSetting","getLogSetting","saveLogSetting",
-    "getProxySetting","saveProxySetting","getHookSetting","saveHookSetting","getLeachSetting","saveLeachSetting","getFireWall","saveFireWall","saveListAutoClear",
+    "getProxySetting","saveProxySetting","getRemoteSetting","saveRemoteSetting","getHookSetting","saveHookSetting","getLeachSetting","saveLeachSetting","getFireWall","saveFireWall","saveListAutoClear",
     "addIpRule","saveIPRule","deleteIPRule","ipRuleAction",
     "getAccountPassword","getAccountLogins","saveAccount","deleteAccount","clearAllAccounts","setAccountEnable","importAccounts","exportAccounts","previewBatchAccounts","saveBatchAccounts","exportBatchAccounts","adjustAccountExpiry","adjustAccountLimit","exportSelectedAccounts","deleteSelectedAccounts",
     "enterProxyMode","enterInjectMode","getStats","getClientConnections","clearLogs","getCountryTable",
@@ -533,6 +533,32 @@ Json DataService::Call(const std::string& method,const Json& args){
             {"maxConnection",N(proxy_config_,"MaxConnectionNumber",5000)},{"maxConnectionCap",MaxConnectionCap()},
             {"maxConnectionDefault",5000},{"connBufferKB",16},{"memoryGB",gb},{"enableHttp",B(proxy_config_,"Enable_HTTP",true)},
             {"httpPort",N(proxy_config_,"HTTP_Port",1081)},{"enableSystemProxy",false},{"running",false}};
+    }
+    if(method=="getRemoteSetting"){
+        const auto ips=LocalAddresses();
+        auto selected=S(config_,"Remote_IP");
+        bool missing=!selected.empty();
+        for(const auto& value:ips)if(value.is_string()&&value.get<std::string>()==selected){missing=false;break;}
+        Json choices=ips;
+        if(missing)choices.insert(choices.begin(),selected);
+        if(selected.empty())selected=choices.empty()?std::string("127.0.0.1"):choices.front().get<std::string>();
+        return {{"IsRemote",B(config_,"Remote_IsEnable")},{"IP",selected},{"IPs",std::move(choices)},
+                {"Port",N(config_,"Remote_Port",88)},{"UserName",S(config_,"Remote_UserName")},
+                {"PassWord",S(config_,"Remote_PassWord")},{"Running",false},{"IPMissing",missing}};
+    }
+    if(method=="saveRemoteSetting"){
+        const bool enabled=B(args,"isRemote");
+        const auto ip=Trim(S(args,"ip")),user=Trim(S(args,"userName")),password=S(args,"passWord");
+        const int port=N(args,"port",88);
+        if(enabled&&!ValidIp(ip))return Bad("远程管理监听地址不是本机有效 IP");
+        if(enabled&&(port<1||port>65535))return Bad("远程管理端口必须在 1 ~ 65535 之间");
+        if(enabled&&(user.empty()||password.empty()))return Bad("远程管理账号和密码不能为空");
+        SaveConfig({{"Remote_IsEnable",enabled},{"Remote_IP",ip},{"Remote_Port",port},
+                    {"Remote_UserName",user},{"Remote_PassWord",password}});
+        return {{"ok",true},{"running",false}};
+    }
+    if(method=="__wpcSnapshot"){
+        return {{"servers",lists_[17]},{"notices",lists_[18]}};
     }
     // Native-only snapshot consumed by the SOCKS5 and HTTP proxy listeners.  It deliberately
     // is not part of Methods(), so browser code cannot ask the bridge for

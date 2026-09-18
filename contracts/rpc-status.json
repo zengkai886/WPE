@@ -1,9 +1,9 @@
 {
   "scope": "Registration inventory, not a functional-completion percentage. Partial and offline methods are explicitly distinguished. Robot runtime execution was explicitly removed from the requested delivery scope on 2026-09-18; robot data/editor compatibility remains.",
   "originalRpcCount": 217,
-  "nativeDataRegistered": 128,
+  "nativeDataRegistered": 130,
   "nativeHostRegistered": 12,
-  "remainingUnregistered": 77,
+  "remainingUnregistered": 75,
   "originalSource": "WinsockPacketEditor/ShellForm.cs",
   "originalSourceSha256": "86d277408d233903ec82ffe8f06a2cd1995898617c477a1f181046ebe0f72f12",
   "methods": [
@@ -33,7 +33,7 @@
       "originalLine": 1443,
       "registered": true,
       "status": "运行态部分接线",
-      "note": "目标注入与发送执行器仍按连接状态提供数据；SOCKS5 与 HTTP/HTTPS 代理运行时会回传真实活动连接、TCP/UDP 请求与响应、上下行字节、错误计数和 HTTP 映射命中/未命中/错误计数，WPC 仍未接。"
+      "note": "目标注入与发送执行器仍按连接状态提供数据；SOCKS5 与 HTTP/HTTPS 代理运行时会回传真实活动连接、TCP/UDP 请求与响应、上下行字节、错误计数和 HTTP 映射命中/未命中/错误计数；WPC HTTP 服务运行、连接、请求/响应和错误计数也会回传，私有 SOCKS WPC 控制连接仍未接。"
     },
     {
       "method": "clearPackets",
@@ -795,92 +795,92 @@
       "method": "saveServer",
       "originalLine": 3896,
       "registered": true,
-      "status": "WPC 节点与规则数据已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；实际远程 WPC 节点服务仍待运行链路。"
+      "status": "WPC 节点与 HTTP 下发已接",
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
     },
     {
       "method": "setServerEnable",
       "originalLine": 3909,
       "registered": true,
-      "status": "WPC 节点与规则数据已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；实际远程 WPC 节点服务仍待运行链路。"
+      "status": "WPC 节点与 HTTP 下发已接",
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
     },
     {
       "method": "serverListAction",
       "originalLine": 3915,
       "registered": true,
-      "status": "WPC 节点与规则数据已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；实际远程 WPC 节点服务仍待运行链路。"
+      "status": "WPC 节点与 HTTP 下发已接",
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
     },
     {
       "method": "clearServers",
       "originalLine": 3923,
       "registered": true,
-      "status": "WPC 节点与规则数据已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；实际远程 WPC 节点服务仍待运行链路。"
+      "status": "WPC 节点与 HTTP 下发已接",
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
     },
     {
       "method": "getRuleTypes",
       "originalLine": 3929,
       "registered": true,
-      "status": "WPC 节点与规则数据已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；实际远程 WPC 节点服务仍待运行链路。"
+      "status": "WPC 节点与 HTTP 下发已接",
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
     },
     {
       "method": "getServerRules",
       "originalLine": 3931,
       "registered": true,
-      "status": "WPC 节点与规则数据已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；实际远程 WPC 节点服务仍待运行链路。"
+      "status": "WPC 节点与 HTTP 下发已接",
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
     },
     {
       "method": "saveServerRule",
       "originalLine": 3936,
       "registered": true,
-      "status": "WPC 节点与规则数据已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；实际远程 WPC 节点服务仍待运行链路。"
+      "status": "WPC 节点与 HTTP 下发已接",
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
     },
     {
       "method": "setServerRuleEnable",
       "originalLine": 3947,
       "registered": true,
-      "status": "WPC 节点与规则数据已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；实际远程 WPC 节点服务仍待运行链路。"
+      "status": "WPC 节点与 HTTP 下发已接",
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
     },
     {
       "method": "serverRuleAction",
       "originalLine": 3955,
       "registered": true,
-      "status": "WPC 节点与规则数据已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；实际远程 WPC 节点服务仍待运行链路。"
+      "status": "WPC 节点与 HTTP 下发已接",
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
     },
     {
       "method": "clearServerRules",
       "originalLine": 3963,
       "registered": true,
-      "status": "WPC 节点与规则数据已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；实际远程 WPC 节点服务仍待运行链路。"
+      "status": "WPC 节点与 HTTP 下发已接",
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
     },
     {
       "method": "saveNotice",
       "originalLine": 3969,
       "registered": true,
-      "status": "WPC 公告数据已接",
-      "note": "NoticeInfo 原表、feed 18、原 Vue 增改删/排序与备份分组已接；实际远程 WPC 公告服务仍待运行链路。"
+      "status": "WPC 公告与 HTTP 下发已接",
+      "note": "NoticeInfo 原表、feed 18、原 Vue 增改删/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetNoticeList 公告下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
     },
     {
       "method": "noticeListAction",
       "originalLine": 3979,
       "registered": true,
-      "status": "WPC 公告数据已接",
-      "note": "NoticeInfo 原表、feed 18、原 Vue 增改删/排序与备份分组已接；实际远程 WPC 公告服务仍待运行链路。"
+      "status": "WPC 公告与 HTTP 下发已接",
+      "note": "NoticeInfo 原表、feed 18、原 Vue 增改删/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetNoticeList 公告下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
     },
     {
       "method": "clearNotices",
       "originalLine": 3987,
       "registered": true,
-      "status": "WPC 公告数据已接",
-      "note": "NoticeInfo 原表、feed 18、原 Vue 增改删/排序与备份分组已接；实际远程 WPC 公告服务仍待运行链路。"
+      "status": "WPC 公告与 HTTP 下发已接",
+      "note": "NoticeInfo 原表、feed 18、原 Vue 增改删/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetNoticeList 公告下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
     },
     {
       "method": "getFilterStats",
@@ -1088,16 +1088,16 @@
     {
       "method": "getRemoteSetting",
       "originalLine": 4384,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "WPC HTTP 服务设置已接",
+      "note": "读取 WPC HTTP 服务监听地址、端口、Basic 管理账号、运行状态和本机地址列表；运行状态来自真实 WpcRuntime。"
     },
     {
       "method": "saveRemoteSetting",
       "originalLine": 4386,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "WPC HTTP 服务设置已接",
+      "note": "事务保存 WPC HTTP 服务设置；启用时真实启动监听、发布节点/规则/公告快照，禁用时停止并等待全部连接收尾；监听失败会回传错误。"
     },
     {
       "method": "copyProxyHex",

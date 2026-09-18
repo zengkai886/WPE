@@ -57,8 +57,10 @@ target_link_libraries(wpe64-injector PUBLIC wpe64-common)
 add_library(wpe64-proxy-runtime STATIC
   src/shell/socks5_runtime.cpp
   src/shell/http_proxy_runtime.cpp
+  src/shell/wpc_runtime.cpp
 )
 target_include_directories(wpe64-proxy-runtime PUBLIC src)
+target_include_directories(wpe64-proxy-runtime SYSTEM PUBLIC third_party)
 target_link_libraries(wpe64-proxy-runtime PUBLIC ws2_32)
 if(WIN32)
   # This target is deliberately excluded from the default build.  It must be
@@ -182,4 +184,7 @@ if(BUILD_TESTING)
   add_executable(wpe64-http-proxy-runtime-test tests/http_proxy_runtime_test.cpp)
   target_link_libraries(wpe64-http-proxy-runtime-test PRIVATE wpe64-proxy-runtime ws2_32)
   add_test(NAME http-proxy-runtime COMMAND wpe64-http-proxy-runtime-test)
+  add_executable(wpe64-wpc-runtime-test tests/wpc_runtime_test.cpp)
+  target_link_libraries(wpe64-wpc-runtime-test PRIVATE wpe64-proxy-runtime ws2_32)
+  add_test(NAME wpc-runtime COMMAND wpe64-wpc-runtime-test)
 endif()
