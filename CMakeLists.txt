@@ -118,7 +118,7 @@ if(BUILD_TESTING)
   add_executable(wpe64-injected-session-target tests/injected_session_target.cpp)
   target_link_libraries(wpe64-injected-session-target PRIVATE ws2_32)
   add_executable(wpe64-injected-session-test tests/injected_session_test.cpp)
-  target_link_libraries(wpe64-injected-session-test PRIVATE wpe64-injector)
+  target_link_libraries(wpe64-injected-session-test PRIVATE wpe64-injector wpe64-data)
   add_test(NAME injected-target-session COMMAND wpe64-injected-session-test
     "$<TARGET_FILE:wpe64-injected-session-target>" "$<TARGET_FILE:wpe64-hook>"
     "$<TARGET_FILE:wpe64-inject-probe>")
