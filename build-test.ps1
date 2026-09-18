@@ -15,22 +15,22 @@ function Hash([string]$Path) { (Get-FileHash -LiteralPath $Path -Algorithm SHA25
 function Run([string]$Executable,[string[]]$Arguments,[string]$Log) {
     $lines=& $Executable @Arguments 2>&1
     $code=$LASTEXITCODE
-    $lines | Set-Content -LiteralPath $Log -Encoding utf8
+    [IO.File]::WriteAllText($Log,($lines | Out-String),[Text.UTF8Encoding]::new($false))
     $lines | ForEach-Object { Write-Output "$_" }
     if($code -ne 0){ throw "$Executable failed ($code); see $Log" }
 }
 $manifest=[ordered]@{
     schemaVersion=1
-    testId='CPP-EXCHANGE-WIRING-012'
-    specificationSections=@('0','2.3','3.1','3.2','3.3','4.1','4.2','4.3','4.4','4.5','5.1','5.4','5.5','9.2','9.3','13.1')
-    scope='Protocol/ring, real three-channel Windows named-pipe transport with current-user ACL, shell/target session lifecycle, target headless command core, same-bitness Windows injection, a production native target DLL whose exported bootstrap starts a real cross-process v4 session without doing work under DllMain, and the vendored official MinHook 1.3.4 runtime behind an RAII hook manager tested through a live Win32 API trampoline on x64/Win32; native SQLite, editors, plaintext XML export, private-station OS clipboard, original Vue/HexView/export/clipboard buttons and restart. The production hook DLL initializes the real MinHook runtime on StartHook but still returns an explicit error because the 13 Winsock detours, pre-entry suspended wake choreography, real capture, proxy/executor engines and complete acceptance are not implemented yet'
+    testId='CPP-EXCHANGE-WIRING-013'
+    specificationSections=@('0','2.3','3.1','3.2','3.3','4.1','4.2','4.3','4.4','4.5','5.1','5.2','5.3','5.4','5.5','5.6','9.2','9.3','13.1')
+    scope='Protocol/ring, real three-channel Windows named-pipe transport with current-user ACL, shell/target session lifecycle, target headless command core, same-bitness Windows injection, production x64/Win32 target DLL bootstrap, official MinHook 1.3.4, all 13 documented Winsock signatures (the original-compatible x64 default omits WSARecvEx), bounded non-blocking capture ring, dedicated address/frame writer, live target counters/speed mode and actual injected-process TCP packet delivery over the pkt pipe; native SQLite, editors, plaintext XML export, private-station OS clipboard, original Vue/HexView/export/clipboard buttons and restart. Raw pass-through capture is real; filter mutation/interception, pre-entry suspended wake choreography, shell injection UI/x86 helper, SendPacket/GetSocketInfo, proxy/executor engines and complete acceptance remain unimplemented'
     startedUtc=[DateTime]::UtcNow.ToString('o')
     finishedUtc=$null
     result='running'
     runDirectory=$run
     command="$PSCommandPath -BuildRoot $BuildRoot -Architecture $($Architecture -join ',')"
     architectures=@()
-    cleanup='Owned test processes, WebView2 controller and named-pipe instances closed. No injection, target hooks, certificates, system proxy or listening sockets. Only isolated test SQLite databases and WebView2 profiles changed; retained under the external build directory.'
+    cleanup='Owned test processes, transient injected DLL sessions, MinHook registrations, loopback sockets, WebView2 controller and named-pipe instances closed. No persistent target hooks, certificates, system proxy or listening sockets remain. Only isolated test SQLite databases and WebView2 profiles changed; retained under the external build directory.'
 }
 try {
     $lock=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'contracts\oracle-source.json') -Raw | ConvertFrom-Json
@@ -124,7 +124,7 @@ try {
             parity=(Get-Content -LiteralPath (Join-Path $run "$arch-parity.log"))
             reverse=(Get-Content -LiteralPath (Join-Path $run "$arch-reverse.log"))
             ring=(Get-Content -LiteralPath (Join-Path $run "$arch-ring.log"))
-            artifacts=@($test,(Join-Path $build 'Release\wpe64-pipe-test.exe'),(Join-Path $build 'Release\wpe64-session-test.exe'),(Join-Path $build 'Release\wpe64-headless-core-test.exe'),(Join-Path $build 'Release\wpe64-hook-manager-test.exe'),(Join-Path $build 'Release\wpe64-injector-test.exe'),(Join-Path $build 'Release\wpe64-inject-target.exe'),(Join-Path $build 'Release\wpe64-inject-probe.dll'),(Join-Path $build 'Release\wpe64-injected-session-test.exe'),(Join-Path $build 'Release\wpe64-injected-session-target.exe'),(Join-Path $build 'Release\wpe64-hook.dll'),(Join-Path $build 'Release\wpe64-common.lib'),(Join-Path $build 'Release\wpe64-target-core.lib'),(Join-Path $build 'Release\wpe64-hook-runtime.lib'),(Join-Path $build 'Release\wpe64-minhook.lib'),(Join-Path $build 'Release\wpe64-injector.lib'),$packets,(Join-Path $build 'CMakeCache.txt')) | ForEach-Object {[ordered]@{path=$_;sha256=(Hash $_)}}
+            artifacts=@($test,(Join-Path $build 'Release\wpe64-pipe-test.exe'),(Join-Path $build 'Release\wpe64-session-test.exe'),(Join-Path $build 'Release\wpe64-headless-core-test.exe'),(Join-Path $build 'Release\wpe64-hook-manager-test.exe'),(Join-Path $build 'Release\wpe64-winsock-hook-test.exe'),(Join-Path $build 'Release\wpe64-injector-test.exe'),(Join-Path $build 'Release\wpe64-inject-target.exe'),(Join-Path $build 'Release\wpe64-inject-probe.dll'),(Join-Path $build 'Release\wpe64-injected-session-test.exe'),(Join-Path $build 'Release\wpe64-injected-session-target.exe'),(Join-Path $build 'Release\wpe64-hook.dll'),(Join-Path $build 'Release\wpe64-common.lib'),(Join-Path $build 'Release\wpe64-target-core.lib'),(Join-Path $build 'Release\wpe64-hook-runtime.lib'),(Join-Path $build 'Release\wpe64-minhook.lib'),(Join-Path $build 'Release\wpe64-injector.lib'),$packets,(Join-Path $build 'CMakeCache.txt')) | ForEach-Object {[ordered]@{path=$_;sha256=(Hash $_)}}
         }
     }
     if($Architecture -contains 'x64' -and $Architecture -contains 'Win32'){

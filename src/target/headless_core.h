@@ -25,8 +25,19 @@ class IHookController {
 public:
     virtual ~IHookController() = default;
     virtual WinsockSupport DetectWinsock(bool may_load) = 0;
+    // Configuration is published before StartHook. Production controllers
+    // consume these without reaching back into HeadlessCore from a detour.
+    virtual void ConfigureHookFlags(const std::array<bool, 12>&) {}
+    virtual void ConfigureSpeedMode(bool) noexcept {}
     virtual void StartHook() = 0;
     virtual void StopHook() = 0;
+    // A production controller owns lock-free packet counters because they are
+    // incremented on arbitrary target Winsock threads. Test/future controllers
+    // may keep using HeadlessCore's local counters by returning nullopt.
+    virtual std::optional<std::array<std::int64_t, 11>> LivePacketCounters() const noexcept {
+        return std::nullopt;
+    }
+    virtual void ResetLivePacketCounters() noexcept {}
 };
 
 struct FilterSnapshot {

@@ -1,7 +1,9 @@
 #include "shell/process_injector.h"
 #include "common/ipc_codec.h"
 #include "common/ipc_session.h"
+#include "common/packet_frame.h"
 #include <Windows.h>
+#include <algorithm>
 #include <chrono>
 #include <condition_variable>
 #include <filesystem>
@@ -10,6 +12,7 @@
 #include <mutex>
 #include <sstream>
 #include <stdexcept>
+#include <string_view>
 #include <vector>
 
 using namespace std::chrono_literals;
@@ -44,6 +47,37 @@ struct ProcessCleanup final {
         (void)WaitForSingleObject(handle, 3000);
     }
 };
+
+struct HandleCleanup final {
+    HANDLE value{};
+    ~HandleCleanup() { if (value) CloseHandle(value); }
+};
+
+bool ContainsHookState(const std::vector<wpe::ByteBuffer>& events, bool wanted) {
+    for (const auto& bytes : events) {
+        try {
+            wpe::IpcReader event(bytes);
+            if (event.U8() == static_cast<std::uint8_t>(wpe::IpcEvent::HookState) &&
+                event.Bool() == wanted) return true;
+        } catch (...) {}
+    }
+    return false;
+}
+
+bool ContainsPacket(const std::vector<wpe::ByteBuffer>& frames, std::uint8_t type,
+                    std::string_view expected) {
+    for (const auto& frame : frames) {
+        try {
+            const auto packet = wpe::PacketFrame::Decode(frame);
+            if (packet.packet_type != type || !packet.raw || packet.raw->size() != expected.size())
+                continue;
+            if (std::equal(packet.raw->begin(), packet.raw->end(), expected.begin()) &&
+                packet.modified == packet.raw && packet.from && packet.to &&
+                !packet.from->empty() && !packet.to->empty()) return true;
+        } catch (...) {}
+    }
+    return false;
+}
 } // namespace
 
 int wmain(int argc, wchar_t** argv) {
@@ -54,10 +88,28 @@ int wmain(int argc, wchar_t** argv) {
         const std::filesystem::path probe = argv[3];
         const auto session_id = SessionId();
 
+        const std::wstring event_suffix = std::to_wstring(GetCurrentProcessId()) + L"-" +
+                                          std::to_wstring(GetTickCount64());
+        const std::wstring start_name = L"Local\\WPE64-NetworkStart-" + event_suffix;
+        const std::wstring done_name = L"Local\\WPE64-NetworkDone-" + event_suffix;
+        HandleCleanup start_event{CreateEventW(nullptr, TRUE, FALSE, start_name.c_str())};
+        HandleCleanup done_event{CreateEventW(nullptr, TRUE, FALSE, done_name.c_str())};
+        if (!start_event.value || !done_event.value)
+            throw std::runtime_error("network test events could not be created");
+
         std::mutex event_mutex;
         std::condition_variable event_ready;
         std::vector<wpe::ByteBuffer> events;
-        wpe::ShellIpcSession shell(session_id, {}, [&](wpe::ByteBuffer event) {
+        std::mutex packet_mutex;
+        std::condition_variable packet_ready;
+        std::vector<wpe::ByteBuffer> packets;
+        wpe::ShellIpcSession shell(session_id, [&](wpe::ByteBuffer packet) {
+            {
+                std::lock_guard lock(packet_mutex);
+                packets.push_back(std::move(packet));
+            }
+            packet_ready.notify_all();
+        }, [&](wpe::ByteBuffer event) {
             {
                 std::lock_guard lock(event_mutex);
                 events.push_back(std::move(event));
@@ -65,7 +117,8 @@ int wmain(int argc, wchar_t** argv) {
             event_ready.notify_all();
         }, {}, wpe::ShellSessionOptions{50ms});
 
-        auto child = wpe::shell::ProcessInjector::LaunchSuspended(target);
+        const std::wstring target_arguments = L"\"" + start_name + L"\" \"" + done_name + L"\"";
+        auto child = wpe::shell::ProcessInjector::LaunchSuspended(target, target_arguments);
         ProcessCleanup cleanup{child.ProcessHandle()};
         child.Resume();
         Check(WaitForSingleObject(child.ProcessHandle(), 0) == WAIT_TIMEOUT,
@@ -102,7 +155,7 @@ int wmain(int argc, wchar_t** argv) {
             wpe::IpcReader event(events.front());
             Check(event.U8() == static_cast<std::uint8_t>(wpe::IpcEvent::HookState),
                   "initial injected event type");
-            Check(!event.Bool(), "hook state remains off before a real backend exists");
+            Check(!event.Bool(), "hook state is off before StartHook");
             (void)event.Bool(); (void)event.Bool(); (void)event.Bool();
             Check(event.Remaining() == 0, "initial HookState has exact v4 fields");
         }
@@ -118,8 +171,23 @@ int wmain(int argc, wchar_t** argv) {
 
         wpe::IpcWriter start_hook;
         start_hook.U8(static_cast<std::uint8_t>(wpe::IpcCommand::StartHook));
-        Throws([&] { shell.CallVoid(start_hook.ToArray()); },
-               "bootstrap target refuses to fake an installed Winsock hook");
+        shell.CallVoid(start_hook.ToArray());
+        ++checks;
+        {
+            std::unique_lock lock(event_mutex);
+            Check(event_ready.wait_for(lock, 2s, [&] { return ContainsHookState(events, true); }),
+                  "production target emitted HookState(true)");
+        }
+        Check(SetEvent(start_event.value) != FALSE, "target network scenario released");
+        Check(WaitForSingleObject(done_event.value, 3000) == WAIT_OBJECT_0,
+              "target completed real network round trip");
+        {
+            std::unique_lock lock(packet_mutex);
+            Check(packet_ready.wait_for(lock, 3s, [&] {
+                return ContainsPacket(packets, 1, "cross-process") &&
+                       ContainsPacket(packets, 5, "cross-process");
+            }), "injected DLL returned real send/recv frames through pkt pipe");
+        }
         Throws([&] {
             wpe::shell::ProcessInjector::InjectAndStart(child.Pid(), hook, options, 2s);
         }, "second target worker rejected while the first session is active");
@@ -131,7 +199,7 @@ int wmain(int argc, wchar_t** argv) {
               "detaching DLL session does not terminate host process");
 
         std::cout << "PASS: " << checks
-                  << " injected-session checks; production DLL export, bootstrap, real cross-process IPC and detach\n";
+                  << " injected-session checks; production DLL, MinHook Winsock capture, real pkt IPC and detach\n";
         return 0;
     } catch (const std::exception& error) {
         std::cerr << "FAIL: " << error.what() << '\n';

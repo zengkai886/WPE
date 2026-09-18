@@ -3,9 +3,13 @@
 #include <algorithm>
 #include <stdexcept>
 #include <utility>
+#include <vector>
 
 namespace wpe {
 namespace {
+constexpr std::size_t kEventQueueMaxCount = 8192;
+constexpr std::size_t kEventQueueMaxBytes = 16U * 1024U * 1024U;
+
 std::uint64_t Tick() noexcept { return GetTickCount64(); }
 
 Text AsText(std::string_view value) {
@@ -19,6 +23,18 @@ std::uint32_t Remaining(std::uint64_t deadline) {
     const auto now = Tick();
     if (now >= deadline) throw ProtocolError("Timed out waiting for IPC channels");
     return static_cast<std::uint32_t>(std::min<std::uint64_t>(deadline - now, INFINITE - 1ULL));
+}
+
+ByteBuffer EventDropLog(std::uint64_t dropped) {
+    IpcWriter writer;
+    writer.U8(static_cast<std::uint8_t>(IpcEvent::Log));
+    writer.Str(AsText("WpeCore.SendEvent"));
+    std::u16string message = u"\u4e8b\u4ef6\u6d41\u79ef\u538b\uff0c\u4e22\u5f03\u4e86 ";
+    const auto count = std::to_string(dropped);
+    for (const char c : count) message.push_back(static_cast<char16_t>(c));
+    message += u" \u6761\uff08\u65e5\u5fd7 / \u5165\u5e93 / \u7edf\u8ba1\uff09";
+    writer.Str(Text{std::move(message)});
+    return writer.ToArray();
 }
 } // namespace
 
@@ -227,6 +243,7 @@ TargetIpcSession::TargetIpcSession(std::string session, std::uint32_t connect_ti
       options_(options) {
     if (options_.heartbeat_timeout.count() <= 0 || options_.watchdog_poll.count() <= 0)
         throw ProtocolError("Target heartbeat timings must be positive");
+    event_writer_thread_ = std::thread(&TargetIpcSession::EventWriterLoop, this);
 }
 
 TargetIpcSession::~TargetIpcSession() { Stop(); }
@@ -263,6 +280,7 @@ ByteBuffer TargetIpcSession::Dispatch(std::span<const std::uint8_t> request,
 void TargetIpcSession::Run(CommandHandler handler, TimeoutHandler timeout_handler,
                            LifecycleHandler hello_handler, LifecycleHandler exit_handler) {
     if (running_.exchange(true)) throw ProtocolError("Target IPC loop is already running");
+    event_accepting_.store(true);
     timed_out_.store(false);
     detached_.store(false);
     last_command_tick_.store(Tick());
@@ -294,14 +312,18 @@ void TargetIpcSession::Run(CommandHandler handler, TimeoutHandler timeout_handle
     }
     running_.store(false);
     if (watchdog_thread_.joinable()) watchdog_thread_.join();
-    // A producer can be blocked in an overlapped pkt/evt write after the shell
-    // has closed its reader. Cancel those writes before lifecycle cleanup joins
-    // producer threads.
+    // A producer can be blocked in an overlapped packet write after the shell
+    // has closed its reader. Cancel it before lifecycle cleanup joins the
+    // packet writer. Events are queued, so leave that channel alive until the
+    // exit handler has enqueued its final HookState and the queue gets a brief
+    // opportunity to drain.
     packet_.CancelPending();
-    event_.CancelPending();
     if (exit_handler) {
         try { exit_handler(); } catch (...) {}
     }
+    event_accepting_.store(false);
+    FlushEvents(std::chrono::milliseconds(200));
+    StopEventWriter();
 }
 
 void TargetIpcSession::WatchdogLoop(const TimeoutHandler& timeout_handler) noexcept {
@@ -323,22 +345,145 @@ void TargetIpcSession::WatchdogLoop(const TimeoutHandler& timeout_handler) noexc
 
 void TargetIpcSession::SendPacketFrame(std::span<const std::uint8_t> frame) {
     std::lock_guard lock(packet_mutex_);
-    packet_.WriteFrame(frame);
+    // A stalled/disappeared shell may back-pressure the dedicated writer, but
+    // must not make StopHook/Detach wait forever while joining that writer.
+    try {
+        packet_.WriteFrame(frame, 500);
+    } catch (...) {
+        // A timed-out framed write can leave a partial prefix/payload in the
+        // byte stream. Continuing would corrupt every following packet frame,
+        // so fail the target session and let its lifecycle path remove hooks.
+        running_.store(false);
+        control_.CancelPending();
+        packet_.CancelPending();
+        event_.CancelPending();
+        throw;
+    }
 }
 
 void TargetIpcSession::SendEventFrame(std::span<const std::uint8_t> frame) {
-    std::lock_guard lock(event_mutex_);
-    // Event delivery must not pin target teardown forever after the shell has
-    // disappeared. The original stream is lossy/bounded as well; a stalled
-    // reader is therefore an event failure, not permission to hang the host.
-    event_.WriteFrame(frame, 500);
+    if (frame.size() > static_cast<std::size_t>(IpcProtocol::MaxControlFrame))
+        throw ProtocolError("Event frame exceeds protocol limit");
+    if (!event_accepting_.load() || !event_writer_running_.load()) return;
+
+    ByteBuffer copy(frame.begin(), frame.end());
+    {
+        std::lock_guard lock(event_queue_mutex_);
+        if (!event_accepting_.load() || !event_writer_running_.load()) return;
+        event_queue_bytes_ += copy.size();
+        event_queue_.push_back(std::move(copy));
+
+        // Match the original queue: enqueue first, then evict the oldest
+        // entries. One individually oversized frame is therefore retained.
+        while ((event_queue_.size() > kEventQueueMaxCount ||
+                event_queue_bytes_ > kEventQueueMaxBytes) &&
+               event_queue_.size() > 1) {
+            event_queue_bytes_ -= event_queue_.front().size();
+            event_queue_.pop_front();
+            ++event_queue_dropped_;
+        }
+    }
+    event_queue_changed_.notify_one();
+}
+
+void TargetIpcSession::EventWriterLoop() noexcept {
+    for (;;) {
+        std::vector<ByteBuffer> batch;
+        {
+            std::unique_lock lock(event_queue_mutex_);
+            event_queue_changed_.wait_for(lock, std::chrono::milliseconds(50), [&] {
+                return !event_writer_running_.load() || !event_queue_.empty();
+            });
+            if (!event_writer_running_.load() && event_queue_.empty()) break;
+            if (event_queue_.empty()) continue;
+
+            batch.reserve(event_queue_.size());
+            while (!event_queue_.empty()) {
+                event_queue_bytes_ -= event_queue_.front().size();
+                batch.push_back(std::move(event_queue_.front()));
+                event_queue_.pop_front();
+            }
+            event_writing_ = true;
+        }
+
+        std::size_t written = 0;
+        try {
+            for (; written < batch.size(); ++written)
+                event_.WriteFrame(batch[written], 500);
+
+            std::uint64_t dropped = 0;
+            {
+                std::lock_guard lock(event_queue_mutex_);
+                dropped = std::exchange(event_queue_dropped_, 0);
+            }
+            if (dropped != 0) event_.WriteFrame(EventDropLog(dropped), 500);
+        } catch (...) {
+            // A timeout may have left a partial frame in the byte stream. Do
+            // not attempt another event write on a now-corrupt stream. Make
+            // the control loop leave so the normal lifecycle removes hooks.
+            {
+                std::lock_guard lock(event_queue_mutex_);
+                event_queue_dropped_ += static_cast<std::uint64_t>(batch.size() - written);
+                event_queue_dropped_ += static_cast<std::uint64_t>(event_queue_.size());
+                event_queue_.clear();
+                event_queue_bytes_ = 0;
+                event_accepting_.store(false);
+                event_writer_running_.store(false);
+            }
+            running_.store(false);
+            control_.CancelPending();
+            packet_.CancelPending();
+            event_.CancelPending();
+        }
+
+        {
+            std::lock_guard lock(event_queue_mutex_);
+            event_writing_ = false;
+        }
+        event_queue_idle_.notify_all();
+        if (!event_writer_running_.load()) break;
+    }
+
+    {
+        std::lock_guard lock(event_queue_mutex_);
+        event_writing_ = false;
+    }
+    event_queue_idle_.notify_all();
+}
+
+void TargetIpcSession::FlushEvents(std::chrono::milliseconds timeout) noexcept {
+    std::unique_lock lock(event_queue_mutex_);
+    static_cast<void>(event_queue_idle_.wait_for(lock, timeout, [&] {
+        return (event_queue_.empty() && !event_writing_) || !event_writer_running_.load();
+    }));
+}
+
+void TargetIpcSession::StopEventWriter() noexcept {
+    {
+        std::lock_guard lock(event_queue_mutex_);
+        event_writer_running_.store(false);
+        event_queue_dropped_ += static_cast<std::uint64_t>(event_queue_.size());
+        event_queue_.clear();
+        event_queue_bytes_ = 0;
+    }
+    event_queue_changed_.notify_all();
+    event_.CancelPending();
+    if (event_writer_thread_.joinable() &&
+        event_writer_thread_.get_id() != std::this_thread::get_id())
+        event_writer_thread_.join();
+    {
+        std::lock_guard lock(event_queue_mutex_);
+        event_writing_ = false;
+    }
+    event_queue_idle_.notify_all();
 }
 
 void TargetIpcSession::Stop() noexcept {
     running_.store(false);
+    event_accepting_.store(false);
     control_.CancelPending();
     packet_.CancelPending();
-    event_.CancelPending();
+    StopEventWriter();
     if (watchdog_thread_.joinable() && watchdog_thread_.get_id() != std::this_thread::get_id())
         watchdog_thread_.join();
     control_.Close();

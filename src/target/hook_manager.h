@@ -20,9 +20,11 @@ public:
     void* Create(const char* module, const char* procedure,
                  void* detour, void** original);
     void Enable(void* target);
-    void Disable(void* target) noexcept;
-    void DisableAll() noexcept;
-    void Shutdown() noexcept;
+    [[nodiscard]] bool Disable(void* target) noexcept;
+    [[nodiscard]] bool DisableAll() noexcept;
+    // False means at least one owned registration/runtime resource could not
+    // be released and remains tracked for a later retry.
+    [[nodiscard]] bool Shutdown() noexcept;
 
     [[nodiscard]] bool Initialized() const noexcept;
     [[nodiscard]] std::size_t HookCount() const noexcept;

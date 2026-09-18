@@ -9,6 +9,9 @@ std::size_t checks{};
 using TickFn = ULONGLONG(WINAPI*)();
 TickFn original_tick{};
 ULONGLONG WINAPI TickDetour() { return original_tick() + 1000; }
+using PidFn = DWORD(WINAPI*)();
+PidFn original_pid{};
+DWORD WINAPI PidDetour() { return original_pid() + 1; }
 
 void Check(bool value, const char* message) {
     ++checks;
@@ -29,6 +32,9 @@ int main() {
         manager.Initialize();
         manager.Initialize();
         Check(manager.Initialized(), "MinHook initialized idempotently");
+        wpe::HookManager second_manager;
+        second_manager.Initialize();
+        Check(second_manager.Initialized(), "second owner shares the process-global runtime");
         Throws([&] { (void)manager.Create("missing-module.dll", "none",
                                            reinterpret_cast<void*>(&TickDetour),
                                            reinterpret_cast<void**>(&original_tick)); },
@@ -44,13 +50,22 @@ int main() {
                                            reinterpret_cast<void*>(&TickDetour),
                                            reinterpret_cast<void**>(&original_tick)); },
                "duplicate hook rejected");
-        manager.Disable(tick_target);
+        Check(manager.Disable(tick_target), "owned hook disables cleanly");
         const auto unhooked = GetTickCount64();
         Check(unhooked < hooked, "disabled target bypasses detour");
         Check(manager.HookCount() == 1, "registered hook tracked until shutdown");
-        manager.Shutdown();
+        Check(manager.Shutdown(), "first owner shutdown succeeds");
         Check(!manager.Initialized() && manager.HookCount() == 0,
-              "shutdown removes hooks and MinHook runtime");
+              "first owner shutdown removes only its hooks");
+        const auto pid_target = second_manager.Create("kernel32.dll", "GetCurrentProcessId",
+            reinterpret_cast<void*>(&PidDetour), reinterpret_cast<void**>(&original_pid));
+        const auto actual_pid = original_pid();
+        second_manager.Enable(pid_target);
+        Check(GetCurrentProcessId() == actual_pid + 1,
+              "remaining owner keeps MinHook runtime usable");
+        Check(second_manager.Shutdown(), "last owner shutdown succeeds");
+        Check(!second_manager.Initialized() && second_manager.HookCount() == 0,
+              "last owner removes its hooks and releases MinHook runtime");
         std::cout << "PASS: " << checks
                   << " MinHook manager checks; resolve/create/enable/disable/remove lifecycle\n";
         return 0;

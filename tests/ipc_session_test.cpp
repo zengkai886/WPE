@@ -2,6 +2,7 @@
 #include <Windows.h>
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <iostream>
 #include <mutex>
 #include <stdexcept>
@@ -190,6 +191,77 @@ void DetachDoesNotRaceHeartbeat() {
         Check(target.Detached(), "Detach wins the control gate race with heartbeat");
     }
 }
+
+void EventQueueIsBoundedAndNonBlocking() {
+    const std::string id = "e123456789abcdef0123456789abcdef";
+    std::mutex callback_mutex;
+    std::condition_variable callback_changed;
+    bool first_callback_entered = false;
+    bool release_callback = false;
+    std::atomic<bool> saw_drop_log{false};
+
+    wpe::ShellSessionOptions shell_options;
+    shell_options.heartbeat_interval = 20ms;
+    wpe::ShellIpcSession shell(id, {}, [&](wpe::ByteBuffer frame) {
+        {
+            std::unique_lock lock(callback_mutex);
+            if (!first_callback_entered) {
+                first_callback_entered = true;
+                callback_changed.notify_all();
+                callback_changed.wait(lock, [&] { return release_callback; });
+            }
+        }
+        if (frame.empty() || frame.front() != static_cast<std::uint8_t>(wpe::IpcEvent::Log))
+            return;
+        try {
+            wpe::IpcReader reader(frame);
+            static_cast<void>(reader.U8());
+            const auto source = reader.Str();
+            const auto content = reader.Str();
+            if (source && *source == u"WpeCore.SendEvent" && content && !content->empty() &&
+                reader.Remaining() == 0)
+                saw_drop_log.store(true);
+        } catch (...) {}
+    }, {}, shell_options);
+
+    wpe::TargetSessionOptions target_options;
+    target_options.heartbeat_timeout = 20s;
+    target_options.watchdog_poll = 5ms;
+    wpe::TargetIpcSession target(id, 2000, target_options);
+    shell.Accept(2000);
+    std::thread target_thread([&] { target.Run({}); });
+    shell.Start();
+
+    wpe::ByteBuffer event(4096, 0x55);
+    target.SendEventFrame(event);
+    {
+        std::unique_lock lock(callback_mutex);
+        if (!callback_changed.wait_for(lock, 2s, [&] { return first_callback_entered; })) {
+            release_callback = true;
+            callback_changed.notify_all();
+        }
+    }
+
+    const auto enqueue_started = std::chrono::steady_clock::now();
+    for (int i = 0; i < 7000; ++i) target.SendEventFrame(event);
+    const auto enqueue_elapsed = std::chrono::steady_clock::now() - enqueue_started;
+    {
+        std::lock_guard lock(callback_mutex);
+        release_callback = true;
+    }
+    callback_changed.notify_all();
+
+    for (int i = 0; i < 10000 && !saw_drop_log.load(); ++i) Sleep(1);
+    const bool entered = first_callback_entered;
+    const bool non_blocking = enqueue_elapsed < 500ms;
+    const bool reported = saw_drop_log.load();
+    shell.Detach();
+    target_thread.join();
+
+    Check(entered, "event reader entered the deliberate slow callback");
+    Check(non_blocking, "event producers only enqueue while the reader is stalled");
+    Check(reported, "bounded event queue reports evicted events through its sole writer");
+}
 } // namespace
 
 int main() {
@@ -200,6 +272,7 @@ int main() {
         ErrorReply();
         CommandInProgressIsAlive();
         DetachDoesNotRaceHeartbeat();
+        EventQueueIsBoundedAndNonBlocking();
         std::cout << "PASS: " << checks.load()
                   << " real IPC session checks; Hello/version, serialized calls, pkt/evt, heartbeat, timeout, error and Detach lifecycle\n";
         return 0;

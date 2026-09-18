@@ -1,0 +1,39 @@
+Test project E:/codex/2026-09-17/bi-a/work/winsock-dev-x64
+      Start  1: codec-smoke
+ 1/17 Test  #1: codec-smoke ......................   Passed    0.01 sec
+      Start  2: protocol-edge
+ 2/17 Test  #2: protocol-edge ....................   Passed    0.01 sec
+      Start  3: packet-ring
+ 3/17 Test  #3: packet-ring ......................   Passed    0.01 sec
+      Start  4: named-pipe-transport
+ 4/17 Test  #4: named-pipe-transport .............   Passed    0.07 sec
+      Start  5: ipc-session-lifecycle
+ 5/17 Test  #5: ipc-session-lifecycle ............   Passed    1.67 sec
+      Start  6: target-headless-core
+ 6/17 Test  #6: target-headless-core .............   Passed    0.09 sec
+      Start  7: minhook-manager
+ 7/17 Test  #7: minhook-manager ..................   Passed    0.13 sec
+      Start  8: winsock-hook-pipeline
+ 8/17 Test  #8: winsock-hook-pipeline ............   Passed    1.65 sec
+      Start  9: process-injector
+ 9/17 Test  #9: process-injector .................   Passed    0.06 sec
+      Start 10: injected-target-session
+10/17 Test #10: injected-target-session ..........   Passed    0.67 sec
+      Start 11: web-bridge
+11/17 Test #11: web-bridge .......................   Passed    0.03 sec
+      Start 12: native-data
+12/17 Test #12: native-data ......................   Passed    1.24 sec
+      Start 13: data-worker
+13/17 Test #13: data-worker ......................   Passed    1.27 sec
+      Start 14: editor-data
+14/17 Test #14: editor-data ......................   Passed    1.45 sec
+      Start 15: editor-export
+15/17 Test #15: editor-export ....................   Passed    0.13 sec
+      Start 16: configuration-files
+16/17 Test #16: configuration-files ..............   Passed    1.21 sec
+      Start 17: native-clipboard
+17/17 Test #17: native-clipboard .................   Passed    6.37 sec
+
+100% tests passed out of 17
+
+Total Test time (real) =  16.07 sec

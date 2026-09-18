@@ -47,9 +47,30 @@ public:
         return may_load ? wpe::WinsockSupport{true, true, true}
                         : wpe::WinsockSupport{false, true, false};
     }
+    void ConfigureHookFlags(const std::array<bool, 12>& value) override {
+        configured_flags = value;
+        ++flag_updates;
+    }
+    void ConfigureSpeedMode(bool value) noexcept override {
+        configured_speed = value;
+        ++speed_updates;
+    }
     void StartHook() override { ++starts; if (fail_start) throw std::runtime_error("start failed"); }
     void StopHook() override { ++stops; }
+    std::optional<std::array<std::int64_t, 11>> LivePacketCounters() const noexcept override {
+        if (!expose_live) return std::nullopt;
+        return live_counters;
+    }
+    void ResetLivePacketCounters() noexcept override {
+        live_counters.fill(0);
+        ++live_resets;
+    }
     std::atomic<int> passive_detects{0}, load_detects{0}, starts{0}, stops{0};
+    std::atomic<int> flag_updates{0}, speed_updates{0}, live_resets{0};
+    std::array<bool, 12> configured_flags{};
+    std::array<std::int64_t, 11> live_counters{};
+    bool configured_speed{};
+    bool expose_live{};
     bool fail_detect{};
     bool fail_start{};
 };
@@ -87,6 +108,8 @@ void ConfigurationAndStats() {
     auto config = core.Configuration();
     for (int i = 0; i < 12; ++i)
         Check(config.hook_flags[static_cast<std::size_t>(i)] == ((i % 2) == 0), "all hook flags decoded");
+    Check(hooks.flag_updates == 1 && hooks.configured_flags == config.hook_flags,
+          "hook flags published to production controller boundary");
 
     auto bad_flags = hook_flags.ToArray();
     bad_flags.push_back(9);
@@ -150,6 +173,8 @@ void ConfigurationAndStats() {
     Check(config.runtime.selected_packet && config.runtime.selected_packet->socket == 99 &&
           config.runtime.selected_packet->bytes == wpe::Bytes(wpe::ByteBuffer{4,5,6}),
           "runtime selected packet");
+    Check(hooks.speed_updates == 1 && hooks.configured_speed,
+          "speed mode published to production controller boundary");
 
     core.SetFilterExecutionCount(filter_id, 101);
     core.SetSendCounts(send_id, 102, 103, 104);
@@ -195,6 +220,19 @@ void ConfigurationAndStats() {
     const auto counters = core.Counters();
     Check(counters.filter_globals[5] == 0 && counters.packets[10] == 310,
           "ResetStats mask isolates global groups");
+
+    hooks.expose_live = true;
+    for (std::size_t i = 0; i < hooks.live_counters.size(); ++i)
+        hooks.live_counters[i] = 400 + static_cast<std::int64_t>(i);
+    Check(core.Counters().packets[10] == 410,
+          "production live packet counters override test-local mirror");
+    wpe::IpcWriter reset_packets;
+    reset_packets.U8(static_cast<std::uint8_t>(wpe::ResetWhat::PacketCounters));
+    const auto reset_packet_bytes = reset_packets.ToArray();
+    wpe::IpcReader reset_packet_reader(reset_packet_bytes);
+    ExpectOk(core.HandleCommand(wpe::IpcCommand::ResetStats, reset_packet_reader));
+    Check(hooks.live_resets == 1 && core.Counters().packets[10] == 0,
+          "packet reset is executed by the live hook counter owner");
 
     wpe::IpcWriter bad_reset; bad_reset.U8(16);
     auto bad_reset_bytes = bad_reset.ToArray();

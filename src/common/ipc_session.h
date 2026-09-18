@@ -5,6 +5,7 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <deque>
 #include <functional>
 #include <mutex>
 #include <string>
@@ -106,19 +107,31 @@ private:
     ByteBuffer Dispatch(std::span<const std::uint8_t> request, const CommandHandler& handler,
                         const LifecycleHandler& hello_handler);
     void WatchdogLoop(const TimeoutHandler& timeout_handler) noexcept;
+    void EventWriterLoop() noexcept;
+    void FlushEvents(std::chrono::milliseconds timeout) noexcept;
+    void StopEventWriter() noexcept;
 
     PipeEndpoint control_;
     PipeEndpoint packet_;
     PipeEndpoint event_;
     TargetSessionOptions options_;
     std::mutex packet_mutex_;
-    std::mutex event_mutex_;
+    std::mutex event_queue_mutex_;
+    std::condition_variable event_queue_changed_;
+    std::condition_variable event_queue_idle_;
+    std::deque<ByteBuffer> event_queue_;
+    std::size_t event_queue_bytes_{};
+    std::uint64_t event_queue_dropped_{};
+    bool event_writing_{};
+    std::atomic<bool> event_accepting_{false};
+    std::atomic<bool> event_writer_running_{true};
     std::atomic<bool> running_{false};
     std::atomic<bool> timed_out_{false};
     std::atomic<bool> detached_{false};
     std::atomic<bool> dispatching_{false};
     std::atomic<std::uint64_t> last_command_tick_{0};
     std::thread watchdog_thread_;
+    std::thread event_writer_thread_;
 };
 
 ByteBuffer IpcOk();

@@ -163,84 +163,92 @@ void HeadlessCore::StopHook(IpcReader& reader) {
 
 void HeadlessCore::ApplyConfig(ConfigKind kind, std::span<const std::uint8_t> payload) {
     IpcReader reader(payload);
-    std::lock_guard lock(mutex_);
-    auto fresh_config = config_;
-    switch (kind) {
-    case ConfigKind::HookFlags:
-        for (auto& flag : fresh_config.hook_flags) flag = reader.Bool();
-        break;
-    case ConfigKind::Filters: {
-        const auto count = ReadCount(reader, "Filter snapshot");
-        std::vector<FilterSnapshot> fresh;
-        fresh.reserve(count);
-        for (std::size_t i = 0; i < count; ++i) {
-            auto item = ReadFilter(reader);
-            const auto old = std::find_if(config_.filters.begin(), config_.filters.end(),
-                [&](const FilterSnapshot& candidate) { return candidate.id == item.id; });
-            if (old != config_.filters.end()) item.execution_count = old->execution_count;
-            fresh.push_back(std::move(item));
-        }
-        fresh_config.filters = std::move(fresh);
-        break;
-    }
-    case ConfigKind::Runtime: {
-        RuntimeSnapshot fresh;
-        fresh.speed_mode = reader.Bool();
-        fresh.system_socket = reader.I32();
-        fresh.list_execute = reader.I32();
-        fresh.filter_execute = reader.I32();
-        if (reader.Bool()) fresh.selected_packet = ReadPacket(reader);
-        fresh_config.runtime = std::move(fresh);
-        break;
-    }
-    case ConfigKind::Sends: {
-        const auto count = ReadCount(reader, "Send snapshot");
-        std::vector<SendSnapshot> fresh;
-        fresh.reserve(count);
-        for (std::size_t i = 0; i < count; ++i) {
-            SendSnapshot item;
-            item.enabled = reader.Bool(); item.id = reader.Guid_(); item.name = reader.Str();
-            item.system_socket = reader.Bool(); item.loop_count = std::max(1, reader.I32());
-            item.loop_interval = std::max(0, reader.I32()); item.notes = reader.Str();
-            const auto packets = ReadCount(reader, "Send packet snapshot");
-            item.packets.reserve(packets);
-            for (std::size_t k = 0; k < packets; ++k) item.packets.push_back(ReadPacket(reader));
-            const auto old = std::find_if(config_.sends.begin(), config_.sends.end(),
-                [&](const SendSnapshot& candidate) { return candidate.id == item.id; });
-            if (old != config_.sends.end()) {
-                item.execution_count = old->execution_count;
-                item.success_count = old->success_count;
-                item.fail_count = old->fail_count;
+    std::optional<std::array<bool, 12>> hook_flags;
+    std::optional<bool> speed_mode;
+    {
+        std::lock_guard lock(mutex_);
+        auto fresh_config = config_;
+        switch (kind) {
+        case ConfigKind::HookFlags:
+            for (auto& flag : fresh_config.hook_flags) flag = reader.Bool();
+            break;
+        case ConfigKind::Filters: {
+            const auto count = ReadCount(reader, "Filter snapshot");
+            std::vector<FilterSnapshot> fresh;
+            fresh.reserve(count);
+            for (std::size_t i = 0; i < count; ++i) {
+                auto item = ReadFilter(reader);
+                const auto old = std::find_if(config_.filters.begin(), config_.filters.end(),
+                    [&](const FilterSnapshot& candidate) { return candidate.id == item.id; });
+                if (old != config_.filters.end()) item.execution_count = old->execution_count;
+                fresh.push_back(std::move(item));
             }
-            fresh.push_back(std::move(item));
+            fresh_config.filters = std::move(fresh);
+            break;
         }
-        fresh_config.sends = std::move(fresh);
-        break;
-    }
-    case ConfigKind::Robots: {
-        const auto count = ReadCount(reader, "Robot snapshot");
-        std::vector<RobotSnapshot> fresh;
-        fresh.reserve(count);
-        for (std::size_t i = 0; i < count; ++i) {
-            RobotSnapshot item;
-            item.enabled = reader.Bool(); item.id = reader.Guid_(); item.name = reader.Str();
-            const auto instructions = ReadCount(reader, "Robot instruction snapshot");
-            item.instructions.reserve(instructions);
-            for (std::size_t k = 0; k < instructions; ++k)
-                item.instructions.push_back({reader.I32(), reader.Str()});
-            const auto old = std::find_if(config_.robots.begin(), config_.robots.end(),
-                [&](const RobotSnapshot& candidate) { return candidate.id == item.id; });
-            if (old != config_.robots.end()) item.execution_count = old->execution_count;
-            fresh.push_back(std::move(item));
+        case ConfigKind::Runtime: {
+            RuntimeSnapshot fresh;
+            fresh.speed_mode = reader.Bool();
+            fresh.system_socket = reader.I32();
+            fresh.list_execute = reader.I32();
+            fresh.filter_execute = reader.I32();
+            if (reader.Bool()) fresh.selected_packet = ReadPacket(reader);
+            fresh_config.runtime = std::move(fresh);
+            break;
         }
-        fresh_config.robots = std::move(fresh);
-        break;
+        case ConfigKind::Sends: {
+            const auto count = ReadCount(reader, "Send snapshot");
+            std::vector<SendSnapshot> fresh;
+            fresh.reserve(count);
+            for (std::size_t i = 0; i < count; ++i) {
+                SendSnapshot item;
+                item.enabled = reader.Bool(); item.id = reader.Guid_(); item.name = reader.Str();
+                item.system_socket = reader.Bool(); item.loop_count = std::max(1, reader.I32());
+                item.loop_interval = std::max(0, reader.I32()); item.notes = reader.Str();
+                const auto packets = ReadCount(reader, "Send packet snapshot");
+                item.packets.reserve(packets);
+                for (std::size_t k = 0; k < packets; ++k) item.packets.push_back(ReadPacket(reader));
+                const auto old = std::find_if(config_.sends.begin(), config_.sends.end(),
+                    [&](const SendSnapshot& candidate) { return candidate.id == item.id; });
+                if (old != config_.sends.end()) {
+                    item.execution_count = old->execution_count;
+                    item.success_count = old->success_count;
+                    item.fail_count = old->fail_count;
+                }
+                fresh.push_back(std::move(item));
+            }
+            fresh_config.sends = std::move(fresh);
+            break;
+        }
+        case ConfigKind::Robots: {
+            const auto count = ReadCount(reader, "Robot snapshot");
+            std::vector<RobotSnapshot> fresh;
+            fresh.reserve(count);
+            for (std::size_t i = 0; i < count; ++i) {
+                RobotSnapshot item;
+                item.enabled = reader.Bool(); item.id = reader.Guid_(); item.name = reader.Str();
+                const auto instructions = ReadCount(reader, "Robot instruction snapshot");
+                item.instructions.reserve(instructions);
+                for (std::size_t k = 0; k < instructions; ++k)
+                    item.instructions.push_back({reader.I32(), reader.Str()});
+                const auto old = std::find_if(config_.robots.begin(), config_.robots.end(),
+                    [&](const RobotSnapshot& candidate) { return candidate.id == item.id; });
+                if (old != config_.robots.end()) item.execution_count = old->execution_count;
+                fresh.push_back(std::move(item));
+            }
+            fresh_config.robots = std::move(fresh);
+            break;
+        }
+        default:
+            throw ProtocolError("Unknown configuration snapshot kind");
+        }
+        RequireEnd(reader, "Configuration snapshot");
+        config_ = std::move(fresh_config);
+        if (kind == ConfigKind::HookFlags) hook_flags = config_.hook_flags;
+        if (kind == ConfigKind::Runtime) speed_mode = config_.runtime.speed_mode;
     }
-    default:
-        throw ProtocolError("Unknown configuration snapshot kind");
-    }
-    RequireEnd(reader, "Configuration snapshot");
-    config_ = std::move(fresh_config);
+    if (hook_flags) hooks_.ConfigureHookFlags(*hook_flags);
+    if (speed_mode) hooks_.ConfigureSpeedMode(*speed_mode);
 }
 
 void HeadlessCore::ResetStats(IpcReader& reader) {
@@ -248,18 +256,22 @@ void HeadlessCore::ResetStats(IpcReader& reader) {
     RequireEnd(reader, "ResetStats command");
     constexpr std::uint8_t valid = 1U | 2U | 4U | 8U;
     if ((raw & ~valid) != 0) throw ProtocolError("ResetStats mask has unknown bits");
-    std::lock_guard lock(mutex_);
-    if ((raw & static_cast<std::uint8_t>(ResetWhat::FilterStats)) != 0) {
-        counters_.filter_globals.fill(0);
-        for (auto& item : config_.filters) item.execution_count = 0;
+    const bool reset_live_packets =
+        (raw & static_cast<std::uint8_t>(ResetWhat::PacketCounters)) != 0;
+    {
+        std::lock_guard lock(mutex_);
+        if ((raw & static_cast<std::uint8_t>(ResetWhat::FilterStats)) != 0) {
+            counters_.filter_globals.fill(0);
+            for (auto& item : config_.filters) item.execution_count = 0;
+        }
+        if (reset_live_packets) counters_.packets.fill(0);
+        if ((raw & static_cast<std::uint8_t>(ResetWhat::SendCounts)) != 0)
+            for (auto& item : config_.sends)
+                item.execution_count = item.success_count = item.fail_count = 0;
+        if ((raw & static_cast<std::uint8_t>(ResetWhat::RobotCounts)) != 0)
+            for (auto& item : config_.robots) item.execution_count = 0;
     }
-    if ((raw & static_cast<std::uint8_t>(ResetWhat::PacketCounters)) != 0)
-        counters_.packets.fill(0);
-    if ((raw & static_cast<std::uint8_t>(ResetWhat::SendCounts)) != 0)
-        for (auto& item : config_.sends)
-            item.execution_count = item.success_count = item.fail_count = 0;
-    if ((raw & static_cast<std::uint8_t>(ResetWhat::RobotCounts)) != 0)
-        for (auto& item : config_.robots) item.execution_count = 0;
+    if (reset_live_packets) hooks_.ResetLivePacketCounters();
 }
 
 void HeadlessCore::Emit(ByteBuffer event) noexcept {
@@ -289,6 +301,7 @@ void HeadlessCore::EmitFatal(std::string_view message) noexcept {
 }
 
 ByteBuffer HeadlessCore::EncodeStatsEvent() const {
+    const auto live_packets = hooks_.LivePacketCounters();
     std::lock_guard lock(mutex_);
     IpcWriter writer;
     writer.U8(static_cast<std::uint8_t>(IpcEvent::Stats));
@@ -304,7 +317,8 @@ ByteBuffer HeadlessCore::EncodeStatsEvent() const {
     for (const auto value : counters_.filter_globals) writer.I64(value);
     writer.I32(static_cast<std::int32_t>(config_.robots.size()));
     for (const auto& item : config_.robots) { writer.Guid_(item.id); writer.I64(item.execution_count); }
-    for (const auto value : counters_.packets) writer.I64(value);
+    const auto& packets = live_packets ? *live_packets : counters_.packets;
+    for (const auto value : packets) writer.I64(value);
     return writer.ToArray();
 }
 
@@ -341,7 +355,13 @@ void HeadlessCore::Shutdown() noexcept {
 bool HeadlessCore::HookInstalled() const { std::lock_guard lock(mutex_); return hook_installed_; }
 WinsockSupport HeadlessCore::Support() const { std::lock_guard lock(mutex_); return support_; }
 TargetConfigurationSnapshot HeadlessCore::Configuration() const { std::lock_guard lock(mutex_); return config_; }
-TargetCounters HeadlessCore::Counters() const { std::lock_guard lock(mutex_); return counters_; }
+TargetCounters HeadlessCore::Counters() const {
+    const auto live_packets = hooks_.LivePacketCounters();
+    std::lock_guard lock(mutex_);
+    auto result = counters_;
+    if (live_packets) result.packets = *live_packets;
+    return result;
+}
 
 void HeadlessCore::SetFilterExecutionCount(const Guid& id, std::int64_t count) {
     std::lock_guard lock(mutex_);
