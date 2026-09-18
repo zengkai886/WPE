@@ -33,7 +33,7 @@
       "originalLine": 1443,
       "registered": true,
       "status": "运行态部分接线",
-      "note": "当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。"
+      "note": "目标注入与发送执行器仍按连接状态提供数据；SOCKS5 与 HTTP/HTTPS 代理运行时会回传真实活动连接、请求/响应、上下行字节和错误计数，UDP/映射/WPC 仍未接。"
     },
     {
       "method": "clearPackets",
@@ -158,15 +158,15 @@
       "method": "startProxy",
       "originalLine": 1883,
       "registered": true,
-      "status": "SOCKS5 TCP CONNECT 运行链",
-      "note": "原 Vue startProxy 已接入 native SOCKS5 TCP CONNECT；支持配置监听、可选账号认证、目标连接超时、双向 relay 和真实统计。HTTP/UDP/WPC-only 仍明确未接入。"
+      "status": "SOCKS5 TCP CONNECT 与 HTTP/HTTPS 正向代理运行链",
+      "note": "原 Vue startProxy 已接入 native SOCKS5 TCP CONNECT 与 HTTP/HTTPS 正向代理；两条链复用监听、可选账号认证、目标连接超时、双向 relay、真实统计和停止生命周期。HTTP 支持 absolute-form 与 CONNECT HTTPS 隧道；UDP、映射/WPC-only 仍明确未接入。"
     },
     {
       "method": "stopProxy",
       "originalLine": 1905,
       "registered": true,
-      "status": "SOCKS5 TCP CONNECT 运行链",
-      "note": "停止原生 SOCKS5 监听，关闭监听 socket 并等待 accept/client worker 收尾；HTTP/UDP/WPC-only 仍明确未接入。"
+      "status": "SOCKS5 TCP CONNECT 与 HTTP/HTTPS 正向代理运行链",
+      "note": "停止原生 SOCKS5 与 HTTP/HTTPS 监听，关闭监听 socket 并等待 accept/client worker 收尾；UDP、映射/WPC-only 仍明确未接入。"
     },
     {
       "method": "setListEnable",
@@ -187,14 +187,14 @@
       "originalLine": 1992,
       "registered": true,
       "status": "设置读写已接",
-      "note": "真实读取 ProxyMode、本机地址、物理内存与连接上限；SOCKS5 TCP CONNECT 由 native Host 启动并回传运行状态。"
+      "note": "真实读取 ProxyMode、本机地址、物理内存与连接上限；SOCKS5 TCP CONNECT 与 HTTP/HTTPS 正向代理由 native Host 启动并回传运行状态。"
     },
     {
       "method": "saveProxySetting",
       "originalLine": 2039,
       "registered": true,
       "status": "设置读写已接",
-      "note": "按原业务规则校验并事务保存 ProxyMode；SOCKS5 TCP CONNECT 启动读取该配置，HTTP/UDP 仍未接。"
+      "note": "按原业务规则校验并事务保存 ProxyMode；SOCKS5 与 HTTP/HTTPS 启动读取各自端口、认证和连接上限，UDP/映射/WPC 仍未接。"
     },
     {
       "method": "setSystemProxy",

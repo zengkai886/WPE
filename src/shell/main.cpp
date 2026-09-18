@@ -14,6 +14,7 @@
 #include "clipboard_worker.h"
 #include "target_link.h"
 #include "socks5_runtime.h"
+#include "http_proxy_runtime.h"
 #include "common/ipc_codec.h"
 #include "common/packet_frame.h"
 #include <TlHelp32.h>
@@ -102,6 +103,7 @@ public:
     explicit Host(Options options):options_(std::move(options)),exit_code_(options_.test?1:0){}
     ~Host(){
         closing_=true;lifetime_.reset();
+        if(http_proxy_)http_proxy_->Stop();
         if(proxy_)proxy_->Stop();
         if(target_)target_->Stop();
         clipboard_.reset();data_.reset();
@@ -160,6 +162,8 @@ private:
     std::unique_ptr<WebBridge> bridge_;
     std::unique_ptr<wpe::shell::DataWorker> data_;
     std::unique_ptr<wpe::shell::Socks5Runtime> proxy_;
+    std::unique_ptr<wpe::shell::HttpProxyRuntime> http_proxy_;
+    std::string proxy_display_host_="127.0.0.1";
     std::unique_ptr<wpe::shell::TargetLink> target_;
     struct TargetResult {WebBridge::Completion done;Json value;std::string error;};
     std::mutex target_mutex_;
@@ -305,6 +309,7 @@ void Host::RegisterMethods(){
     const auto db=options_.data/L"2.3.0"/L"WPE.db";
     data_=std::make_unique<wpe::shell::DataWorker>(db);
     proxy_=std::make_unique<wpe::shell::Socks5Runtime>();
+    http_proxy_=std::make_unique<wpe::shell::HttpProxyRuntime>();
     target_=std::make_unique<wpe::shell::TargetLink>(
         [this](wpe::ByteBuffer frame,bool packet){QueueTargetFrame(std::move(frame),packet);},
         [this](wpe::IpcLinkState state){
@@ -605,40 +610,88 @@ void Host::RegisterTargetMethods(){
     bridge_->RegisterAsync("stopSendList",[this](const Json&,WebBridge::Completion done){wpe::IpcWriter r;r.U8(static_cast<std::uint8_t>(wpe::IpcCommand::StopSendList));target_->CallVoid(r.ToArray(),[this,done=std::move(done)](bool ok,std::string error) mutable {send_running_=false;QueueTargetResult(std::move(done),ok?Json{{"ok",true},{"running",false}}:Json{},std::move(error));});});
     bridge_->RegisterAsync("getSendMeta",[this](const Json&,WebBridge::Completion done){data_->Submit("getSendMeta",Json::object(),[this,done=std::move(done)](Json value,std::string error) mutable {if(value.is_object())value["running"]=send_running_;done(std::move(value),std::move(error));});});
     bridge_->RegisterAsync("startProxy",[this](const Json&,WebBridge::Completion done){
-        if(!proxy_){done(nullptr,"代理运行时未初始化");return;}
-        if(proxy_->Running()){
-            const auto stats=proxy_->Stats();
-            done({{"ok",true},{"running",true},{"socks5Addr",std::string("127.0.0.1:")+std::to_string(stats.port)}},{});return;
+        if(!proxy_||!http_proxy_){done(nullptr,"代理运行时未初始化");return;}
+        const auto socks_stats=proxy_->Stats();
+        const auto http_stats=http_proxy_->Stats();
+        if(socks_stats.running||http_stats.running){
+            const auto address=[&](std::uint16_t port){
+                if(port==0)return std::string{};
+                return (proxy_display_host_.find(':')==proxy_display_host_.npos?proxy_display_host_:"["+proxy_display_host_+"]")+":"+std::to_string(port);
+            };
+            done({{"ok",true},{"running",true},
+                  {"socks5Addr",address(socks_stats.port)},
+                  {"httpAddr",address(http_stats.port)}},{});
+            return;
         }
         data_->Submit("__proxyRuntimeConfiguration",Json::object(),[this,done=std::move(done)](Json config,std::string error) mutable {
             if(!error.empty()){done(nullptr,std::move(error));return;}
             try{
-                if(!config.value("enableSocks5",false)){done(nullptr,"SOCKS5 未启用，请先在代理设置中启用");return;}
-                if(config.value("onlyWpc",false)){done(nullptr,"仅允许 WPC 客户端模式尚未接入 SOCKS5 监听器");return;}
-                wpe::shell::Socks5Config runtime;
-                runtime.bind_address=config.value("proxyIpAuto",true)?"0.0.0.0":config.value("proxyIp",std::string{});
-                if(runtime.bind_address.empty())runtime.bind_address="0.0.0.0";
-                const auto port=config.value("socks5Port",1080);
-                if(port<1||port>65535){done(nullptr,"SOCKS5 端口必须在 1 ~ 65535 之间");return;}
-                runtime.port=static_cast<std::uint16_t>(port);
-                runtime.max_connections=static_cast<std::size_t>(std::max(1,config.value("maxConnection",5000)));
-                runtime.require_auth=config.value("enableAuth",true);
+                if(!config.value("enableSocks5",false)&&!config.value("enableHttp",false)){
+                    done(nullptr,"请至少启用一种代理类型");return;
+                }
+                if(config.value("onlyWpc",false)){
+                    done(nullptr,"仅允许 WPC 客户端模式尚未接入代理监听器");return;
+                }
+                const bool automatic=config.value("proxyIpAuto",true);
+                const auto bind_address=automatic?std::string("0.0.0.0"):config.value("proxyIp",std::string{});
+                if(bind_address.empty()){done(nullptr,"监听地址不能为空");return;}
+                const auto max_connections=static_cast<std::size_t>(std::max(1,config.value("maxConnection",5000)));
+                const bool require_auth=config.value("enableAuth",true);
+                std::vector<wpe::shell::Socks5Credential> credentials;
                 for(const auto& account:config.value("accounts",Json::array())){
-                    if(account.is_object())runtime.credentials.push_back({account.value("user",std::string{}),account.value("password",std::string{})});
+                    if(account.is_object())credentials.push_back({account.value("user",std::string{}),account.value("password",std::string{})});
+                }
+                const auto read_port=[&](const char* key,std::uint16_t fallback,const char* label,std::uint16_t& result){
+                    const auto value=config.value(key,static_cast<int>(fallback));
+                    if(value<1||value>65535){done(nullptr,std::string(label)+" 端口必须在 1 ~ 65535 之间");return false;}
+                    result=static_cast<std::uint16_t>(value);return true;
+                };
+                std::uint16_t socks_port=0,http_port=0;
+                if(config.value("enableSocks5",false)&&!read_port("socks5Port",1080,"SOCKS5",socks_port))return;
+                if(config.value("enableHttp",false)&&!read_port("httpPort",1081,"HTTP",http_port))return;
+                if(config.value("enableSocks5",false)&&config.value("enableHttp",false)&&socks_port==http_port){
+                    done(nullptr,"SOCKS5 和 HTTP 端口不能相同");return;
                 }
                 std::string start_error;
-                if(!proxy_->Start(std::move(runtime),start_error)){done(nullptr,std::move(start_error));return;}
-                const auto stats=proxy_->Stats();
-                const auto host=config.value("proxyIpAuto",true)?std::string("127.0.0.1"):config.value("proxyIp",std::string{});
-                const auto address=(host.find(':')==host.npos?host:"["+host+"]")+":"+std::to_string(stats.port);
-                if(bridge_)bridge_->PushEvent("proxy:state",{{"running",true},{"socks5Addr",address}});
-                done({{"ok",true},{"running",true},{"socks5Addr",address}},{});
-            }catch(const std::exception& exception){done(nullptr,exception.what());}
+                bool socks_started=false;
+                if(config.value("enableSocks5",false)){
+                    wpe::shell::Socks5Config runtime;
+                    runtime.bind_address=bind_address;runtime.port=socks_port;runtime.max_connections=max_connections;
+                    runtime.require_auth=require_auth;runtime.credentials=credentials;
+                    if(!proxy_->Start(std::move(runtime),start_error)){done(nullptr,std::move(start_error));return;}
+                    socks_started=true;
+                }
+                if(config.value("enableHttp",false)){
+                    wpe::shell::HttpProxyConfig runtime;
+                    runtime.bind_address=bind_address;runtime.port=http_port;runtime.max_connections=max_connections;
+                    runtime.require_auth=require_auth;runtime.credentials=credentials;
+                    if(!http_proxy_->Start(std::move(runtime),start_error)){
+                        if(socks_started)proxy_->Stop();
+                        done(nullptr,std::move(start_error));return;
+                    }
+                }
+                const auto display_host=automatic?std::string("127.0.0.1"):config.value("proxyIp",std::string{});
+                proxy_display_host_=display_host;
+                const auto format_address=[&](std::uint16_t port){
+                    if(port==0)return std::string{};
+                    return (display_host.find(':')==display_host.npos?display_host:"["+display_host+"]")+":"+std::to_string(port);
+                };
+                const auto socks=proxy_->Stats(),http=http_proxy_->Stats();
+                const auto socks_address=format_address(socks.port),http_address=format_address(http.port);
+                if(bridge_)bridge_->PushEvent("proxy:state",{{"running",true},{"socks5Addr",socks_address},{"httpAddr",http_address}});
+                done({{"ok",true},{"running",true},{"socks5Addr",socks_address},{"httpAddr",http_address}},{});
+            }catch(const std::exception& exception){
+                if(proxy_->Running())proxy_->Stop();
+                if(http_proxy_->Running())http_proxy_->Stop();
+                done(nullptr,exception.what());
+            }
         });
     });
     bridge_->RegisterAsync("stopProxy",[this](const Json&,WebBridge::Completion done){
+        if(http_proxy_)http_proxy_->Stop();
         if(proxy_)proxy_->Stop();
-        if(bridge_)bridge_->PushEvent("proxy:state",{{"running",false}});
+        proxy_display_host_="127.0.0.1";
+        if(bridge_)bridge_->PushEvent("proxy:state",{{"running",false},{"socks5Addr",""},{"httpAddr",""}});
         done({{"ok",true},{"running",false}},{});
     });
     bridge_->Register("getStats",[this](const Json&){
@@ -647,18 +700,19 @@ void Host::RegisterTargetMethods(){
             {"filterExecute",0},{"filterProxy",0},{"tcpConn",0},{"udpConn",0},{"onlineInfo",""},
             {"totalRequest",0},{"totalResponse",0},{"speedUp",0},{"speedDown",0}};
         if(target_stats_.is_object())value.update(target_stats_);
-        if(proxy_){
-            const auto stats=proxy_->Stats();
-            value["proxyRunning"]=stats.running;
-            value["tcpConn"]=static_cast<std::int64_t>(stats.active);
-            value["tcpReq"]=static_cast<std::int64_t>(stats.requests);
-            value["tcpResp"]=static_cast<std::int64_t>(stats.responses);
-            value["totalRequest"]=static_cast<std::int64_t>(stats.requests);
-            value["totalResponse"]=static_cast<std::int64_t>(stats.responses);
-            value["speedUp"]=static_cast<std::int64_t>(stats.bytes_up);
-            value["speedDown"]=static_cast<std::int64_t>(stats.bytes_down);
-            value["proxyErrors"]=static_cast<std::int64_t>(stats.errors);
-        }
+        const auto socks=proxy_?proxy_->Stats():wpe::shell::Socks5Stats{};
+        const auto http=http_proxy_?http_proxy_->Stats():wpe::shell::Socks5Stats{};
+        value["proxyRunning"]=socks.running||http.running;
+        value["tcpConn"]=static_cast<std::int64_t>(socks.active+http.active);
+        value["tcpReq"]=static_cast<std::int64_t>(socks.requests);
+        value["tcpResp"]=static_cast<std::int64_t>(socks.responses);
+        value["httpReq"]=static_cast<std::int64_t>(http.requests);
+        value["httpResp"]=static_cast<std::int64_t>(http.responses);
+        value["totalRequest"]=static_cast<std::int64_t>(socks.requests+http.requests);
+        value["totalResponse"]=static_cast<std::int64_t>(socks.responses+http.responses);
+        value["speedUp"]=static_cast<std::int64_t>(socks.bytes_up+http.bytes_up);
+        value["speedDown"]=static_cast<std::int64_t>(socks.bytes_down+http.bytes_down);
+        value["proxyErrors"]=static_cast<std::int64_t>(socks.errors+http.errors);
         return value;
     });
     bridge_->Register("getFilterStats",[this](const Json&){

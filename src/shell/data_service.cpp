@@ -532,9 +532,9 @@ Json DataService::Call(const std::string& method,const Json& args){
             {"enableAuth",B(proxy_config_,"EnableAuth",true)},{"onlyWpc",B(proxy_config_,"Only_WPC_Client")},
             {"maxConnection",N(proxy_config_,"MaxConnectionNumber",5000)},{"maxConnectionCap",MaxConnectionCap()},
             {"maxConnectionDefault",5000},{"connBufferKB",16},{"memoryGB",gb},{"enableHttp",B(proxy_config_,"Enable_HTTP",true)},
-            {"httpPort",N(proxy_config_,"HTTP_Port",1080)},{"enableSystemProxy",false},{"running",false}};
+            {"httpPort",N(proxy_config_,"HTTP_Port",1081)},{"enableSystemProxy",false},{"running",false}};
     }
-    // Native-only snapshot consumed by the SOCKS5 listener.  It deliberately
+    // Native-only snapshot consumed by the SOCKS5 and HTTP proxy listeners.  It deliberately
     // is not part of Methods(), so browser code cannot ask the bridge for
     // decrypted proxy credentials.
     if(method=="__proxyRuntimeConfiguration"){
@@ -548,6 +548,8 @@ Json DataService::Call(const std::string& method,const Json& args){
                 {"proxyIp",S(proxy_config_,"ProxyIP")},
                 {"enableSocks5",B(proxy_config_,"Enable_SOCKS5",true)},
                 {"socks5Port",N(proxy_config_,"SOCKS5_Port",1080)},
+                {"enableHttp",B(proxy_config_,"Enable_HTTP",true)},
+                {"httpPort",N(proxy_config_,"HTTP_Port",1081)},
                 {"enableAuth",B(proxy_config_,"EnableAuth",true)},
                 {"onlyWpc",B(proxy_config_,"Only_WPC_Client")},
                 {"maxConnection",N(proxy_config_,"MaxConnectionNumber",5000)},
