@@ -1,0 +1,104 @@
+=== x64 exports ===
+Microsoft (R) COFF/PE Dumper Version 14.44.35228.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file E:\codex\2026-09-17\bi-a\work\bootstrap-final\run-ee7e48e5ad1143a7b2f93ceb11b7aa2f\x64\Release\wpe64-hook.dll
+
+File Type: DLL
+
+  Section contains the following exports for wpe64-hook.dll
+
+    00000000 characteristics
+    FFFFFFFF time date stamp
+        0.00 version
+           1 ordinal base
+           1 number of functions
+           1 number of names
+
+    ordinal hint RVA      name
+
+          1    0 000012F0 WpeStart
+
+  Summary
+
+        4000 .data
+        1000 .fptable
+        3000 .pdata
+       16000 .rdata
+        1000 .reloc
+        1000 .rsrc
+       32000 .text
+=== x64 dependents ===
+Microsoft (R) COFF/PE Dumper Version 14.44.35228.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file E:\codex\2026-09-17\bi-a\work\bootstrap-final\run-ee7e48e5ad1143a7b2f93ceb11b7aa2f\x64\Release\wpe64-hook.dll
+
+File Type: DLL
+
+  Image has the following dependencies:
+
+    KERNEL32.dll
+
+  Summary
+
+        4000 .data
+        1000 .fptable
+        3000 .pdata
+       16000 .rdata
+        1000 .reloc
+        1000 .rsrc
+       32000 .text
+=== Win32 exports ===
+Microsoft (R) COFF/PE Dumper Version 14.44.35228.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file E:\codex\2026-09-17\bi-a\work\bootstrap-final\run-ee7e48e5ad1143a7b2f93ceb11b7aa2f\Win32\Release\wpe64-hook.dll
+
+File Type: DLL
+
+  Section contains the following exports for wpe64-hook.dll
+
+    00000000 characteristics
+    FFFFFFFF time date stamp
+        0.00 version
+           1 ordinal base
+           1 number of functions
+           1 number of names
+
+    ordinal hint RVA      name
+
+          1    0 00001270 WpeStart
+
+  Summary
+
+        3000 .data
+        1000 .fptable
+        F000 .rdata
+        3000 .reloc
+        1000 .rsrc
+       2C000 .text
+=== Win32 dependents ===
+Microsoft (R) COFF/PE Dumper Version 14.44.35228.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file E:\codex\2026-09-17\bi-a\work\bootstrap-final\run-ee7e48e5ad1143a7b2f93ceb11b7aa2f\Win32\Release\wpe64-hook.dll
+
+File Type: DLL
+
+  Image has the following dependencies:
+
+    KERNEL32.dll
+
+  Summary
+
+        3000 .data
+        1000 .fptable
+        F000 .rdata
+        3000 .reloc
+        1000 .rsrc
+       2C000 .text

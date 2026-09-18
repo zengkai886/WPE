@@ -14,6 +14,12 @@ namespace wpe::shell {
 
 enum class ProcessMachine : std::uint8_t { Unknown, X86, X64, Arm64 };
 
+struct InjectionOptions {
+    std::string session;
+    std::uint32_t connect_timeout_ms{5000};
+    bool suspended_launch{};
+};
+
 ProcessMachine QueryProcessMachine(HANDLE process);
 
 class SuspendedProcess final {
@@ -46,6 +52,11 @@ public:
                                             const std::filesystem::path& working_directory = {});
     static void Inject(DWORD process_id, const std::filesystem::path& dll_path,
                        std::chrono::milliseconds timeout = std::chrono::seconds(10));
+    // Loads the native target DLL and invokes its exported WpeStart entry with
+    // a versioned, pointer-free bootstrap record copied into target memory.
+    static void InjectAndStart(DWORD process_id, const std::filesystem::path& dll_path,
+                               const InjectionOptions& options,
+                               std::chrono::milliseconds timeout = std::chrono::seconds(10));
 };
 
 } // namespace wpe::shell

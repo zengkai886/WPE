@@ -1,10 +1,14 @@
 #include "process_injector.h"
+#include "common/injection_protocol.h"
 #include "common/ipc_codec.h"
+#include "common/ipc_pipe.h"
 #include <TlHelp32.h>
 #include <algorithm>
+#include <cstring>
 #include <limits>
 #include <sstream>
 #include <system_error>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -19,6 +23,17 @@ public:
     [[nodiscard]] HANDLE Get() const noexcept { return value_; }
 private:
     HANDLE value_;
+};
+
+class Module final {
+public:
+    explicit Module(HMODULE value = nullptr) noexcept : value_(value) {}
+    ~Module() { if (value_) FreeLibrary(value_); }
+    Module(const Module&) = delete;
+    Module& operator=(const Module&) = delete;
+    [[nodiscard]] HMODULE Get() const noexcept { return value_; }
+private:
+    HMODULE value_;
 };
 
 [[noreturn]] void Fail(const char* operation, DWORD code = GetLastError()) {
@@ -45,16 +60,34 @@ std::filesystem::path FullExistingFile(const std::filesystem::path& input, const
 }
 
 std::uintptr_t RemoteModuleBase(DWORD pid, const wchar_t* module_name) {
-    Handle snapshot(CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, pid));
-    if (snapshot.Get() == INVALID_HANDLE_VALUE) Fail("CreateToolhelp32Snapshot");
-    MODULEENTRY32W entry{};
-    entry.dwSize = sizeof(entry);
-    if (!Module32FirstW(snapshot.Get(), &entry)) Fail("Module32FirstW");
-    do {
-        if (_wcsicmp(entry.szModule, module_name) == 0)
-            return reinterpret_cast<std::uintptr_t>(entry.modBaseAddr);
-    } while (Module32NextW(snapshot.Get(), &entry));
-    return 0;
+    for (int attempt = 0; attempt < 200; ++attempt) {
+        Handle snapshot(CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, pid));
+        if (snapshot.Get() == INVALID_HANDLE_VALUE) {
+            const DWORD error = GetLastError();
+            if (error == ERROR_BAD_LENGTH || error == ERROR_PARTIAL_COPY) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                continue;
+            }
+            Fail("CreateToolhelp32Snapshot", error);
+        }
+        MODULEENTRY32W entry{};
+        entry.dwSize = sizeof(entry);
+        if (!Module32FirstW(snapshot.Get(), &entry)) {
+            const DWORD error = GetLastError();
+            if (error == ERROR_BAD_LENGTH || error == ERROR_PARTIAL_COPY ||
+                error == ERROR_NO_MORE_FILES) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                continue;
+            }
+            Fail("Module32FirstW", error);
+        }
+        do {
+            if (_wcsicmp(entry.szModule, module_name) == 0)
+                return reinterpret_cast<std::uintptr_t>(entry.modBaseAddr);
+        } while (Module32NextW(snapshot.Get(), &entry));
+        return 0;
+    }
+    throw ProtocolError("Target module list did not become readable");
 }
 
 bool HasRemoteModule(DWORD pid, const std::wstring& module_name) {
@@ -70,6 +103,35 @@ LPTHREAD_START_ROUTINE RemoteLoadLibrary(DWORD pid) {
     if (!remote_base) throw ProtocolError("Target kernel32.dll was not found");
     const auto offset = reinterpret_cast<std::uintptr_t>(local_proc) -
                         reinterpret_cast<std::uintptr_t>(local_module);
+    return reinterpret_cast<LPTHREAD_START_ROUTINE>(remote_base + offset);
+}
+
+InjectionBootstrapV1 MakeBootstrap(const InjectionOptions& options) {
+    if (options.connect_timeout_ms == 0 || options.connect_timeout_ms == INFINITE)
+        throw ProtocolError("Target connection timeout is invalid");
+    // Reuse the transport's canonical validation rather than allowing the
+    // bootstrap record to create an arbitrary named-pipe path.
+    (void)PipeEndpoint::FullName(options.session, PipeChannel::Control);
+    InjectionBootstrapV1 bootstrap;
+    bootstrap.connect_timeout_ms = options.connect_timeout_ms;
+    bootstrap.flags = options.suspended_launch ? InjectionFlagSuspendedLaunch : 0U;
+    if (options.session.size() >= sizeof(bootstrap.session))
+        throw ProtocolError("Injection session is too long");
+    std::memcpy(bootstrap.session, options.session.data(), options.session.size());
+    bootstrap.session[options.session.size()] = '\0';
+    return bootstrap;
+}
+
+LPTHREAD_START_ROUTINE RemoteExport(DWORD pid, const std::filesystem::path& dll,
+                                    const char* export_name) {
+    Module local(LoadLibraryExW(dll.c_str(), nullptr, DONT_RESOLVE_DLL_REFERENCES));
+    if (!local.Get()) Fail("LoadLibraryExW(injection DLL)");
+    const auto procedure = GetProcAddress(local.Get(), export_name);
+    if (!procedure) Fail("GetProcAddress(injection entry)");
+    const auto remote_base = RemoteModuleBase(pid, dll.filename().c_str());
+    if (!remote_base) throw ProtocolError("Injected DLL was not found in the target module list");
+    const auto offset = reinterpret_cast<std::uintptr_t>(procedure) -
+                        reinterpret_cast<std::uintptr_t>(local.Get());
     return reinterpret_cast<LPTHREAD_START_ROUTINE>(remote_base + offset);
 }
 } // namespace
@@ -183,6 +245,52 @@ void ProcessInjector::Inject(DWORD process_id, const std::filesystem::path& dll_
         throw;
     }
     if (!VirtualFreeEx(process.Get(), remote, 0, MEM_RELEASE)) Fail("VirtualFreeEx");
+}
+
+void ProcessInjector::InjectAndStart(DWORD process_id, const std::filesystem::path& dll_path,
+                                     const InjectionOptions& options,
+                                     std::chrono::milliseconds timeout) {
+    const auto bootstrap = MakeBootstrap(options);
+    const auto dll = FullExistingFile(dll_path, "Injection DLL");
+    Inject(process_id, dll, timeout);
+
+    Handle process(OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION |
+                               PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ,
+                               FALSE, process_id));
+    if (!process.Get()) Fail("OpenProcess(injection target entry)");
+    if (QueryProcessMachine(process.Get()) != QueryProcessMachine(GetCurrentProcess()))
+        throw ProtocolError("Injector and target process architectures do not match");
+
+    void* remote = VirtualAllocEx(process.Get(), nullptr, sizeof(bootstrap),
+                                  MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    if (!remote) Fail("VirtualAllocEx(injection bootstrap)");
+    bool release_remote = true;
+    try {
+        SIZE_T written = 0;
+        if (!WriteProcessMemory(process.Get(), remote, &bootstrap, sizeof(bootstrap), &written) ||
+            written != sizeof(bootstrap))
+            Fail("WriteProcessMemory(injection bootstrap)");
+        Handle thread(CreateRemoteThread(process.Get(), nullptr, 0,
+                                         RemoteExport(process_id, dll, "WpeStart"),
+                                         remote, 0, nullptr));
+        if (!thread.Get()) Fail("CreateRemoteThread(WpeStart)");
+        const auto wait = WaitForSingleObject(thread.Get(), static_cast<DWORD>(timeout.count()));
+        if (wait == WAIT_TIMEOUT) {
+            release_remote = false;
+            throw ProtocolError("Remote WpeStart timed out");
+        }
+        if (wait != WAIT_OBJECT_0) Fail("WaitForSingleObject(remote WpeStart)");
+        DWORD result = 0;
+        if (!GetExitCodeThread(thread.Get(), &result)) Fail("GetExitCodeThread(WpeStart)");
+        if (result != static_cast<DWORD>(InjectionStartResult::Ok))
+            throw ProtocolError("Remote WpeStart rejected bootstrap parameters with code " +
+                                std::to_string(result));
+    } catch (...) {
+        if (release_remote) (void)VirtualFreeEx(process.Get(), remote, 0, MEM_RELEASE);
+        throw;
+    }
+    if (!VirtualFreeEx(process.Get(), remote, 0, MEM_RELEASE))
+        Fail("VirtualFreeEx(injection bootstrap)");
 }
 
 } // namespace wpe::shell
