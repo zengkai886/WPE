@@ -37,6 +37,35 @@ int main(int argc,char** argv){
             Require(Call(service,"getLogSetting")==settings,"invalid save partially changed state");
             Call(service,"saveLogSetting",{{"autoClearValue",1234}});Call(service,"saveLogSetting",{{"autoClear",false}});Require(Call(service,"getLogSetting")["autoClearValue"]==1234,"partial log save");
             Call(service,"saveSystemSetting",{{"speedMode",true},{"listExecute",0},{"filterExecute",1}});
+            {
+                const auto fresh=Call(service,"getLeachSetting");
+                Require(fresh["notShow"]==true&&fresh["checkSocket"]==false&&fresh["checkType"]==false,
+                        "capture filter defaults");
+                Require(fresh["send"]==false&&fresh["tcpReq"]==false&&fresh["wsaRecvFrom"]==false,
+                        "capture filter type mask defaults");
+                auto invalid=fresh;invalid["checkIP"]=true;invalid["ipValue"]="   ";
+                Require(Call(service,"saveLeachSetting",invalid)["ok"]==false,
+                        "empty enabled capture condition accepted");
+                const auto enabled=Json{
+                    {"notShow",false},{"checkSocket",true},{"socketValue","10;11"},
+                    {"checkIP",false},{"ipValue",""},{"checkPort",false},{"portValue",""},
+                    {"checkHead",false},{"headValue",""},{"checkData",true},{"dataValue","AA BB"},
+                    {"checkLen",false},{"lenValue",""},{"checkType",true},
+                    {"send",true},{"sendTo",false},{"recv",true},{"recvFrom",false},
+                    {"wsaSend",true},{"wsaSendTo",false},{"wsaRecv",true},{"wsaRecvFrom",false},
+                    {"tcpReq",true},{"tcpResp",false},{"udpReq",true},{"udpResp",false}
+                };
+                Require(Call(service,"saveLeachSetting",enabled)["ok"]==true,"capture filter save");
+                const auto saved=Call(service,"getLeachSetting");
+                Require(saved["notShow"]==false&&saved["socketValue"]=="10;11"&&saved["dataValue"]=="AA BB"&&saved["send"]==true&&saved["tcpReq"]==true,
+                        "capture filter values did not round-trip");
+                // The proxy dialog omits injection fields; those bits must survive.
+                const auto proxy_only=Json{{"notShow",true},{"checkSocket",false},{"socketValue",""},{"checkIP",false},{"ipValue",""},{"checkPort",false},{"portValue",""},{"checkHead",false},{"headValue",""},{"checkData",false},{"dataValue",""},{"checkLen",false},{"lenValue",""},{"checkType",true},{"tcpReq",false},{"tcpResp",true},{"udpReq",false},{"udpResp",true}};
+                Require(Call(service,"saveLeachSetting",proxy_only)["ok"]==true,"proxy capture filter save");
+                const auto merged=Call(service,"getLeachSetting");
+                Require(merged["send"]==true&&merged["recv"]==true&&merged["wsaSend"]==true&&merged["tcpReq"]==false&&merged["tcpResp"]==true,
+                        "capture filter mode fields were not preserved");
+            }
             Call(service,"enterProxyMode");Require(feeds[8].empty(),"fresh filter list");Require(Call(service,"getStats")["proxyRunning"]==false,"proxy falsely running");
             Require(feeds.contains(5)&&feeds[5].empty(),"fresh account feed");
             Require(Call(service,"saveAccount",{{"userName"," 账号持久化 "},{"password"," P@ss'中 "},{"isEnable",true},{"isLimitLinks",true},{"limitLinks",3},{"isLimitDevices",false},{"limitDevices",7},{"isExpiry",true},{"expiryTime","2030-01-02 03:04:05"}})["ok"]==true,"account save");
@@ -76,6 +105,9 @@ int main(int argc,char** argv){
             const auto target=service.TargetConfiguration();
             Require(target["hookFlags"].is_array()&&target["hookFlags"].size()==12,
                     "target hook snapshot shape");
+            Require(target["captureFilter"]["notShow"]==true&&target["captureFilter"]["send"]==true&&
+                    target["captureFilter"]["tcpResp"]==true,
+                    "target capture filter snapshot shape");
             Require(target["filters"].is_array()&&target["filters"].size()==1&&
                     target["sends"].is_array()&&target["sends"].size()==1,
                     "target filter/send snapshot shape");
@@ -113,6 +145,8 @@ int main(int argc,char** argv){
             Require(Call(reopened,"getAccountPassword",{{"id",accountId}})["password"]=="P@ss'中"&&Call(reopened,"getAccountLogins",{{"id",accountId}})["rows"].empty(),"account secret/login restart persistence");
             Require(Call(reopened,"getAccountPassword",{{"id",feeds[5][1]["Id"]}})["password"]=="Batch09","batch password restart persistence");
             Require(Call(reopened,"getPrefs")["themeMode"]=="system"&&Call(reopened,"getPrefs")["scanLine"]==false,"appearance persistence");
+            const auto leach=Call(reopened,"getLeachSetting");Require(leach["notShow"]==true&&leach["tcpReq"]==false&&leach["tcpResp"]==true&&leach["send"]==true,
+                    "capture filter restart persistence");
             Require(feeds[12].size()==1&&feeds[12][0]["PacketHead"]=="16 03 01"&&feeds[12][0]["WareHouseId"]==wid&&feeds[12][0]["IsEnable"]==true,"auto-store restart persistence");
             auto meta=Call(reopened,"getAutoStoresMeta");Require(meta["enable"]==false&&meta["limitValue"]==1,"auto-store runtime switch persisted or limit lost");
             Require(feeds[13].size()==1&&feeds[13][0]["Host"]=="example.test"&&feeds[13][0]["IsEnable"]==true&&feeds[14].size()==1&&feeds[14][0]["HostTo"]=="to.test","mapping restart persistence");

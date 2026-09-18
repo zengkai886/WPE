@@ -8,6 +8,7 @@
 #include <memory>
 #include <mutex>
 #include <span>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -27,6 +28,9 @@ struct FilterContext {
     std::uint8_t packet_type{};
     std::array<std::uint16_t, 2> ports{};
     std::size_t port_count{};
+    // Numeric text is kept in the context so the capture filter can match
+    // endpoint addresses without consulting the shell or doing I/O.
+    std::array<std::string, 2> addresses{}; // local/from, peer/to
 };
 
 struct FilterResult {

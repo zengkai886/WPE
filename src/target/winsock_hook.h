@@ -24,6 +24,7 @@ public:
     WinsockSupport DetectWinsock(bool may_load) override;
     void ConfigureHookFlags(const std::array<bool, 12>& flags) override;
     void ConfigureSpeedMode(bool enabled) noexcept override;
+    void ConfigureCaptureFilter(const CaptureFilterSnapshot& filter) override;
     void ConfigureFilters(const std::vector<FilterSnapshot>& filters,
                           std::int32_t execute_mode, bool speed_mode) override;
     void ConfigureFilterTriggers(SendTrigger send, StoreTrigger store) override;

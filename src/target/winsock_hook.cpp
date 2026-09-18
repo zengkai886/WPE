@@ -11,6 +11,7 @@
 #include "common/packet_ring.h"
 #include <algorithm>
 #include <atomic>
+#include <cctype>
 #include <charconv>
 #include <chrono>
 #include <condition_variable>
@@ -158,6 +159,57 @@ Text AsciiText(std::string_view value) {
     result.reserve(value.size());
     for (const unsigned char character : value)
         result.push_back(static_cast<char16_t>(character));
+    return result;
+}
+
+std::string Ascii(const Text& value) {
+    if (!value) return {};
+    std::string result;
+    result.reserve(value->size());
+    for (const auto character : *value)
+        result.push_back(character <= 0x7f ? static_cast<char>(character) : '?');
+    return result;
+}
+
+std::vector<std::string> Tokens(std::string value, char separator = ';') {
+    std::vector<std::string> result;
+    std::size_t start = 0;
+    for (;;) {
+        const auto end = value.find(separator, start);
+        auto token = value.substr(start, end == std::string::npos ? end : end - start);
+        while (!token.empty() && std::isspace(static_cast<unsigned char>(token.front()))) token.erase(token.begin());
+        while (!token.empty() && std::isspace(static_cast<unsigned char>(token.back()))) token.pop_back();
+        if (!token.empty()) result.push_back(std::move(token));
+        if (end == std::string::npos) break;
+        start = end + 1;
+    }
+    return result;
+}
+
+int Hex(char value) noexcept {
+    if (value >= '0' && value <= '9') return value - '0';
+    if (value >= 'a' && value <= 'f') return value - 'a' + 10;
+    if (value >= 'A' && value <= 'F') return value - 'A' + 10;
+    return -1;
+}
+
+std::string HexText(std::span<const std::uint8_t> bytes) {
+    static constexpr char digits[] = "0123456789ABCDEF";
+    std::string result;
+    result.reserve(bytes.size() * 2);
+    for (const auto byte : bytes) { result.push_back(digits[byte >> 4]); result.push_back(digits[byte & 0xf]); }
+    return result;
+}
+
+std::optional<ByteBuffer> ParseHex(std::string value) {
+    value.erase(std::remove_if(value.begin(), value.end(), [](unsigned char c) { return std::isspace(c) != 0; }), value.end());
+    if (value.empty() || (value.size() & 1U) != 0) return std::nullopt;
+    ByteBuffer result; result.reserve(value.size() / 2);
+    for (std::size_t i = 0; i < value.size(); i += 2) {
+        const auto high = Hex(value[i]), low = Hex(value[i + 1]);
+        if (high < 0 || low < 0) return std::nullopt;
+        result.push_back(static_cast<std::uint8_t>((high << 4) | low));
+    }
     return result;
 }
 
@@ -372,6 +424,7 @@ struct WinsockHookController::Impl final {
     std::array<std::atomic<std::int64_t>, 11> counters{};
     std::atomic<std::int64_t> sequence{};
     std::atomic<bool> speed_mode{};
+    std::atomic<std::shared_ptr<const CaptureFilterSnapshot>> capture_filter;
     std::atomic<bool> accepting{};
     std::atomic<bool> writer_running{};
     std::atomic<std::uint32_t> in_flight{};
@@ -695,6 +748,10 @@ struct WinsockHookController::Impl final {
         FilterContext context;
         context.socket = static_cast<std::int64_t>(socket);
         context.packet_type = type;
+        // Address strings are filled on the writer thread (where the allowed
+        // getsockname/getpeername calls happen).  Detours only retain an
+        // explicit sendto/recvfrom endpoint here.
+        if (address) context.addresses[1] = FormatIpv4(address, address_length);
         const auto append = [&](const sockaddr* candidate, int length) {
             if (!candidate || length < static_cast<int>(sizeof(sockaddr_in)) ||
                 context.port_count >= context.ports.size()) return;
@@ -718,6 +775,143 @@ struct WinsockHookController::Impl final {
         return context;
     }
 
+    static FilterContext ContextFromEndpoints(const PendingPacket& packet,
+                                              const std::pair<std::string, std::string>& endpoints) {
+        FilterContext context;
+        context.socket = packet.socket;
+        context.packet_type = packet.packet_type;
+        context.addresses = {endpoints.first, endpoints.second};
+        for (const auto& endpoint : context.addresses) {
+            const auto colon = endpoint.rfind(':');
+            if (colon == std::string::npos || context.port_count >= context.ports.size()) continue;
+            unsigned int port = 0;
+            const auto parsed = std::from_chars(endpoint.data() + colon + 1,
+                                                 endpoint.data() + endpoint.size(), port);
+            if (parsed.ec == std::errc{} && parsed.ptr == endpoint.data() + endpoint.size() && port <= 65535)
+                context.ports[context.port_count++] = static_cast<std::uint16_t>(port);
+        }
+        return context;
+    }
+
+    static bool ContainsSocket(std::string_view value, std::int64_t socket) noexcept {
+        for (auto token : Tokens(std::string(value))) {
+            std::int64_t parsed = 0;
+            const auto result = std::from_chars(token.data(), token.data() + token.size(), parsed);
+            if (result.ec == std::errc{} && result.ptr == token.data() + token.size() && parsed == socket) return true;
+        }
+        return false;
+    }
+
+    static bool ContainsPort(std::string_view value, const FilterContext& context) noexcept {
+        for (auto token : Tokens(std::string(value))) {
+            unsigned int parsed = 0;
+            const auto result = std::from_chars(token.data(), token.data() + token.size(), parsed);
+            if (result.ec != std::errc{} || result.ptr != token.data() + token.size() || parsed > 65535) continue;
+            for (std::size_t i = 0; i < context.port_count; ++i) if (context.ports[i] == parsed) return true;
+        }
+        return false;
+    }
+
+    static bool ContainsIp(std::string_view value, const FilterContext& context) {
+        for (const auto& address : context.addresses) {
+            if (address.empty()) continue;
+            const auto colon = address.find(':');
+            const auto ip = address.substr(0, colon);
+            for (auto token : Tokens(std::string(value))) if (token == ip) return true;
+        }
+        return false;
+    }
+
+    static bool StartsWithHex(std::string_view value, std::span<const std::uint8_t> bytes) {
+        return value.size() >= bytes.size() * 2 && value.substr(0, bytes.size() * 2) == HexText(bytes);
+    }
+
+    static bool ContainsHead(std::string_view value, std::string_view patterns) {
+        for (const auto& token : Tokens(std::string(patterns))) {
+            const auto parsed = ParseHex(token);
+            if (parsed && StartsWithHex(value, *parsed)) return true;
+        }
+        return false;
+    }
+
+    static bool ContainsData(std::string_view value, std::span<const std::uint8_t> bytes,
+                             std::string_view patterns) {
+        for (auto token : Tokens(std::string(patterns))) {
+            const auto raw_token = token;
+            token.erase(std::remove_if(token.begin(), token.end(), [](unsigned char c) { return std::isspace(c) != 0; }), token.end());
+            std::transform(token.begin(), token.end(), token.begin(), [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
+            if (!token.empty() && value.find(token) != std::string::npos) return true;
+            // The original UI advertises both hex and text.  Retain the
+            // original hex-substring behavior and additionally match a raw
+            // ASCII/UTF-8 token against the captured bytes.
+            if (!raw_token.empty() && std::search(bytes.begin(), bytes.end(), raw_token.begin(), raw_token.end(),
+                [](std::uint8_t byte, char character) {
+                    return static_cast<unsigned char>(std::toupper(byte)) ==
+                           static_cast<unsigned char>(std::toupper(static_cast<unsigned char>(character)));
+                }) != bytes.end()) return true;
+        }
+        return false;
+    }
+
+    static bool ContainsLength(std::string_view value, std::size_t length) noexcept {
+        for (auto token : Tokens(std::string(value))) {
+            const auto dash = token.find('-');
+            unsigned int low = 0, high = 0;
+            if (dash == std::string::npos) {
+                const auto parsed = std::from_chars(token.data(), token.data() + token.size(), low);
+                if (parsed.ec == std::errc{} && parsed.ptr == token.data() + token.size() && length == low) return true;
+                continue;
+            }
+            const auto left = std::from_chars(token.data(), token.data() + dash, low);
+            const auto right = std::from_chars(token.data() + dash + 1, token.data() + token.size(), high);
+            if (left.ec == std::errc{} && right.ec == std::errc{} && left.ptr == token.data() + dash &&
+                right.ptr == token.data() + token.size() && low <= high && length >= low && length <= high) return true;
+        }
+        return false;
+    }
+
+    static std::optional<std::size_t> TypeIndex(std::uint8_t type) noexcept {
+        switch (type) {
+        case kWs1Send: case kWs2Send: return 0;
+        case kWs1SendTo: case kWs2SendTo: return 1;
+        case kWs1Recv: case kWs2Recv: return 2;
+        case kWs1RecvFrom: case kWs2RecvFrom: return 3;
+        case kWsaSend: return 4;
+        case kWsaSendTo: return 5;
+        case kWsaRecv: case kWsaRecvEx: return 6;
+        case kWsaRecvFrom: return 7;
+        default: return std::nullopt;
+        }
+    }
+
+    bool CaptureFilterAllows(const FilterContext& context, std::span<const std::uint8_t> bytes) const noexcept {
+        const auto filter = capture_filter.load(std::memory_order_acquire);
+        if (!filter) return true;
+        const auto check = [&](bool enabled, bool matched) { return !enabled || filter->not_show != matched; };
+        bool any = filter->check_socket || filter->check_ip || filter->check_port || filter->check_head ||
+                   filter->check_data || filter->check_length || filter->check_type;
+        if (!any) return true;
+        try {
+            const auto hex = HexText(bytes);
+            if (!check(filter->check_socket, ContainsSocket(Ascii(filter->socket_value), context.socket))) return false;
+            if (!check(filter->check_ip, ContainsIp(Ascii(filter->ip_value), context))) return false;
+            if (!check(filter->check_port, ContainsPort(Ascii(filter->port_value), context))) return false;
+            if (!check(filter->check_head, ContainsHead(hex, Ascii(filter->head_value))) ) return false;
+            if (!check(filter->check_data, ContainsData(hex, bytes, Ascii(filter->data_value)))) return false;
+            if (!check(filter->check_length, ContainsLength(Ascii(filter->length_value), bytes.size()))) return false;
+            if (filter->check_type) {
+                const auto index = TypeIndex(context.packet_type);
+                const bool matched = index && filter->type_flags[*index];
+                if (!check(true, matched)) return false;
+            }
+        } catch (...) {
+            // Invalid user text must not break a target detour.  Treat it as
+            // a non-match, which is the original UI's fail-open behavior.
+            return true;
+        }
+        return true;
+    }
+
     void Capture(SOCKET socket, std::uint8_t type,
                  std::shared_ptr<const ByteBuffer> raw,
                  std::shared_ptr<const ByteBuffer> modified,
@@ -725,7 +919,7 @@ struct WinsockHookController::Impl final {
                  std::size_t logical_length,
                  std::vector<PendingFilterLog> filter_logs,
                  const sockaddr* address = nullptr, int address_length = 0,
-                 std::int64_t time_ticks = 0) noexcept {
+        std::int64_t time_ticks = 0) noexcept {
         if (!accepting.load(std::memory_order_acquire)) return;
         bool deliver_packet =
             filter_action != static_cast<std::uint8_t>(FilterAction::NoModifyNoDisplay) &&
@@ -819,13 +1013,22 @@ struct WinsockHookController::Impl final {
                         break;
                     }
                     const auto& pending = batch[next];
-                    for (const auto& log : pending->filter_logs) EmitFilterLog(log);
-                    if (pending->suppress_packet) continue;
+                    if (pending->suppress_packet) {
+                        for (const auto& log : pending->filter_logs) EmitFilterLog(log);
+                        continue;
+                    }
                     const auto endpoints = Endpoints(*pending);
                     if (endpoints.first.empty() || !packet_sender) {
                         delivery_dropped.fetch_add(1, std::memory_order_relaxed);
                         continue;
                     }
+                    const auto capture_context = ContextFromEndpoints(*pending, endpoints);
+                    const auto capture_bytes = pending->modified && !pending->modified->empty()
+                        ? std::span<const std::uint8_t>(*pending->modified)
+                        : (pending->raw ? std::span<const std::uint8_t>(*pending->raw)
+                                        : std::span<const std::uint8_t>{});
+                    if (!CaptureFilterAllows(capture_context, capture_bytes)) continue;
+                    for (const auto& log : pending->filter_logs) EmitFilterLog(log);
                     try {
                         Packet packet;
                         packet.id = pending->id;
@@ -1517,6 +1720,11 @@ void WinsockHookController::ConfigureHookFlags(const std::array<bool, 12>& flags
 
 void WinsockHookController::ConfigureSpeedMode(bool enabled) noexcept {
     impl_->speed_mode.store(enabled, std::memory_order_release);
+}
+
+void WinsockHookController::ConfigureCaptureFilter(const CaptureFilterSnapshot& filter) {
+    impl_->capture_filter.store(
+        std::make_shared<const CaptureFilterSnapshot>(filter), std::memory_order_release);
 }
 
 void WinsockHookController::ConfigureFilters(const std::vector<FilterSnapshot>& filters,

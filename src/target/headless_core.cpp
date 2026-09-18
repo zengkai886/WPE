@@ -419,6 +419,21 @@ void HeadlessCore::ApplyConfig(ConfigKind kind, std::span<const std::uint8_t> pa
             fresh.list_execute = reader.I32();
             fresh.filter_execute = reader.I32();
             if (reader.Bool()) fresh.selected_packet = ReadPacket(reader);
+            // Older shells stopped after the selected-packet flag.  Keep that
+            // payload valid while accepting the extended capture-filter
+            // snapshot emitted by the current shell.
+            if (reader.Remaining()!=0) {
+                auto& capture=fresh.capture_filter;
+                capture.not_show=reader.Bool();
+                capture.check_socket=reader.Bool();capture.socket_value=reader.Str();
+                capture.check_ip=reader.Bool();capture.ip_value=reader.Str();
+                capture.check_port=reader.Bool();capture.port_value=reader.Str();
+                capture.check_head=reader.Bool();capture.head_value=reader.Str();
+                capture.check_data=reader.Bool();capture.data_value=reader.Str();
+                capture.check_length=reader.Bool();capture.length_value=reader.Str();
+                capture.check_type=reader.Bool();
+                for(auto& flag:capture.type_flags)flag=reader.Bool();
+            }
             fresh_config.runtime = std::move(fresh);
             break;
         }
@@ -480,6 +495,10 @@ void HeadlessCore::ApplyConfig(ConfigKind kind, std::span<const std::uint8_t> pa
     }
     if (hook_flags) hooks_.ConfigureHookFlags(*hook_flags);
     if (speed_mode) hooks_.ConfigureSpeedMode(*speed_mode);
+    if (kind == ConfigKind::Runtime) {
+        std::lock_guard lock(mutex_);
+        hooks_.ConfigureCaptureFilter(config_.runtime.capture_filter);
+    }
     if (filters) hooks_.ConfigureFilters(*filters, filter_execute, filter_speed_mode);
 }
 

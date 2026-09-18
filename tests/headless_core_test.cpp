@@ -60,6 +60,10 @@ public:
         configured_speed = value;
         ++speed_updates;
     }
+    void ConfigureCaptureFilter(const wpe::CaptureFilterSnapshot& value) override {
+        configured_capture = value;
+        ++capture_updates;
+    }
     void ConfigureFilters(const std::vector<wpe::FilterSnapshot>& value,
                           std::int32_t execute_mode, bool speed_mode) override {
         configured_filters = value;
@@ -91,6 +95,7 @@ public:
     }
     std::atomic<int> passive_detects{0}, load_detects{0}, starts{0}, stops{0};
     std::atomic<int> flag_updates{0}, speed_updates{0}, live_resets{0};
+    std::atomic<int> capture_updates{0};
     std::atomic<int> filter_updates{0}, filter_resets{0};
     std::atomic<int> packet_sends{0}, socket_queries{0};
     std::array<bool, 12> configured_flags{};
@@ -98,6 +103,7 @@ public:
     std::vector<wpe::FilterSnapshot> configured_filters;
     std::int32_t configured_filter_execute{};
     bool configured_filter_speed{};
+    wpe::CaptureFilterSnapshot configured_capture;
     bool configured_speed{};
     bool expose_live{};
     bool fail_detect{};
@@ -215,6 +221,25 @@ void ConfigurationAndStats() {
           "runtime selected packet");
     Check(hooks.speed_updates == 1 && hooks.configured_speed,
           "speed mode published to production controller boundary");
+
+    wpe::IpcWriter capture_runtime;
+    capture_runtime.Bool(false); capture_runtime.I32(0); capture_runtime.I32(1); capture_runtime.I32(1);
+    capture_runtime.Bool(false); // no selected packet
+    capture_runtime.Bool(false); // notShow
+    capture_runtime.Bool(true); capture_runtime.Str(T(u"10;11"));
+    capture_runtime.Bool(false); capture_runtime.Str(T(u""));
+    capture_runtime.Bool(true); capture_runtime.Str(T(u"443"));
+    capture_runtime.Bool(false); capture_runtime.Str(T(u""));
+    capture_runtime.Bool(false); capture_runtime.Str(T(u""));
+    capture_runtime.Bool(true); capture_runtime.Str(T(u"64-128"));
+    capture_runtime.Bool(true);
+    for (int i = 0; i < 12; ++i) capture_runtime.Bool(i == 0 || i == 8);
+    ExpectOk(SetConfig(core, wpe::ConfigKind::Runtime, capture_runtime.ToArray()));
+    Check(hooks.capture_updates == 2 && !hooks.configured_capture.not_show &&
+          hooks.configured_capture.check_socket && hooks.configured_capture.socket_value == T(u"10;11") &&
+          hooks.configured_capture.check_length && hooks.configured_capture.type_flags[8] &&
+          !hooks.configured_capture.type_flags[1],
+          "capture filter runtime snapshot published");
 
     core.SetFilterExecutionCount(filter_id, 101);
     core.SetSendCounts(send_id, 102, 103, 104);

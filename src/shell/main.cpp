@@ -385,6 +385,12 @@ void Host::RegisterMethods(){
     }
 }
 std::filesystem::path Host::HookDll() const {
+    // A running target may still have the previous package DLL mapped (Windows
+    // locks a loaded module).  Prefer the versioned side-by-side name when it
+    // is present so an updated shell never pairs a new IPC schema with an old
+    // injected runtime; the unversioned name remains the normal fallback.
+    const auto packaged_next=options_.assets.parent_path()/L"wpe64-hook.next.dll";
+    if(fs::is_regular_file(packaged_next))return packaged_next;
     const auto packaged=options_.assets.parent_path()/L"wpe64-hook.dll";
     if(fs::is_regular_file(packaged))return packaged;
     std::wstring module(32768,L'\0');
@@ -527,6 +533,11 @@ void Host::SyncTargetConfiguration(WebBridge::Completion done){
             }
             request=wpe::IpcWriter();request.U8(static_cast<std::uint8_t>(wpe::IpcCommand::SetConfig));request.U8(static_cast<std::uint8_t>(wpe::ConfigKind::Filters));request.Bytes(filters.ToArray());requests.push_back(request.ToArray());
             wpe::IpcWriter runtime;const auto& r=config.at("runtime");runtime.Bool(r.value("speedMode",false));runtime.I32(r.value("systemSocket",0));runtime.I32(r.value("listExecute",1));runtime.I32(r.value("filterExecute",1));runtime.Bool(false);
+            const auto& capture=config.value("captureFilter",Json::object());
+            runtime.Bool(capture.value("notShow",true));
+            for(const auto& pair:std::array<std::pair<const char*,const char*>,6>{{{"checkSocket","socketValue"},{"checkIP","ipValue"},{"checkPort","portValue"},{"checkHead","headValue"},{"checkData","dataValue"},{"checkLen","lenValue"}}}){runtime.Bool(capture.value(pair.first,false));runtime.Str(U16(capture.value(pair.second,std::string{})));}
+            runtime.Bool(capture.value("checkType",false));
+            for(const auto* key:std::array<const char*,12>{{"send","sendTo","recv","recvFrom","wsaSend","wsaSendTo","wsaRecv","wsaRecvFrom","tcpReq","udpReq","tcpResp","udpResp"}})runtime.Bool(capture.value(key,false));
             request=wpe::IpcWriter();request.U8(static_cast<std::uint8_t>(wpe::IpcCommand::SetConfig));request.U8(static_cast<std::uint8_t>(wpe::ConfigKind::Runtime));request.Bytes(runtime.ToArray());requests.push_back(request.ToArray());
             wpe::IpcWriter sends;sends.I32(static_cast<std::int32_t>(config.at("sends").size()));
             for(const auto& item:config.at("sends")){sends.Bool(item.value("enabled",false));sends.Guid_(wpe::Guid::Parse(item.value("id",std::string{})));sends.Str(U16(item.value("name",std::string{})));sends.Bool(item.value("systemSocket",false));sends.I32(item.value("loopCount",1));sends.I32(item.value("loopInterval",1000));sends.Str(U16(item.value("notes",std::string{})));sends.I32(static_cast<std::int32_t>(item.at("packets").size()));for(const auto& packet:item.at("packets")){sends.I32(packet.value("socket",0));sends.I32(packet.value("type",0));sends.Str(U16(packet.value("from",std::string{})));sends.Str(U16(packet.value("to",std::string{})));const auto& bytes=packet.at("bytes");sends.Bytes(bytes.is_binary()?wpe::ByteBuffer(bytes.get_binary().begin(),bytes.get_binary().end()):wpe::ByteBuffer{});}}

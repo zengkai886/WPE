@@ -43,8 +43,8 @@ saveHookSetting,2562,是,设置读写部分接线,稀疏保存注入钩子与代
 getSystemSetting,2706,是,设置读写已接,真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。
 saveSystemSetting,2713,是,设置读写已接,真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。
 saveActionColor,2759,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
-getLeachSetting,2834,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-saveLeachSetting,2881,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
+getLeachSetting,2834,是,数据读写已接,捕获过滤条件读取已接 SystemConfig；包含六个条件、过滤方式与十二位类别掩码。
+saveLeachSetting,2881,是,数据读写已接,捕获过滤条件校验、SQLite 持久化、模式分组字段保留与目标注入运行时过滤链路已接。
 getAccountPassword,3005,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
 getAccountLogins,3012,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
 saveAccount,3018,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。

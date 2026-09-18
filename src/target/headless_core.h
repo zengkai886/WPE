@@ -53,6 +53,21 @@ struct SocketInfo {
     Text to;
 };
 
+// Capture filtering is independent from the packet-editing filter table: it
+// decides whether a captured packet enters the UI list at all.  The values
+// mirror SystemConfig so the shell can publish them with the runtime snapshot.
+struct CaptureFilterSnapshot {
+    bool not_show{true};
+    bool check_socket{}; Text socket_value;
+    bool check_ip{}; Text ip_value;
+    bool check_port{}; Text port_value;
+    bool check_head{}; Text head_value;
+    bool check_data{}; Text data_value;
+    bool check_length{}; Text length_value;
+    bool check_type{};
+    std::array<bool, 12> type_flags{};
+};
+
 class IHookController {
 public:
     using SendTrigger = std::function<void(const Guid&)>;
@@ -63,6 +78,7 @@ public:
     // consume these without reaching back into HeadlessCore from a detour.
     virtual void ConfigureHookFlags(const std::array<bool, 12>&) {}
     virtual void ConfigureSpeedMode(bool) noexcept {}
+    virtual void ConfigureCaptureFilter(const CaptureFilterSnapshot&) {}
     virtual void ConfigureFilters(const std::vector<FilterSnapshot>&,
                                   std::int32_t, bool) {}
     virtual void ConfigureFilterTriggers(SendTrigger, StoreTrigger) {}
@@ -156,6 +172,7 @@ struct RuntimeSnapshot {
     std::int32_t system_socket{};
     std::int32_t list_execute{};
     std::int32_t filter_execute{};
+    CaptureFilterSnapshot capture_filter;
     std::optional<ReplayPacketSnapshot> selected_packet;
 };
 

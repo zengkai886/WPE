@@ -213,6 +213,18 @@ int main() {
               sent_packet->time_ticks <= after_send_ticks,
               "packet timestamp uses original DateTime.Now local ticks");
 
+        wpe::CaptureFilterSnapshot capture_filter;
+        capture_filter.not_show = true;
+        capture_filter.check_data = true;
+        capture_filter.data_value = Text("alpha");
+        hooks.ConfigureCaptureFilter(capture_filter);
+        collector.Clear();
+        Check(send(tcp.first.value, "alpha", 5, 0) == 5, "capture-filtered send result");
+        ReceiveExact(tcp.second.value, "alpha");
+        Sleep(150);
+        Check(collector.Count() == 0, "capture filter suppresses matching packet from list");
+        hooks.ConfigureCaptureFilter(wpe::CaptureFilterSnapshot{});
+
         Check(static_cast<std::uint64_t>(tcp.first.value) <=
                   static_cast<std::uint64_t>((std::numeric_limits<std::int32_t>::max)()),
               "TCP fixture socket fits the v4 i32 handle field");

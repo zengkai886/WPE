@@ -179,7 +179,7 @@ bool DataService::ApplyStoreEvent(std::span<const std::uint8_t> frame){
 }
 std::vector<std::string> DataService::Methods(){return {
     "getPrefs","setAppearance","setLanguage","saveActionColor","getSystemSetting","saveSystemSetting","getLogSetting","saveLogSetting",
-    "getProxySetting","saveProxySetting","getHookSetting","saveHookSetting","getFireWall","saveFireWall","saveListAutoClear",
+    "getProxySetting","saveProxySetting","getHookSetting","saveHookSetting","getLeachSetting","saveLeachSetting","getFireWall","saveFireWall","saveListAutoClear",
     "addIpRule","saveIPRule","deleteIPRule","ipRuleAction",
     "getAccountPassword","getAccountLogins","saveAccount","deleteAccount","clearAllAccounts","setAccountEnable","importAccounts","exportAccounts","previewBatchAccounts","saveBatchAccounts","exportBatchAccounts","adjustAccountExpiry","adjustAccountLimit","exportSelectedAccounts","deleteSelectedAccounts",
     "enterProxyMode","enterInjectMode","getStats","getClientConnections","clearLogs","getCountryTable",
@@ -213,7 +213,7 @@ Json DataService::Prefs()const{
     return {{"isDark",dark},{"themeMode",B(config_,"ThemeFollowSystem")?"system":dark?"dark":"light"},{"scanLine",B(config_,"ScanLine",true)},{"language",S(config_,"DefaultLanguage","zh-CN")},{"systemColor",Color(config_,"SystemColor")},{"filter",colors}};
 }
 Json DataService::TargetConfiguration() const {
-    Json result{{"hookFlags",Json::array()}, {"runtime", Json::object()},
+    Json result{{"hookFlags",Json::array()}, {"runtime", Json::object()}, {"captureFilter", Json::object()},
                 {"filters", Json::array()}, {"sends", Json::array()}};
     const std::array<const char*,12> hook_keys{{"HookWS1_Send","HookWS1_SendTo",
         "HookWS1_Recv","HookWS1_RecvFrom","HookWS2_Send","HookWS2_SendTo",
@@ -222,6 +222,21 @@ Json DataService::TargetConfiguration() const {
     for (const auto key : hook_keys) result["hookFlags"].push_back(B(inject_config_,key,true));
     result["runtime"] = {{"speedMode",B(config_,"SpeedMode")}, {"systemSocket",0},
         {"listExecute",N(config_,"ListExecute",1)}, {"filterExecute",N(config_,"FilterExecute",1)}};
+    const auto capture_mask=Split(S(config_,"CheckType_Value",""),':');
+    auto capture_flag=[&](std::size_t index){int value=0;return index<capture_mask.size()&&Integer(capture_mask[index],value)&&value!=0;};
+    result["captureFilter"] = {
+        {"notShow",B(config_,"CheckNotShow",true)},
+        {"checkSocket",B(config_,"CheckSocket")},{"socketValue",S(config_,"CheckSocket_Value")},
+        {"checkIP",B(config_,"CheckIP")},{"ipValue",S(config_,"CheckIP_Value")},
+        {"checkPort",B(config_,"CheckPort")},{"portValue",S(config_,"CheckPort_Value")},
+        {"checkHead",B(config_,"CheckHead")},{"headValue",S(config_,"CheckHead_Value")},
+        {"checkData",B(config_,"CheckData")},{"dataValue",S(config_,"CheckData_Value")},
+        {"checkLen",B(config_,"CheckSize")},{"lenValue",S(config_,"CheckLength_Value")},
+        {"checkType",B(config_,"CheckType")},
+        {"send",capture_flag(0)},{"sendTo",capture_flag(1)},{"recv",capture_flag(2)},{"recvFrom",capture_flag(3)},
+        {"wsaSend",capture_flag(4)},{"wsaSendTo",capture_flag(5)},{"wsaRecv",capture_flag(6)},{"wsaRecvFrom",capture_flag(7)},
+        {"tcpReq",capture_flag(8)},{"udpReq",capture_flag(9)},{"tcpResp",capture_flag(10)},{"udpResp",capture_flag(11)}
+    };
     for (const auto& row : lists_[8]) {
         Json item{{"enabled",B(row,"IsEnable")},{"id",S(row,"GUID")},{"name",S(row,"Name")},
             {"appointHeader",B(row,"AppointHeader")},{"header",S(row,"HeaderContent")},
@@ -448,6 +463,61 @@ Json DataService::Call(const std::string& method,const Json& args){
     if(method=="getSystemSetting")return {{"speedMode",B(config_,"SpeedMode")},{"listExecute",N(config_,"ListExecute",1)},{"filterExecute",N(config_,"FilterExecute",1)}};
     if(method=="saveSystemSetting"){
         SaveConfig({{"SpeedMode",B(args,"speedMode")},{"ListExecute",N(args,"listExecute")==1?1:0},{"FilterExecute",N(args,"filterExecute")==1?1:0}});return Good();
+    }
+    if(method=="getLeachSetting"){
+        // Capture filtering is stored in SystemConfig using the same names as
+        // the original database.  CheckType_Value is the twelve-field
+        // colon-separated bit mask used by FilterFunction (bit 0..11).
+        const auto mask=[&]{
+            std::array<bool,12> flags{};
+            const auto fields=Split(S(config_,"CheckType_Value",""),':');
+            for(std::size_t i=0;i<flags.size()&&i<fields.size();++i){int value=0;if(Integer(fields[i],value))flags[i]=value!=0;}
+            return flags;
+        }();
+        return {
+            {"notShow",B(config_,"CheckNotShow",true)},
+            {"checkSocket",B(config_,"CheckSocket")},{"socketValue",S(config_,"CheckSocket_Value")},
+            {"checkIP",B(config_,"CheckIP")},{"ipValue",S(config_,"CheckIP_Value")},
+            {"checkPort",B(config_,"CheckPort")},{"portValue",S(config_,"CheckPort_Value")},
+            {"checkHead",B(config_,"CheckHead")},{"headValue",S(config_,"CheckHead_Value")},
+            {"checkData",B(config_,"CheckData")},{"dataValue",S(config_,"CheckData_Value")},
+            {"checkLen",B(config_,"CheckSize")},{"lenValue",S(config_,"CheckLength_Value")},
+            {"checkType",B(config_,"CheckType")},
+            {"send",mask[0]},{"sendTo",mask[1]},{"recv",mask[2]},{"recvFrom",mask[3]},
+            {"wsaSend",mask[4]},{"wsaSendTo",mask[5]},{"wsaRecv",mask[6]},{"wsaRecvFrom",mask[7]},
+            {"tcpReq",mask[8]},{"udpReq",mask[9]},{"tcpResp",mask[10]},{"udpResp",mask[11]}
+        };
+    }
+    if(method=="saveLeachSetting"){
+        const auto text=[&](const char* key){return Trim(S(args,key));};
+        const std::array<std::pair<const char*,const char*>,6> conditions{{{
+            "checkSocket","socketValue"},{"checkIP","ipValue"},{"checkPort","portValue"},
+            {"checkHead","headValue"},{"checkData","dataValue"},{"checkLen","lenValue"}}};
+        for(const auto& [enabled,value] : conditions){
+            if(B(args,enabled) && text(value).empty())
+                return Bad(Text("LeachSetting.Empty","勾选的条件不能留空"));
+        }
+        // The UI sends only the type group for the active mode.  Start with
+        // the persisted mask and replace fields that are actually present so
+        // saving the proxy dialog cannot clear injection type flags (or vice
+        // versa).
+        std::array<bool,12> mask{};
+        const auto current=Split(S(config_,"CheckType_Value",""),':');
+        for(std::size_t i=0;i<mask.size()&&i<current.size();++i){int value=0;if(Integer(current[i],value))mask[i]=value!=0;}
+        const std::array<std::pair<const char*,std::size_t>,12> type_fields{{{
+            "send",0},{"sendTo",1},{"recv",2},{"recvFrom",3},
+            {"wsaSend",4},{"wsaSendTo",5},{"wsaRecv",6},{"wsaRecvFrom",7},
+            {"tcpReq",8},{"udpReq",9},{"tcpResp",10},{"udpResp",11}}};
+        for(const auto& [key,index] : type_fields)if(args.contains(key)&&!args.at(key).is_null())mask[index]=B(args,key);
+        std::string serialized;for(std::size_t i=0;i<mask.size();++i){if(i)serialized+=':';serialized+=mask[i]?'1':'0';}
+        SaveConfig({
+            {"CheckNotShow",B(args,"notShow")},{"CheckSocket",B(args,"checkSocket")},{"CheckSocket_Value",text("socketValue")},
+            {"CheckIP",B(args,"checkIP")},{"CheckIP_Value",text("ipValue")},{"CheckPort",B(args,"checkPort")},{"CheckPort_Value",text("portValue")},
+            {"CheckHead",B(args,"checkHead")},{"CheckHead_Value",text("headValue")},{"CheckData",B(args,"checkData")},{"CheckData_Value",text("dataValue")},
+            {"CheckSize",B(args,"checkLen")},{"CheckLength_Value",text("lenValue")},{"CheckType",B(args,"checkType")},{"CheckType_Value",serialized}
+        });
+        emit_("toast",{{"level",2},{"text",Text("LeachSetting.Success","过滤设置保存成功")}});
+        return Good();
     }
     if(method=="getLogSetting")return {{"autoClear",B(config_,"LogList_AutoClear",true)},{"autoClearValue",N(config_,"LogList_AutoClear_Value",5000)}};
     if(method=="saveLogSetting"){
