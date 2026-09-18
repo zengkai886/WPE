@@ -8,12 +8,15 @@
 #include <deque>
 #include <filesystem>
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <string>
 #include <thread>
 
 namespace wpe::shell {
+
+class SuspendedProcess;
 
 // Serializes injection, named-pipe lifecycle and target commands on one
 // worker.  The UI thread only queues operations; target event frames are
@@ -32,6 +35,10 @@ public:
     void AttachPid(DWORD pid, std::filesystem::path dll, Completion done);
     void AttachLaunched(std::filesystem::path executable, std::wstring arguments,
                         std::filesystem::path dll, Completion done);
+    // A launched target remains suspended until configuration and StartHook
+    // have succeeded. AttachPid targets are already running, so this is a
+    // successful no-op for them.
+    void ResumeLaunched(Completion done);
     void CallVoid(ByteBuffer request, Completion done);
     void Detach(Completion done);
     void Stop() noexcept;
@@ -42,7 +49,7 @@ public:
 
 private:
     struct Job {
-        enum class Kind { AttachPid, AttachLaunch, CallVoid, Detach, Stop } kind;
+        enum class Kind { AttachPid, AttachLaunch, Resume, CallVoid, Detach, Stop } kind;
         DWORD pid{};
         std::filesystem::path path;
         std::filesystem::path dll;
@@ -66,6 +73,10 @@ private:
     bool stopping_{};
     std::thread worker_;
     std::unique_ptr<ShellIpcSession> session_;
+    // Kept across AttachLaunched until StartHook succeeds. Destroying an
+    // unresumed SuspendedProcess terminates the child for deterministic
+    // rollback instead of leaving a frozen target behind.
+    std::unique_ptr<SuspendedProcess> suspended_;
     std::atomic<IpcLinkState> state_{IpcLinkState::Idle};
     std::atomic<DWORD> target_pid_{};
     std::atomic_bool target_is_64_{};

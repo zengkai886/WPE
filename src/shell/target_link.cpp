@@ -38,6 +38,10 @@ void TargetLink::AttachLaunched(std::filesystem::path executable, std::wstring a
             std::move(arguments), {}, std::move(done)});
 }
 
+void TargetLink::ResumeLaunched(Completion done) {
+    Submit({Job::Kind::Resume, 0, {}, {}, {}, {}, std::move(done)});
+}
+
 void TargetLink::CallVoid(ByteBuffer request, Completion done) {
     Submit({Job::Kind::CallVoid, 0, {}, {}, {}, std::move(request), std::move(done)});
 }
@@ -74,6 +78,7 @@ void TargetLink::Attach(Job& job, bool launch) {
         try { session_->Detach(); } catch (...) { session_->Stop(); }
         session_.reset();
     }
+    suspended_.reset();
     target_pid_.store(0);
     target_is_64_.store(false);
     SetState(IpcLinkState::Attaching);
@@ -97,7 +102,8 @@ void TargetLink::Attach(Job& job, bool launch) {
     options.connect_timeout_ms = 5000;
     options.suspended_launch = launch;
     ProcessInjector::InjectAndStart(pid, job.dll, options);
-    if (suspended) suspended->Resume();
+    if (suspended)
+        suspended_ = std::make_unique<SuspendedProcess>(std::move(*suspended));
     session_->Accept(options.connect_timeout_ms);
     session_->Start();
     target_pid_.store(static_cast<DWORD>(session_->TargetPid()));
@@ -118,6 +124,12 @@ void TargetLink::Run() {
             if (job.kind == Job::Kind::AttachPid || job.kind == Job::Kind::AttachLaunch) {
                 Attach(job, job.kind == Job::Kind::AttachLaunch);
                 Complete(job.done, true, {});
+            } else if (job.kind == Job::Kind::Resume) {
+                if (suspended_) {
+                    suspended_->Resume();
+                    suspended_.reset();
+                }
+                Complete(job.done, true, {});
             } else if (job.kind == Job::Kind::CallVoid) {
                 if (!session_ || State() != IpcLinkState::Attached)
                     throw std::runtime_error("尚未连接目标进程");
@@ -125,6 +137,7 @@ void TargetLink::Run() {
                 Complete(job.done, true, {});
             } else if (job.kind == Job::Kind::Detach) {
                 if (session_) { session_->Detach(); session_.reset(); }
+                suspended_.reset();
                 target_pid_.store(0); target_is_64_.store(false);
                 SetState(IpcLinkState::Idle);
                 Complete(job.done, true, {});
@@ -132,6 +145,7 @@ void TargetLink::Run() {
         } catch (const std::exception& error) {
             if (job.kind == Job::Kind::AttachPid || job.kind == Job::Kind::AttachLaunch) {
                 if (session_) { session_->Stop(); session_.reset(); }
+                suspended_.reset();
                 target_pid_.store(0); target_is_64_.store(false);
                 SetState(IpcLinkState::Disconnected);
             }
@@ -142,6 +156,7 @@ void TargetLink::Run() {
     }
     if (session_) session_->Stop();
     session_.reset();
+    suspended_.reset();
     target_pid_.store(0); target_is_64_.store(false);
     SetState(IpcLinkState::Disconnected);
 }
