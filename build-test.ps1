@@ -21,9 +21,9 @@ function Run([string]$Executable,[string[]]$Arguments,[string]$Log) {
 }
 $manifest=[ordered]@{
     schemaVersion=1
-    testId='CPP-EXCHANGE-WIRING-011'
+    testId='CPP-EXCHANGE-WIRING-012'
     specificationSections=@('0','2.3','3.1','3.2','3.3','4.1','4.2','4.3','4.4','4.5','5.1','5.4','5.5','9.2','9.3','13.1')
-    scope='Protocol/ring, real three-channel Windows named-pipe transport with current-user ACL, shell/target session lifecycle, target headless command core, same-bitness Windows injection, and a production native target DLL whose exported bootstrap starts a real cross-process v4 session without doing work under DllMain; native SQLite, editors, plaintext XML export, private-station OS clipboard, original Vue/HexView/export/clipboard buttons and restart. x64 and Win32 inject actual child processes, transfer the versioned bootstrap record, exchange Hello/config/error/Detach, and verify absent-shell self-shutdown. The production hook DLL still deliberately refuses StartHook because MinHook/13 Winsock detours, pre-entry suspended wake choreography, real capture, proxy/executor engines and complete acceptance are not implemented yet'
+    scope='Protocol/ring, real three-channel Windows named-pipe transport with current-user ACL, shell/target session lifecycle, target headless command core, same-bitness Windows injection, a production native target DLL whose exported bootstrap starts a real cross-process v4 session without doing work under DllMain, and the vendored official MinHook 1.3.4 runtime behind an RAII hook manager tested through a live Win32 API trampoline on x64/Win32; native SQLite, editors, plaintext XML export, private-station OS clipboard, original Vue/HexView/export/clipboard buttons and restart. The production hook DLL initializes the real MinHook runtime on StartHook but still returns an explicit error because the 13 Winsock detours, pre-entry suspended wake choreography, real capture, proxy/executor engines and complete acceptance are not implemented yet'
     startedUtc=[DateTime]::UtcNow.ToString('o')
     finishedUtc=$null
     result='running'
@@ -124,7 +124,7 @@ try {
             parity=(Get-Content -LiteralPath (Join-Path $run "$arch-parity.log"))
             reverse=(Get-Content -LiteralPath (Join-Path $run "$arch-reverse.log"))
             ring=(Get-Content -LiteralPath (Join-Path $run "$arch-ring.log"))
-            artifacts=@($test,(Join-Path $build 'Release\wpe64-pipe-test.exe'),(Join-Path $build 'Release\wpe64-session-test.exe'),(Join-Path $build 'Release\wpe64-headless-core-test.exe'),(Join-Path $build 'Release\wpe64-injector-test.exe'),(Join-Path $build 'Release\wpe64-inject-target.exe'),(Join-Path $build 'Release\wpe64-inject-probe.dll'),(Join-Path $build 'Release\wpe64-injected-session-test.exe'),(Join-Path $build 'Release\wpe64-injected-session-target.exe'),(Join-Path $build 'Release\wpe64-hook.dll'),(Join-Path $build 'Release\wpe64-common.lib'),(Join-Path $build 'Release\wpe64-target-core.lib'),(Join-Path $build 'Release\wpe64-injector.lib'),$packets,(Join-Path $build 'CMakeCache.txt')) | ForEach-Object {[ordered]@{path=$_;sha256=(Hash $_)}}
+            artifacts=@($test,(Join-Path $build 'Release\wpe64-pipe-test.exe'),(Join-Path $build 'Release\wpe64-session-test.exe'),(Join-Path $build 'Release\wpe64-headless-core-test.exe'),(Join-Path $build 'Release\wpe64-hook-manager-test.exe'),(Join-Path $build 'Release\wpe64-injector-test.exe'),(Join-Path $build 'Release\wpe64-inject-target.exe'),(Join-Path $build 'Release\wpe64-inject-probe.dll'),(Join-Path $build 'Release\wpe64-injected-session-test.exe'),(Join-Path $build 'Release\wpe64-injected-session-target.exe'),(Join-Path $build 'Release\wpe64-hook.dll'),(Join-Path $build 'Release\wpe64-common.lib'),(Join-Path $build 'Release\wpe64-target-core.lib'),(Join-Path $build 'Release\wpe64-hook-runtime.lib'),(Join-Path $build 'Release\wpe64-minhook.lib'),(Join-Path $build 'Release\wpe64-injector.lib'),$packets,(Join-Path $build 'CMakeCache.txt')) | ForEach-Object {[ordered]@{path=$_;sha256=(Hash $_)}}
         }
     }
     if($Architecture -contains 'x64' -and $Architecture -contains 'Win32'){

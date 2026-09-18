@@ -1,5 +1,6 @@
 #include "injected_runtime.h"
 #include "headless_core.h"
+#include "hook_manager.h"
 #include "common/ipc_session.h"
 #include <Windows.h>
 #include <string>
@@ -32,13 +33,15 @@ public:
         // Deliberately fail instead of reporting a fictitious HookState. This
         // bootstrap slice establishes the real injected DLL/session lifetime;
         // the production MinHook backend replaces this controller next.
-        throw ProtocolError("Winsock hook backend is not linked");
+        manager_.Initialize();
+        throw ProtocolError("Winsock detours are not configured");
     }
 
     void StopHook() override {}
 
 private:
     bool suspended_launch_{};
+    HookManager manager_;
 };
 
 } // namespace

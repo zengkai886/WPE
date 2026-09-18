@@ -1,0 +1,1346 @@
+{
+  "schemaVersion": 1,
+  "testId": "CPP-EXCHANGE-WIRING-012",
+  "specificationSections": [
+    "0",
+    "2.3",
+    "3.1",
+    "3.2",
+    "3.3",
+    "4.1",
+    "4.2",
+    "4.3",
+    "4.4",
+    "4.5",
+    "5.1",
+    "5.4",
+    "5.5",
+    "9.2",
+    "9.3",
+    "13.1"
+  ],
+  "scope": "Protocol/ring, real three-channel Windows named-pipe transport with current-user ACL, shell/target session lifecycle, target headless command core, same-bitness Windows injection, a production native target DLL whose exported bootstrap starts a real cross-process v4 session without doing work under DllMain, and the vendored official MinHook 1.3.4 runtime behind an RAII hook manager tested through a live Win32 API trampoline on x64/Win32; native SQLite, editors, plaintext XML export, private-station OS clipboard, original Vue/HexView/export/clipboard buttons and restart. The production hook DLL initializes the real MinHook runtime on StartHook but still returns an explicit error because the 13 Winsock detours, pre-entry suspended wake choreography, real capture, proxy/executor engines and complete acceptance are not implemented yet",
+  "startedUtc": "2026-09-18T03:06:17.8398242Z",
+  "finishedUtc": "2026-09-18T03:10:06.2001124Z",
+  "result": "passed",
+  "runDirectory": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477",
+  "command": "E:\\codex\\2026-09-17\\bi-a\\outputs\\WPE64-Cpp\\build-test.ps1 -BuildRoot E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2 -Architecture x64,Win32",
+  "architectures": [
+    {
+      "architecture": "x64",
+      "result": "passed",
+      "parity": "PASS: 74684 original C# vectors; 76618 assertions; 600 native packet frames. Pointer bits=64",
+      "reverse": "Original C# decoder accepted 600 native packet frames; all bytes and decoded fields match.",
+      "ring": "PASS: packet ring edges/concurrency; 6416 original state-transition vectors",
+      "artifacts": [
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\x64\\Release\\wpe64-parity-test.exe",
+          "sha256": "6B7DE82CED62FD3C26738C549DF1DB5C4B5133A868EC5769E963B16BB78DE4B6"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\x64\\Release\\wpe64-pipe-test.exe",
+          "sha256": "7D2B2AD54A7EA932FC9C207D09F48F33BEFAC7ABD2ECEA283AE053B56AE188C1"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\x64\\Release\\wpe64-session-test.exe",
+          "sha256": "7D2DD46ADFFBCFB6944FCCB0C759C65327CB8FC21E16A42C8D6B03A98489C0B3"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\x64\\Release\\wpe64-headless-core-test.exe",
+          "sha256": "A4A124F397DF787A6B4B099D9BA370E001570B178C8FBCAC69C67ECB9DE4523A"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\x64\\Release\\wpe64-hook-manager-test.exe",
+          "sha256": "3504A2E59596534F5CEA73154B7A72C200F4133B51D0710C219AD65FEE125A11"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\x64\\Release\\wpe64-injector-test.exe",
+          "sha256": "057F6ACEEF05734539739A0A9232F8BC67F6B323C5AE93ED4E084BF440ACD84D"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\x64\\Release\\wpe64-inject-target.exe",
+          "sha256": "E1F7C5979CF6CB01A118A03DDDD4C30B11C8356C3AF8F9B56155F923F238FF1E"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\x64\\Release\\wpe64-inject-probe.dll",
+          "sha256": "23FC09C1F256C9EF3E07BCD0202F45875622E6141FF8AFBA310495684E65C1A6"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\x64\\Release\\wpe64-injected-session-test.exe",
+          "sha256": "55E8BB70D42AA9563D06AA396D872E9AEC9342576ED1AD88BE36567A67B6A287"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\x64\\Release\\wpe64-injected-session-target.exe",
+          "sha256": "7B9C3305CF3A094048D47EF849E43E0E1536B45121420BE0880664CCF63BE12B"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\x64\\Release\\wpe64-hook.dll",
+          "sha256": "B17D9D97E0C81960D4C72900EBF6DF66E892B77870550D0040CDACA61E8CBD09"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\x64\\Release\\wpe64-common.lib",
+          "sha256": "25C51203D5E19359C1366ADD47E90A0E8F1B0B6E7614F6FDC32DC1BC675E9446"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\x64\\Release\\wpe64-target-core.lib",
+          "sha256": "319A3EF4027009DB32B65159B851792EA0EF9FEE0397915850B29B936C562A17"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\x64\\Release\\wpe64-hook-runtime.lib",
+          "sha256": "B0CF61A570E422F1AA319937060CF6296B8E13647CE61FBF5A0D22ABED9DA93E"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\x64\\Release\\wpe64-minhook.lib",
+          "sha256": "3B4D586B6A9D64C86D3B1B4270E36CA0171E099B21AC1E3F8D91222360C0142F"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\x64\\Release\\wpe64-injector.lib",
+          "sha256": "E98DAAA92DD40225C13652CBEAC0F730302979637F7E354F943B480397FE4383"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\x64-packets.tsv",
+          "sha256": "982050FA8F316304A79A30ED787A390BC6F2220E48E0AE40E757151F0C8EEE47"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\x64\\CMakeCache.txt",
+          "sha256": "ADC6D4A7270B742B30087B06E4BC69AB0A4C82BF05A1DCF0308E4A10C2B33E29"
+        }
+      ]
+    },
+    {
+      "architecture": "Win32",
+      "result": "passed",
+      "parity": "PASS: 74684 original C# vectors; 76618 assertions; 600 native packet frames. Pointer bits=32",
+      "reverse": "Original C# decoder accepted 600 native packet frames; all bytes and decoded fields match.",
+      "ring": "PASS: packet ring edges/concurrency; 6416 original state-transition vectors",
+      "artifacts": [
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\Win32\\Release\\wpe64-parity-test.exe",
+          "sha256": "83323264C2F52E3955952ED0317E43D4C25170D4E5AFE6E5CD840C3AE14EC4E3"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\Win32\\Release\\wpe64-pipe-test.exe",
+          "sha256": "BE9EFCEB0520E3E8E9EAA51CB1898EBA5FE28B514F92619FF625AC05A5207F89"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\Win32\\Release\\wpe64-session-test.exe",
+          "sha256": "BC8E0B27C15640E8B9D9F7195FF4162297B508081BA2BBDC64649F3377184EA0"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\Win32\\Release\\wpe64-headless-core-test.exe",
+          "sha256": "CD50BBF1B7DCDDA563578B95FA1BA3E96FFAE9F7C57A29482E4C4378C19D9B1F"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\Win32\\Release\\wpe64-hook-manager-test.exe",
+          "sha256": "66ADDE86EC657DF52E7A2ECB9E66E376AEF87BF1AFEBF1B4787BBFA52E473D2D"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\Win32\\Release\\wpe64-injector-test.exe",
+          "sha256": "8AC6D29FA384C155F5DBCAB2A453FBAE5670B28F1EF30DC0662409C3B4046F20"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\Win32\\Release\\wpe64-inject-target.exe",
+          "sha256": "7675292818C06B933709B32BDE739CDC61F711B7073CD56C655B01C7B74A18AD"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\Win32\\Release\\wpe64-inject-probe.dll",
+          "sha256": "00F75E50D1C33C54AB4B403474D4C842990D637DE0BB2E787D564B0446BDF4CB"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\Win32\\Release\\wpe64-injected-session-test.exe",
+          "sha256": "E693FF2BBB65C4DEBC4200EAFAC71121372082FFAA0CC48459B4E1993EAF168C"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\Win32\\Release\\wpe64-injected-session-target.exe",
+          "sha256": "60938675B53897F264161F003AB99DEBAA0A272F42FA02138777B00720692525"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\Win32\\Release\\wpe64-hook.dll",
+          "sha256": "9F6A1250B470A5D9EFD698AB0C5FAC0E6E8B319DD023C02161713247A4BADE3B"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\Win32\\Release\\wpe64-common.lib",
+          "sha256": "2D7499F976FDF541C13673E5C6132609F91CBDD202EC0E050DC817C75BBD5A2E"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\Win32\\Release\\wpe64-target-core.lib",
+          "sha256": "E083D2AF3125C05FA01B882094E914883BF362DA27040B4F861CFCC038792624"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\Win32\\Release\\wpe64-hook-runtime.lib",
+          "sha256": "A331CCF72E80CB3B981A345632E21EEEB96E9171D0D9006DC4E785008C13B9F2"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\Win32\\Release\\wpe64-minhook.lib",
+          "sha256": "DB3FEEDFE605A7AF1683B62CA5062CAB59D1B7B0A484B2938B0B8AD95AF0FC55"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\Win32\\Release\\wpe64-injector.lib",
+          "sha256": "5B940D17B90730CF44644E8C9ACA1167E6E8FA30E795726B92A0498FEF887F28"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\Win32-packets.tsv",
+          "sha256": "982050FA8F316304A79A30ED787A390BC6F2220E48E0AE40E757151F0C8EEE47"
+        },
+        {
+          "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\Win32\\CMakeCache.txt",
+          "sha256": "6CE2FFD3E58AE1C8FE2327AEB1B3FE319DD7BE4B389BDF51F2B1ED801BCDB832"
+        }
+      ]
+    }
+  ],
+  "cleanup": "Owned test processes, WebView2 controller and named-pipe instances closed. No injection, target hooks, certificates, system proxy or listening sockets. Only isolated test SQLite databases and WebView2 profiles changed; retained under the external build directory.",
+  "sourceArchiveSha256": "1F524B84621F064ACD91C3F9D764D1ADDF19AC42019E7FCEDE11BF55EA536113",
+  "specification": {
+    "activeSpec": "docs/用户提供-重写工程文档-更新版.md",
+    "sha256": "ADC3CB20083449584B4319FF68595B654DF31E995740EADC32D62331DB33AC59",
+    "supersedes": "docs/用户提供-重写工程文档.md",
+    "ui": "Original Vue3 + native C++ WebView2 host; Qt not required",
+    "updatedUtc": "2026-09-17T12:31:58.1004181Z"
+  },
+  "dependencies": {
+    "libraries": [
+      {
+        "name": "nlohmann/json",
+        "version": "3.12.0",
+        "source": "https://github.com/nlohmann/json/releases/tag/v3.12.0",
+        "license": "MIT"
+      },
+      {
+        "name": "Microsoft.Web.WebView2",
+        "version": "1.0.4191.47",
+        "source": "https://www.nuget.org/packages/Microsoft.Web.WebView2/1.0.4191.47",
+        "license": "See third_party/webview2/LICENSE.txt and NOTICE.txt",
+        "runtimeBundled": false
+      },
+      {
+        "name": "SQLite",
+        "version": "3.46.1",
+        "source": "https://www.sqlite.org/2024/sqlite-amalgamation-3460100.zip",
+        "license": "Public domain; see header of sqlite3.c"
+      },
+      {
+        "name": "MinHook",
+        "version": "1.3.4",
+        "source": "https://github.com/TsudaKageyu/minhook/releases/tag/v1.3.4",
+        "license": "2-clause BSD; see third_party/minhook/LICENSE.txt"
+      }
+    ],
+    "files": [
+      {
+        "path": "third_party\\nlohmann\\json.hpp",
+        "sha256": "AAF127C04CB31C406E5B04A63F1AE89369FCCDE6D8FA7CDDA1ED4F32DFC5DE63"
+      },
+      {
+        "path": "third_party\\nlohmann\\LICENSE.MIT",
+        "sha256": "46A65CFFD1EA955132D95A8DD921640714A8D6B537D2E4E482D31145AE95B603"
+      },
+      {
+        "path": "third_party\\webview2\\include\\WebView2.h",
+        "sha256": "DFF1E3181EC7EC203A34EF6EFA966590E0EF0BA1A5C3FE3B69DA6508C2F8A02E"
+      },
+      {
+        "path": "third_party\\webview2\\LICENSE.txt",
+        "sha256": "0AF8F1B807512AAE39C2AC1AA4D0CAE65CABECB6FD554B8439A5162A0D6ECA55"
+      },
+      {
+        "path": "third_party\\webview2\\NOTICE.txt",
+        "sha256": "106423785C5B7EBA0A8E61D1837F2132E9C828E20AD530F565D981C1DF60DD90"
+      },
+      {
+        "path": "third_party\\webview2\\x64\\WebView2LoaderStatic.lib",
+        "sha256": "79723D3395C26F103275EF043062AF41B87542C2668386DDC70CDCA367720C2D"
+      },
+      {
+        "path": "third_party/sqlite/sqlite3.c",
+        "sha256": "6C35BC5F7F85EAC9C49928BACBB02BB694B547AABF69197E058CCA245AD80E83"
+      },
+      {
+        "path": "third_party/sqlite/sqlite3.h",
+        "sha256": "89B62C671C5964E137409CE034941B7B05A3AF2C9875ABA41F47F9483D0C2515"
+      },
+      {
+        "path": "third_party\\minhook\\include\\MinHook.h",
+        "sha256": "62DFF05E63155C6BF8135C36A0D79DEDBDCAAEDE9DA26FE38DAF0BEA34323E38"
+      },
+      {
+        "path": "third_party\\minhook\\LICENSE.txt",
+        "sha256": "D5C2224982B0B95A16B098A561335FA93F3EAF4D0AA964B7843EDB986DF78DC8"
+      },
+      {
+        "path": "third_party\\minhook\\src\\buffer.c",
+        "sha256": "0AB484D7870C3A8E7A3A1EE61E2070072CF445ED85B619D4C4207FED34356D99"
+      },
+      {
+        "path": "third_party\\minhook\\src\\buffer.h",
+        "sha256": "9769702BD625249E59A19EDE05C84365FCC7707E1FA0E5DF08DF42227CEE13E3"
+      },
+      {
+        "path": "third_party\\minhook\\src\\hde\\hde32.c",
+        "sha256": "5DA4941E9044F7B325C7F952B5840089E365F374740B7FE7318805D08C0D6C32"
+      },
+      {
+        "path": "third_party\\minhook\\src\\hde\\hde32.h",
+        "sha256": "5132DE5BE8AC7A9D054420F5CAEF0FB01437FAA892F03B3CDC77F795973BF15A"
+      },
+      {
+        "path": "third_party\\minhook\\src\\hde\\hde64.c",
+        "sha256": "824EAFA315322E6DA105A7CE4EC1FC0E0ADEEE0106D32152FBB0B59E709BD15C"
+      },
+      {
+        "path": "third_party\\minhook\\src\\hde\\hde64.h",
+        "sha256": "E99AA4997BDA14B534C614C3D8CB78A72C4ACA91A1212C8B03EC605D1D75E36E"
+      },
+      {
+        "path": "third_party\\minhook\\src\\hde\\pstdint.h",
+        "sha256": "604D1CDF45C5A95BC9CF1BBF39CA05EF83013541101D34971C5CD7577E3D5247"
+      },
+      {
+        "path": "third_party\\minhook\\src\\hde\\table32.h",
+        "sha256": "43BF687A9FFF071B5F46070DB4D36C846F8E069CDC57485EE897C499AACDDE23"
+      },
+      {
+        "path": "third_party\\minhook\\src\\hde\\table64.h",
+        "sha256": "B774446D2F110CE954FB0A710F4693C5562DDBD8D56FE84106F2EE80DB8B50A2"
+      },
+      {
+        "path": "third_party\\minhook\\src\\hook.c",
+        "sha256": "EDCCE4C81985D7DD5B73FEAE96D6498C8F749B1BCA4C3D2D9926EA9A17A84755"
+      },
+      {
+        "path": "third_party\\minhook\\src\\trampoline.c",
+        "sha256": "F13A169F803FF5A8E45C58CE668B4377A9878C0FC4452369B8A1325065186B2B"
+      },
+      {
+        "path": "third_party\\minhook\\src\\trampoline.h",
+        "sha256": "53ED9934492320617A27BFD952FFE7F5B7A4A1D09963D4512447082FE7B727B4"
+      }
+    ]
+  },
+  "dataOracle": {
+    "description": "Original net48 oracle: 120 filter edits, 184 editor calls, plaintext/shallow export; four parent-list serializers, SystemConfig plus ProxyMode/InjectMode, WhiteList/BlackList and ProxyAccountList backup settings, original ACP936 batch-account XLS, 56 AES cipher vectors (ACP936) including Unicode/NUL; product does not run original C#",
+    "originalAssemblySha256": "76C33B88188F7F921AE5B21117533FF1D3F1861A04A723B8087DE42B17E5FEED",
+    "originalSources": [
+      {
+        "path": "Operate.cs",
+        "sha256": "CE6FD21472844CE23B63CBF27C74DB331562F7CAADA631C2C8269500CD07587F"
+      },
+      {
+        "path": "ShellForm.cs",
+        "sha256": "86D277408D233903EC82FFE8F06A2CD1995898617C477A1F181046EBE0F72F12"
+      },
+      {
+        "path": "ClassObject/Ui/FeedRows.cs",
+        "sha256": "5FE551577ACAE5DEB01DA779ACD96D27C54A7D2DC7FB4C478B899B1AE9A41887"
+      },
+      {
+        "path": "ClassObject/Ui/UiPrefs.cs",
+        "sha256": "4FFEDCBAAF075EA0BA7139BAFEE1A355713F7F518CC945155B3A7D71AFDFE653"
+      }
+    ],
+    "files": [
+      {
+        "path": "contracts/original-rpc.json",
+        "sha256": "E806839BDD1E6CAA15F46A0570249603F0BE9A7328373F02DE50A5D46AACF987"
+      },
+      {
+        "path": "contracts/original-schema.json",
+        "sha256": "4647470D26FD9005D2D2E85E89B5AE4F24AF77606DAD952C7E82DEA315BA017A"
+      },
+      {
+        "path": "src/shell/config_xml_fields.h",
+        "sha256": "89B14E5FC9A0603E96D8C924E9622C1EE3CA6AAC388F85AEF6D9AAFB2B620864"
+      },
+      {
+        "path": "src/shell/data_l10n.h",
+        "sha256": "603AF4E59055E012005AC493059B3C38A3504F6067C74B008414E159EA2CC9BB"
+      },
+      {
+        "path": "src/shell/data_schema.h",
+        "sha256": "D9D33C999CDA2FB56ED18DB58DFA18B11BA4EFE5C3598708545923970AD6362B"
+      },
+      {
+        "path": "tests/data_oracle/ConfigFileOracle.cs",
+        "sha256": "9C8BD46F7EDCA32318B455D2AF720653F48BAC640ACBAD94ED54A2FDCED93150"
+      },
+      {
+        "path": "tests/data_oracle/DataOracle.csproj",
+        "sha256": "8BC1DC2B4907BF27EB37EA6BDF17E39DB1C4028E7AA97DAE9A9D89018E26B84A"
+      },
+      {
+        "path": "tests/data_oracle/EditorOracle.cs",
+        "sha256": "ED0B0DAA3CE794E06417ED970E8D307A88ECBCEF728F278801302E034C8B9655"
+      },
+      {
+        "path": "tests/data_oracle/ExportOracle.cs",
+        "sha256": "CC2D0A3074D0750C18D9139D1CA70BDE893BDF5C00552328D8E2EC031AB1C5A8"
+      },
+      {
+        "path": "tests/data_oracle/ExportSnapshotOracle.cs",
+        "sha256": "F6AAF7CA21473AD545A1EFC2F6EB8CD4AAA29335015D1F63C9A179DE7BA31976"
+      },
+      {
+        "path": "tests/data_oracle/extract_contracts.py",
+        "sha256": "DF3D6E56C3F4838631961A9D873B3BC4789201632B67C8EE1FDE3E70CF2D3145"
+      },
+      {
+        "path": "tests/data_oracle/extract_xml_fields.py",
+        "sha256": "5778D918AAD919677644191F05F711CD84928D04E96F6B89DE9DF8347A14F03F"
+      },
+      {
+        "path": "tests/data_oracle/Program.cs",
+        "sha256": "1067A2BB83735CDD0838291CF3E2A731488D253FAC2015A2E5B2B50FEE1591DC"
+      },
+      {
+        "path": "tests/fixtures/config-files/edges/namespace-input.xml",
+        "sha256": "8800B57DC61FFBBE2F8404BC24E68183D2D21B4E50FAAECCB618BB9320FCB7DE"
+      },
+      {
+        "path": "tests/fixtures/config-files/edges/namespace-original.xml",
+        "sha256": "428D821D65715392134CCD09FBD22DF4D8DEEAE9CFD483CBD5636B88DD7EC136"
+      },
+      {
+        "path": "tests/fixtures/config-files/edges/namespaced-root-input.xml",
+        "sha256": "276C14ACFAEF6C5930C4C51FA5F075D093C0D34FABA779A14CC7721360A24D63"
+      },
+      {
+        "path": "tests/fixtures/config-files/edges/namespaced-root-original.xml",
+        "sha256": "428D821D65715392134CCD09FBD22DF4D8DEEAE9CFD483CBD5636B88DD7EC136"
+      },
+      {
+        "path": "tests/fixtures/config-files/edges/trailing-input.xml",
+        "sha256": "85C76BAF04AA7FBDC9A6295335902D5F3D9C0F239A7EF3731179E3E97472B6DB"
+      },
+      {
+        "path": "tests/fixtures/config-files/edges/trailing-original.xml",
+        "sha256": "1F4CF310E45BD8F418EC908FA26C4995A969DD0E177B19BCA2C9FE70B3AFC826"
+      },
+      {
+        "path": "tests/fixtures/config-files/input.fp",
+        "sha256": "46E41081D303A89BC5D8285983A8D08410ABC7BE40561029CA5F78C14550D9D4"
+      },
+      {
+        "path": "tests/fixtures/config-files/input.rp",
+        "sha256": "6FE604E0CCB25EFA65554D6468EDFD5C95FE1A2896D69D415D849721DAAC4CA1"
+      },
+      {
+        "path": "tests/fixtures/config-files/input.sp",
+        "sha256": "BA046C99E85AF17897BE109AB39C012DDA800364C5BA72DD1323F77E0403892D"
+      },
+      {
+        "path": "tests/fixtures/config-files/input.whp",
+        "sha256": "95143C218F5E2C983F54A083E3F3CCC27E19C1F55B00EFE3437B7CA88DF1677B"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/crypto.json",
+        "sha256": "29F4C43EEC22B573FF3C3374C7718A09B7865CF6D7CD9932E127FA4B9716D52F"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/fp-0.encrypted",
+        "sha256": "0A32F6611DD0AD21249BB11E497BB01DC1A5C0FB6C77E0725A094EFE8E34FB00"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/fp-1.encrypted",
+        "sha256": "765906ECA12E9C5EBA6FC2740C943D519A2410805FF60689420EC41BC933D9CE"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/fp-2.encrypted",
+        "sha256": "7B1FF524482C46BAE9E2BED6F0C9AF3791771335F0DA2F670A25690674C17128"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/fp-3.encrypted",
+        "sha256": "58E932658F54E804297E2C04B8A3D4FD05627D66D466A0916FE19AB67652D629"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/fp-4.encrypted",
+        "sha256": "85B65EA4938C7FBF7F1AE84339004001B50607D026768E790FB31EAD7D49E7BC"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/fp-5.encrypted",
+        "sha256": "2990AFB1047F74C829119A327A8127189B978BFFD9EE6365594E1297CE40CF6D"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/fp-6.encrypted",
+        "sha256": "483FA1E728C7D6213B19C1715A9DD2F6D63ABA0C8F0B7384D432039373D199D9"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/inject.xml",
+        "sha256": "4E71B8704409B260BD2CC47B8592553E30689468CA6B82CA180937E60DD88655"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/original.fp",
+        "sha256": "11E55AF4B60722B23679505F570CEE6F0D1C49AA673654B3225014CA23914CAA"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/original.rp",
+        "sha256": "C9DD50A254CCFA9BE5E742BC650ABD2F46570DD803785743A770F609F701ADA6"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/original.sb",
+        "sha256": "BD4134C74AB00130D6D25968BC315851B327EEEC5CE1B2FF700E170A34F6F39A"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/original.sp",
+        "sha256": "428D821D65715392134CCD09FBD22DF4D8DEEAE9CFD483CBD5636B88DD7EC136"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/original.whp",
+        "sha256": "CAD7FB5FD5050AF592FE012CEAFA902378F5DFB85C9CF01871916B9315EA1766"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/proxy.xml",
+        "sha256": "E4C2712900B1B74A52C77FA841DC223C6329CE8A8A54D89BEBF505DC7E7EE868"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/rp-0.encrypted",
+        "sha256": "8D833B069EB9F6F71592FDCAB61AFE7C3673CD4AC960539A72F8F68E08EA90F5"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/rp-1.encrypted",
+        "sha256": "E7E90FF7B1DD8309B4FDD2376E6980187681584460B00C1548804515B18EB84C"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/rp-2.encrypted",
+        "sha256": "DC873E836822047927C078ADD56BDFF374997F1938C3815D70F01E208C361FAD"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/rp-3.encrypted",
+        "sha256": "87FF6F931CF7E7E1C2428F4115E2B13606AE83CB6701FB6944577B39F17849B5"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/rp-4.encrypted",
+        "sha256": "6AD7166AE4C33FE26B414B452BF22EC710BD83A01EA8E8A872E48F94A9CA04E4"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/rp-5.encrypted",
+        "sha256": "EF26C8482BF58992EE53E92A6BE04362E12E70F2E904028117081934F99A1CEC"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/rp-6.encrypted",
+        "sha256": "D3C0DC0C47B0CE4C9A6D0D91079453D574D700EECDA7C95339213DF9B52BFE5E"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/sb-0.encrypted",
+        "sha256": "CC9CAE1A3433FF5D8845DBA2CD6B279939606180286958106E21564A33DF9F4A"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/sb-1.encrypted",
+        "sha256": "7732E2C8088AD41024B1C2B0A3E1B50863896B2823D610ED9192837FA13F3130"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/sb-2.encrypted",
+        "sha256": "69937A80AE91A0EEF012873C9593729FE9947D7A8334DD9B40E35DC2688B87AC"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/sb-3.encrypted",
+        "sha256": "81FC39E9FFB5E962C89037F12C2DFB8D73DA8622EC6565B148A2CC2459F749EC"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/sb-4.encrypted",
+        "sha256": "995BC687B6B187AD86D741EFB42D4EF94F79FE2A85C8EC6BC04D4F8042143458"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/sb-5.encrypted",
+        "sha256": "191DDC282D195618E185ACF0AE4B4287077C2948BBCFF0FBCF0DFEEFAC889A79"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/sb-6.encrypted",
+        "sha256": "3CC3CB3A6C71D27FD7F11114085D4912BD980F052959B2E2284FE616049127DF"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/settings.sb",
+        "sha256": "B72A5BD8EE99C6BC31C84FEA6C0F73E82563C2EF02EA88CDC0B7792AAE49816C"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/sp-0.encrypted",
+        "sha256": "4CCD8B3C675BFDACF6D32824A219A7D0AD1859A914A36EE00FF68E50651AFB0A"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/sp-1.encrypted",
+        "sha256": "1F9697667A2ECAFF3DEE31E5ECE863D2A241984172BF771A9D1E218AE5DA4A4F"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/sp-2.encrypted",
+        "sha256": "1A482611A1D73AB8FCB94B93F77B87EAAF90D42E2429DE4E735E6637BD48FBCB"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/sp-3.encrypted",
+        "sha256": "238E9C7DEB0F5688EAF54766DD5EA45BCCA8E7A76B7FEBC815CB5BF3919405D5"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/sp-4.encrypted",
+        "sha256": "834C3A310FD815B9DB3C689324D092219C8024E9280C9F9FCAC36FBEA572DA68"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/sp-5.encrypted",
+        "sha256": "5440409CBFB07B1C28E1DA90A2E9E57814C132F847A903D61D358EE8EAE1AB13"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/sp-6.encrypted",
+        "sha256": "031023A4D5CCB99732956FB985D1FA98E5439AA21968575FB2E9899EEC841272"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/system-before-import.xml",
+        "sha256": "CB191E65C5A0D82043284972E7C5638EE3BC052F7BF588C8E7502B44451A1F24"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/system.xml",
+        "sha256": "5AEB9E47F068C4CCC1C6EEAECE8D6E73BEDF4475C276AFAEA82E0F050E8695FD"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/whp-0.encrypted",
+        "sha256": "B90B5509FA14E1B67605DB0991F796FA93A42B58322B9ABB634DB0611457C93C"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/whp-1.encrypted",
+        "sha256": "00C0F1C66C7C5E5AD51AF4BCC79183404AE8EDB688E0AC33184C8FE5ED23F24E"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/whp-2.encrypted",
+        "sha256": "CB535F2B0F7DCB70FF320F250E03662D04A3E01A522A8381C0F44BB42275E902"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/whp-3.encrypted",
+        "sha256": "64C80A689AEA92AA3BA2447DCB7471405CC9703C8954BA5E7B41A1F7E0CAD244"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/whp-4.encrypted",
+        "sha256": "E6F6951D797A1A45D7CAB329539B87B96EA44BD1A37CFF55CE70C60BB6AEDC8A"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/whp-5.encrypted",
+        "sha256": "B431CA1707D74AA71BF46E84F64FA5DB780074186DAEF7C9CDEDB8F5D23BF269"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/whp-6.encrypted",
+        "sha256": "7BF796C61BE972980E866B5CE8B2E2E3E4BA63B2938192DE1E432DA2B47F2182"
+      },
+      {
+        "path": "tests/fixtures/config-files/system.xml",
+        "sha256": "B70D49C5BF9C1E847DE397765677712A740D357D54CB30AD37E0AB9BF0929798"
+      },
+      {
+        "path": "tests/fixtures/editor-send.sc",
+        "sha256": "D5B1943B1C6CF287C17368A4D536EBBDD81BA334965E4AB481FC132675ADE453"
+      },
+      {
+        "path": "tests/fixtures/editor-sequence.json",
+        "sha256": "9D27D72746813522569622DD4D6BF32156A3710F038897F2A68AA1CEC87B342B"
+      },
+      {
+        "path": "tests/fixtures/editor-stores.whs",
+        "sha256": "8DBDF3F7808576945353995974801731FC3D168F8FD91B6C1E8962234CB95507"
+      },
+      {
+        "path": "tests/fixtures/export-edge/editor-send.sc",
+        "sha256": "51D89A68F81A08EF2D8004917ECCC103B5715C54821C78EDC8A1F2598FE9BD67"
+      },
+      {
+        "path": "tests/fixtures/export-edge/editor-stores.whs",
+        "sha256": "8DBDF3F7808576945353995974801731FC3D168F8FD91B6C1E8962234CB95507"
+      },
+      {
+        "path": "tests/fixtures/export-edge/export-original.sc",
+        "sha256": "05957E8906EF0BD277124434CA9574C569E858371F615E71DCF41CAA5AEA64A9"
+      },
+      {
+        "path": "tests/fixtures/export-edge/export-original.whs",
+        "sha256": "A1C740E783FCBD0B1CFC5BDA9EA716857FE1C04D11A82188D7EDD5796195A51D"
+      },
+      {
+        "path": "tests/fixtures/export-original.sc",
+        "sha256": "186093792C83A0874BAA4B4DF0B2723A737BD7C18533FE4F9F5457EBA0C0443C"
+      },
+      {
+        "path": "tests/fixtures/export-original.whs",
+        "sha256": "A1C740E783FCBD0B1CFC5BDA9EA716857FE1C04D11A82188D7EDD5796195A51D"
+      },
+      {
+        "path": "tests/fixtures/filter-edit.json",
+        "sha256": "C4A5B86B703592BD032FCAFD8286500BDA961746BBC80446C6DA07EF3A5A8779"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/original.wl",
+        "sha256": "F4A89676815BA67A0DCAC805010D1C9B452524999DA05FE03FF02DD06D44894E"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/original.bl",
+        "sha256": "4E14F5388822AC9D80CF42922D1BFB8E2164607F44FDA14B5324A52D30AC7228"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/ip-rules.sb",
+        "sha256": "69BEF88B89A25FC010136D1B424B6A170C807AA38594874CE6DBA5FADF1FB5F9"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/supported-nine.sb",
+        "sha256": "4280ADF9EF2F717ABD4A0FC95F644A04EBD4E734D52FBA1084738D280B114D69"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/wl-0.encrypted",
+        "sha256": "947AF5EFCE5C5343DE09C5C615F308C6F2FA842046C098F290F2E24E7F6B86F1"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/wl-1.encrypted",
+        "sha256": "E8B707455750C43AECD91CB45BAB7AA14A96FA7A2CF4988FB7E3717B042A6722"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/wl-2.encrypted",
+        "sha256": "9A6EA0AC1E4BC98A0D1993776D9EEF5A96CBAB5F48B5028EB719E1DC6889A790"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/wl-3.encrypted",
+        "sha256": "C93E7163921DB9F2D01B467291FDFFCB1797C603C86402647586D78E3286E65C"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/wl-4.encrypted",
+        "sha256": "431A7AFA7E667B9DD3307DE722A99393A812BF84AC333076E3F4A649BB01CAC2"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/wl-5.encrypted",
+        "sha256": "28562D74A5D099BA93CAD200B2FFFE8AC2A727EF3EBF5AD9F73B37BA2A8B6415"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/wl-6.encrypted",
+        "sha256": "A9C22192711B037EDD2A39C903C1DFEE1ABB46945140C6170D638ED3DF5C7E17"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/bl-0.encrypted",
+        "sha256": "6D60250478ED987FD2F90C6741C388D1638E73F4835CC1320BA12FC749329B8E"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/bl-1.encrypted",
+        "sha256": "5B753796B5B84273992C1BC1848898C3F837FCAD589F704B295D6DF6FDD7724D"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/bl-2.encrypted",
+        "sha256": "20631F8FCC8134339D7BA3F0C16D1A409BCF0D306CD4C99D76FAC67660EC9258"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/bl-3.encrypted",
+        "sha256": "7829A73932103A517CA90FF5DAFB05F6316CB2DE59FAC4604BB2ECBC342FCEAB"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/bl-4.encrypted",
+        "sha256": "BED0F75EA38E70CEDBBADBF47F2D91B956FDDF0C4B270587527E2B90AEAA7D6E"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/bl-5.encrypted",
+        "sha256": "5EA8F860A4482D2328394A92ED1F4E495C82AA4F99343CA8B70EB94081A424DF"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/bl-6.encrypted",
+        "sha256": "2723FA5CE692FF8C26328E1D42A5B17B938F3E647AB737E1C3568FF34463A721"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/original.pa",
+        "sha256": "B20620478C4FF345F707B4AEF095F3F649CD1406C4D7AD5824C7D87B89AAC57C"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/accounts.sb",
+        "sha256": "DA7DCA72AF8AEB7FB5E4B0576C9875BF7B63B09AE76CB6F720DEC35E6710A9CE"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/supported-ten.sb",
+        "sha256": "CB47B558707F0A34911E12FA97B1E26271A83110B309DF8FC2F23239B5DDA812"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/pa-0.encrypted",
+        "sha256": "0BF5A48AC523C534B4DD88085C7A762623955D2E2DC0C6DD49DA14C693A4F345"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/pa-1.encrypted",
+        "sha256": "1C78A953A3E60859FC6D1408273D6E072D586F49C92A445FC5F6D0F494FE244D"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/pa-2.encrypted",
+        "sha256": "AD9201E9B62AAC05B55791C90E1DAC68127B3FC957229A8512FE9988A8230713"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/pa-3.encrypted",
+        "sha256": "8B6501359E893491457C3F61434AE349FE93B704BCFDFAA4EEDFD419C85E88F9"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/pa-4.encrypted",
+        "sha256": "67AB03614BBB790F111F124F9AA01CE9F3FFA6975255F0616E4269526D3DBA54"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/pa-5.encrypted",
+        "sha256": "4722436528565A1A4FD8B4FE2516FE6136A0006E2B27782EA8B64A9A36F61747"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/pa-6.encrypted",
+        "sha256": "1291FE338C1538C6E99DFAC40F22DC88236536452D25AA7D669F584023F0BE06"
+      },
+      {
+        "path": "tests/fixtures/config-files/original/batch-accounts.xls",
+        "sha256": "F768E3F92A6A5EDD7349171796FAA1992CDD2E473042D6DD9235EE470006C982"
+      }
+    ]
+  },
+  "sourceFiles": [
+    {
+      "path": "build-test.ps1",
+      "sha256": "BC4E0453B3D0D4976BD09FAA52EEBE2AB15BB0F9444EEE715A036E3BA0F2FF99"
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "C9C9018357E2CB07F622EFC974A139C3182F9FB5DFFFA3F0899D8FC9E22736BD"
+    },
+    {
+      "path": "contracts\\active-spec.json",
+      "sha256": "3349311194E103A395E21ECEF4AE9F9C0E798E8CBF6ADD360A69C33FA7591865"
+    },
+    {
+      "path": "contracts\\oracle-source.json",
+      "sha256": "292468D54D7DAB2614693E13144FCB99E38C65A793B04136586E7587634F17AE"
+    },
+    {
+      "path": "contracts\\preserved-assets.json",
+      "sha256": "90D1439E34266515024EA77D87160FFAB1C6141E5EB230555A5351BD841043D1"
+    },
+    {
+      "path": "src\\common\\injection_protocol.h",
+      "sha256": "0079B3208423A856341A64408EB48760A1361B9B2351294DFDCCDF94F3C8202D"
+    },
+    {
+      "path": "src\\common\\ipc_codec.cpp",
+      "sha256": "DC28F7B892BEBDA92B0306AD7EB8A52CF2E1D180D943AB8BB1E2EE26676AA112"
+    },
+    {
+      "path": "src\\common\\ipc_codec.h",
+      "sha256": "274EB9D1C7BBB5FC654ABF25DC9E007A71EB6871D7BE39B48E31315094B2DD8A"
+    },
+    {
+      "path": "src\\common\\ipc_frame.cpp",
+      "sha256": "01D0A0D7DFB104495FCA9966324924ABCA8029BF326DDC3927EE3DF112B0A9E7"
+    },
+    {
+      "path": "src\\common\\ipc_frame.h",
+      "sha256": "C73344B31D8768560A98B48A17120C0D6741867A3459F6FF1314DD23080808B0"
+    },
+    {
+      "path": "src\\common\\ipc_pipe.cpp",
+      "sha256": "B5572F29E36DD8973BC31F631FB7A6422E82B8EB76EB5D38F95A51B8BCF5EF7D"
+    },
+    {
+      "path": "src\\common\\ipc_pipe.h",
+      "sha256": "773F0B25EFA5C8A1A141D8987825BE5D715385C3C56EE354F9F8DEAB701D7BB0"
+    },
+    {
+      "path": "src\\common\\ipc_protocol.h",
+      "sha256": "73130BBBF68F3A3F492E25EED5D68B4AB52D6F7702C6AE7203716649F11BDEA9"
+    },
+    {
+      "path": "src\\common\\ipc_session.cpp",
+      "sha256": "AE9B5CB3518CFDE6FDA9F76ADF507BBCC116F44A07F1BD6943D56CA16DE85CB9"
+    },
+    {
+      "path": "src\\common\\ipc_session.h",
+      "sha256": "CE30334284D4737F4A942A018E2CAB8DD77B1DB68ACEBC197073C32986861B24"
+    },
+    {
+      "path": "src\\common\\packet_frame.cpp",
+      "sha256": "01425779E42E014ECBAA16DDD8E2F04ECD74ECAB77F5F86B2FB872F449DEC6DB"
+    },
+    {
+      "path": "src\\common\\packet_frame.h",
+      "sha256": "D7179E5D08EFB6732D9B07DDC241667888E277CD6A48F566F34A23BE7D0BBC50"
+    },
+    {
+      "path": "src\\common\\packet_ring.cpp",
+      "sha256": "A8B986FFC65F2E450254FE75C6F838D4980EA6D624727ECBF31CAABF205B40FD"
+    },
+    {
+      "path": "src\\common\\packet_ring.h",
+      "sha256": "C1AB68D822D7FD5E66D7E62AFD02BD4213E51CB11D7A96969789B63456F5E2C1"
+    },
+    {
+      "path": "src\\shell\\app.manifest",
+      "sha256": "86300D726909CF74836ED69EA9DE048422CBA372BA5CA0CE74F89E02E782A20E"
+    },
+    {
+      "path": "src\\shell\\clipboard_worker.cpp",
+      "sha256": "B8BEA0A8DAB9F2AE7897B2E1ED8C40BC7CC7A78F88247649C53407AC599EAA95"
+    },
+    {
+      "path": "src\\shell\\clipboard_worker.h",
+      "sha256": "A71D5A3715114D52E75BDE66DCC461E004D859BB527B43EDB6EB41BB0B5838B2"
+    },
+    {
+      "path": "src\\shell\\clipboard.cpp",
+      "sha256": "FB1D060FF3CCAC4F72F99B6EEA5CE18101A9F5F7E265A8AFFB1CF7F9CE590465"
+    },
+    {
+      "path": "src\\shell\\clipboard.h",
+      "sha256": "4F21796DCE0B071D6FAEFC359B3D58DD233762258EA5453352BD6851038028F1"
+    },
+    {
+      "path": "src\\shell\\config_xml_fields.h",
+      "sha256": "89B14E5FC9A0603E96D8C924E9622C1EE3CA6AAC388F85AEF6D9AAFB2B620864"
+    },
+    {
+      "path": "src\\shell\\config_xml.cpp",
+      "sha256": "AB9589918C6D8993D0ED5BFE93C1F65E3E208724F5C966E1F1CEF13CD8820E1A"
+    },
+    {
+      "path": "src\\shell\\config_xml.h",
+      "sha256": "FF5E6D3CB3A53C0CA3D9908B7F26AF44E85C414EB6D81656A79ACD39F9120ADC"
+    },
+    {
+      "path": "src\\shell\\data_config_lists.cpp",
+      "sha256": "692B45DA58F30922B0DCC73A9012F734AF156B81962BB62B3B73D184628AE7B3"
+    },
+    {
+      "path": "src\\shell\\data_edit.cpp",
+      "sha256": "AD4D808687C1C3B6DDD0E28ADB246EE31BE4EDBC673D2DC301754C383346CC93"
+    },
+    {
+      "path": "src\\shell\\data_files.cpp",
+      "sha256": "56D87DCCF0EDF0C5E230354B876E1DB4C25FCA45DDEA34A921A6FC219F77DFF6"
+    },
+    {
+      "path": "src\\shell\\data_l10n.h",
+      "sha256": "603AF4E59055E012005AC493059B3C38A3504F6067C74B008414E159EA2CC9BB"
+    },
+    {
+      "path": "src\\shell\\data_schema.h",
+      "sha256": "D9D33C999CDA2FB56ED18DB58DFA18B11BA4EFE5C3598708545923970AD6362B"
+    },
+    {
+      "path": "src\\shell\\data_service.cpp",
+      "sha256": "EF95B0F9302A50CD92869CE76F409815B19EE18E39C9572702CDCDF337D4607A"
+    },
+    {
+      "path": "src\\shell\\data_service.h",
+      "sha256": "B4386452FFCB2A1A13CD849F61A5CEFC5E8FD76DD841081FF45C7C166D540C83"
+    },
+    {
+      "path": "src\\shell\\data_util.h",
+      "sha256": "F38AA92BB2486EF0065F294C64AA66B2701EA326D247176DAC525162B5695BDA"
+    },
+    {
+      "path": "src\\shell\\data_worker.cpp",
+      "sha256": "3E2AA4F48B3C632D0D6F68B3D43D45295180ACF2DB8D2A421DAC9EA61D991378"
+    },
+    {
+      "path": "src\\shell\\data_worker.h",
+      "sha256": "01E7B7B8D3EA482135B99CDA722F9D85421D8D6D5B5F9BC3C7A2DEC17C5F8245"
+    },
+    {
+      "path": "src\\shell\\database.cpp",
+      "sha256": "59588B3D08A9E721D52AD36CD7E28D406F30D4F188832DA9A54AF828C8D6FEE2"
+    },
+    {
+      "path": "src\\shell\\database.h",
+      "sha256": "B70CB5054DCC853B7445C16A596EBDC6D6946EC4644D015EA834BCFDDEA15A45"
+    },
+    {
+      "path": "src\\shell\\editor_xml.cpp",
+      "sha256": "6D1E390B3669AA94B0FFA516F5B9C875C5FC5F6E8A3D651D56FDB807BBE4D8FE"
+    },
+    {
+      "path": "src\\shell\\editor_xml.h",
+      "sha256": "A521DA7178A1EB3ED2D571F14FD98C5F17582329D27BA0B06C1CAD2905FADB36"
+    },
+    {
+      "path": "src\\shell\\main.cpp",
+      "sha256": "D9359D99375C989709DC24E93BAE4F29B277874CE1A2C34187849D8C2F9ABDFE"
+    },
+    {
+      "path": "src\\shell\\process_injector.cpp",
+      "sha256": "3571E326FEB8904D4FC567B05BD8F9C9285DE25F7EAD31F5EAC3C634C1D0F709"
+    },
+    {
+      "path": "src\\shell\\process_injector.h",
+      "sha256": "322D5D89F9D7C9120988C3175CB9671EF8CA55F045CD525116F617725372E093"
+    },
+    {
+      "path": "src\\shell\\web_bridge.cpp",
+      "sha256": "9C5FEBC5C62679DFD318530F73384280036BB226D603BCE9DAD59DBD26B49321"
+    },
+    {
+      "path": "src\\shell\\web_bridge.h",
+      "sha256": "29D81B281D10C0E903D774EC93856946225A8BAA3F029519DD9C83DB84DDED99"
+    },
+    {
+      "path": "src\\shell\\xml_crypto.cpp",
+      "sha256": "CBA4F7D39E2D34414DBD934CD0CFEB31927E47C31C8CFF29B401A26180A2D9B5"
+    },
+    {
+      "path": "src\\shell\\xml_crypto.h",
+      "sha256": "EDA45A5EEBBDE6FF9267058F06FCF5C2C8C19859B3C528029A897C085B6F51D3"
+    },
+    {
+      "path": "src\\shell\\xml_document.cpp",
+      "sha256": "A994D336B5E1F338AEDCDD6A458614510A37157F495DE2B80F48FE81C0838497"
+    },
+    {
+      "path": "src\\shell\\xml_document.h",
+      "sha256": "F84CFFFBA62AC0536C008F3CC244634CAD8FA47A6B8E2DD252B3D4C0F2C6CCED"
+    },
+    {
+      "path": "src\\target\\dllmain.cpp",
+      "sha256": "1E8EB45093FB81747B18B29A9DCE02FA5CB39AE7334DE44AD61AFAA9B5F82CD4"
+    },
+    {
+      "path": "src\\target\\headless_core.cpp",
+      "sha256": "16E8F3B195982073A5DD2F66C340139221267868CC8929CFF0CBF8EAE77EEE61"
+    },
+    {
+      "path": "src\\target\\headless_core.h",
+      "sha256": "48F1A71CF6A3A6765E0545273FF1804481FD072E57E8C626B0BF632B53132877"
+    },
+    {
+      "path": "src\\target\\hook_manager.cpp",
+      "sha256": "691A4E0BA4052EFCA618F8974B4C52C1553F6CEA57DC35C672359E17694152EA"
+    },
+    {
+      "path": "src\\target\\hook_manager.h",
+      "sha256": "B6C09E56EC27A449E0AA79C59263CC3D66048B16B3AE975A999F2F23FDF9DAE1"
+    },
+    {
+      "path": "src\\target\\injected_runtime.cpp",
+      "sha256": "A4B8DEC333E112D576FA85941F40F9BD98A8D3D6CD6A555DA89E9AA828114139"
+    },
+    {
+      "path": "src\\target\\injected_runtime.h",
+      "sha256": "E5B7834C7466C4E94F8A8E45D52BE8734A8827203F4499C09B1C7A17611F8DD9"
+    },
+    {
+      "path": "tests\\clipboard_test.cpp",
+      "sha256": "F59DB5E4DED120D3DA0673F93AAB532F7088356C2DB790C94F18EAD3DF729474"
+    },
+    {
+      "path": "tests\\codec_test.cpp",
+      "sha256": "3FD6B1AD6DE8461BE49ACF1367A24C3802A6E4E2B69A205A56F753DA67D112A7"
+    },
+    {
+      "path": "tests\\config_file_test.cpp",
+      "sha256": "BE6AFC7C4049699811920BAC8E48267CF74B754F556F4B6898F1384AB175878D"
+    },
+    {
+      "path": "tests\\data_oracle\\ConfigFileOracle.cs",
+      "sha256": "9C8BD46F7EDCA32318B455D2AF720653F48BAC640ACBAD94ED54A2FDCED93150"
+    },
+    {
+      "path": "tests\\data_oracle\\DataOracle.csproj",
+      "sha256": "8BC1DC2B4907BF27EB37EA6BDF17E39DB1C4028E7AA97DAE9A9D89018E26B84A"
+    },
+    {
+      "path": "tests\\data_oracle\\EditorOracle.cs",
+      "sha256": "ED0B0DAA3CE794E06417ED970E8D307A88ECBCEF728F278801302E034C8B9655"
+    },
+    {
+      "path": "tests\\data_oracle\\ExportOracle.cs",
+      "sha256": "CC2D0A3074D0750C18D9139D1CA70BDE893BDF5C00552328D8E2EC031AB1C5A8"
+    },
+    {
+      "path": "tests\\data_oracle\\ExportSnapshotOracle.cs",
+      "sha256": "F6AAF7CA21473AD545A1EFC2F6EB8CD4AAA29335015D1F63C9A179DE7BA31976"
+    },
+    {
+      "path": "tests\\data_oracle\\extract_contracts.py",
+      "sha256": "DF3D6E56C3F4838631961A9D873B3BC4789201632B67C8EE1FDE3E70CF2D3145"
+    },
+    {
+      "path": "tests\\data_oracle\\extract_xml_fields.py",
+      "sha256": "5778D918AAD919677644191F05F711CD84928D04E96F6B89DE9DF8347A14F03F"
+    },
+    {
+      "path": "tests\\data_oracle\\Program.cs",
+      "sha256": "1067A2BB83735CDD0838291CF3E2A731488D253FAC2015A2E5B2B50FEE1591DC"
+    },
+    {
+      "path": "tests\\data_service_test.cpp",
+      "sha256": "4A8127CB15DC5C37F33382CE2513A4C0CC86DDB2CD08FBD78CA46B4A19AC0CDA"
+    },
+    {
+      "path": "tests\\data_worker_test.cpp",
+      "sha256": "A8F5DF09A9288FAFE093FA987A9C3F700ABD8735F088B85EE3ADF097722FD702"
+    },
+    {
+      "path": "tests\\editor_test.cpp",
+      "sha256": "833E13F65E0F98A4C0E3AB95111591DCC64ACC63E9B5332A88FEF47765CB21B6"
+    },
+    {
+      "path": "tests\\export_test.cpp",
+      "sha256": "E09A15E465DDF958E979084B4FECF3C265A28692A1FAE0AB2F79AACB4B88F753"
+    },
+    {
+      "path": "tests\\fixtures\\config-files\\original\\crypto.json",
+      "sha256": "29F4C43EEC22B573FF3C3374C7718A09B7865CF6D7CD9932E127FA4B9716D52F"
+    },
+    {
+      "path": "tests\\fixtures\\editor-sequence.json",
+      "sha256": "9D27D72746813522569622DD4D6BF32156A3710F038897F2A68AA1CEC87B342B"
+    },
+    {
+      "path": "tests\\fixtures\\filter-edit.json",
+      "sha256": "C4A5B86B703592BD032FCAFD8286500BDA961746BBC80446C6DA07EF3A5A8779"
+    },
+    {
+      "path": "tests\\headless_core_test.cpp",
+      "sha256": "E6F78B00BD8F4E8DB78D00FFED694A3047D30DC7004231EE0660314FDDA63874"
+    },
+    {
+      "path": "tests\\hook_manager_test.cpp",
+      "sha256": "D4F924AFCB327B42AD597850671D366183A974984274AB907FDB8FEAFF5E0DF4"
+    },
+    {
+      "path": "tests\\inject_probe.cpp",
+      "sha256": "233C29BDBEB4F71D0248C80A3BBF05BEB5A243FA55B9ABABCBE5AE1AA7530970"
+    },
+    {
+      "path": "tests\\inject_target.cpp",
+      "sha256": "FFD0838B09594ADFF925759DBCBC901C3ECB888FF6D16D158AB0CDF65D713B3D"
+    },
+    {
+      "path": "tests\\injected_session_target.cpp",
+      "sha256": "261439E61E7F4B2ABCC376215BCA56260704862A1F8F3C631EA1CE13732C8200"
+    },
+    {
+      "path": "tests\\injected_session_test.cpp",
+      "sha256": "9E799CAA7A1162B49D693F4701DA681626A07E19274CF88E0DDE2E35F59EBB82"
+    },
+    {
+      "path": "tests\\ipc_pipe_test.cpp",
+      "sha256": "4F45C03232800D474014E3C405CD471E36017706FD0FB5704285672E01F3A564"
+    },
+    {
+      "path": "tests\\ipc_session_test.cpp",
+      "sha256": "884514327782CED02836443A52C8DF3C63A12B2BF63EECC11C51E0C35467795A"
+    },
+    {
+      "path": "tests\\oracle\\Oracle.csproj",
+      "sha256": "7C3816B02D1AFEF93B0A7AD691BDBE333B1D6344CBAD53E3DDD5218B719BFC4B"
+    },
+    {
+      "path": "tests\\oracle\\Program.cs",
+      "sha256": "4D3B22D7D35B1D70923AB4A8B55B8039878025FA5D234ED5F07401F1614EA5C3"
+    },
+    {
+      "path": "tests\\oracle\\RingOracle.cs",
+      "sha256": "B1E6073147F92A572C1D7880A047E7B5C3BC35E157461137531982ABFF929CC3"
+    },
+    {
+      "path": "tests\\oracle\\upstream\\IpcProtocol.cs",
+      "sha256": "5353DF12B2F23C716AE04F0411E8F01D5A565842EFB4B0D1427A9C369C7BA307"
+    },
+    {
+      "path": "tests\\oracle\\upstream\\PacketFrame.cs",
+      "sha256": "0AD60704D45178B13E66CC6E9F7FF72A4C29DD7B26C8B90C3B7B8AF178DDA72B"
+    },
+    {
+      "path": "tests\\oracle\\upstream\\PacketRing.cs",
+      "sha256": "C703B6A7FC1F66E3FB24C52BC4E97D4FC14DE7D20B3DB2DC9D01537F8461641C"
+    },
+    {
+      "path": "tests\\packet_ring_test.cpp",
+      "sha256": "D39692AA34170A3E77B4423BEEC740C6D52DB8FD6591928B66E5113C49FA1CF9"
+    },
+    {
+      "path": "tests\\process_injector_test.cpp",
+      "sha256": "E433F591A561E1AC5DB3C3F2E7F991013A6C1B906FACA3CFCD12652500CF4B50"
+    },
+    {
+      "path": "tests\\protocol_parity_test.cpp",
+      "sha256": "AFD6CBBDABFC9AC93D3597C2DAEDCB5FBAC53387CFD935FBE90E0DE06566D856"
+    },
+    {
+      "path": "tests\\script_validation.ps1",
+      "sha256": "CE385D339BE9DFA14822DA3461966506ADBCB0D31E92634E0B22CA40C91479D5"
+    },
+    {
+      "path": "tests\\web_bridge_test.cpp",
+      "sha256": "3E01589B4404A73BCC79E94FF931DB4E3B1B878C6E2701B8282690E1FDC96B1C"
+    },
+    {
+      "path": "verify-assets.ps1",
+      "sha256": "34421F0471DD21F6188D628348CEF0BB41ADE82E79FB88BD22FD2402435EFD39"
+    }
+  ],
+  "git": {
+    "commit": "13b7eaa9a392601a038ea110a0298da6f36ff070",
+    "dirty": true,
+    "available": true
+  },
+  "environment": {
+    "os": "Microsoft Windows NT 10.0.26100.0",
+    "powershell": "7.6.5",
+    "cmake": "cmake version 4.4.2",
+    "dotnetSdk": "8.0.424"
+  },
+  "oracleRuntime": [
+    "Original C# oracle: 74684 vectors generated.",
+    "Reference runtime: CLR 4.0.30319.42000; corelib mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
+  ],
+  "fixtures": {
+    "sha256": "A3A6E489E2644E582E81AC86945F0ABFADC830158B5D05F69FE3B719988CD2F9",
+    "rows": 74684
+  },
+  "ringFixtures": {
+    "sha256": "DC76B1F3E33104ECB5DC35BD942A978FA34030DB4E4FB8D3578A98B589EF1341",
+    "rows": 6416
+  },
+  "host": {
+    "frontend": {
+      "accountRoundTrip": true,
+      "autoStoresRoundTrip": true,
+      "batchAccountRoundTrip": true,
+      "cancelledDeletionKeptData": true,
+      "chooserCancelKeptData": true,
+      "chooserTest": "fixed-path seam; production Windows picker UI not automated",
+      "clipboardTest": "UI uses isolated memory clipboard; real OS clipboard tested separately in private window station",
+      "configurationListsRoundTrip": true,
+      "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\webview-profile\\2.3.0\\WPE.db",
+      "editorCounts": [
+        2,
+        3,
+        2
+      ],
+      "editorRestartPersistence": false,
+      "encryptedExportAndImport": true,
+      "firewallIpRuleRoundTrip": true,
+      "importGrantRestricted": true,
+      "importNotifications": true,
+      "modeCards": 2,
+      "negativeOffsetRoundTrip": true,
+      "ok": true,
+      "originalAddAndEnableButtons": true,
+      "originalClipboardButtons": true,
+      "originalEditorButtons": true,
+      "originalExportButtons": true,
+      "originalHexViewEdited": true,
+      "originalListDom": true,
+      "persistentFilterId": "DF2A2962-B6B5-4961-850E-2717C6959DB4",
+      "robotCancelKeptSavedInstructions": true,
+      "titlebar": true,
+      "topmostProbe": "failed-background-request-not-applied",
+      "unsupportedRejected": true,
+      "url": "https://app.wpe64.local/index.html",
+      "windowRoundTrip": false,
+      "wrongPasswordRetried": true
+    },
+    "lastStage": {
+      "stage": "机器人列表"
+    },
+    "nativeDrag": true,
+    "originalVueConfirmed": true,
+    "result": "passed",
+    "scope": "Exchange/editor acceptance: original Vue/HexView/export/copy/paste -> native RPC/SQLite/files. UI clipboard uses isolated memory; OS clipboard verified separately on private station. File chooser fixed-path seam. topmostProbe non-gating; no picker UI automation, capture/proxy/injection/execution",
+    "topmostCalls": [
+      {
+        "on": true,
+        "style": 256,
+        "visible": false
+      },
+      {
+        "on": false,
+        "style": 256,
+        "visible": false
+      }
+    ],
+    "webMessagesReceived": 206,
+    "webview2Runtime": "153.0.4234.32"
+  },
+  "exportArtifacts": [
+    {
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\host\\export.sc",
+      "sha256": "9B59B331B4BD141934A05D4F570D1D121E32A88C899CEA6E6CA80E573BB81DF5"
+    },
+    {
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\host\\export.whs",
+      "sha256": "5F36873E382E83CA3A238F19BB762E10854EB8136DAEB839708A1896E6628EA8"
+    },
+    {
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\host\\encrypted-export.sc",
+      "sha256": "E6DBD867F1E61CAE36418DF0A7B87EBD7AB7A2D24C4C4FB3DD177FEFAC86A115"
+    },
+    {
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\host\\export.xls",
+      "sha256": "207C2E3953943CA3F22C79CD265563DFE8C02D052A9FD41E08CEA33AE94C74FF"
+    }
+  ],
+  "hostArtifacts": [
+    {
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\x64\\Release\\wpe64-app.exe",
+      "sha256": "EF39E648A3AED05E5473C031EF28CAAB9C8D45EA0540AC1D95B91145885C6D0C"
+    },
+    {
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\host\\host-self-test.json",
+      "sha256": "5CDC68CB1943BE9F858719718946DD616B1C9D7A7F9C9D616E1ED5A747997234"
+    },
+    {
+      "path": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\host\\original-vue.png",
+      "sha256": "A487D1702D034A8AEE1C5C38C5763F4BCBA3DE11C318365D0EE8F9B3F08405C6"
+    }
+  ],
+  "hostRestart": {
+    "frontend": {
+      "accountRoundTrip": true,
+      "autoStoresRoundTrip": true,
+      "batchAccountRoundTrip": true,
+      "chooserCancelKeptData": true,
+      "chooserTest": "fixed-path seam; production Windows picker UI not automated",
+      "clipboardTest": "UI uses isolated memory clipboard; real OS clipboard tested separately in private window station",
+      "configurationListsRoundTrip": true,
+      "dbFull": "E:\\codex\\2026-09-17\\bi-a\\work\\minhook-final2\\run-e735bdc7d0ad43db8ba456b585935477\\webview-profile\\2.3.0\\WPE.db",
+      "editorCounts": [
+        2,
+        3,
+        2
+      ],
+      "editorRestartPersistence": true,
+      "encryptedExportAndImport": false,
+      "firewallIpRuleRoundTrip": true,
+      "importGrantRestricted": false,
+      "importNotifications": true,
+      "ok": true,
+      "originalClipboardButtons": false,
+      "originalEditorButtons": true,
+      "originalExportButtons": false,
+      "originalHexViewEdited": true,
+      "originalListDom": true,
+      "persistentFilterId": "DF2A2962-B6B5-4961-850E-2717C6959DB4",
+      "restartPersistence": true,
+      "robotCancelKeptSavedInstructions": true,
+      "topmostProbe": "passed",
+      "wrongPasswordRetried": false
+    },
+    "lastStage": {
+      "stage": "机器人列表"
+    },
+    "nativeDrag": true,
+    "originalVueConfirmed": true,
+    "result": "passed",
+    "scope": "Exchange/editor acceptance: original Vue/HexView/export/copy/paste -> native RPC/SQLite/files. UI clipboard uses isolated memory; OS clipboard verified separately on private station. File chooser fixed-path seam. topmostProbe non-gating; no picker UI automation, capture/proxy/injection/execution",
+    "topmostCalls": [
+      {
+        "on": true,
+        "style": 264,
+        "visible": false
+      },
+      {
+        "on": false,
+        "style": 256,
+        "visible": false
+      }
+    ],
+    "webMessagesReceived": 57,
+    "webview2Runtime": "153.0.4234.32"
+  },
+  "crossArchitectureInjection": [
+    {
+      "injectorArchitecture": "x64",
+      "targetArchitecture": "Win32",
+      "result": "PASS: 14 process-injector checks; architecture, suspended launch, real remote LoadLibraryW and cleanup",
+      "sha256": "F84727CEBAFB047C7401FFE21F480C3F7B9B933013BEBAF08B18E18A63DBF0FF"
+    },
+    {
+      "injectorArchitecture": "Win32",
+      "targetArchitecture": "x64",
+      "result": "PASS: 14 process-injector checks; architecture, suspended launch, real remote LoadLibraryW and cleanup",
+      "sha256": "F84727CEBAFB047C7401FFE21F480C3F7B9B933013BEBAF08B18E18A63DBF0FF"
+    }
+  ]
+}

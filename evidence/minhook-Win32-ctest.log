@@ -1,0 +1,142 @@
+UpdateCTestConfiguration  from :E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32/DartConfiguration.tcl
+Parse Config file:E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32/DartConfiguration.tcl
+Test project E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+      Start  1: codec-smoke
+
+1: Test command: E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\Release\wpe64-codec-test.exe
+1: Working Directory: E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32
+1: Test timeout computed to be: 1500
+1: PASS: codec smoke (LE, null distinct from empty)
+ 1/16 Test  #1: codec-smoke ......................   Passed    0.01 sec
+test 2
+      Start  2: protocol-edge
+
+2: Test command: E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\Release\wpe64-parity-test.exe
+2: Working Directory: E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32
+2: Test timeout computed to be: 1500
+2: PASS: 10 protocol edge assertions
+ 2/16 Test  #2: protocol-edge ....................   Passed    0.01 sec
+test 3
+      Start  3: packet-ring
+
+3: Test command: E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\Release\wpe64-ring-test.exe
+3: Working Directory: E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32
+3: Test timeout computed to be: 1500
+3: PASS: packet ring edges/concurrency; 0 original state-transition vectors
+ 3/16 Test  #3: packet-ring ......................   Passed    0.02 sec
+test 4
+      Start  4: named-pipe-transport
+
+4: Test command: E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\Release\wpe64-pipe-test.exe
+4: Working Directory: E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32
+4: Test timeout computed to be: 1500
+4: PASS: 28 real named-pipe transport checks; current-user ACL, ctl handshake, pkt/evt streams, EOF and limits
+ 4/16 Test  #4: named-pipe-transport .............   Passed    0.07 sec
+test 5
+      Start  5: ipc-session-lifecycle
+
+5: Test command: E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\Release\wpe64-session-test.exe
+5: Working Directory: E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32
+5: Test timeout computed to be: 1500
+5: PASS: 47 real IPC session checks; Hello/version, serialized calls, pkt/evt, heartbeat, timeout, error and Detach lifecycle
+ 5/16 Test  #5: ipc-session-lifecycle ............   Passed    1.37 sec
+test 6
+      Start  6: target-headless-core
+
+6: Test command: E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\Release\wpe64-headless-core-test.exe
+6: Working Directory: E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32
+6: Test timeout computed to be: 1500
+6: PASS: 87 target-core checks; all snapshots, stats/reset, hook states, fatal and detach cleanup
+ 6/16 Test  #6: target-headless-core .............   Passed    0.10 sec
+test 7
+      Start  7: minhook-manager
+
+7: Test command: E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\Release\wpe64-hook-manager-test.exe
+7: Working Directory: E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32
+7: Test timeout computed to be: 1500
+7: PASS: 8 MinHook manager checks; resolve/create/enable/disable/remove lifecycle
+ 7/16 Test  #7: minhook-manager ..................   Passed    0.08 sec
+test 8
+      Start  8: process-injector
+
+8: Test command: E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\Release\wpe64-injector-test.exe "E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32/Release/wpe64-inject-target.exe" "E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32/Release/wpe64-inject-probe.dll"
+8: Working Directory: E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32
+8: Test timeout computed to be: 1500
+8: PASS: 13 process-injector checks; architecture, suspended launch, real remote LoadLibraryW and cleanup
+ 8/16 Test  #8: process-injector .................   Passed    0.05 sec
+test 9
+      Start  9: injected-target-session
+
+9: Test command: E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\Release\wpe64-injected-session-test.exe "E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32/Release/wpe64-injected-session-target.exe" "E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32/Release/wpe64-hook.dll" "E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32/Release/wpe64-inject-probe.dll"
+9: Working Directory: E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32
+9: Test timeout computed to be: 1500
+9: PASS: 16 injected-session checks; production DLL export, bootstrap, real cross-process IPC and detach
+ 9/16 Test  #9: injected-target-session ..........   Passed    0.34 sec
+test 10
+      Start 10: web-bridge
+
+10: Test command: E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\Release\wpe64-bridge-test.exe
+10: Working Directory: E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32
+10: Test timeout computed to be: 1500
+10: PASS: five bridge message types, origins, timeout, cancellation, duplicate answer, independent completion; successful null distinct from four Ask failure paths
+10/16 Test #10: web-bridge .......................   Passed    0.04 sec
+test 11
+      Start 11: native-data
+
+11: Test command: E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\Release\wpe64-data-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures/filter-edit.json"
+11: Working Directory: E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32
+11: Test timeout computed to be: 1500
+11: PASS: 346 data checks; original C# fixtures, persistent SQLite, rollback, feeds, worker FIFO; isolated files: E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\data-test\332679407206900
+11/16 Test #11: native-data ......................   Passed    1.33 sec
+test 12
+      Start 12: data-worker
+
+12: Test command: E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\Release\wpe64-data-worker-test.exe
+12: Working Directory: E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32
+12: Test timeout computed to be: 1500
+12: shutdownMs=983, cancelled=2
+12: PASS: worker shutdown queue cancellation, emit/completion isolation and undrained export token cleanup during owner reset
+12/16 Test #12: data-worker ......................   Passed    1.16 sec
+test 13
+      Start 13: editor-data
+
+13: Test command: E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\Release\wpe64-editor-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures"
+13: Working Directory: E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32
+13: Test timeout computed to be: 1500
+13: PASS: 229 editor checks; 184 original C# calls; XML, drafts, packet aliases, rollback and reopen; E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\editor-test\332681901533600
+13/16 Test #13: editor-data ......................   Passed    1.41 sec
+test 14
+      Start 14: editor-export
+
+14: Test command: E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\Release\wpe64-export-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures"
+14: Working Directory: E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32
+14: Test timeout computed to be: 1500
+14: PASS: 41 export checks; original byte golden, snapshot, selected/all, cancel, replacement failure; E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\export-test\332683308147800
+14/16 Test #14: editor-export ....................   Passed    0.14 sec
+test 15
+      Start 15: configuration-files
+
+15: Test command: E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\Release\wpe64-config-file-test.exe "E:/codex/2026-09-17/bi-a/outputs/WPE64-Cpp/tests/fixtures"
+15: Working Directory: E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32
+15: Test timeout computed to be: 1500
+15: PASS: 349 configuration and original AES checks; E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\config-test\332683448974200
+15/16 Test #15: configuration-files ..............   Passed    1.22 sec
+test 16
+      Start 16: native-clipboard
+
+16: Test command: E:\codex\2026-09-17\bi-a\work\minhook-final2\run-e735bdc7d0ad43db8ba456b585935477\Win32\Release\wpe64-clipboard-test.exe
+16: Working Directory: E:/codex/2026-09-17/bi-a/work/minhook-final2/run-e735bdc7d0ad43db8ba456b585935477/Win32
+16: Test timeout computed to be: 1500
+16: PASS: real Win32 clipboard Unicode/empty/NUL/64K UTF-16 units/lock ownership; delayed-render worker kept UI responsive; private window station; user's clipboard untouched
+16/16 Test #16: native-clipboard .................   Passed    6.35 sec
+
+100% tests passed out of 16
+
+Total Test time (real) =  13.70 sec
