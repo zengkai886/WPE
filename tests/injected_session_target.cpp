@@ -7,7 +7,7 @@
 #include <cstring>
 
 namespace {
-bool NetworkRoundTrip(HANDLE ready, HANDLE replay) {
+bool NetworkRoundTrip(HANDLE ready, HANDLE replay, HANDLE replay_done, HANDLE send_list) {
     WSADATA data{};
     if (WSAStartup(MAKEWORD(2, 2), &data) != 0) return false;
     SOCKET listener = INVALID_SOCKET;
@@ -48,6 +48,17 @@ bool NetworkRoundTrip(HANDLE ready, HANDLE replay) {
                                         static_cast<int>(received.size()), 0);
         success = replayed_count == static_cast<int>(sizeof(replayed) - 1) &&
                   std::memcmp(received.data(), replayed, sizeof(replayed) - 1) == 0;
+        if (!success || !SetEvent(replay_done) ||
+            WaitForSingleObject(send_list, 20000) != WAIT_OBJECT_0) {
+            success = false;
+            break;
+        }
+        constexpr char listed[] = "list-replay";
+        received.fill(0);
+        const int listed_count = recv(server, received.data(),
+                                      static_cast<int>(received.size()), 0);
+        success = listed_count == static_cast<int>(sizeof(listed) - 1) &&
+                  std::memcmp(received.data(), listed, sizeof(listed) - 1) == 0;
     } while (false);
     if (server != INVALID_SOCKET) closesocket(server);
     if (client != INVALID_SOCKET) closesocket(client);
@@ -58,22 +69,29 @@ bool NetworkRoundTrip(HANDLE ready, HANDLE replay) {
 } // namespace
 
 int wmain(int argc, wchar_t** argv) {
-    if (argc != 5) return ERROR_INVALID_PARAMETER;
+    if (argc != 7) return ERROR_INVALID_PARAMETER;
     const HANDLE start = OpenEventW(SYNCHRONIZE, FALSE, argv[1]);
     const HANDLE ready = OpenEventW(EVENT_MODIFY_STATE, FALSE, argv[2]);
     const HANDLE replay = OpenEventW(SYNCHRONIZE, FALSE, argv[3]);
-    const HANDLE done = OpenEventW(EVENT_MODIFY_STATE, FALSE, argv[4]);
-    if (!start || !ready || !replay || !done) {
+    const HANDLE replay_done = OpenEventW(EVENT_MODIFY_STATE, FALSE, argv[4]);
+    const HANDLE send_list = OpenEventW(SYNCHRONIZE, FALSE, argv[5]);
+    const HANDLE done = OpenEventW(EVENT_MODIFY_STATE, FALSE, argv[6]);
+    if (!start || !ready || !replay || !replay_done || !send_list || !done) {
         if (start) CloseHandle(start);
         if (ready) CloseHandle(ready);
         if (replay) CloseHandle(replay);
+        if (replay_done) CloseHandle(replay_done);
+        if (send_list) CloseHandle(send_list);
         if (done) CloseHandle(done);
         return static_cast<int>(GetLastError());
     }
     const DWORD wait = WaitForSingleObject(start, 20000);
-    const bool success = wait == WAIT_OBJECT_0 && NetworkRoundTrip(ready, replay);
+    const bool success = wait == WAIT_OBJECT_0 &&
+                         NetworkRoundTrip(ready, replay, replay_done, send_list);
     (void)SetEvent(done);
     CloseHandle(done);
+    CloseHandle(send_list);
+    CloseHandle(replay_done);
     CloseHandle(replay);
     CloseHandle(ready);
     CloseHandle(start);

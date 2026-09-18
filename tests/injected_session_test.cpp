@@ -96,6 +96,31 @@ bool ContainsFilteredPacket(const std::vector<wpe::ByteBuffer>& frames, std::uin
     return false;
 }
 
+bool ContainsSendSuccess(const std::vector<wpe::ByteBuffer>& events, const wpe::Guid& wanted) {
+    for (const auto& frame : events) {
+        try {
+            wpe::IpcReader reader(frame);
+            if (reader.U8() != static_cast<std::uint8_t>(wpe::IpcEvent::Stats)) continue;
+            (void)reader.Bool(); (void)reader.Bool();
+            const auto filter_count = reader.I32();
+            if (filter_count < 0 || filter_count > 1000) continue;
+            for (std::int32_t i = 0; i < filter_count; ++i) {
+                (void)reader.Guid_(); (void)reader.I64();
+            }
+            const auto send_count = reader.I32();
+            if (send_count < 0 || send_count > 1000) continue;
+            for (std::int32_t i = 0; i < send_count; ++i) {
+                const auto id = reader.Guid_();
+                (void)reader.I64();
+                const auto success = reader.I64();
+                (void)reader.I64();
+                if (id == wanted && success > 0) return true;
+            }
+        } catch (...) {}
+    }
+    return false;
+}
+
 wpe::Text Text(std::string_view value) {
     std::u16string result;
     for (const unsigned char character : value) result.push_back(static_cast<char16_t>(character));
@@ -116,12 +141,17 @@ int wmain(int argc, wchar_t** argv) {
         const std::wstring start_name = L"Local\\WPE64-NetworkStart-" + event_suffix;
         const std::wstring ready_name = L"Local\\WPE64-NetworkReady-" + event_suffix;
         const std::wstring replay_name = L"Local\\WPE64-NetworkReplay-" + event_suffix;
+        const std::wstring replay_done_name = L"Local\\WPE64-NetworkReplayDone-" + event_suffix;
+        const std::wstring send_list_name = L"Local\\WPE64-NetworkSendList-" + event_suffix;
         const std::wstring done_name = L"Local\\WPE64-NetworkDone-" + event_suffix;
         HandleCleanup start_event{CreateEventW(nullptr, TRUE, FALSE, start_name.c_str())};
         HandleCleanup ready_event{CreateEventW(nullptr, TRUE, FALSE, ready_name.c_str())};
         HandleCleanup replay_event{CreateEventW(nullptr, TRUE, FALSE, replay_name.c_str())};
+        HandleCleanup replay_done_event{CreateEventW(nullptr, TRUE, FALSE, replay_done_name.c_str())};
+        HandleCleanup send_list_event{CreateEventW(nullptr, TRUE, FALSE, send_list_name.c_str())};
         HandleCleanup done_event{CreateEventW(nullptr, TRUE, FALSE, done_name.c_str())};
-        if (!start_event.value || !ready_event.value || !replay_event.value || !done_event.value)
+        if (!start_event.value || !ready_event.value || !replay_event.value ||
+            !replay_done_event.value || !send_list_event.value || !done_event.value)
             throw std::runtime_error("network test events could not be created");
 
         std::mutex event_mutex;
@@ -145,7 +175,8 @@ int wmain(int argc, wchar_t** argv) {
         }, {}, wpe::ShellSessionOptions{50ms});
 
         const std::wstring target_arguments = L"\"" + start_name + L"\" \"" + ready_name +
-            L"\" \"" + replay_name + L"\" \"" + done_name + L"\"";
+            L"\" \"" + replay_name + L"\" \"" + replay_done_name + L"\" \"" +
+            send_list_name + L"\" \"" + done_name + L"\"";
         auto child = wpe::shell::ProcessInjector::LaunchSuspended(target, target_arguments);
         ProcessCleanup cleanup{child.ProcessHandle()};
         child.Resume();
@@ -288,8 +319,40 @@ int wmain(int argc, wchar_t** argv) {
               replay_response.Bool() && replay_response.Remaining() == 0,
               "cross-process SendPacket returns exact Ok + true response");
         Check(SetEvent(replay_event.value) != FALSE, "target replay verification released");
+        Check(WaitForSingleObject(replay_done_event.value, 3000) == WAIT_OBJECT_0,
+              "target completed the direct replay before list execution");
+
+        // Exercise the complete configured-send path through the real target:
+        // shell config -> target snapshot -> send worker -> production DLL
+        // replay -> target socket.  This is deliberately separate from the
+        // direct SendPacket command above.
+        const auto list_send_id = wpe::Guid::Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        wpe::IpcWriter list_sends;
+        list_sends.I32(1); list_sends.Bool(true); list_sends.Guid_(list_send_id);
+        list_sends.Str(Text("cross-process-send"));
+        list_sends.Bool(false); list_sends.I32(1); list_sends.I32(0); list_sends.Str(Text(""));
+        list_sends.I32(1); list_sends.I32(static_cast<std::int32_t>(captured.socket)); list_sends.I32(1);
+        list_sends.Str(live_from); list_sends.Str(live_to);
+        list_sends.Bytes(wpe::ByteBuffer{'l', 'i', 's', 't', '-', 'r', 'e', 'p', 'l', 'a', 'y'});
+        wpe::IpcWriter set_sends;
+        set_sends.U8(static_cast<std::uint8_t>(wpe::IpcCommand::SetConfig));
+        set_sends.U8(static_cast<std::uint8_t>(wpe::ConfigKind::Sends));
+        set_sends.Bytes(list_sends.ToArray());
+        shell.CallVoid(set_sends.ToArray());
+        ++checks;
+        wpe::IpcWriter start_list;
+        start_list.U8(static_cast<std::uint8_t>(wpe::IpcCommand::StartSendList));
+        shell.CallVoid(start_list.ToArray());
+        ++checks;
+        Check(SetEvent(send_list_event.value) != FALSE, "target send-list verification released");
         Check(WaitForSingleObject(done_event.value, 3000) == WAIT_OBJECT_0,
-              "target received replay bytes through its process-local socket");
+              "target received configured send-list bytes through its process-local socket");
+        {
+            std::unique_lock lock(event_mutex);
+            Check(event_ready.wait_for(lock, 3s, [&] {
+                return ContainsSendSuccess(events, list_send_id);
+            }), "send-list completion and counters returned through Stats");
+        }
         Check(WaitForSingleObject(child.ProcessHandle(), 0) == WAIT_TIMEOUT,
               "target confirms replay before entering success hold");
         Throws([&] {

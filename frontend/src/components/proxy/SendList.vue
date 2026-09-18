@@ -115,8 +115,12 @@ let stopRunning: (() => void) | null = null
 
 async function toggleRun(): Promise<void> {
   try {
-    const r = await call<{ running: boolean }>(running.value ? 'stopSendList' : 'startSendList')
-    running.value = !!r?.running
+    const wasRunning = running.value
+    await call<{ running: boolean }>(wasRunning ? 'stopSendList' : 'startSendList')
+    // The target publishes the authoritative state through send:running as
+    // soon as its worker starts/stops.  Do not overwrite a just-started state
+    // with the command response, which can race the first stats event.
+    if (wasRunning) running.value = false
   } catch (e) {
     console.error('[snd] 启停失败', e)
   }

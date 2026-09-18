@@ -80,6 +80,7 @@ public:
     void ResetLiveFilterStats() noexcept override { ++filter_resets; }
     bool SendPacket(const wpe::ReplayPacketSnapshot& packet) override {
         last_packet = packet;
+        if (send_delay.count() > 0) std::this_thread::sleep_for(send_delay);
         ++packet_sends;
         return send_result;
     }
@@ -103,6 +104,7 @@ public:
     bool fail_start{};
     bool fail_stop{};
     bool send_result{true};
+    std::chrono::milliseconds send_delay{};
     std::int32_t last_socket_query{};
     wpe::ReplayPacketSnapshot last_packet;
     wpe::SocketInfo socket_info{T(u"127.0.0.1:1234"), T(u"127.0.0.1:4321")};
@@ -337,7 +339,12 @@ void ReplayAndSocketCommands() {
 
 void SendExecutorCommands() {
     FakeHooks hooks;
-    wpe::HeadlessCore core(hooks, [](wpe::ByteBuffer) {});
+    std::vector<wpe::ByteBuffer> events;
+    std::mutex event_mutex;
+    wpe::HeadlessCore core(hooks, [&](wpe::ByteBuffer event) {
+        std::lock_guard lock(event_mutex);
+        events.push_back(std::move(event));
+    });
     const auto send_id = wpe::Guid::Parse("12121212-3434-5656-7878-909090909090");
     wpe::IpcWriter sends;
     sends.I32(1); sends.Bool(true); sends.Guid_(send_id); sends.Str(T(u"loop"));
@@ -346,10 +353,31 @@ void SendExecutorCommands() {
     sends.Bytes(wpe::ByteBuffer{0xaa, 0xbb});
     ExpectOk(SetConfig(core, wpe::ConfigKind::Sends, sends.ToArray()));
 
+    // The lifecycle event is intentionally immediate rather than waiting for
+    // the periodic stats heartbeat. A small fake delay keeps the worker alive
+    // long enough to observe the running edge deterministically.
+    hooks.send_delay = 5ms;
     wpe::IpcWriter start; start.Guid_(send_id);
     auto start_bytes = start.ToArray();
     wpe::IpcReader start_reader(start_bytes);
     ExpectOk(core.HandleCommand(wpe::IpcCommand::StartSend, start_reader));
+    for (int i = 0; i < 100; ++i) {
+        {
+            std::lock_guard lock(event_mutex);
+            if (!events.empty()) break;
+        }
+        std::this_thread::sleep_for(1ms);
+    }
+    {
+        std::lock_guard lock(event_mutex);
+        Check(!events.empty(), "StartSend emits an immediate stats snapshot");
+    }
+    {
+        std::lock_guard lock(event_mutex);
+        wpe::IpcReader event(events.front());
+        Check(event.U8() == static_cast<std::uint8_t>(wpe::IpcEvent::Stats) && event.Bool(),
+              "start snapshot reports the send worker running");
+    }
     for (int i = 0; i < 100 && hooks.packet_sends.load() != 3; ++i)
         std::this_thread::sleep_for(5ms);
     Check(hooks.packet_sends.load() == 3, "StartSend executes the configured loop count");
@@ -358,11 +386,31 @@ void SendExecutorCommands() {
           config.sends[0].success_count == 3 && config.sends[0].fail_count == 0,
           "send executor updates execution counters");
 
+    hooks.send_result = false;
+    wpe::IpcReader second_start_reader(start_bytes);
+    ExpectOk(core.HandleCommand(wpe::IpcCommand::StartSend, second_start_reader));
+    for (int i = 0; i < 100 && hooks.packet_sends.load() != 6; ++i)
+        std::this_thread::sleep_for(5ms);
+    const auto failed_config = core.Configuration();
+    Check(failed_config.sends[0].execution_count == 6 &&
+          failed_config.sends[0].success_count == 3 && failed_config.sends[0].fail_count == 3,
+          "send failures are accounted without aborting the worker");
+
     wpe::IpcWriter stop;
     auto stop_bytes = stop.ToArray();
     wpe::IpcReader stop_reader(stop_bytes);
     ExpectOk(core.HandleCommand(wpe::IpcCommand::StopSendList, stop_reader));
     Check(!core.Counters().send_list_running, "StopSendList clears the running state");
+    bool saw_stopped = false;
+    std::lock_guard event_lock(event_mutex);
+    for (const auto& bytes : events) {
+        try {
+            wpe::IpcReader event(bytes);
+            if (event.U8() == static_cast<std::uint8_t>(wpe::IpcEvent::Stats) &&
+                !event.Bool()) { saw_stopped = true; break; }
+        } catch (...) {}
+    }
+    Check(saw_stopped, "stop/completion publishes a non-running stats snapshot");
 }
 
 void LifecycleOverRealPipes() {

@@ -223,6 +223,10 @@ private:
     void AddSendCount(const Guid& id, bool succeeded) noexcept;
     void ResetStats(IpcReader& reader);
     void Emit(ByteBuffer event) noexcept;
+    // Publish a low-latency snapshot whenever an execution lifecycle changes.
+    // The periodic stats loop remains as a heartbeat, but UI state must not
+    // wait for that interval after a start/stop or a completed send list.
+    void EmitStatsSnapshot() noexcept;
     void EmitStoreAdded(const Guid& id, std::span<const std::uint8_t> bytes) noexcept;
     void EmitHookState(bool on) noexcept;
     void EmitFatal(std::string_view message) noexcept;

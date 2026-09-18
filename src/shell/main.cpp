@@ -421,7 +421,9 @@ Json Host::InjectStats() const {
     result["recv"]=packet(3);result["recvFrom"]=packet(4);result["wsaSend"]=packet(5);
     result["wsaSendTo"]=packet(6);result["wsaRecv"]=packet(7);result["wsaRecvFrom"]=packet(8);
     result["totalSend"]=packet(9);result["totalRecv"]=packet(10);
-    result["queue"]=0;result["rate"]=0;result["filterExecute"]=0;result["filterPacket"]=target_stats_.value("filterGlobals",Json::array()).is_array()&&target_stats_.value("filterGlobals",Json::array()).size()?target_stats_.value("filterGlobals",Json::array())[0].get<std::int64_t>():0;
+    const auto globals=result.value("filterGlobals",Json::array());
+    const auto filter_execute=globals.is_array()&&globals.size()?globals[0].get<std::int64_t>():0;
+    result["queue"]=0;result["rate"]=0;result["filterExecute"]=filter_execute;result["filterPacket"]=filter_execute;
     return result;
 }
 Json Host::EnumerateProcesses() const {
@@ -474,7 +476,8 @@ void Host::HandleTargetFrame(wpe::ByteBuffer frame,bool packet_channel){
             Json packets=Json::array();const auto robot_count=read_count("Stats robot");for(std::int32_t i=0;i<robot_count;++i){reader.Guid_();reader.I64();}
             for(int i=0;i<11;++i)packets.push_back(reader.I64());
             if(reader.Remaining()!=0)throw std::runtime_error("Stats event has trailing bytes");
-            send_running_=sends;target_stats_={{"sendRunning",sends},{"robotRunning",robots},{"filters",filters},{"sends",send_rows},{"filterGlobals",globals},{"packets",packets},{"dropped",target_stats_.value("dropped",0)}};
+            const auto filter_execute=globals.empty()?0LL:globals[0].get<std::int64_t>();
+            send_running_=sends;target_stats_={{"sendRunning",sends},{"robotRunning",robots},{"filters",filters},{"sends",send_rows},{"filterGlobals",globals},{"filterExecute",filter_execute},{"filterPacket",filter_execute},{"packets",packets},{"dropped",target_stats_.value("dropped",0)}};
             bridge_->PushEvent("send:running",{{"running",sends}});bridge_->PushEvent("target:stats",target_stats_);break;
         }
         case wpe::IpcEvent::HookState:{

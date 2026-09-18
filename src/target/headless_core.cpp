@@ -225,9 +225,13 @@ void HeadlessCore::StartSendById(const Guid& id) noexcept {
             runtime = config_.runtime;
         }
         (void)LaunchSendWorker(std::move(sends), std::move(runtime));
+        EmitStatsSnapshot();
     } catch (...) {
-        std::lock_guard lock(mutex_);
-        counters_.send_list_running = false;
+        {
+            std::lock_guard lock(mutex_);
+            counters_.send_list_running = false;
+        }
+        EmitStatsSnapshot();
     }
 }
 
@@ -245,9 +249,13 @@ void HeadlessCore::StartSendList() {
             runtime = config_.runtime;
         }
         (void)LaunchSendWorker(std::move(sends), std::move(runtime));
+        EmitStatsSnapshot();
     } catch (...) {
-        std::lock_guard lock(mutex_);
-        counters_.send_list_running = false;
+        {
+            std::lock_guard lock(mutex_);
+            counters_.send_list_running = false;
+        }
+        EmitStatsSnapshot();
     }
 }
 
@@ -292,23 +300,26 @@ void HeadlessCore::StartSendWorker(std::vector<SendSnapshot> sends,
     try {
         const auto run_one = [this, &runtime](SendSnapshot send) {
             try {
-            const auto loops = std::clamp(send.loop_count, 1, 1000000);
-            const auto interval = std::clamp(send.loop_interval, 0, 24 * 60 * 60 * 1000);
-            for (int loop = 0; loop < loops && !send_stop_.load(std::memory_order_acquire); ++loop) {
-                for (const auto& source : send.packets) {
-                    if (send_stop_.load(std::memory_order_acquire)) break;
-                    auto packet = source;
-                    if (send.system_socket) packet.socket = runtime.system_socket;
-                    const bool ok = hooks_.SendPacket(packet);
-                    AddSendCount(send.id, ok);
+                const auto loops = std::clamp(send.loop_count, 1, 1000000);
+                const auto interval = std::clamp(send.loop_interval, 0, 24 * 60 * 60 * 1000);
+                for (int loop = 0; loop < loops && !send_stop_.load(std::memory_order_acquire); ++loop) {
+                    for (const auto& source : send.packets) {
+                        if (send_stop_.load(std::memory_order_acquire)) break;
+                        auto packet = source;
+                        if (send.system_socket) packet.socket = runtime.system_socket;
+                        // A failed socket lookup or replay must account as a
+                        // failed item and not abort the rest of the list.
+                        bool ok = false;
+                        try { ok = hooks_.SendPacket(packet); } catch (...) {}
+                        AddSendCount(send.id, ok);
+                    }
+                    if (loop + 1 < loops && interval > 0) {
+                        std::unique_lock lock(mutex_);
+                        send_wait_.wait_for(lock, std::chrono::milliseconds(interval), [&] {
+                            return stopping_ || send_stop_.load(std::memory_order_acquire);
+                        });
+                    }
                 }
-                if (loop + 1 < loops && interval > 0) {
-                    std::unique_lock lock(mutex_);
-                    send_wait_.wait_for(lock, std::chrono::milliseconds(interval), [&] {
-                        return stopping_ || send_stop_.load(std::memory_order_acquire);
-                    });
-                }
-            }
             } catch (...) {
                 // Keep one bad packet/item from terminating a parallel worker.
             }
@@ -337,6 +348,7 @@ void HeadlessCore::StartSendWorker(std::vector<SendSnapshot> sends,
         std::lock_guard lock(mutex_);
         counters_.send_list_running = false;
     }
+    EmitStatsSnapshot();
 }
 
 void HeadlessCore::StopSendList(IpcReader& reader) {
@@ -353,8 +365,11 @@ void HeadlessCore::StopSendList(IpcReader& reader) {
     if (worker.joinable() && worker.get_id() != std::this_thread::get_id())
         worker.join();
     else if (worker.joinable()) worker.detach();
-    std::lock_guard lock(mutex_);
-    counters_.send_list_running = false;
+    {
+        std::lock_guard lock(mutex_);
+        counters_.send_list_running = false;
+    }
+    EmitStatsSnapshot();
 }
 
 void HeadlessCore::EmitStoreAdded(const Guid& id,
@@ -496,6 +511,10 @@ void HeadlessCore::ResetStats(IpcReader& reader) {
 void HeadlessCore::Emit(ByteBuffer event) noexcept {
     if (!event_sender_) return;
     try { event_sender_(std::move(event)); } catch (...) {}
+}
+
+void HeadlessCore::EmitStatsSnapshot() noexcept {
+    try { Emit(EncodeStatsEvent()); } catch (...) {}
 }
 
 void HeadlessCore::EmitHookState(bool on) noexcept {
