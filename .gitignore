@@ -1,4 +1,5 @@
 .build/
+build-native2/
 **/obj/
 **/bin/
 **/node_modules/

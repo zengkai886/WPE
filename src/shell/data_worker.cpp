@@ -47,6 +47,9 @@ void DataWorker::SubmitStoreEvent(std::vector<std::uint8_t> frame,WebBridge::Com
     if(rejected){done(nullptr,"入库事件队列已满、事件过大或正在退出，请稍后重试");return;}
     wake_.notify_one();
 }
+void DataWorker::SubmitTargetConfiguration(WebBridge::Completion done){
+    Submit("__targetConfiguration",Json::object(),std::move(done));
+}
 void DataWorker::ForgetExportPlan(std::string token){ForgetPlan("__discardEditorExport",std::move(token));}
 void DataWorker::ForgetImportPlan(std::string token){ForgetPlan("__discardImport",std::move(token));}
 void DataWorker::ForgetPlan(std::string method,std::string token){
@@ -79,7 +82,8 @@ void DataWorker::Run(const std::filesystem::path& path){
             if(job.store_event){
                 const auto stored=service->ApplyStoreEvent(*job.store_event);
                 result.value={{"ok",true},{"stored",stored}};
-            }else result.value=service->Call(job.method,job.args);
+            }else if(job.method=="__targetConfiguration") result.value=service->TargetConfiguration();
+            else result.value=service->Call(job.method,job.args);
         }
         catch(const StoreEventCommittedError& e){
             // SQLite and the worker-owned mirror are already committed. Keep

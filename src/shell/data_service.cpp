@@ -212,6 +212,48 @@ Json DataService::Prefs()const{
     }
     return {{"isDark",dark},{"themeMode",B(config_,"ThemeFollowSystem")?"system":dark?"dark":"light"},{"scanLine",B(config_,"ScanLine",true)},{"language",S(config_,"DefaultLanguage","zh-CN")},{"systemColor",Color(config_,"SystemColor")},{"filter",colors}};
 }
+Json DataService::TargetConfiguration() const {
+    Json result{{"hookFlags",Json::array()}, {"runtime", Json::object()},
+                {"filters", Json::array()}, {"sends", Json::array()}};
+    const std::array<const char*,12> hook_keys{{"HookWS1_Send","HookWS1_SendTo",
+        "HookWS1_Recv","HookWS1_RecvFrom","HookWS2_Send","HookWS2_SendTo",
+        "HookWS2_Recv","HookWS2_RecvFrom","HookWSA_Send","HookWSA_SendTo",
+        "HookWSA_Recv","HookWSA_RecvFrom"}};
+    for (const auto key : hook_keys) result["hookFlags"].push_back(B(inject_config_,key,true));
+    result["runtime"] = {{"speedMode",B(config_,"SpeedMode")}, {"systemSocket",0},
+        {"listExecute",N(config_,"ListExecute",1)}, {"filterExecute",N(config_,"FilterExecute",1)}};
+    for (const auto& row : lists_[8]) {
+        Json item{{"enabled",B(row,"IsEnable")},{"id",S(row,"GUID")},{"name",S(row,"Name")},
+            {"appointHeader",B(row,"AppointHeader")},{"header",S(row,"HeaderContent")},
+            {"appointSocket",B(row,"AppointSocket")},{"socket",S(row,"SocketContent")},
+            {"appointLength",B(row,"AppointLength")},{"length",S(row,"LengthContent")},
+            {"appointPort",B(row,"AppointPort")},{"port",S(row,"PortContent")},
+            {"mode",N(row,"Mode")},{"action",N(row,"Action")},{"execute",B(row,"IsExecute")},
+            {"executeType",N(row,"ExecuteType")},{"executeId",S(row,"ExecuteGUID")},
+            {"functionMask",Mask(S(row,"Function"))},{"startFrom",N(row,"StartFrom")},
+            {"progressionDone",false},{"progressionContinuous",B(row,"IsProgressionContinuous")},
+            {"progressionStep",N(row,"ProgressionStep",1)},{"progressionCarry",B(row,"IsProgressionCarry")},
+            {"progressionCarryNumber",N(row,"ProgressionCarryNumber",1)},
+            {"progressionPosition",S(row,"ProgressionPosition")},{"progressionCount",0},
+            {"excludePosition",S(row,"ExcludePosition")},{"randomPosition",S(row,"RandomPosition")},
+            {"search",S(row,"Search")},{"modify",S(row,"Modify")}};
+        result["filters"].push_back(std::move(item));
+    }
+    for (const auto& row : lists_[9]) {
+        Json item{{"enabled",B(row,"IsEnable")},{"id",S(row,"GUID")},{"name",S(row,"Name")},
+            {"systemSocket",B(row,"SystemSocket")},{"loopCount",N(row,"LoopCNT",1)},
+            {"loopInterval",N(row,"LoopINT",1000)},{"notes",S(row,"Notes")},
+            {"packets",Json::array()}};
+        for (const auto& packet : row.at("_children")) {
+            item["packets"].push_back({{"socket",N(packet,"Socket")},{"type",N(packet,"Type")},
+                {"from",S(packet,"IPFrom")},{"to",S(packet,"IPTo")},
+                {"bytes",packet.contains("Buffer")&&packet.at("Buffer").is_binary()
+                    ? packet.at("Buffer") : Json::binary({})}});
+        }
+        result["sends"].push_back(std::move(item));
+    }
+    return result;
+}
 void DataService::SaveConfig(const Json& changes){
     if(changes.empty())return;
     auto next=config_;for(auto it=changes.begin();it!=changes.end();++it){if(!next.contains(it.key()))throw std::invalid_argument("Unknown setting");next[it.key()]=it.value();}

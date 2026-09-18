@@ -55,8 +55,8 @@ add_library(wpe64-injector STATIC src/shell/process_injector.cpp)
 target_include_directories(wpe64-injector PUBLIC src)
 target_link_libraries(wpe64-injector PUBLIC wpe64-common)
 if(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-  add_executable(wpe64-app WIN32 src/shell/main.cpp src/shell/app.manifest)
-  target_link_libraries(wpe64-app PRIVATE wpe64-data wpe64-clipboard
+  add_executable(wpe64-app WIN32 src/shell/main.cpp src/shell/target_link.cpp src/shell/app.manifest)
+  target_link_libraries(wpe64-app PRIVATE wpe64-data wpe64-clipboard wpe64-injector
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/webview2/x64/WebView2LoaderStatic.lib"
     ole32 oleaut32 user32 shell32 shlwapi advapi32 dwmapi version)
   target_include_directories(wpe64-app SYSTEM PRIVATE third_party/webview2/include)

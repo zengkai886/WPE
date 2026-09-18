@@ -28,6 +28,9 @@ public:
     bool ApplyStoreEvent(std::span<const std::uint8_t> frame);
     void PublishAll();
     Json Prefs() const;
+    // Target-facing snapshot used when publishing configuration to the
+    // injected headless core. Robot execution is deliberately excluded.
+    Json TargetConfiguration() const;
     static bool NeedsConfirmation(const std::string& method,const Json& args);
     static bool NeedsOpenFile(const std::string& method,const Json& args);
     static bool NeedsSaveFile(const std::string& method,const Json& args);

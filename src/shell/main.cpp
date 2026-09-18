@@ -11,11 +11,16 @@
 #include "web_bridge.h"
 #include "data_worker.h"
 #include "clipboard_worker.h"
+#include "target_link.h"
+#include "common/ipc_codec.h"
+#include "common/packet_frame.h"
+#include <TlHelp32.h>
 #include <filesystem>
 #include <fstream>
 #include <memory>
 #include <sstream>
 #include <deque>
+#include <mutex>
 
 using Microsoft::WRL::Callback;
 using Microsoft::WRL::ComPtr;
@@ -23,7 +28,7 @@ using wpe::shell::Json;
 using wpe::shell::WebBridge;
 namespace fs=std::filesystem;
 namespace {
-constexpr UINT app_ready=WM_APP+1, app_drag=WM_APP+2, app_test=WM_APP+3, app_failure=WM_APP+4, app_file=WM_APP+5;
+constexpr UINT app_ready=WM_APP+1, app_drag=WM_APP+2, app_test=WM_APP+3, app_failure=WM_APP+4, app_file=WM_APP+5, app_target=WM_APP+6;
 constexpr wchar_t origin[]=L"https://app.wpe64.local/index.html";
 void Check(HRESULT result,const char* operation){
     if(FAILED(result)){std::ostringstream text;text<<operation<<" HRESULT=0x"<<std::hex<<static_cast<unsigned long>(result);throw std::runtime_error(text.str());}
@@ -41,6 +46,9 @@ std::string Utf8(std::wstring_view text){
     if(count==0)throw std::runtime_error("Invalid UTF-16");
     std::string result(static_cast<std::size_t>(count),'\0');
     WideCharToMultiByte(CP_UTF8,WC_ERR_INVALID_CHARS,text.data(),static_cast<int>(text.size()),result.data(),count,nullptr,nullptr);return result;
+}
+std::u16string U16(std::string_view text){
+    const auto wide=Wide(text);return std::u16string(wide.begin(),wide.end());
 }
 struct CoString {LPWSTR value{};~CoString(){CoTaskMemFree(value);} };
 bool IsAdmin(){
@@ -79,6 +87,7 @@ public:
     explicit Host(Options options):options_(std::move(options)),exit_code_(options_.test?1:0){}
     ~Host(){
         closing_=true;lifetime_.reset();
+        if(target_)target_->Stop();
         clipboard_.reset();data_.reset();
         // Complete callbacks while the report/window state they capture still exists.
         if(bridge_){bridge_->FailAllPending();bridge_.reset();}
@@ -104,6 +113,17 @@ private:
     void CancelFileJobs();
     void DiscardExport(const Json& plan){if(data_&&plan.is_object()&&plan.contains("token"))data_->ForgetExportPlan(plan.at("token").get<std::string>());}
     void DrainClipboard();
+    void DrainTarget();
+    void QueueTargetFrame(wpe::ByteBuffer frame,bool packet_channel);
+    void QueueTargetResult(WebBridge::Completion done,Json value,std::string error);
+    void HandleTargetFrame(wpe::ByteBuffer frame,bool packet_channel);
+    void SyncTargetConfiguration(WebBridge::Completion done);
+    std::filesystem::path HookDll() const;
+    Json InjectStatus() const;
+    Json InjectStats() const;
+    Json EnumerateProcesses() const;
+    void RememberInjection(DWORD pid,const fs::path& path,const std::string& method,const std::wstring& args);
+    void RegisterTargetMethods();
     std::unique_ptr<wpe::shell::ClipboardWorker> clipboard_;
     struct FileJob {std::string method;Json args;WebBridge::Completion done;Json export_plan=nullptr;Json file_info=nullptr;};
     void BeginImport(FileJob job,const fs::path& path,std::uint64_t epoch);
@@ -120,6 +140,14 @@ private:
     ComPtr<ICoreWebView2> view_;
     std::unique_ptr<WebBridge> bridge_;
     std::unique_ptr<wpe::shell::DataWorker> data_;
+    std::unique_ptr<wpe::shell::TargetLink> target_;
+    struct TargetResult {WebBridge::Completion done;Json value;std::string error;};
+    std::mutex target_mutex_;
+    std::deque<std::pair<wpe::ByteBuffer,bool>> target_frames_;
+    std::deque<TargetResult> target_results_;
+    Json target_stats_=Json::object();
+    Json last_inject_=nullptr;
+    bool send_running_{},hook_running_{};
     bool native_drag_{},ready_{},revealed_{},closing_{},done_{},failure_posted_{};
     int exit_code_;
     std::uint64_t messages_{};
@@ -155,6 +183,7 @@ LRESULT Host::Message(UINT message,WPARAM wparam,LPARAM lparam){
     case WM_TIMER:
         if(bridge_)bridge_->Tick();
         if(!closing_)DrainClipboard();
+        if(!closing_)DrainTarget();
         if(data_&&bridge_&&!closing_)data_->Drain([this](std::string name,Json value){bridge_->PushEvent(std::move(name),std::move(value));});
         if(options_.test && std::chrono::steady_clock::now()-started_>std::chrono::seconds(90))Fail("WebView2 self-test timed out");
         if(!options_.test && !revealed_ && std::chrono::steady_clock::now()-started_>std::chrono::seconds(4)){revealed_=true;ShowWindow(window_,SW_SHOW);}
@@ -166,6 +195,7 @@ LRESULT Host::Message(UINT message,WPARAM wparam,LPARAM lparam){
     case app_drag:ReleaseCapture();SendMessageW(window_,WM_NCLBUTTONDOWN,HTCAPTION,0);return 0;
     case app_test:CaptureAndFinish();return 0;
     case app_file:PickImportFile();return 0;
+    case app_target:DrainTarget();return 0;
     case app_failure:
         // Posted from WebView2 callbacks: no nested modal pump in those callbacks.
         if(!options_.test)MessageBoxW(window_,Wide(report_.value("error",std::string("Native host failed"))).c_str(),L"WPE C++ 宿主错误",MB_OK|MB_ICONERROR);
@@ -240,6 +270,17 @@ void Host::State(){if(bridge_&&!closing_)bridge_->PushEvent("window:state",{{"ma
 void Host::RegisterMethods(){
     const auto db=options_.data/L"2.3.0"/L"WPE.db";
     data_=std::make_unique<wpe::shell::DataWorker>(db);
+    target_=std::make_unique<wpe::shell::TargetLink>(
+        [this](wpe::ByteBuffer frame,bool packet){QueueTargetFrame(std::move(frame),packet);},
+        [this](wpe::IpcLinkState state){
+            Json value{{"state",state==wpe::IpcLinkState::Attached?"attached":
+                                   state==wpe::IpcLinkState::Attaching?"attaching":
+                                   state==wpe::IpcLinkState::Disconnected?"disconnected":"idle"},
+                       {"pid",target_?target_->TargetPid():0},
+                       {"is64",target_?target_->TargetIs64():false},
+                       {"hooked",false}};
+            QueueTargetResult({},Json{{"__event","inject:state"},{"value",std::move(value)}},{});
+        });
     for(const auto& method:wpe::shell::DataService::Methods()){
         bridge_->RegisterAsync(method,[this,method](const Json& args,WebBridge::Completion done){
             if(wpe::shell::DataService::NeedsOpenFile(method,args)||wpe::shell::DataService::NeedsSaveFile(method,args)){
@@ -305,6 +346,7 @@ void Host::RegisterMethods(){
         std::wstring text;try{if(args.contains("text")&&!args["text"].is_null())text=Wide(args.at("text").get<std::string>());}catch(...){done({{"ok",false}},{});return;}
         clipboard_->Submit(true,std::move(text),[done](bool ok,std::wstring){done({{"ok",ok}},{});});
     });
+    RegisterTargetMethods();
     if(options_.test){
         bridge_->Register("__testStage",[this](const Json& args){report_["lastStage"]=args;return Json{{"ok",true}};});
         bridge_->Register("__testCancelNextFile",[this](const Json&){test_cancel_file_=true;return Json{{"ok",true}};});
@@ -315,6 +357,187 @@ void Host::RegisterMethods(){
             bridge_->Ask("confirm",{{"title","C++ ↔ 原 Vue 双向桥测试"},{"content","此对话框由原 Vue 渲染，自动测试将点击确定。"},{"icon",2}},[this](Json answer){report_["originalVueConfirmed"]=answer;bridge_->PushEvent("toast",{{"level",1},{"text","NATIVE_BRIDGE_EVENT_OK"}});});return Json{{"ok",true}};});
         bridge_->Register("__testDone",[this](const Json& args){report_["frontend"]=args;PostMessageW(window_,app_test,0,0);return Json{{"ok",true}};});
     }
+}
+std::filesystem::path Host::HookDll() const {
+    const auto base=options_.assets.parent_path();
+    const auto path=base/L"wpe64-hook.dll";
+    if(!fs::is_regular_file(path))throw std::runtime_error("未找到 wpe64-hook.dll，请先构建目标注入模块");
+    return path;
+}
+void Host::RememberInjection(DWORD pid,const fs::path& path,const std::string& method,const std::wstring& args){
+    last_inject_={{"pid",static_cast<std::int64_t>(pid)},{"path",Utf8(path.wstring())},
+                  {"method",method},{"args",Utf8(args)}};
+}
+Json Host::InjectStatus() const {
+    const auto state=target_?target_->State():wpe::IpcLinkState::Idle;
+    return {{"state",state==wpe::IpcLinkState::Attached?"attached":state==wpe::IpcLinkState::Attaching?"attaching":
+                     state==wpe::IpcLinkState::Disconnected?"disconnected":"idle"},
+            {"pid",target_?target_->TargetPid():0},{"name",""},
+            {"is64",target_?target_->TargetIs64():false},{"hooked",hook_running_},
+            {"dropped",target_stats_.value("dropped",0)},
+            {"ws1",target_stats_.value("ws1",false)},{"ws2",target_stats_.value("ws2",false)},
+            {"msws",target_stats_.value("msws",false)}};
+}
+Json Host::InjectStats() const {
+    Json result=target_stats_.is_object()?target_stats_:Json::object();
+    result["pid"]=target_?target_->TargetPid():0;
+    result["hooked"]=hook_running_;
+    result["dropped"]=result.value("dropped",0);
+    const auto packets=result.value("packets",Json::array());
+    auto packet=[&](std::size_t i){return packets.is_array()&&i<packets.size()?packets[i].get<std::int64_t>():0;};
+    result["total"]=packet(0);result["send"]=packet(1);result["sendTo"]=packet(2);
+    result["recv"]=packet(3);result["recvFrom"]=packet(4);result["wsaSend"]=packet(5);
+    result["wsaSendTo"]=packet(6);result["wsaRecv"]=packet(7);result["wsaRecvFrom"]=packet(8);
+    result["totalSend"]=packet(9);result["totalRecv"]=packet(10);
+    result["queue"]=0;result["rate"]=0;result["filterExecute"]=0;result["filterPacket"]=target_stats_.value("filterGlobals",Json::array()).is_array()&&target_stats_.value("filterGlobals",Json::array()).size()?target_stats_.value("filterGlobals",Json::array())[0].get<std::int64_t>():0;
+    return result;
+}
+Json Host::EnumerateProcesses() const {
+    Json rows=Json::array();
+    const auto snapshot=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
+    if(snapshot==INVALID_HANDLE_VALUE)return rows;
+    PROCESSENTRY32W entry{};entry.dwSize=sizeof(entry);
+    if(Process32FirstW(snapshot,&entry))do{
+        std::string path;
+        HANDLE process=OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION,FALSE,entry.th32ProcessID);
+        if(process){wchar_t buffer[32768]{};DWORD length=static_cast<DWORD>(std::size(buffer));
+            if(QueryFullProcessImageNameW(process,0,buffer,&length))path=Utf8(std::wstring_view(buffer,length));CloseHandle(process);}
+        rows.push_back({{"ProcessID",entry.th32ProcessID},{"ProcessName",Utf8(entry.szExeFile)},
+                        {"ProcessPath",path}});
+    }while(Process32NextW(snapshot,&entry));
+    CloseHandle(snapshot);return rows;
+}
+void Host::QueueTargetFrame(wpe::ByteBuffer frame,bool packet_channel){
+    {std::lock_guard lock(target_mutex_);if(target_frames_.size()<8192)target_frames_.emplace_back(std::move(frame),packet_channel);}
+    if(window_)PostMessageW(window_,app_target,0,0);
+}
+void Host::QueueTargetResult(WebBridge::Completion done,Json value,std::string error){
+    {std::lock_guard lock(target_mutex_);target_results_.push_back({std::move(done),std::move(value),std::move(error)});}
+    if(window_)PostMessageW(window_,app_target,0,0);
+}
+void Host::HandleTargetFrame(wpe::ByteBuffer frame,bool packet_channel){
+    if(packet_channel){
+        try{
+            const auto packet=wpe::PacketFrame::Decode(frame);
+            bridge_->PushEvent("packet:frame",{{"id",packet.id},{"socket",packet.socket},
+                {"type",packet.packet_type},{"from",packet.from?Utf8(std::wstring(packet.from->begin(),packet.from->end())):""},
+                {"to",packet.to?Utf8(std::wstring(packet.to->begin(),packet.to->end())):""},
+                {"length",packet.modified?static_cast<std::int64_t>(packet.modified->size()):0}});
+        }catch(...){ }
+        return;
+    }
+    try{
+        wpe::IpcReader reader(frame);const auto event=static_cast<wpe::IpcEvent>(reader.U8());
+        switch(event){
+        case wpe::IpcEvent::Stats:{
+            const bool sends=reader.Bool(),robots=reader.Bool();Json filters=Json::array(),send_rows=Json::array();
+            const auto filter_count=reader.I32();for(std::int32_t i=0;i<filter_count;++i){const auto id=reader.Guid_().ToString();filters.push_back({{"id",id},{"count",reader.I64()}});}
+            const auto send_count=reader.I32();for(std::int32_t i=0;i<send_count;++i)send_rows.push_back({{"id",reader.Guid_().ToString()},{"count",reader.I64()},{"success",reader.I64()},{"fail",reader.I64()}});
+            Json globals=Json::array();for(int i=0;i<6;++i)globals.push_back(reader.I64());
+            Json packets=Json::array();const auto robot_count=reader.I32();for(std::int32_t i=0;i<robot_count;++i){reader.Guid_();reader.I64();}
+            for(int i=0;i<11;++i)packets.push_back(reader.I64());
+            if(reader.Remaining()!=0)throw std::runtime_error("Stats event has trailing bytes");
+            send_running_=sends;target_stats_={{"sendRunning",sends},{"robotRunning",robots},{"filters",filters},{"sends",send_rows},{"filterGlobals",globals},{"packets",packets},{"dropped",target_stats_.value("dropped",0)}};
+            bridge_->PushEvent("send:running",{{"running",sends}});bridge_->PushEvent("target:stats",target_stats_);break;
+        }
+        case wpe::IpcEvent::HookState:{
+            hook_running_=reader.Bool();target_stats_["ws1"]=reader.Bool();target_stats_["ws2"]=reader.Bool();target_stats_["msws"]=reader.Bool();
+            if(reader.Remaining()!=0)throw std::runtime_error("HookState event has trailing bytes");
+            bridge_->PushEvent("inject:state",InjectStatus());break;
+        }
+        case wpe::IpcEvent::StoreAdded:
+            if(data_)data_->SubmitStoreEvent(std::move(frame),[](Json,std::string){});break;
+        case wpe::IpcEvent::FilterLog:{
+            const auto name=reader.Str();const auto action=reader.I32(),matches=reader.I32(),type=reader.I32(),length=reader.I32();
+            if(reader.Remaining()!=0)throw std::runtime_error("FilterLog event has trailing bytes");
+            bridge_->PushEvent("filter:log",{{"name",name?Utf8(std::wstring(name->begin(),name->end())):""},{"action",action},{"matches",matches},{"type",type},{"length",length}});break;
+        }
+        case wpe::IpcEvent::Dropped:{const auto count=reader.I64();target_stats_["dropped"]=count;bridge_->PushEvent("inject:dropped",{{"count",count}});break;}
+        case wpe::IpcEvent::Log:{const auto source=reader.Str(),message=reader.Str();bridge_->PushEvent("filter:log",{{"source",source?Utf8(std::wstring(source->begin(),source->end())):""},{"message",message?Utf8(std::wstring(message->begin(),message->end())):""}});break;}
+        case wpe::IpcEvent::Fatal:{const auto text=reader.Str();bridge_->PushEvent("toast",{{"level",4},{"text",text?Utf8(std::wstring(text->begin(),text->end())):"目标进程连接失败"}});break;}
+        default:break;
+        }
+    }catch(const std::exception& error){if(bridge_)bridge_->PushEvent("toast",{{"level",4},{"text",error.what()}});}
+}
+void Host::DrainTarget(){
+    std::deque<TargetResult> results;std::deque<std::pair<wpe::ByteBuffer,bool>> frames;
+    {std::lock_guard lock(target_mutex_);results.swap(target_results_);frames.swap(target_frames_);}
+    for(auto& result:results){
+        if(!result.done && result.value.is_object() && result.value.value("__event","")=="inject:state"){
+            if(bridge_)bridge_->PushEvent("inject:state",std::move(result.value.at("value")));continue;
+        }
+        if(result.done)try{result.done(std::move(result.value),std::move(result.error));}catch(...){ }
+    }
+    for(auto& frame:frames)if(bridge_&&!closing_)HandleTargetFrame(std::move(frame.first),frame.second);
+}
+void Host::SyncTargetConfiguration(WebBridge::Completion done){
+    if(!data_||!target_||target_->State()!=wpe::IpcLinkState::Attached){done(nullptr,"尚未连接目标进程");return;}
+    data_->SubmitTargetConfiguration([this,done=std::move(done)](Json config,std::string error) mutable {
+        if(!error.empty()){QueueTargetResult(std::move(done),nullptr,std::move(error));return;}
+        try{
+            std::vector<wpe::ByteBuffer> requests;
+            wpe::IpcWriter flags;for(const auto& v:config.at("hookFlags"))flags.Bool(v.get<bool>());
+            wpe::IpcWriter request;request.U8(static_cast<std::uint8_t>(wpe::IpcCommand::SetConfig));request.U8(static_cast<std::uint8_t>(wpe::ConfigKind::HookFlags));request.Bytes(flags.ToArray());requests.push_back(request.ToArray());
+            wpe::IpcWriter filters;filters.I32(static_cast<std::int32_t>(config.at("filters").size()));
+            for(const auto& item:config.at("filters")){
+                filters.Bool(item.value("enabled",false));filters.Guid_(wpe::Guid::Parse(item.value("id",std::string{})));filters.Str(U16(item.value("name",std::string{})));
+                for(const auto& pair:std::array<std::pair<const char*,const char*>,4>{{{"appointHeader","header"},{"appointSocket","socket"},{"appointLength","length"},{"appointPort","port"}}}){filters.Bool(item.value(pair.first,false));filters.Str(U16(item.value(pair.second,std::string{})));}
+                filters.I32(item.value("mode",0));filters.I32(item.value("action",0));filters.Bool(item.value("execute",false));filters.I32(item.value("executeType",2));filters.Guid_(wpe::Guid::Parse(item.value("executeId",std::string("00000000-0000-0000-0000-000000000000"))));
+                const auto mask=item.value("functionMask",0);for(int i=0;i<12;++i)filters.Bool((mask&(1<<i))!=0);filters.I32(item.value("startFrom",0));filters.Bool(item.value("progressionDone",false));filters.Bool(item.value("progressionContinuous",false));filters.I32(item.value("progressionStep",1));filters.Bool(item.value("progressionCarry",false));filters.I32(item.value("progressionCarryNumber",1));filters.Str(U16(item.value("progressionPosition",std::string{})));filters.I32(item.value("progressionCount",0));filters.Str(U16(item.value("excludePosition",std::string{})));filters.Str(U16(item.value("randomPosition",std::string{})));filters.Str(U16(item.value("search",std::string{})));filters.Str(U16(item.value("modify",std::string{})));
+            }
+            request=wpe::IpcWriter();request.U8(static_cast<std::uint8_t>(wpe::IpcCommand::SetConfig));request.U8(static_cast<std::uint8_t>(wpe::ConfigKind::Filters));request.Bytes(filters.ToArray());requests.push_back(request.ToArray());
+            wpe::IpcWriter runtime;const auto& r=config.at("runtime");runtime.Bool(r.value("speedMode",false));runtime.I32(r.value("systemSocket",0));runtime.I32(r.value("listExecute",1));runtime.I32(r.value("filterExecute",1));runtime.Bool(false);
+            request=wpe::IpcWriter();request.U8(static_cast<std::uint8_t>(wpe::IpcCommand::SetConfig));request.U8(static_cast<std::uint8_t>(wpe::ConfigKind::Runtime));request.Bytes(runtime.ToArray());requests.push_back(request.ToArray());
+            wpe::IpcWriter sends;sends.I32(static_cast<std::int32_t>(config.at("sends").size()));
+            for(const auto& item:config.at("sends")){sends.Bool(item.value("enabled",false));sends.Guid_(wpe::Guid::Parse(item.value("id",std::string{})));sends.Str(U16(item.value("name",std::string{})));sends.Bool(item.value("systemSocket",false));sends.I32(item.value("loopCount",1));sends.I32(item.value("loopInterval",1000));sends.Str(U16(item.value("notes",std::string{})));sends.I32(static_cast<std::int32_t>(item.at("packets").size()));for(const auto& packet:item.at("packets")){sends.I32(packet.value("socket",0));sends.I32(packet.value("type",0));sends.Str(U16(packet.value("from",std::string{})));sends.Str(U16(packet.value("to",std::string{})));const auto& bytes=packet.at("bytes");sends.Bytes(bytes.is_binary()?wpe::ByteBuffer(bytes.get_binary().begin(),bytes.get_binary().end()):wpe::ByteBuffer{});}}
+            request=wpe::IpcWriter();request.U8(static_cast<std::uint8_t>(wpe::IpcCommand::SetConfig));request.U8(static_cast<std::uint8_t>(wpe::ConfigKind::Sends));request.Bytes(sends.ToArray());requests.push_back(request.ToArray());
+            auto shared=std::make_shared<std::pair<std::size_t,std::string>>(0,std::string{});auto pump=std::make_shared<std::function<void()>>();*pump=[this,requests=std::move(requests),shared,pump,done=std::move(done)]() mutable {if(shared->first==requests.size()){QueueTargetResult(std::move(done),{{"ok",true}},{});return;}target_->CallVoid(requests[shared->first],[this,shared,pump,done](bool ok,std::string error) mutable {if(!ok){QueueTargetResult(std::move(done),nullptr,std::move(error));return;}++shared->first;(*pump)();});};(*pump)();
+        }catch(const std::exception& e){QueueTargetResult(std::move(done),nullptr,e.what());}
+    });
+}
+void Host::RegisterTargetMethods(){
+    bridge_->Register("getInjectProcessList",[this](const Json&){return EnumerateProcesses();});
+    bridge_->Register("getProcessIcons",[](const Json&){return Json{{"icons",Json::object()}};});
+    bridge_->Register("cancelPickWindow",[](const Json&){return Json{{"ok",true}};});
+    bridge_->Register("pickWindow",[](const Json&){
+        POINT point{};if(!GetCursorPos(&point))return Json{{"ok",false},{"error","无法读取鼠标位置"}};
+        const auto window=WindowFromPoint(point);DWORD pid=0;GetWindowThreadProcessId(window,&pid);
+        if(!pid||pid==GetCurrentProcessId())return Json{{"ok",false},{"error","请把鼠标移到目标窗口后重试"}};
+        return Json{{"ok",true},{"pid",pid}};
+    });
+    bridge_->Register("enterInjectMode",[this](const Json&){return Json{{"ok",true},{"lastInject",last_inject_}};});
+    bridge_->Register("getInjectStatus",[this](const Json&){return InjectStatus();});
+    bridge_->Register("getInjectStats",[this](const Json&){return InjectStats();});
+    bridge_->RegisterAsync("injectAttach",[this](const Json& args,WebBridge::Completion done){
+        try{const auto pid=args.value("pid",0);const auto method=args.value("method",0);const auto dll=HookDll();auto finish=[this,done=std::move(done)](bool ok,std::string error) mutable {if(!ok){QueueTargetResult(std::move(done),nullptr,std::move(error));return;}SyncTargetConfiguration([this,done=std::move(done)](Json,std::string error) mutable {if(!error.empty()){QueueTargetResult(std::move(done),nullptr,std::move(error));return;}auto value=InjectStatus();value["ok"]=true;QueueTargetResult(std::move(done),std::move(value),{});});};if(pid<1){const auto path=fs::path(Wide(args.value("path",std::string{})));const auto command=Wide(args.value("args",std::string{}));RememberInjection(0,path,std::to_string(method),command);target_->AttachLaunched(path,command,dll,std::move(finish));}else{RememberInjection(static_cast<DWORD>(pid),{},std::to_string(method),{});target_->AttachPid(static_cast<DWORD>(pid),dll,std::move(finish));}}
+        catch(const std::exception& e){done(nullptr,e.what());}
+    });
+    bridge_->RegisterAsync("injectQuick",[this](const Json&,WebBridge::Completion done){
+        if(!last_inject_.is_object()){done(nullptr,"没有可用的上次注入目标");return;}Json args=last_inject_;args["pid"]=last_inject_.value("pid",0);args["method"]=last_inject_.value("method",0);
+        try{const auto dll=HookDll();const auto pid=args.value("pid",0);auto finish=[this,done=std::move(done)](bool ok,std::string error) mutable {if(!ok){QueueTargetResult(std::move(done),nullptr,std::move(error));return;}SyncTargetConfiguration([this,done=std::move(done)](Json,std::string error) mutable {if(!error.empty()){QueueTargetResult(std::move(done),nullptr,std::move(error));return;}auto value=InjectStatus();value["ok"]=true;QueueTargetResult(std::move(done),std::move(value),{});});};if(pid>0)target_->AttachPid(static_cast<DWORD>(pid),dll,std::move(finish));else target_->AttachLaunched(fs::path(Wide(args.value("path",std::string{}))),Wide(args.value("args",std::string{})),dll,std::move(finish));}
+        catch(const std::exception& e){done(nullptr,e.what());}
+    });
+    bridge_->RegisterAsync("injectStartHook",[this](const Json&,WebBridge::Completion done){SyncTargetConfiguration([this,done=std::move(done)](Json,std::string error) mutable {if(!error.empty()){done(nullptr,std::move(error));return;}wpe::IpcWriter r;r.U8(static_cast<std::uint8_t>(wpe::IpcCommand::StartHook));target_->CallVoid(r.ToArray(),[this,done=std::move(done)](bool ok,std::string error) mutable {QueueTargetResult(std::move(done),ok?Json{{"ok",true}}:Json{},std::move(error));});});});
+    bridge_->RegisterAsync("injectStopHook",[this](const Json&,WebBridge::Completion done){wpe::IpcWriter r;r.U8(static_cast<std::uint8_t>(wpe::IpcCommand::StopHook));target_->CallVoid(r.ToArray(),[this,done=std::move(done)](bool ok,std::string error){QueueTargetResult(std::move(done),ok?Json{{"ok",true}}:Json{},std::move(error));});});
+    bridge_->RegisterAsync("startSendList",[this](const Json&,WebBridge::Completion done){SyncTargetConfiguration([this,done=std::move(done)](Json,std::string error) mutable {if(!error.empty()){done(nullptr,std::move(error));return;}wpe::IpcWriter r;r.U8(static_cast<std::uint8_t>(wpe::IpcCommand::StartSendList));target_->CallVoid(r.ToArray(),[this,done=std::move(done)](bool ok,std::string error) mutable {QueueTargetResult(std::move(done),ok?Json{{"ok",true},{"running",send_running_}}:Json{},std::move(error));});});});
+    bridge_->RegisterAsync("stopSendList",[this](const Json&,WebBridge::Completion done){wpe::IpcWriter r;r.U8(static_cast<std::uint8_t>(wpe::IpcCommand::StopSendList));target_->CallVoid(r.ToArray(),[this,done=std::move(done)](bool ok,std::string error) mutable {send_running_=false;QueueTargetResult(std::move(done),ok?Json{{"ok",true},{"running",false}}:Json{},std::move(error));});});
+    bridge_->RegisterAsync("getSendMeta",[this](const Json&,WebBridge::Completion done){data_->Submit("getSendMeta",Json::object(),[this,done=std::move(done)](Json value,std::string error) mutable {if(value.is_object())value["running"]=send_running_;done(std::move(value),std::move(error));});});
+    bridge_->Register("getStats",[this](const Json&){
+        Json value={{"queue",0},{"list",send_running_?1:0},{"total",0},{"proxyRunning",false},
+            {"tcpReq",0},{"tcpResp",0},{"udpReq",0},{"udpResp",0},{"httpReq",0},{"httpResp",0},
+            {"filterExecute",0},{"filterProxy",0},{"tcpConn",0},{"udpConn",0},{"onlineInfo",""},
+            {"totalRequest",0},{"totalResponse",0},{"speedUp",0},{"speedDown",0}};
+        if(target_stats_.is_object())value.update(target_stats_);return value;
+    });
+    bridge_->Register("getFilterStats",[this](const Json&){
+        const auto globals=target_stats_.value("filterGlobals",Json::array());
+        auto at=[&](std::size_t i){return globals.is_array()&&i<globals.size()?globals[i].get<std::int64_t>():0;};
+        std::int64_t execute=0;for(const auto& item:target_stats_.value("filters",Json::array()))execute+=item.value("count",0LL);
+        return Json{{"ProxyTotal",at(0)},{"Hit",at(0)},{"Execute",execute},
+                    {"Replace",at(1)},{"Change",at(2)},{"Intercept",at(3)},
+                    {"Display",at(4)},{"NoDisplay",at(5)}};
+    });
+    bridge_->RegisterAsync("resetFilterStats",[this](const Json&,WebBridge::Completion done){wpe::IpcWriter r;r.U8(static_cast<std::uint8_t>(wpe::IpcCommand::ResetStats));r.U8(static_cast<std::uint8_t>(wpe::ResetWhat::FilterStats));target_->CallVoid(r.ToArray(),[this,done=std::move(done)](bool ok,std::string error){QueueTargetResult(std::move(done),ok?Json{{"ok",true}}:Json{},std::move(error));});});
 }
 void Host::CancelFileJobs(){
     // Navigation/close must cancel deferred clipboard writes too.

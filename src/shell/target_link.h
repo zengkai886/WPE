@@ -1,0 +1,74 @@
+#pragma once
+
+#include "common/ipc_protocol.h"
+#include "common/ipc_session.h"
+#include <Windows.h>
+#include <atomic>
+#include <condition_variable>
+#include <deque>
+#include <filesystem>
+#include <functional>
+#include <mutex>
+#include <optional>
+#include <string>
+#include <thread>
+
+namespace wpe::shell {
+
+// Serializes injection, named-pipe lifecycle and target commands on one
+// worker.  The UI thread only queues operations; target event frames are
+// forwarded to the host for UI-thread dispatch.
+class TargetLink final {
+public:
+    using Completion = std::function<void(bool, std::string)>;
+    using EventHandler = std::function<void(ByteBuffer, bool packet_channel)>;
+    using StateHandler = std::function<void(IpcLinkState)>;
+
+    TargetLink(EventHandler event_handler, StateHandler state_handler);
+    ~TargetLink();
+    TargetLink(const TargetLink&) = delete;
+    TargetLink& operator=(const TargetLink&) = delete;
+
+    void AttachPid(DWORD pid, std::filesystem::path dll, Completion done);
+    void AttachLaunched(std::filesystem::path executable, std::wstring arguments,
+                        std::filesystem::path dll, Completion done);
+    void CallVoid(ByteBuffer request, Completion done);
+    void Detach(Completion done);
+    void Stop() noexcept;
+
+    [[nodiscard]] IpcLinkState State() const noexcept { return state_.load(); }
+    [[nodiscard]] DWORD TargetPid() const noexcept { return target_pid_.load(); }
+    [[nodiscard]] bool TargetIs64() const noexcept { return target_is_64_.load(); }
+
+private:
+    struct Job {
+        enum class Kind { AttachPid, AttachLaunch, CallVoid, Detach, Stop } kind;
+        DWORD pid{};
+        std::filesystem::path path;
+        std::filesystem::path dll;
+        std::wstring arguments;
+        ByteBuffer request;
+        Completion done;
+    };
+
+    void Submit(Job job);
+    void Run();
+    void Attach(Job& job, bool launch);
+    void Complete(Completion& done, bool ok, std::string error) noexcept;
+    void SetState(IpcLinkState state) noexcept;
+    static std::string NewSession();
+
+    EventHandler event_handler_;
+    StateHandler state_handler_;
+    mutable std::mutex mutex_;
+    std::condition_variable wake_;
+    std::deque<Job> jobs_;
+    bool stopping_{};
+    std::thread worker_;
+    std::unique_ptr<ShellIpcSession> session_;
+    std::atomic<IpcLinkState> state_{IpcLinkState::Idle};
+    std::atomic<DWORD> target_pid_{};
+    std::atomic_bool target_is_64_{};
+};
+
+} // namespace wpe::shell

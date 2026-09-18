@@ -73,6 +73,14 @@ int main(int argc,char** argv){
             Call(service,"setSendEnable",{{"id",sid},{"enable",true}});
             Require(Call(service,"saveSendEdit",{{"name","序列 中文"},{"loopCount",0},{"loopInterval",-1},{"notes"," note "}})["error"]=="","send save");
             Require(feeds[9][0]["IsEnable"]==true&&feeds[9][0]["LoopCount"]==1&&feeds[9][0]["LoopInterval"]==0,"send edit toggle or range");Call(service,"closeSendEdit");
+            const auto target=service.TargetConfiguration();
+            Require(target["hookFlags"].is_array()&&target["hookFlags"].size()==12,
+                    "target hook snapshot shape");
+            Require(target["filters"].is_array()&&target["filters"].size()==1&&
+                    target["sends"].is_array()&&target["sends"].size()==1,
+                    "target filter/send snapshot shape");
+            Require(target["runtime"]["listExecute"]==0&&target["runtime"]["filterExecute"]==1,
+                    "target runtime snapshot values");
             Require(Call(service,"saveSendEdit",{{"name","lost"}})["error"]!="","closed edit accepted");
             auto robot=Call(service,"addRobot")["id"];Require(feeds[10][0]["InstructionCount"]==0,"new robot");
             Require(Call(service,"getExecuteTargets",{{"type",1},{"excludeId",robot}})["items"].empty(),"execute target exclusion");

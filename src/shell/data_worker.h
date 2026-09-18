@@ -16,6 +16,7 @@ public:
     // Native target-event ingress. The event is committed by the worker and
     // never exposed as a browser-callable method.
     void SubmitStoreEvent(std::vector<std::uint8_t> frame,WebBridge::Completion done);
+    void SubmitTargetConfiguration(WebBridge::Completion done);
     void ForgetExportPlan(std::string token); // Internal cleanup cannot be rejected by the work-queue cap.
     void ForgetImportPlan(std::string token);
     void Drain(const DataService::Emit& emit); // Called by the host UI timer.
