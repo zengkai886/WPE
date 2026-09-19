@@ -71,6 +71,13 @@ if(WIN32)
   set_target_properties(wpe64-x86-helper PROPERTIES OUTPUT_NAME "wpe64-x86-helper")
 endif()
 if(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+  add_executable(wpe64-bootstrap WIN32 src/shell/bootstrap_main.cpp src/shell/app.rc)
+  target_link_libraries(wpe64-bootstrap PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/third_party/webview2/x64/WebView2LoaderStatic.lib"
+    ole32 oleaut32 user32 shell32 shlwapi advapi32 version)
+  target_include_directories(wpe64-bootstrap SYSTEM PRIVATE third_party/webview2/include)
+  target_compile_definitions(wpe64-bootstrap PRIVATE UNICODE _UNICODE _WIN32_WINNT=0x0A00)
+
   add_executable(wpe64-app WIN32 src/shell/main.cpp src/shell/target_link.cpp src/shell/app.manifest src/shell/app.rc)
   target_link_libraries(wpe64-app PRIVATE wpe64-data wpe64-clipboard wpe64-injector
     wpe64-proxy-runtime
