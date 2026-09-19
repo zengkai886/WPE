@@ -2,8 +2,8 @@
   "scope": "Registration inventory, not a functional-completion percentage. Partial and offline methods are explicitly distinguished. Robot runtime execution was explicitly removed from the requested delivery scope on 2026-09-18; robot data/editor compatibility remains.",
   "originalRpcCount": 217,
   "nativeDataRegistered": 130,
-  "nativeHostRegistered": 12,
-  "remainingUnregistered": 75,
+  "nativeHostRegistered": 26,
+  "remainingUnregistered": 61,
   "originalSource": "WinsockPacketEditor/ShellForm.cs",
   "originalSourceSha256": "86d277408d233903ec82ffe8f06a2cd1995898617c477a1f181046ebe0f72f12",
   "methods": [
@@ -87,16 +87,16 @@
     {
       "method": "injectQuick",
       "originalLine": 1713,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "注入运行链已接",
+      "note": "宿主已注册并复用上次注入配置进入 TargetLink；失败时执行清理，真实用户目标仍需人工验收。"
     },
     {
       "method": "getInjectProcessList",
       "originalLine": 1732,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "运行态部分接线",
+      "note": "宿主已注册并真实枚举进程、PID、名称和可查询路径；图标提取仍为独立边界。"
     },
     {
       "method": "pickTargetExe",
@@ -108,51 +108,51 @@
     {
       "method": "injectAttach",
       "originalLine": 1760,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "注入运行链已接",
+      "note": "宿主已注册并接入 TargetLink 附加/挂起启动、配置同步、StartHook 与失败清理；真实用户目标仍需人工验收。"
     },
     {
       "method": "injectStartHook",
       "originalLine": 1777,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "注入运行链已接",
+      "note": "宿主已注册并接入配置同步、StartHook 和成功后恢复挂起目标；失败路径执行清理。"
     },
     {
       "method": "injectStopHook",
       "originalLine": 1802,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "注入运行链已接",
+      "note": "宿主已注册并向目标发送 StopHook；Detach/目标断开状态仍以 TargetLink 状态回传为准。"
     },
     {
       "method": "pickWindow",
       "originalLine": 1820,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "运行态部分接线",
+      "note": "宿主已注册并通过鼠标位置取得窗口 PID；原生窗口选择取消状态仍为轻量实现。"
     },
     {
       "method": "cancelPickWindow",
       "originalLine": 1822,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "运行态部分接线",
+      "note": "宿主已注册取消入口并返回成功；当前窗口拾取为同步调用，没有后台选择会话。"
     },
     {
       "method": "getInjectStatus",
       "originalLine": 1828,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "运行态部分接线",
+      "note": "宿主已注册并返回 TargetLink 状态、PID、位数、hook 和丢包字段；真实目标验收另计。"
     },
     {
       "method": "getInjectStats",
       "originalLine": 1842,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "运行态部分接线",
+      "note": "宿主已注册并返回目标封包、方向、滤镜和丢包统计；真实目标验收另计。"
     },
     {
       "method": "startProxy",
@@ -605,16 +605,16 @@
     {
       "method": "startSendList",
       "originalLine": 3605,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "发送执行链已接",
+      "note": "宿主已注册并通过真实目标 IPC 启动发送列表；循环、间隔、取消和统计由目标发送 worker 执行。"
     },
     {
       "method": "stopSendList",
       "originalLine": 3643,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "发送执行链已接",
+      "note": "宿主已注册并通过真实目标 IPC 停止发送列表；停止状态回传 running=false。"
     },
     {
       "method": "getRobotMeta",
@@ -885,16 +885,16 @@
     {
       "method": "getFilterStats",
       "originalLine": 3997,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "运行态部分接线",
+      "note": "宿主已注册并从目标 Stats 快照返回滤镜全局和 GUID 执行计数。"
     },
     {
       "method": "resetFilterStats",
       "originalLine": 4003,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "运行态部分接线",
+      "note": "宿主已注册并向目标发送 ResetStats/FilterStats 命令，结果通过 IPC 回传。"
     },
     {
       "method": "getLogSetting",
@@ -941,9 +941,9 @@
     {
       "method": "getProcessIcons",
       "originalLine": 4116,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "运行态部分接线",
+      "note": "宿主已注册并返回 icons 对象占位；真实进程图标提取仍未接入。"
     },
     {
       "method": "addSelectProcessName",
