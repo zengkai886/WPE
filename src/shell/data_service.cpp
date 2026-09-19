@@ -565,10 +565,18 @@ Json DataService::Call(const std::string& method,const Json& args){
     // decrypted proxy credentials.
     if(method=="__proxyRuntimeConfiguration"){
         Json accounts=Json::array();
+        Json wpc_accounts=Json::array();
         for(const auto& row:lists_[5]){
-            if(!B(row,"IsEnable"))continue;
             const auto user=Trim(S(row,"UserName")),password=PasswordDecrypt(S(row,"PassWord"));
-            if(!user.empty()&&!password.empty())accounts.push_back({{"user",user},{"password",password}});
+            if(user.empty())continue;
+            if(B(row,"IsEnable")&&!password.empty())
+                accounts.push_back({{"user",user},{"password",password}});
+            wpc_accounts.push_back({
+                {"accountId",S(row,"GUID")},{"user",user},{"password",password},
+                {"enabled",B(row,"IsEnable")},{"limitDevices",B(row,"IsLimitDevices")},
+                {"maxDevices",std::max(1,N(row,"LimitDevices",1))},
+                {"expiry",B(row,"IsExpiry")},{"expiryTime",S(row,"ExpiryTime")}
+            });
         }
         Json local_maps=Json::array();
         for(const auto& row:lists_[13]){
@@ -599,7 +607,7 @@ Json DataService::Call(const std::string& method,const Json& args){
                 {"enableRemoteMap",B(proxy_config_,"Enable_MapRemote")},
                 {"localMaps",std::move(local_maps)},
                 {"remoteMaps",std::move(remote_maps)},
-                {"accounts",std::move(accounts)}};
+                {"accounts",std::move(accounts)},{"wpcAccounts",std::move(wpc_accounts)}};
     }
     if(method=="saveProxySetting"){
         const bool socks=B(args,"enableSocks5"),http=B(args,"enableHttp"),automatic=B(args,"proxyIpAuto"),auth=B(args,"enableAuth"),only=B(args,"onlyWpc");

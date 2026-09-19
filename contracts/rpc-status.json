@@ -33,7 +33,7 @@
       "originalLine": 1443,
       "registered": true,
       "status": "运行态部分接线",
-      "note": "目标注入与发送执行器仍按连接状态提供数据；SOCKS5 与 HTTP/HTTPS 代理运行时会回传真实活动连接、TCP/UDP 请求与响应、上下行字节、错误计数和 HTTP 映射命中/未命中/错误计数；WPC HTTP 服务运行、连接、请求/响应和错误计数也会回传，私有 SOCKS WPC 控制连接仍未接。"
+      "note": "目标注入与发送执行器仍按连接状态提供数据；SOCKS5 与 HTTP/HTTPS 代理运行时会回传真实活动连接、TCP/UDP 请求与响应、上下行字节、错误计数和 HTTP 映射命中/未命中/错误计数；WPC HTTP 服务以及 SOCKS 私有 WPC 控制连接、设备、注册、心跳和错误计数均回传。"
     },
     {
       "method": "clearPackets",
@@ -159,14 +159,14 @@
       "originalLine": 1883,
       "registered": true,
       "status": "SOCKS5 TCP/UDP 与 HTTP/HTTPS 正向代理运行链",
-      "note": "原 Vue startProxy 已接入 native SOCKS5 TCP CONNECT、UDP ASSOCIATE 与 HTTP/HTTPS 正向代理；各链复用监听、可选账号认证、目标连接超时、双向 relay、真实统计和停止生命周期。HTTP 支持 absolute-form 与 CONNECT HTTPS 隧道；WPC-only 仍明确未接入。"
+      "note": "原 Vue startProxy 已接入 native SOCKS5 TCP CONNECT、UDP ASSOCIATE 与 HTTP/HTTPS 正向代理；各链复用监听、可选账号认证、目标连接超时、双向 relay、真实统计和停止生命周期。SOCKS5 私有 WPC 使用 0x80 控制方法、JSON 注册/心跳帧和内存令牌，并支持 Only_WPC 数据连接；HTTP 支持 absolute-form 与 CONNECT HTTPS 隧道。"
     },
     {
       "method": "stopProxy",
       "originalLine": 1905,
       "registered": true,
       "status": "SOCKS5 TCP/UDP 与 HTTP/HTTPS 正向代理运行链",
-      "note": "停止原生 SOCKS5 与 HTTP/HTTPS 监听，关闭监听 socket 并等待 accept/client worker 收尾；UDP relay 随控制连接和监听生命周期收尾，WPC-only 仍明确未接入。"
+      "note": "停止原生 SOCKS5 与 HTTP/HTTPS 监听，关闭监听 socket 并等待 accept/client worker 收尾；UDP relay 与私有 WPC 控制连接、设备令牌随控制连接和监听生命周期收尾。"
     },
     {
       "method": "setListEnable",
@@ -194,7 +194,7 @@
       "originalLine": 2039,
       "registered": true,
       "status": "设置读写已接",
-      "note": "按原业务规则校验并事务保存 ProxyMode；SOCKS5 与 HTTP/HTTPS 启动读取各自端口、认证和连接上限，SOCKS5 同时支持 UDP ASSOCIATE，HTTP 代理读取映射开关和规则，WPC 仍未接。"
+      "note": "按原业务规则校验并事务保存 ProxyMode；SOCKS5 与 HTTP/HTTPS 启动读取各自端口、认证和连接上限，SOCKS5 同时支持 UDP ASSOCIATE 与私有 WPC 0x80 控制协议，HTTP 代理读取映射开关和规则。"
     },
     {
       "method": "setSystemProxy",
@@ -796,91 +796,91 @@
       "originalLine": 3896,
       "registered": true,
       "status": "WPC 节点与 HTTP 下发已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
     },
     {
       "method": "setServerEnable",
       "originalLine": 3909,
       "registered": true,
       "status": "WPC 节点与 HTTP 下发已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
     },
     {
       "method": "serverListAction",
       "originalLine": 3915,
       "registered": true,
       "status": "WPC 节点与 HTTP 下发已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
     },
     {
       "method": "clearServers",
       "originalLine": 3923,
       "registered": true,
       "status": "WPC 节点与 HTTP 下发已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
     },
     {
       "method": "getRuleTypes",
       "originalLine": 3929,
       "registered": true,
       "status": "WPC 节点与 HTTP 下发已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
     },
     {
       "method": "getServerRules",
       "originalLine": 3931,
       "registered": true,
       "status": "WPC 节点与 HTTP 下发已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
     },
     {
       "method": "saveServerRule",
       "originalLine": 3936,
       "registered": true,
       "status": "WPC 节点与 HTTP 下发已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
     },
     {
       "method": "setServerRuleEnable",
       "originalLine": 3947,
       "registered": true,
       "status": "WPC 节点与 HTTP 下发已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
     },
     {
       "method": "serverRuleAction",
       "originalLine": 3955,
       "registered": true,
       "status": "WPC 节点与 HTTP 下发已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
     },
     {
       "method": "clearServerRules",
       "originalLine": 3963,
       "registered": true,
       "status": "WPC 节点与 HTTP 下发已接",
-      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
+      "note": "ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
     },
     {
       "method": "saveNotice",
       "originalLine": 3969,
       "registered": true,
       "status": "WPC 公告与 HTTP 下发已接",
-      "note": "NoticeInfo 原表、feed 18、原 Vue 增改删/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetNoticeList 公告下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
+      "note": "NoticeInfo 原表、feed 18、原 Vue 增改删/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetNoticeList 公告下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
     },
     {
       "method": "noticeListAction",
       "originalLine": 3979,
       "registered": true,
       "status": "WPC 公告与 HTTP 下发已接",
-      "note": "NoticeInfo 原表、feed 18、原 Vue 增改删/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetNoticeList 公告下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
+      "note": "NoticeInfo 原表、feed 18、原 Vue 增改删/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetNoticeList 公告下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
     },
     {
       "method": "clearNotices",
       "originalLine": 3987,
       "registered": true,
       "status": "WPC 公告与 HTTP 下发已接",
-      "note": "NoticeInfo 原表、feed 18、原 Vue 增改删/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetNoticeList 公告下发和运行期快照更新，私有 SOCKS 控制连接仍待接入。"
+      "note": "NoticeInfo 原表、feed 18、原 Vue 增改删/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetNoticeList 公告下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
     },
     {
       "method": "getFilterStats",

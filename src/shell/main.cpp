@@ -702,9 +702,6 @@ void Host::RegisterTargetMethods(){
                 if(!config.value("enableSocks5",false)&&!config.value("enableHttp",false)){
                     done(nullptr,"请至少启用一种代理类型");return;
                 }
-                if(config.value("onlyWpc",false)){
-                    done(nullptr,"仅允许 WPC 客户端模式尚未接入代理监听器");return;
-                }
                 const bool automatic=config.value("proxyIpAuto",true);
                 const auto bind_address=automatic?std::string("0.0.0.0"):config.value("proxyIp",std::string{});
                 if(bind_address.empty()){done(nullptr,"监听地址不能为空");return;}
@@ -712,7 +709,26 @@ void Host::RegisterTargetMethods(){
                 const bool require_auth=config.value("enableAuth",true);
                 std::vector<wpe::shell::Socks5Credential> credentials;
                 for(const auto& account:config.value("accounts",Json::array())){
-                    if(account.is_object())credentials.push_back({account.value("user",std::string{}),account.value("password",std::string{})});
+                    if(account.is_object()){
+                        wpe::shell::Socks5Credential value;
+                        value.user=account.value("user",std::string{});
+                        value.password=account.value("password",std::string{});
+                        credentials.push_back(std::move(value));
+                    }
+                }
+                std::vector<wpe::shell::Socks5Credential> wpc_accounts;
+                for(const auto& account:config.value("wpcAccounts",Json::array())){
+                    if(!account.is_object())continue;
+                    wpe::shell::Socks5Credential value;
+                    value.account_id=account.value("accountId",std::string{});
+                    value.user=account.value("user",std::string{});
+                    value.password=account.value("password",std::string{});
+                    value.enabled=account.value("enabled",false);
+                    value.limit_devices=account.value("limitDevices",false);
+                    value.max_devices=static_cast<std::size_t>(std::max(1,account.value("maxDevices",1)));
+                    value.expiry=account.value("expiry",false);
+                    value.expiry_time=account.value("expiryTime",std::string{});
+                    wpc_accounts.push_back(std::move(value));
                 }
                 const auto read_port=[&](const char* key,std::uint16_t fallback,const char* label,std::uint16_t& result){
                     const auto value=config.value(key,static_cast<int>(fallback));
@@ -730,7 +746,8 @@ void Host::RegisterTargetMethods(){
                 if(config.value("enableSocks5",false)){
                     wpe::shell::Socks5Config runtime;
                     runtime.bind_address=bind_address;runtime.port=socks_port;runtime.max_connections=max_connections;
-                    runtime.require_auth=require_auth;runtime.credentials=credentials;
+                    runtime.require_auth=require_auth;runtime.only_wpc=config.value("onlyWpc",false);
+                    runtime.credentials=credentials;runtime.wpc_accounts=wpc_accounts;
                     if(!proxy_->Start(std::move(runtime),start_error)){done(nullptr,std::move(start_error));return;}
                     socks_started=true;
                 }
@@ -801,12 +818,14 @@ void Host::RegisterTargetMethods(){
             {"tcpReq",0},{"tcpResp",0},{"udpReq",0},{"udpResp",0},{"httpReq",0},{"httpResp",0},
             {"filterExecute",0},{"filterProxy",0},{"tcpConn",0},{"udpConn",0},{"onlineInfo",""},
             {"totalRequest",0},{"totalResponse",0},{"speedUp",0},{"speedDown",0},
-            {"mappingHits",0},{"mappingMisses",0},{"mappingErrors",0}};
+            {"mappingHits",0},{"mappingMisses",0},{"mappingErrors",0},
+            {"wpcProxyControl",0},{"wpcProxyDevices",0},{"wpcProxyRegisters",0},
+            {"wpcProxyPings",0},{"wpcProxyErrors",0}};
         if(target_stats_.is_object())value.update(target_stats_);
         const auto socks=proxy_?proxy_->Stats():wpe::shell::Socks5Stats{};
         const auto http=http_proxy_?http_proxy_->Stats():wpe::shell::Socks5Stats{};
         value["proxyRunning"]=socks.running||http.running;
-        value["tcpConn"]=static_cast<std::int64_t>(socks.active-socks.udp_active+http.active);
+        value["tcpConn"]=static_cast<std::int64_t>(socks.active-socks.udp_active-socks.wpc_controls+http.active);
         value["tcpReq"]=static_cast<std::int64_t>(socks.requests);
         value["tcpResp"]=static_cast<std::int64_t>(socks.responses);
         value["udpReq"]=static_cast<std::int64_t>(socks.udp_requests);
@@ -822,6 +841,11 @@ void Host::RegisterTargetMethods(){
         value["mappingHits"]=static_cast<std::int64_t>(http.map_hits);
         value["mappingMisses"]=static_cast<std::int64_t>(http.map_misses);
         value["mappingErrors"]=static_cast<std::int64_t>(http.map_errors);
+        value["wpcProxyControl"]=static_cast<std::int64_t>(socks.wpc_controls);
+        value["wpcProxyDevices"]=static_cast<std::int64_t>(socks.wpc_devices);
+        value["wpcProxyRegisters"]=static_cast<std::int64_t>(socks.wpc_registers);
+        value["wpcProxyPings"]=static_cast<std::int64_t>(socks.wpc_pings);
+        value["wpcProxyErrors"]=static_cast<std::int64_t>(socks.wpc_errors);
         const auto wpc=wpc_?wpc_->Stats():wpe::shell::WpcStats{};
         value["wpcRunning"]=wpc.running;
         value["wpcConn"]=static_cast<std::int64_t>(wpc.active);

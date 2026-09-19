@@ -6,13 +6,16 @@
 
 #include "shell/socks5_runtime.h"
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cstring>
 #include <iostream>
+#include <nlohmann/json.hpp>
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include <vector>
 
 using namespace std::chrono_literals;
 using wpe::shell::Socks5Config;
@@ -199,6 +202,95 @@ void RunUdpAssociate(Socks5Runtime& runtime, std::uint16_t destination_port) {
     Check(received >= 14 && response[0] == 0 && response[1] == 0 && response[2] == 0 &&
           std::memcmp(response.data() + received - 4, "pong", 4) == 0, "UDP association response mismatch");
 }
+
+void SendWpcFrame(SOCKET socket, std::uint8_t type, const std::string& payload) {
+    Check(payload.size() <= 4091, "WPC payload too large");
+    std::vector<std::uint8_t> frame(5 + payload.size());
+    frame[0] = 0x57;
+    frame[1] = 0x01;
+    frame[2] = type;
+    frame[3] = static_cast<std::uint8_t>(payload.size() >> 8);
+    frame[4] = static_cast<std::uint8_t>(payload.size() & 0xff);
+    std::copy(payload.begin(), payload.end(), frame.begin() + 5);
+    SendAll(socket, frame.data(), frame.size());
+}
+
+std::pair<std::uint8_t, std::string> ReceiveWpcFrame(SOCKET socket) {
+    std::array<std::uint8_t, 5> header{};
+    ReceiveAll(socket, header.data(), header.size());
+    Check(header[0] == 0x57 && header[1] == 0x01, "invalid WPC response header");
+    const auto size = (static_cast<std::size_t>(header[3]) << 8) | header[4];
+    Check(size <= 4091, "invalid WPC response size");
+    std::string payload(size, '\0');
+    if (size != 0) ReceiveAll(socket, reinterpret_cast<std::uint8_t*>(payload.data()), size);
+    return {header[2], std::move(payload)};
+}
+
+void RunWpcControlAndToken(Socks5Runtime& runtime, Socket& listener, std::uint16_t destination_port) {
+    auto control = Connect(runtime.Stats().port);
+    const std::array<std::uint8_t, 4> methods{5, 2, 2, 0x80};
+    SendAll(control.value, methods.data(), methods.size());
+    std::array<std::uint8_t, 2> selected{};
+    ReceiveAll(control.value, selected.data(), selected.size());
+    Check(selected == std::array<std::uint8_t, 2>{5, 0x80}, "private WPC method not selected");
+
+    SendWpcFrame(control.value, 0x01,
+                 R"({"user":"user","pass":"pass","device":"device-001","version":"1.0","client":"WPE","os":"Windows"})");
+    const auto registration = ReceiveWpcFrame(control.value);
+    Check(registration.first == 0x81, "WPC register result type mismatch");
+    const auto register_json = nlohmann::json::parse(registration.second);
+    Check(register_json.value("code", -1) == 0, "WPC registration failed");
+    const auto token = register_json.value("token", std::string{});
+    Check(token.rfind("wpc1.", 0) == 0, "WPC token prefix mismatch");
+
+    SendWpcFrame(control.value, 0x02, "{}");
+    const auto pong = ReceiveWpcFrame(control.value);
+    Check(pong.first == 0x82, "WPC pong type mismatch");
+
+    // A WPC token is a regular SOCKS username/password credential for data
+    // sessions.  Only-WPC mode must reject the original password here.
+    auto rejected = Connect(runtime.Stats().port);
+    const std::array<std::uint8_t, 3> auth_methods{5, 1, 2};
+    SendAll(rejected.value, auth_methods.data(), auth_methods.size());
+    ReceiveAll(rejected.value, selected.data(), selected.size());
+    Check(selected == std::array<std::uint8_t, 2>{5, 2}, "WPC data auth method mismatch");
+    const std::array<std::uint8_t, 11> ordinary{1, 4, 'u', 's', 'e', 'r', 4, 'p', 'a', 's', 's'};
+    SendAll(rejected.value, ordinary.data(), ordinary.size());
+    std::array<std::uint8_t, 2> rejected_result{};
+    ReceiveAll(rejected.value, rejected_result.data(), rejected_result.size());
+    Check(rejected_result == std::array<std::uint8_t, 2>{1, 1}, "ordinary credential bypassed Only-WPC");
+
+    std::thread destination([&] { RunDestination(listener); });
+    auto data = Connect(runtime.Stats().port);
+    SendAll(data.value, auth_methods.data(), auth_methods.size());
+    ReceiveAll(data.value, selected.data(), selected.size());
+    Check(selected == std::array<std::uint8_t, 2>{5, 2}, "WPC token method not selected");
+    std::vector<std::uint8_t> token_credentials{1, static_cast<std::uint8_t>(4)};
+    token_credentials.insert(token_credentials.end(), {'u', 's', 'e', 'r'});
+    token_credentials.push_back(static_cast<std::uint8_t>(token.size()));
+    token_credentials.insert(token_credentials.end(), token.begin(), token.end());
+    SendAll(data.value, token_credentials.data(), token_credentials.size());
+    std::array<std::uint8_t, 2> token_result{};
+    ReceiveAll(data.value, token_result.data(), token_result.size());
+    Check(token_result == std::array<std::uint8_t, 2>{1, 0}, "WPC token authentication failed");
+    const std::array<std::uint8_t, 10> request{
+        5, 1, 0, 1, 127, 0, 0, 1,
+        static_cast<std::uint8_t>(destination_port >> 8), static_cast<std::uint8_t>(destination_port & 0xff)};
+    SendAll(data.value, request.data(), request.size());
+    std::array<std::uint8_t, 10> reply{};
+    ReceiveAll(data.value, reply.data(), reply.size());
+    Check(reply[0] == 5 && reply[1] == 0, "WPC token CONNECT was rejected");
+    SendAll(data.value, reinterpret_cast<const std::uint8_t*>("ping"), 4);
+    std::array<std::uint8_t, 4> response{};
+    ReceiveAll(data.value, response.data(), response.size());
+    Check(std::memcmp(response.data(), "pong", 4) == 0, "WPC token relay response mismatch");
+    shutdown(data.value, SD_BOTH);
+    closesocket(data.value);
+    data.value = INVALID_SOCKET;
+    destination.join();
+    const auto live = runtime.Stats();
+    Check(live.wpc_controls == 1 && live.wpc_devices == 1, "WPC live state was not reported");
+}
 } // namespace
 
 int main() {
@@ -240,7 +332,33 @@ int main() {
         RunRelay(runtime, auth_destination_port, true);
         auth_destination.join();
         runtime.Stop();
-        std::cout << "PASS: SOCKS5 TCP CONNECT, UDP ASSOCIATE, username/password auth, counters, restart and stop\n";
+
+        std::uint16_t wpc_destination_port{};
+        auto wpc_listener = Listener(wpc_destination_port);
+        Socks5Credential wpc_account;
+        wpc_account.user = "user";
+        wpc_account.password = "pass";
+        wpc_account.account_id = "account-001";
+        wpc_account.enabled = true;
+        wpc_account.limit_devices = true;
+        wpc_account.max_devices = 2;
+        Socks5Config wpc_config;
+        wpc_config.bind_address = "127.0.0.1";
+        wpc_config.max_connections = 8;
+        wpc_config.require_auth = true;
+        wpc_config.only_wpc = true;
+        wpc_config.credentials = {wpc_account};
+        wpc_config.wpc_accounts = {wpc_account};
+        Check(runtime.Start(std::move(wpc_config), error), error.c_str());
+        RunWpcControlAndToken(runtime, wpc_listener, wpc_destination_port);
+        for (int i = 0; i != 100 && runtime.Stats().active != 0; ++i) std::this_thread::sleep_for(10ms);
+        const auto wpc_stats = runtime.Stats();
+        Check(wpc_stats.wpc_controls == 0 && wpc_stats.wpc_devices == 0,
+              "WPC control/device state did not clear on disconnect");
+        Check(wpc_stats.wpc_registers == 1 && wpc_stats.wpc_pings == 1 && wpc_stats.wpc_errors == 0,
+              "WPC counters mismatch");
+        runtime.Stop();
+        std::cout << "PASS: SOCKS5 TCP CONNECT, UDP ASSOCIATE, auth, private WPC control/token relay, counters, restart and stop\n";
         return 0;
     } catch (const std::exception& error) {
         std::cerr << "FAIL: " << error.what() << '\n';

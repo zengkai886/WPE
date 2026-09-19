@@ -6,6 +6,7 @@
 #include <limits>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
 namespace wpe::shell {
@@ -13,6 +14,23 @@ namespace wpe::shell {
 struct Socks5Credential {
     std::string user;
     std::string password;
+    // The remaining fields are used by the private WPC registration path.
+    // Ordinary SOCKS5/HTTP authentication only needs user/password.
+    std::string account_id;
+    bool enabled{true};
+    bool limit_devices{};
+    std::size_t max_devices{1};
+    bool expiry{};
+    std::string expiry_time;
+};
+
+struct WpcDeviceInfo {
+    std::string token;
+    std::string account_id;
+    std::string device_id;
+    std::string client_ip;
+    std::string version;
+    std::string os;
 };
 
 struct Socks5Config {
@@ -22,6 +40,11 @@ struct Socks5Config {
     bool require_auth{};
     bool only_wpc{};
     std::vector<Socks5Credential> credentials;
+    // Includes disabled accounts so the WPC register response can preserve
+    // the original distinction between bad credentials and a disabled or
+    // expired account.  The ordinary credential vector remains the fast
+    // path for regular SOCKS5 authentication.
+    std::vector<Socks5Credential> wpc_accounts;
 };
 
 struct Socks5Stats {
@@ -44,6 +67,11 @@ struct Socks5Stats {
     std::uint64_t udp_requests{};
     std::uint64_t udp_responses{};
     std::uint64_t udp_active{};
+    std::uint64_t wpc_controls{};
+    std::uint64_t wpc_devices{};
+    std::uint64_t wpc_registers{};
+    std::uint64_t wpc_pings{};
+    std::uint64_t wpc_errors{};
 };
 
 // Small, self-contained SOCKS5 runtime used by the native proxy mode.  It
@@ -62,9 +90,25 @@ public:
     [[nodiscard]] bool Running() const noexcept;
 
 private:
+    enum class AuthMode { Failed, Username, WpcControl };
+    struct SessionIdentity {
+        bool via_wpc{};
+        WpcDeviceInfo device;
+    };
+
     void AcceptLoop();
     void Client(std::uintptr_t client);
-    bool Authenticate(std::uintptr_t client) const;
+    AuthMode Authenticate(std::uintptr_t client, SessionIdentity& identity);
+    bool RunWpcControl(std::uintptr_t client);
+    bool HandleWpcFrame(std::uintptr_t client, const std::vector<std::uint8_t>& frame, std::string& token);
+    int RegisterWpc(std::uintptr_t client, const std::string& payload, std::string& token, std::string& message);
+    bool AuthenticateWpcToken(const std::string& user, const std::string& token, WpcDeviceInfo& device) const;
+    void UnregisterWpc(const std::string& token, std::uintptr_t client);
+    static bool ValidWpcDeviceId(const std::string& value);
+    static std::string CleanWpcLabel(const std::string& value, std::size_t max_length);
+    static bool AccountExpired(const Socks5Credential& account);
+    static std::string NewWpcToken();
+    static bool SendWpcFrame(std::uintptr_t client, std::uint8_t type, const std::string& payload);
     bool ConnectRequest(std::uintptr_t client, std::uintptr_t& remote);
     bool RelayUdp(std::uintptr_t client, std::uintptr_t udp_socket);
     void Relay(std::uintptr_t client, std::uintptr_t remote);
@@ -77,6 +121,10 @@ private:
     std::thread accept_thread_;
     std::vector<std::thread> clients_;
     Socks5Config config_;
+    mutable std::mutex wpc_mutex_;
+    std::unordered_map<std::string, WpcDeviceInfo> wpc_devices_;
+    std::unordered_map<std::string, std::string> wpc_account_devices_;
+    std::unordered_map<std::string, std::uintptr_t> wpc_controls_;
     std::atomic<std::uint16_t> port_{0};
     std::atomic<std::uint64_t> accepted_{0};
     std::atomic<std::uint64_t> completed_{0};
@@ -89,6 +137,10 @@ private:
     std::atomic<std::uint64_t> udp_requests_{0};
     std::atomic<std::uint64_t> udp_responses_{0};
     std::atomic<std::uint64_t> udp_active_{0};
+    std::atomic<std::uint64_t> wpc_controls_count_{0};
+    std::atomic<std::uint64_t> wpc_registers_{0};
+    std::atomic<std::uint64_t> wpc_pings_{0};
+    std::atomic<std::uint64_t> wpc_errors_{0};
     bool winsock_started_{};
 };
 

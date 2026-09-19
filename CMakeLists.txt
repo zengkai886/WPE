@@ -61,7 +61,7 @@ add_library(wpe64-proxy-runtime STATIC
 )
 target_include_directories(wpe64-proxy-runtime PUBLIC src)
 target_include_directories(wpe64-proxy-runtime SYSTEM PUBLIC third_party)
-target_link_libraries(wpe64-proxy-runtime PUBLIC ws2_32)
+target_link_libraries(wpe64-proxy-runtime PUBLIC ws2_32 bcrypt)
 if(WIN32)
   # This target is deliberately excluded from the default build.  It must be
   # generated with a Win32 generator and shipped beside the x64 shell so the
