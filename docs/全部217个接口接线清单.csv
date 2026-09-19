@@ -1,218 +1,218 @@
-原方法名,原ShellForm行号,已注册,本轮状态,准确范围与缺口
-getPacketDetail,1328,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-getPrefs,1367,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
-setAppearance,1403,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
-getStats,1443,是,运行态部分接线,目标注入与发送执行器仍按连接状态提供数据；SOCKS5 与 HTTP/HTTPS 代理运行时会回传真实活动连接、TCP/UDP 请求与响应、上下行字节、错误计数和 HTTP 映射命中/未命中/错误计数；WPC HTTP 服务以及 SOCKS 私有 WPC 控制连接、设备、注册、心跳和错误计数均回传。
-clearPackets,1506,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-openExternal,1549,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-setLanguage,1589,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
-getFileAssoc,1617,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-setFileAssoc,1620,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-enterProxyMode,1649,是,页面入口接线,进入原代理工作区并推送四个真实持久化列表；不启动代理，不建立监听。
-enterInjectMode,1675,是,运行态部分接线,当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。
-injectQuick,1713,是,注入运行链已接,宿主已注册并复用上次注入配置进入 TargetLink；失败时执行清理，真实用户目标仍需人工验收。
-getInjectProcessList,1732,是,运行态部分接线,宿主已注册并真实枚举进程、PID、名称和可查询路径；图标提取仍为独立边界。
-pickTargetExe,1739,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-injectAttach,1760,是,注入运行链已接,宿主已注册并接入 TargetLink 附加/挂起启动、配置同步、StartHook 与失败清理；真实用户目标仍需人工验收。
-injectStartHook,1777,是,注入运行链已接,宿主已注册并接入配置同步、StartHook 和成功后恢复挂起目标；失败路径执行清理。
-injectStopHook,1802,是,注入运行链已接,宿主已注册并向目标发送 StopHook；Detach/目标断开状态仍以 TargetLink 状态回传为准。
-pickWindow,1820,是,运行态部分接线,宿主已注册并通过鼠标位置取得窗口 PID；原生窗口选择取消状态仍为轻量实现。
-cancelPickWindow,1822,是,运行态部分接线,宿主已注册取消入口并返回成功；当前窗口拾取为同步调用，没有后台选择会话。
-getInjectStatus,1828,是,运行态部分接线,宿主已注册并返回 TargetLink 状态、PID、位数、hook 和丢包字段；真实目标验收另计。
-getInjectStats,1842,是,运行态部分接线,宿主已注册并返回目标封包、方向、滤镜和丢包统计；真实目标验收另计。
-startProxy,1883,是,SOCKS5 TCP/UDP 与 HTTP/HTTPS 正向代理运行链,原 Vue startProxy 已接入 native SOCKS5 TCP CONNECT、UDP ASSOCIATE 与 HTTP/HTTPS 正向代理；各链复用监听、可选账号认证、目标连接超时、双向 relay、真实统计和停止生命周期。SOCKS5 私有 WPC 使用 0x80 控制方法、JSON 注册/心跳帧和内存令牌，并支持 Only_WPC 数据连接；HTTP 支持 absolute-form 与 CONNECT HTTPS 隧道。
-stopProxy,1905,是,SOCKS5 TCP/UDP 与 HTTP/HTTPS 正向代理运行链,停止原生 SOCKS5 与 HTTP/HTTPS 监听，关闭监听 socket 并等待 accept/client worker 收尾；UDP relay 与私有 WPC 控制连接、设备令牌随控制连接和监听生命周期收尾。
-setListEnable,1918,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-getCountryTable,1988,是,静态数据已接,原国家代码字典；不是 IP 归属地数据库，归属地查询仍未接。
-getProxySetting,1992,是,设置读写已接,真实读取 ProxyMode、本机地址、物理内存与连接上限；SOCKS5 TCP CONNECT 与 HTTP/HTTPS 正向代理由 native Host 启动并回传运行状态。
-saveProxySetting,2039,是,设置读写已接,按原业务规则校验并事务保存 ProxyMode；SOCKS5 与 HTTP/HTTPS 启动读取各自端口、认证和连接上限，SOCKS5 同时支持 UDP ASSOCIATE 与私有 WPC 0x80 控制协议，HTTP 代理读取映射开关和规则。
-setSystemProxy,2147,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-exportCert,2169,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-getListSetting,2218,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-saveListAutoClear,2260,是,设置读写已接,稀疏保存 InjectMode 共用封包/代理列表自动清理设置；运行态清理引擎仍待接。
-saveListSetting,2293,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-getClientConnections,2361,是,运行态部分接线,当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。
-addIpRule,2367,是,数据读写已接,按原黑白名单分流并真实写入 SQLite；黑名单时长与白名单永久语义已接，IP 归属地查询仍未接。
-getFireWall,2418,是,设置读写已接,真实读取 ProxyMode 防火墙设置；名单与代理执行引擎仍待接。
-saveFireWall,2429,是,设置读写已接,按原范围校验并事务保存 ProxyMode 防火墙设置；名单与代理执行引擎仍待接。
-saveIPRule,2467,是,数据读写已接,新增与编辑校验、重复检测、IPv4 范围、到期时间和 SQLite 持久化已接；保留原编辑时不重算 StartIP/EndIP 的行为。
-deleteIPRule,2487,是,数据读写已接,通过原 Vue 确认桥后按 IP 删除并持久化；确认框标题仍使用宿主通用文案。
-ipRuleAction,2495,是,数据读写已接,原 .wl/.bl 明文或 AES 导入导出及清空已接；当前页面只使用 5/7/8 三种动作。
-getHookSetting,2536,是,设置读写部分接线,注入 12 个钩子、代理拆包和本次运行方向标志已接；尚未推送到目标进程或代理引擎。
-saveHookSetting,2562,是,设置读写部分接线,稀疏保存注入钩子与代理拆包并执行格式校验；尚未推送到目标进程或代理引擎。
-getSystemSetting,2706,是,设置读写已接,真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。
-saveSystemSetting,2713,是,设置读写已接,真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。
-saveActionColor,2759,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
-getLeachSetting,2834,是,数据读写已接,捕获过滤条件读取已接 SystemConfig；包含六个条件、过滤方式与十二位类别掩码。
-saveLeachSetting,2881,是,数据读写已接,捕获过滤条件校验、SQLite 持久化、模式分组字段保留与目标注入运行时过滤链路已接。
-getAccountPassword,3005,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
-getAccountLogins,3012,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
-saveAccount,3018,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
-deleteAccount,3108,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
-clearAllAccounts,3121,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
-setAccountEnable,3128,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
-importAccounts,3138,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
-exportAccounts,3144,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
-previewBatchAccounts,3161,是,账号批量工作流已接,原命名规则、数量/密码长度边界、随机密码字符集和已有账号重名预览已接。
-saveBatchAccounts,3198,是,账号批量工作流已接,原草稿清洗、区分大小写重名跳过、限制与到期字段、密码映射、SQLite 事务及单条 feed:append 批量推送已接。
-exportBatchAccounts,3228,是,账号批量工作流已接,原版 .xls 的系统 ACP 制表文本、表头、到期时间、本地化、默认文件名及无 XML 密码框的保存路径已接，并与原程序集字节黄金一致。
-adjustAccountExpiry,3246,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
-adjustAccountLimit,3261,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
-exportSelectedAccounts,3280,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
-deleteSelectedAccounts,3286,是,账号数据与原文件已接,ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。
-verifyEncryptPassword,3333,是,宿主验证已接,只验证当前原生选择授权的内容与路径；选文件前、伪造路径、取消/消费后均拒绝。
-getFilterExecute,3354,是,设置读写已接,真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。
-getFilterEdit,3371,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
-saveFilterEdit,3377,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
-clipboardRead,3409,是,宿主剪贴板已接,独立线程读取真实 Windows Unicode 剪贴板；忙重试、延迟渲染与消息泵；失败返回空文本。
-clipboardWrite,3423,是,宿主剪贴板已接,独立线程写真实 Windows Unicode 剪贴板；空/ null 清空；忙重试，失败返回 ok:false。
-getExecuteTargets,3443,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
-addFilter,3450,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
-setFilterEnable,3455,是,启用状态已接,启用标志真实保存并刷新原列表；不等于启动滤镜、发包或机器人执行。
-setAllFilterEnable,3463,是,启用状态已接,启用标志真实保存并刷新原列表；不等于启动滤镜、发包或机器人执行。
-resetFilterCount,3472,是,运行态部分接线,当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。
-filterListAction,3485,是,多分支部分接线,父列表排序/复制/删除和选中明文/原 AES 导出已接；真实执行相关分支仍未全部实现。
-importFilters,3499,是,文件接线已接,原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。
-exportFilters,3505,是,文件接线已接,原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。
-clearFilters,3511,是,数据清空已接,经原 Vue 确认后事务清空；取消不修改数据；确认文字尚未完全逐语言对齐。
-getSendMeta,3526,是,运行态部分接线,当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。
-addSend,3537,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
-setSendEnable,3542,是,启用状态已接,启用标志真实保存并刷新原列表；不等于启动滤镜、发包或机器人执行。
-setAllSendEnable,3549,是,启用状态已接,启用标志真实保存并刷新原列表；不等于启动滤镜、发包或机器人执行。
-resetSendCount,3558,是,运行态部分接线,当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。
-sendListAction,3566,是,多分支部分接线,父列表排序/复制/删除和选中明文/原 AES 导出已接；真实执行相关分支仍未全部实现。
-importSends,3580,是,文件接线已接,原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。
-exportSends,3586,是,文件接线已接,原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。
-clearSends,3592,是,数据清空已接,经原 Vue 确认后事务清空；取消不修改数据；确认文字尚未完全逐语言对齐。
-startSendList,3605,是,发送执行链已接,宿主已注册并通过真实目标 IPC 启动发送列表；循环、间隔、取消和统计由目标发送 worker 执行。
-stopSendList,3643,是,发送执行链已接,宿主已注册并通过真实目标 IPC 停止发送列表；停止状态回传 running=false。
-getRobotMeta,3663,是,运行态部分接线,当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。
-addRobot,3669,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
-setRobotEnable,3674,是,启用状态已接,启用标志真实保存并刷新原列表；不等于启动滤镜、发包或机器人执行。
-setAllRobotEnable,3681,是,启用状态已接,启用标志真实保存并刷新原列表；不等于启动滤镜、发包或机器人执行。
-resetRobotCount,3688,是,运行态部分接线,当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。
-robotListAction,3696,是,多分支部分接线,父列表排序/复制/删除和选中明文/原 AES 导出已接；真实执行相关分支仍未全部实现。
-importRobots,3710,是,文件接线已接,原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。
-exportRobots,3716,是,文件接线已接,原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。
-clearRobots,3722,是,数据清空已接,经原 Vue 确认后事务清空；取消不修改数据；确认文字尚未完全逐语言对齐。
-startRobotList,3732,否,按用户要求不实现,机器人运行执行器已由用户明确移出交付范围；保留原数据、文件和编辑兼容，不注册虚假运行处理器。
-stopRobotList,3747,否,按用户要求不实现,机器人运行执行器已由用户明确移出交付范围；保留原数据、文件和编辑兼容，不注册虚假运行处理器。
-openRobotEdit,3770,是,指令编辑已接,原九类指令校验、列表插入/移动/删除/清空、循环与引用校验、草稿取消和保存落库；不启动机器人执行。
-closeRobotEdit,3773,是,指令编辑已接,原九类指令校验、列表插入/移动/删除/清空、循环与引用校验、草稿取消和保存落库；不启动机器人执行。
-getRobotInstructions,3779,是,指令编辑已接,原九类指令校验、列表插入/移动/删除/清空、循环与引用校验、草稿取消和保存落库；不启动机器人执行。
-addRobotInstruction,3785,是,指令编辑已接,原九类指令校验、列表插入/移动/删除/清空、循环与引用校验、草稿取消和保存落库；不启动机器人执行。
-robotInstructionAction,3794,是,指令编辑已接,原九类指令校验、列表插入/移动/删除/清空、循环与引用校验、草稿取消和保存落库；不启动机器人执行。
-saveRobotEdit,3815,是,指令编辑已接,原九类指令校验、列表插入/移动/删除/清空、循环与引用校验、草稿取消和保存落库；不启动机器人执行。
-startRobotEdit,3821,否,按用户要求不实现,机器人编辑数据仍保留，但编辑器内实际运行与进度执行已由用户明确移出交付范围。
-stopRobotEdit,3827,否,按用户要求不实现,机器人编辑数据仍保留，但编辑器内实际运行与进度执行已由用户明确移出交付范围。
-getRobotEditProgress,3833,否,按用户要求不实现,机器人编辑数据仍保留，但编辑器内实际运行与进度执行已由用户明确移出交付范围。
-textDuplicates,3843,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-transcode,3860,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-extractPick,3868,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-extractBytes,3872,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-saveExtraction,3880,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-saveServer,3896,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。
-setServerEnable,3909,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。
-serverListAction,3915,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。
-clearServers,3923,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。
-getRuleTypes,3929,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。
-getServerRules,3931,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。
-saveServerRule,3936,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。
-setServerRuleEnable,3947,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。
-serverRuleAction,3955,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。
-clearServerRules,3963,是,WPC 节点与规则数据已接,原节点/规则父子表、feed 17、原 Vue CRUD/启用/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。
-saveNotice,3969,是,WPC 公告数据已接,原公告表、feed 18、原 Vue CRUD/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetNoticeList 公告下发和快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。
-noticeListAction,3979,是,WPC 公告数据已接,原公告表、feed 18、原 Vue CRUD/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetNoticeList 公告下发和快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。
-clearNotices,3987,是,WPC 公告数据已接,原公告表、feed 18、原 Vue CRUD/排序与备份已接；WPC HTTP 服务提供 /ProxyCap/GetNoticeList 公告下发和快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。
-getFilterStats,3997,是,运行态部分接线,宿主已注册并从目标 Stats 快照返回滤镜全局和 GUID 执行计数。
-resetFilterStats,4003,是,运行态部分接线,宿主已注册并向目标发送 ResetStats/FilterStats 命令，结果通过 IPC 回传。
-getLogSetting,4040,是,设置读写已接,真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。
-saveLogSetting,4046,是,设置读写已接,真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。
-clearLogs,4085,是,运行态部分接线,当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。
-exportLogs,4090,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-getProcessSetting,4102,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-getProcessRows,4105,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-getProcessIcons,4116,是,运行态部分接线,宿主已注册并返回 icons 对象占位；真实进程图标提取仍未接入。
-addSelectProcessName,4154,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-removeSelectProcessName,4159,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-uninstallDriver,4164,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-saveProcessSetting,4167,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-testSocksProxy,4190,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-getMapSetting,4202,是,代理映射数据与 HTTP 运行时已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；HTTP 代理已接本地文件映射、远程目标重写、未命中回退和映射统计，CONNECT 加密隧道不匹配路径。
-saveMapSetting,4208,是,代理映射数据与 HTTP 运行时已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；HTTP 代理已接本地文件映射、远程目标重写、未命中回退和映射统计，CONNECT 加密隧道不匹配路径。
-saveMapLocal,4216,是,代理映射数据与 HTTP 运行时已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；HTTP 代理已接本地文件映射、远程目标重写、未命中回退和映射统计，CONNECT 加密隧道不匹配路径。
-saveMapRemote,4227,是,代理映射数据与 HTTP 运行时已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；HTTP 代理已接本地文件映射、远程目标重写、未命中回退和映射统计，CONNECT 加密隧道不匹配路径。
-setMapEnable,4241,是,代理映射数据与 HTTP 运行时已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；HTTP 代理已接本地文件映射、远程目标重写、未命中回退和映射统计，CONNECT 加密隧道不匹配路径。
-mapAction,4250,是,代理映射数据与 HTTP 运行时已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；HTTP 代理已接本地文件映射、远程目标重写、未命中回退和映射统计，CONNECT 加密隧道不匹配路径。
-mapCommand,4261,是,代理映射数据与 HTTP 运行时已接,两张原表、feed 13/14、原 Vue CRUD/排序、.pml/.pmr 明文/AES 与备份已接；HTTP 代理已接本地文件映射、远程目标重写、未命中回退和映射统计，CONNECT 加密隧道不匹配路径。
-pickLocalFile,4272,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-getExtProxySetting,4279,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-saveExtProxySetting,4281,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-getHotkeySetting,4296,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-registerHotkey,4298,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-saveHotkeyType,4305,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-exportBackup,4318,是,文件接线已接（备份部分）,原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、ProxyAccountList、WhiteList、BlackList、InjectMode、AutoStores 与四父列表共十一组，其余三组整次拒绝；参见配置加密接线进度。
-importBackup,4351,是,文件接线已接（备份部分）,原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、ProxyAccountList、WhiteList、BlackList、InjectMode、AutoStores 与四父列表共十一组，其余三组整次拒绝；参见配置加密接线进度。
-getRemoteSetting,4384,是,WPC HTTP 服务设置已接,读取 WPC HTTP 服务监听地址、端口、Basic 管理账号、运行状态和本机地址列表；运行状态来自真实 WpcRuntime。
-saveRemoteSetting,4386,是,WPC HTTP 服务设置已接,事务保存 WPC HTTP 服务设置；启用时真实启动监听、发布节点/规则/公告快照，禁用时停止并等待全部连接收尾；监听失败会回传错误。
-copyProxyHex,4407,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-addProxyToSend,4412,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-addProxyToWareHouse,4418,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-addProxyToFilter,4424,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-setSystemSocketByProxy,4430,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-exportProxyExcel,4437,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-copyPacketHex,4449,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-addPacketToSend,4454,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-addPacketToWareHouse,4460,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-addPacketToFilter,4466,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-setSystemSocketByPacket,4472,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-setSelectedPacket,4489,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-exportPacketExcel,4499,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-searchProxyList,4519,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-searchPacketList,4533,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-openSendEdit,4554,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
-closeSendEdit,4558,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
-getSendCollection,4564,是,发送集编辑部分接线,读取、复制、移动、删除、清空发送集草稿；保存外层发送条目后落库；导出未接，实际发送未接。
-sendCollectionAction,4570,是,数据动作部分接线,已接数据编辑动作和选择/全部明文或原 AES 导出；参见编辑/配置进度，实际发送或采集执行仍未全部实现。
-importSendCollection,4584,是,文件接线已接,原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。
-exportSendCollection,4590,是,文件接线已接,原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。
-clearSendCollection,4596,是,发送集编辑部分接线,读取、复制、移动、删除、清空发送集草稿；保存外层发送条目后落库；导出未接，实际发送未接。
-saveSendEdit,4603,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
-startSendEdit,4613,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-stopSendEdit,4623,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-getSendEditProgress,4630,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-addWareHouse,4643,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
-wareHouseListAction,4649,是,多分支部分接线,父列表排序/复制/删除和选中明文/原 AES 导出已接；真实执行相关分支仍未全部实现。
-importWareHouses,4663,是,文件接线已接,原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。
-exportWareHouses,4669,是,文件接线已接,原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。
-clearWareHouses,4675,是,数据清空已接,经原 Vue 确认后事务清空；取消不修改数据；确认文字尚未完全逐语言对齐。
-getAutoStoresMeta,4686,是,自动入库数据与文件已接,AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。
-setAutoStoresSwitch,4698,是,自动入库数据与文件已接,AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。
-saveAutoStores,4726,是,自动入库数据与文件已接,AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。
-setAutoStoresEnable,4736,是,自动入库数据与文件已接,AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。
-deleteAutoStores,4744,是,自动入库数据与文件已接,AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。
-autoStoresAction,4751,是,自动入库数据与文件已接,AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。
-openWareHouseEdit,4773,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
-getStoreRows,4781,是,仓库数据读取已接,原 BLOB、预览/截断和 CRLF 文本，配合本轮条目动作及明文导入；系统剪贴板写入和采集入库未接。
-getStorePreviews,4791,是,仓库数据读取已接,原 BLOB、预览/截断和 CRLF 文本，配合本轮条目动作及明文导入；系统剪贴板写入和采集入库未接。
-copyStoresHex,4800,是,数据读写已接,选中仓储条目转完整十六进制文本；原 Vue 再调用 clipboardWrite，真实剪贴板已接。
-storesAction,4807,是,数据动作部分接线,已接数据编辑动作和选择/全部明文或原 AES 导出；参见编辑/配置进度，实际发送或采集执行仍未全部实现。
-storesCommand,4824,是,数据动作部分接线,已接数据编辑动作和选择/全部明文或原 AES 导出；参见编辑/配置进度，实际发送或采集执行仍未全部实现。
-saveWareHouseName,4833,是,数据读写已接,原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。
-openPacketEdit,4866,是,仅发送集来源已接,原 Buffer Base64、Socket、HexView 编辑；仅 list=send，捕获/代理来源未接。保留原已有 PacketInfo 浅拷贝的取消行为；实际发送未接。
-savePacketEdit,4869,是,仅发送集来源已接,原 Buffer Base64、Socket、HexView 编辑；仅 list=send，捕获/代理来源未接。保留原已有 PacketInfo 浅拷贝的取消行为；实际发送未接。
-packetEditToFilter,4878,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-packetEditToSend,4883,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-startPacketSend,4891,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-stopPacketSend,4907,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-getPacketSendProgress,4913,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-pickFolder,4931,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-probeDbPath,4969,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-saveInstance,5037,否,未接线,没有原方法名处理器；调用返回尚未实现，不报告成功。
-minimizeWindow,5085,是,宿主入口已接,原方法名连接 Win32/WebView2 宿主；首屏、置顶和消息往返有自测，其余窗口体验需人工回归。
-toggleMaximize,5091,是,宿主入口已接,原方法名连接 Win32/WebView2 宿主；首屏、置顶和消息往返有自测，其余窗口体验需人工回归。
-closeWindow,5100,是,宿主入口已接,原方法名连接 Win32/WebView2 宿主；首屏、置顶和消息往返有自测，其余窗口体验需人工回归。
-setTopMost,5117,是,宿主入口已接,原方法名连接 Win32/WebView2 宿主；首屏、置顶和消息往返有自测，其余窗口体验需人工回归。
-startDragWindow,5130,是,宿主入口已接,原方法名连接 Win32/WebView2 宿主；首屏、置顶和消息往返有自测，其余窗口体验需人工回归。
-getSystemCheck,5139,是,宿主自检部分接线,真实数据库路径、已保存偏好、管理员及拖动状态；运行引擎未接，版本明确为 C++ DATA-dev。
-uiReady,5222,是,宿主入口已接,原方法名连接 Win32/WebView2 宿主；首屏、置顶和消息往返有自测，其余窗口体验需人工回归。
+"原方法名","原ShellForm行号","已注册","本轮状态","准确范围与缺口"
+"getPacketDetail","1328","是","宿主封包详情已接","从当前注入封包缓存按 Id 返回原始/修改后字节及元数据。"
+"getPrefs","1367","是","数据读写已接","原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+"setAppearance","1403","是","数据读写已接","原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+"getStats","1443","是","运行态部分接线","目标注入与发送执行器仍按连接状态提供数据；SOCKS5 与 HTTP/HTTPS 代理运行时会回传真实活动连接、TCP/UDP 请求与响应、上下行字节、错误计数和 HTTP 映射命中/未命中/错误计数；WPC HTTP 服务以及 SOCKS 私有 WPC 控制连接、设备、注册、心跳和错误计数均回传。"
+"clearPackets","1506","是","宿主封包清理已接","清理当前注入封包缓存并回传成功状态。"
+"openExternal","1549","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"setLanguage","1589","是","数据读写已接","原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+"getFileAssoc","1617","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"setFileAssoc","1620","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"enterProxyMode","1649","是","页面入口接线","进入原代理工作区并推送四个真实持久化列表；不启动代理，不建立监听。"
+"enterInjectMode","1675","是","运行态部分接线","当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。"
+"injectQuick","1713","是","注入运行链已接","宿主已注册并复用上次注入配置进入 TargetLink；失败时执行清理，真实用户目标仍需人工验收。"
+"getInjectProcessList","1732","是","运行态部分接线","宿主已注册并真实枚举进程、PID、名称和可查询路径；图标提取仍为独立边界。"
+"pickTargetExe","1739","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"injectAttach","1760","是","注入运行链已接","宿主已注册并接入 TargetLink 附加/挂起启动、配置同步、StartHook 与失败清理；真实用户目标仍需人工验收。"
+"injectStartHook","1777","是","注入运行链已接","宿主已注册并接入配置同步、StartHook 和成功后恢复挂起目标；失败路径执行清理。"
+"injectStopHook","1802","是","注入运行链已接","宿主已注册并向目标发送 StopHook；Detach/目标断开状态仍以 TargetLink 状态回传为准。"
+"pickWindow","1820","是","运行态部分接线","宿主已注册并通过鼠标位置取得窗口 PID；原生窗口选择取消状态仍为轻量实现。"
+"cancelPickWindow","1822","是","运行态部分接线","宿主已注册取消入口并返回成功；当前窗口拾取为同步调用，没有后台选择会话。"
+"getInjectStatus","1828","是","运行态部分接线","宿主已注册并返回 TargetLink 状态、PID、位数、hook 和丢包字段；真实目标验收另计。"
+"getInjectStats","1842","是","运行态部分接线","宿主已注册并返回目标封包、方向、滤镜和丢包统计；真实目标验收另计。"
+"startProxy","1883","是","SOCKS5 TCP/UDP 与 HTTP/HTTPS 正向代理运行链","原 Vue startProxy 已接入 native SOCKS5 TCP CONNECT、UDP ASSOCIATE 与 HTTP/HTTPS 正向代理；各链复用监听、可选账号认证、目标连接超时、双向 relay、真实统计和停止生命周期。SOCKS5 私有 WPC 使用 0x80 控制方法、JSON 注册/心跳帧和内存令牌，并支持 Only_WPC 数据连接；HTTP 支持 absolute-form 与 CONNECT HTTPS 隧道。"
+"stopProxy","1905","是","SOCKS5 TCP/UDP 与 HTTP/HTTPS 正向代理运行链","停止原生 SOCKS5 与 HTTP/HTTPS 监听，关闭监听 socket 并等待 accept/client worker 收尾；UDP relay 与私有 WPC 控制连接、设备令牌随控制连接和监听生命周期收尾。"
+"setListEnable","1918","是","数据/运行入口已接通","原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
+"getCountryTable","1988","是","静态数据已接","原国家代码字典；不是 IP 归属地数据库，归属地查询仍未接。"
+"getProxySetting","1992","是","设置读写已接","真实读取 ProxyMode、本机地址、物理内存与连接上限；SOCKS5 TCP CONNECT 与 HTTP/HTTPS 正向代理由 native Host 启动并回传运行状态。"
+"saveProxySetting","2039","是","设置读写已接","按原业务规则校验并事务保存 ProxyMode；SOCKS5 与 HTTP/HTTPS 启动读取各自端口、认证和连接上限，SOCKS5 同时支持 UDP ASSOCIATE 与私有 WPC 0x80 控制协议，HTTP 代理读取映射开关和规则。"
+"setSystemProxy","2147","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"exportCert","2169","否","未接线","没有原方法名处理器；调用返回尚未实现，不报告成功。"
+"getListSetting","2218","是","列表设置读写已接","读取注入/代理列表列显示和自动清理设置。"
+"saveListAutoClear","2260","是","设置读写已接","稀疏保存 InjectMode 共用封包/代理列表自动清理设置；运行态清理引擎仍待接。"
+"saveListSetting","2293","是","列表设置读写已接","校验并持久化注入/代理列表列显示和自动清理设置。"
+"getClientConnections","2361","是","运行态部分接线","当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。"
+"addIpRule","2367","是","数据读写已接","按原黑白名单分流并真实写入 SQLite；黑名单时长与白名单永久语义已接，IP 归属地查询仍未接。"
+"getFireWall","2418","是","设置读写已接","真实读取 ProxyMode 防火墙设置；名单与代理执行引擎仍待接。"
+"saveFireWall","2429","是","设置读写已接","按原范围校验并事务保存 ProxyMode 防火墙设置；名单与代理执行引擎仍待接。"
+"saveIPRule","2467","是","数据读写已接","新增与编辑校验、重复检测、IPv4 范围、到期时间和 SQLite 持久化已接；保留原编辑时不重算 StartIP/EndIP 的行为。"
+"deleteIPRule","2487","是","数据读写已接","通过原 Vue 确认桥后按 IP 删除并持久化；确认框标题仍使用宿主通用文案。"
+"ipRuleAction","2495","是","数据读写已接","原 .wl/.bl 明文或 AES 导入导出及清空已接；当前页面只使用 5/7/8 三种动作。"
+"getHookSetting","2536","是","设置读写部分接线","注入 12 个钩子、代理拆包和本次运行方向标志已接；尚未推送到目标进程或代理引擎。"
+"saveHookSetting","2562","是","设置读写部分接线","稀疏保存注入钩子与代理拆包并执行格式校验；尚未推送到目标进程或代理引擎。"
+"getSystemSetting","2706","是","设置读写已接","真实 SQLite 设置读写；目标侧已能消费速度与滤镜执行顺序快照，原 Vue 注入会话推送尚未接，自动清理仍待运行接线。"
+"saveSystemSetting","2713","是","设置读写已接","真实 SQLite 设置读写；目标侧已能消费速度与滤镜执行顺序快照，原 Vue 注入会话推送尚未接，自动清理仍待运行接线。"
+"saveActionColor","2759","是","数据读写已接","原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+"getLeachSetting","2834","是","数据读写已接","捕获过滤条件读取已接 SystemConfig；包含六个条件、过滤方式与十二位类别掩码。"
+"saveLeachSetting","2881","是","数据读写已接","捕获过滤条件校验、SQLite 持久化、模式分组字段保留与目标注入运行时过滤链路已接。"
+"getAccountPassword","3005","是","账号数据与原文件已接","ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
+"getAccountLogins","3012","是","账号数据与原文件已接","ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
+"saveAccount","3018","是","账号数据与原文件已接","ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
+"deleteAccount","3108","是","账号数据与原文件已接","ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
+"clearAllAccounts","3121","是","账号数据与原文件已接","ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
+"setAccountEnable","3128","是","账号数据与原文件已接","ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
+"importAccounts","3138","是","账号数据与原文件已接","ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
+"exportAccounts","3144","是","账号数据与原文件已接","ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
+"previewBatchAccounts","3161","是","账号批量工作流已接","原命名规则、数量/密码长度边界、随机密码字符集和已有账号重名预览已接。"
+"saveBatchAccounts","3198","是","账号批量工作流已接","原草稿清洗、区分大小写重名跳过、限制与到期字段、密码映射、SQLite 事务及单条 feed:append 批量推送已接。"
+"exportBatchAccounts","3228","是","账号批量工作流已接","原版 .xls 实为系统 ACP 编码制表文本；表头、到期时间、本地化、默认文件名与无需 XML 密码框的保存路径已接，并与原程序集固定字节黄金一致。"
+"adjustAccountExpiry","3246","是","账号数据与原文件已接","ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
+"adjustAccountLimit","3261","是","账号数据与原文件已接","ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
+"exportSelectedAccounts","3280","是","账号数据与原文件已接","ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
+"deleteSelectedAccounts","3286","是","账号数据与原文件已接","ProxyAccount/ProxyAccountIPInfo 原表、原 Vue feed 5 与 SQLite 持久化已接；单项、批量生成/保存、原版 ACP 文本 .xls 导出、.pa/AES/备份路径均按原行为接通。真实代理认证、在线状态和 IP 归属地仍未接。"
+"verifyEncryptPassword","3333","是","宿主验证已接","只验证当前原生选择授权的内容与路径；选文件前、伪造路径、取消/消费后均拒绝。"
+"getFilterExecute","3354","是","设置读写已接","真实 SQLite 设置读写；目标侧已实现 Priority/Sequence 执行顺序，但原 Vue 注入入口尚未把该设置推送到目标会话。"
+"getFilterEdit","3371","是","数据读写已接","原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+"saveFilterEdit","3377","是","数据读写已接","原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+"clipboardRead","3409","是","宿主剪贴板已接","独立线程读取真实 Windows Unicode 剪贴板；忙重试、延迟渲染与消息泵；失败返回空文本。"
+"clipboardWrite","3423","是","宿主剪贴板已接","独立线程写真实 Windows Unicode 剪贴板；空/ null 清空；忙重试，失败返回 ok:false。"
+"getExecuteTargets","3443","是","数据读写已接","原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+"addFilter","3450","是","数据读写已接","原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+"setFilterEnable","3455","是","启用状态已接","启用标志真实保存并刷新原列表；不等于启动滤镜、发包或机器人执行。"
+"setAllFilterEnable","3463","是","启用状态已接","启用标志真实保存并刷新原列表；不等于启动滤镜、发包或机器人执行。"
+"resetFilterCount","3472","是","运行态部分接线","当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。"
+"filterListAction","3485","是","多分支部分接线","父列表排序/复制/删除和选中明文/原 AES 导出已接；真实执行相关分支仍未全部实现。"
+"importFilters","3499","是","文件接线已接","原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
+"exportFilters","3505","是","文件接线已接","原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
+"clearFilters","3511","是","数据清空已接","经原 Vue 确认后事务清空；取消不修改数据；确认文字尚未完全逐语言对齐。"
+"getSendMeta","3526","是","运行态部分接线","当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。"
+"addSend","3537","是","数据读写已接","原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+"setSendEnable","3542","是","启用状态已接","启用标志真实保存并刷新原列表；不等于启动滤镜、发包或机器人执行。"
+"setAllSendEnable","3549","是","启用状态已接","启用标志真实保存并刷新原列表；不等于启动滤镜、发包或机器人执行。"
+"resetSendCount","3558","是","运行态部分接线","当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。"
+"sendListAction","3566","是","多分支部分接线","父列表排序/复制/删除和选中明文/原 AES 导出已接；真实执行相关分支仍未全部实现。"
+"importSends","3580","是","文件接线已接","原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
+"exportSends","3586","是","文件接线已接","原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
+"clearSends","3592","是","数据清空已接","经原 Vue 确认后事务清空；取消不修改数据；确认文字尚未完全逐语言对齐。"
+"startSendList","3605","是","发送执行链已接","宿主已注册并通过真实目标 IPC 启动发送列表；循环、间隔、取消和统计由目标发送 worker 执行。"
+"stopSendList","3643","是","发送执行链已接","宿主已注册并通过真实目标 IPC 停止发送列表；停止状态回传 running=false。"
+"getRobotMeta","3663","是","运行态部分接线","当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。"
+"addRobot","3669","是","数据读写已接","原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+"setRobotEnable","3674","是","启用状态已接","启用标志真实保存并刷新原列表；不等于启动滤镜、发包或机器人执行。"
+"setAllRobotEnable","3681","是","启用状态已接","启用标志真实保存并刷新原列表；不等于启动滤镜、发包或机器人执行。"
+"resetRobotCount","3688","是","运行态部分接线","当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。"
+"robotListAction","3696","是","多分支部分接线","父列表排序/复制/删除和选中明文/原 AES 导出已接；真实执行相关分支仍未全部实现。"
+"importRobots","3710","是","文件接线已接","原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
+"exportRobots","3716","是","文件接线已接","原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
+"clearRobots","3722","是","数据清空已接","经原 Vue 确认后事务清空；取消不修改数据；确认文字尚未完全逐语言对齐。"
+"startRobotList","3732","否","按用户要求不实现","机器人运行执行器已由用户明确移出交付范围；保留原数据、文件和编辑兼容，不注册虚假运行处理器。"
+"stopRobotList","3747","否","按用户要求不实现","机器人运行执行器已由用户明确移出交付范围；保留原数据、文件和编辑兼容，不注册虚假运行处理器。"
+"openRobotEdit","3770","是","指令编辑已接","原九类指令校验、列表插入/移动/删除/清空、循环与引用校验、草稿取消和保存落库；不启动机器人执行。"
+"closeRobotEdit","3773","是","指令编辑已接","原九类指令校验、列表插入/移动/删除/清空、循环与引用校验、草稿取消和保存落库；不启动机器人执行。"
+"getRobotInstructions","3779","是","指令编辑已接","原九类指令校验、列表插入/移动/删除/清空、循环与引用校验、草稿取消和保存落库；不启动机器人执行。"
+"addRobotInstruction","3785","是","指令编辑已接","原九类指令校验、列表插入/移动/删除/清空、循环与引用校验、草稿取消和保存落库；不启动机器人执行。"
+"robotInstructionAction","3794","是","指令编辑已接","原九类指令校验、列表插入/移动/删除/清空、循环与引用校验、草稿取消和保存落库；不启动机器人执行。"
+"saveRobotEdit","3815","是","指令编辑已接","原九类指令校验、列表插入/移动/删除/清空、循环与引用校验、草稿取消和保存落库；不启动机器人执行。"
+"startRobotEdit","3821","否","按用户要求不实现","机器人编辑数据仍保留，但编辑器内实际运行与进度执行已由用户明确移出交付范围。"
+"stopRobotEdit","3827","否","按用户要求不实现","机器人编辑数据仍保留，但编辑器内实际运行与进度执行已由用户明确移出交付范围。"
+"getRobotEditProgress","3833","否","按用户要求不实现","机器人编辑数据仍保留，但编辑器内实际运行与进度执行已由用户明确移出交付范围。"
+"textDuplicates","3843","是","数据/运行入口已接通","原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
+"transcode","3860","是","数据/运行入口已接通","原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
+"extractPick","3868","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"extractBytes","3872","是","数据/运行入口已接通","原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
+"saveExtraction","3880","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"saveServer","3896","是","WPC 节点与 HTTP 下发已接","ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
+"setServerEnable","3909","是","WPC 节点与 HTTP 下发已接","ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
+"serverListAction","3915","是","WPC 节点与 HTTP 下发已接","ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
+"clearServers","3923","是","WPC 节点与 HTTP 下发已接","ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
+"getRuleTypes","3929","是","WPC 节点与 HTTP 下发已接","ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
+"getServerRules","3931","是","WPC 节点与 HTTP 下发已接","ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
+"saveServerRule","3936","是","WPC 节点与 HTTP 下发已接","ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
+"setServerRuleEnable","3947","是","WPC 节点与 HTTP 下发已接","ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
+"serverRuleAction","3955","是","WPC 节点与 HTTP 下发已接","ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
+"clearServerRules","3963","是","WPC 节点与 HTTP 下发已接","ServerInfo/ServerRuleInfo 原父子表、feed 17、原 Vue 节点/嵌套规则增改删/启用/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetServerList 节点与规则下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
+"saveNotice","3969","是","WPC 公告与 HTTP 下发已接","NoticeInfo 原表、feed 18、原 Vue 增改删/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetNoticeList 公告下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
+"noticeListAction","3979","是","WPC 公告与 HTTP 下发已接","NoticeInfo 原表、feed 18、原 Vue 增改删/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetNoticeList 公告下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
+"clearNotices","3987","是","WPC 公告与 HTTP 下发已接","NoticeInfo 原表、feed 18、原 Vue 增改删/排序与备份分组已接；WPC HTTP 服务提供 /ProxyCap/GetNoticeList 公告下发和运行期快照更新，私有 SOCKS 控制协议已接入 native SOCKS5 运行链，提供控制连接、设备令牌和状态回传。"
+"getFilterStats","3997","是","运行态部分接线","宿主已注册并从目标 Stats 快照返回滤镜全局和 GUID 执行计数。"
+"resetFilterStats","4003","是","运行态部分接线","宿主已注册并向目标发送 ResetStats/FilterStats 命令，结果通过 IPC 回传。"
+"getLogSetting","4040","是","设置读写已接","真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。"
+"saveLogSetting","4046","是","设置读写已接","真实 SQLite 设置读写；执行顺序、速度及自动清理设置尚无对应运行引擎可应用。"
+"clearLogs","4085","是","运行态部分接线","当前没有注入/代理/执行器；返回未运行/空连接/零计数或清空现有空日志，不代表实际运行数据已接入。"
+"exportLogs","4090","是","日志导出入口已接","使用原生 CSV 对话框导出当前统计快照；系统/滤镜日志明细仍由页面实时 feed 保留。"
+"getProcessSetting","4102","是","数据/运行入口已接通","原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
+"getProcessRows","4105","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"getProcessIcons","4116","是","运行态部分接线","宿主已注册并返回 icons 对象占位；真实进程图标提取仍未接入。"
+"addSelectProcessName","4154","是","数据/运行入口已接通","原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
+"removeSelectProcessName","4159","是","数据/运行入口已接通","原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
+"uninstallDriver","4164","是","驱动边界已接","当前构建没有加载驱动，返回明确不可卸载错误，不伪造卸载成功。"
+"saveProcessSetting","4167","是","数据/运行入口已接通","原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
+"testSocksProxy","4190","是","数据/运行入口已接通","原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
+"getMapSetting","4202","是","代理映射数据与 HTTP 运行时已接","ProxyMapLocal/ProxyMapRemote 原表、运行期 Id、feed 13/14、原 Vue 增改删/启用/排序、.pml/.pmr 明文/AES 与备份分组已接；HTTP 代理已按源 host/port/path 执行本地文件映射或远程目标重写，CONNECT 加密隧道不匹配路径。"
+"saveMapSetting","4208","是","代理映射数据与 HTTP 运行时已接","ProxyMapLocal/ProxyMapRemote 原表、运行期 Id、feed 13/14、原 Vue 增改删/启用/排序、.pml/.pmr 明文/AES 与备份分组已接；HTTP 代理已按源 host/port/path 执行本地文件映射或远程目标重写，CONNECT 加密隧道不匹配路径。"
+"saveMapLocal","4216","是","代理映射数据与 HTTP 运行时已接","ProxyMapLocal/ProxyMapRemote 原表、运行期 Id、feed 13/14、原 Vue 增改删/启用/排序、.pml/.pmr 明文/AES 与备份分组已接；HTTP 代理已按源 host/port/path 执行本地文件映射或远程目标重写，CONNECT 加密隧道不匹配路径。"
+"saveMapRemote","4227","是","代理映射数据与 HTTP 运行时已接","ProxyMapLocal/ProxyMapRemote 原表、运行期 Id、feed 13/14、原 Vue 增改删/启用/排序、.pml/.pmr 明文/AES 与备份分组已接；HTTP 代理已按源 host/port/path 执行本地文件映射或远程目标重写，CONNECT 加密隧道不匹配路径。"
+"setMapEnable","4241","是","代理映射数据与 HTTP 运行时已接","ProxyMapLocal/ProxyMapRemote 原表、运行期 Id、feed 13/14、原 Vue 增改删/启用/排序、.pml/.pmr 明文/AES 与备份分组已接；HTTP 代理已按源 host/port/path 执行本地文件映射或远程目标重写，CONNECT 加密隧道不匹配路径。"
+"mapAction","4250","是","代理映射数据与 HTTP 运行时已接","ProxyMapLocal/ProxyMapRemote 原表、运行期 Id、feed 13/14、原 Vue 增改删/启用/排序、.pml/.pmr 明文/AES 与备份分组已接；HTTP 代理已按源 host/port/path 执行本地文件映射或远程目标重写，CONNECT 加密隧道不匹配路径。"
+"mapCommand","4261","是","代理映射数据与 HTTP 运行时已接","ProxyMapLocal/ProxyMapRemote 原表、运行期 Id、feed 13/14、原 Vue 增改删/启用/排序、.pml/.pmr 明文/AES 与备份分组已接；HTTP 代理已按源 host/port/path 执行本地文件映射或远程目标重写，CONNECT 加密隧道不匹配路径。"
+"pickLocalFile","4272","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"getExtProxySetting","4279","是","数据/运行入口已接通","原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
+"saveExtProxySetting","4281","是","数据/运行入口已接通","原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
+"getHotkeySetting","4296","是","数据/运行入口已接通","原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
+"registerHotkey","4298","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"saveHotkeyType","4305","是","数据/运行入口已接通","原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
+"exportBackup","4318","是","文件接线已接（备份部分）","原 XML/原 AES 文件互通；备份支持十四组语义分组：SystemConfig、ProxyMode、ProxyAccountList、WhiteList、BlackList、InjectMode、AutoStores、ProxyMapping、WPCServer、WPCNotice 与四个父列表；非法分组整次拒绝。"
+"importBackup","4351","是","文件接线已接（备份部分）","原 XML/原 AES 文件互通；备份支持十四组语义分组：SystemConfig、ProxyMode、ProxyAccountList、WhiteList、BlackList、InjectMode、AutoStores、ProxyMapping、WPCServer、WPCNotice 与四个父列表；非法分组整次拒绝。"
+"getRemoteSetting","4384","是","WPC HTTP 服务设置已接","读取 WPC HTTP 服务监听地址、端口、Basic 管理账号、运行状态和本机地址列表；运行状态来自真实 WpcRuntime。"
+"saveRemoteSetting","4386","是","WPC HTTP 服务设置已接","事务保存 WPC HTTP 服务设置；启用时真实启动监听、发布节点/规则/公告快照，禁用时停止并等待全部连接收尾；监听失败会回传错误。"
+"copyProxyHex","4407","是","代理工具入口已接（边界）","当前 Host 只持有注入封包镜像；代理列表来源未接入时返回空文本。"
+"addProxyToSend","4412","是","运行时来源未纳入","代理模式封包暂未保留到当前 Host 捕获镜像，调用返回明确错误，不伪造追加成功。"
+"addProxyToWareHouse","4418","是","运行时来源未纳入","代理模式封包暂未保留到当前 Host 捕获镜像，调用返回明确错误，不伪造追加成功。"
+"addProxyToFilter","4424","是","运行时来源未纳入","代理模式封包暂未保留到当前 Host 捕获镜像，调用返回明确错误，不伪造追加成功。"
+"setSystemSocketByProxy","4430","是","代理工具入口已接（边界）","代理运行时尚未向 Host 暴露可选封包 Id，接口不会虚构 socket。"
+"exportProxyExcel","4437","是","代理导出入口已接（边界）","使用原生 CSV 对话框；只有当前 Host 捕获镜像可导出，代理运行时列表为空时导出表头。"
+"copyPacketHex","4449","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"addPacketToSend","4454","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"addPacketToWareHouse","4460","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"addPacketToFilter","4466","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"setSystemSocketByPacket","4472","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"setSelectedPacket","4489","是","宿主封包选择已接","记录兼容选择动作并返回成功。"
+"exportPacketExcel","4499","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"searchProxyList","4519","是","代理搜索入口已接（边界）","搜索复用当前 Host 捕获镜像，代理运行时行源尚未统一。"
+"searchPacketList","4533","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"openSendEdit","4554","是","数据读写已接","原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+"closeSendEdit","4558","是","数据读写已接","原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+"getSendCollection","4564","是","发送集编辑部分接线","读取、复制、移动、删除、清空发送集草稿；保存外层发送条目后落库；导出未接，实际发送未接。"
+"sendCollectionAction","4570","是","数据动作部分接线","已接数据编辑动作和选择/全部明文或原 AES 导出；参见编辑/配置进度，实际发送或采集执行仍未全部实现。"
+"importSendCollection","4584","是","文件接线已接","原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
+"exportSendCollection","4590","是","文件接线已接","原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
+"clearSendCollection","4596","是","发送集编辑部分接线","读取、复制、移动、删除、清空发送集草稿；保存外层发送条目后落库；导出未接，实际发送未接。"
+"saveSendEdit","4603","是","数据读写已接","原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+"startSendEdit","4613","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"stopSendEdit","4623","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"getSendEditProgress","4630","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"addWareHouse","4643","是","数据读写已接","原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+"wareHouseListAction","4649","是","多分支部分接线","父列表排序/复制/删除和选中明文/原 AES 导出已接；真实执行相关分支仍未全部实现。"
+"importWareHouses","4663","是","文件接线已接","原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
+"exportWareHouses","4669","是","文件接线已接","原 XML 与原 AES 导入/导出，原生选择路径，原 Vue 密码框与失败处理；运行引擎不在此范围。"
+"clearWareHouses","4675","是","数据清空已接","经原 Vue 确认后事务清空；取消不修改数据；确认文字尚未完全逐语言对齐。"
+"getAutoStoresMeta","4686","是","自动入库数据与文件已接","AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；滤镜命中后的 StoreAdded 已进入 DataWorker/SQLite 仓库链路。"
+"setAutoStoresSwitch","4698","是","自动入库数据与文件已接","AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；滤镜命中后的 StoreAdded 已进入 DataWorker/SQLite 仓库链路。"
+"saveAutoStores","4726","是","自动入库数据与文件已接","AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；滤镜命中后的 StoreAdded 已进入 DataWorker/SQLite 仓库链路。"
+"setAutoStoresEnable","4736","是","自动入库数据与文件已接","AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；滤镜命中后的 StoreAdded 已进入 DataWorker/SQLite 仓库链路。"
+"deleteAutoStores","4744","是","自动入库数据与文件已接","AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；滤镜命中后的 StoreAdded 已进入 DataWorker/SQLite 仓库链路。"
+"autoStoresAction","4751","是","自动入库数据与文件已接","AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；滤镜命中后的 StoreAdded 已进入 DataWorker/SQLite 仓库链路。"
+"openWareHouseEdit","4773","是","数据读写已接","原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+"getStoreRows","4781","是","仓库数据读取已接","原 BLOB、预览/截断和 CRLF 文本，配合本轮条目动作及明文导入；系统剪贴板写入和采集入库未接。"
+"getStorePreviews","4791","是","仓库数据读取已接","原 BLOB、预览/截断和 CRLF 文本，配合本轮条目动作及明文导入；系统剪贴板写入和采集入库未接。"
+"copyStoresHex","4800","是","数据读写已接","选中仓储条目转完整十六进制文本；原 Vue 再调用 clipboardWrite，真实剪贴板已接。"
+"storesAction","4807","是","数据动作部分接线","已接数据编辑动作和选择/全部明文或原 AES 导出；参见编辑/配置进度，实际发送或采集执行仍未全部实现。"
+"storesCommand","4824","是","数据动作部分接线","已接数据编辑动作和选择/全部明文或原 AES 导出；参见编辑/配置进度，实际发送或采集执行仍未全部实现。"
+"saveWareHouseName","4833","是","数据读写已接","原数据契约连接 C++ 和 SQLite；参见开发进度文档中的模块验收范围。"
+"openPacketEdit","4866","是","仅发送集来源已接","原 Buffer Base64、Socket、HexView 编辑；仅 list=send，捕获/代理来源未接。保留原已有 PacketInfo 浅拷贝的取消行为；实际发送未接。"
+"savePacketEdit","4869","是","仅发送集来源已接","原 Buffer Base64、Socket、HexView 编辑；仅 list=send，捕获/代理来源未接。保留原已有 PacketInfo 浅拷贝的取消行为；实际发送未接。"
+"packetEditToFilter","4878","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"packetEditToSend","4883","是","宿主运行入口已接通","原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
+"startPacketSend","4891","是","单包发送运行入口已接（基础）","通过 TargetLink SendPacket 解析目标成功位并回传进度；连续/次数使用基础循环，progression/interval 仍需专项。"
+"stopPacketSend","4907","是","单包发送停止入口已接","停止 Host 侧发送状态并回传成功。"
+"getPacketSendProgress","4913","是","单包发送进度已接","回传 Running/Index/Total/Success/Fail。"
+"pickFolder","4931","是","原生文件夹选择已接","通过原生文件选择器异步授予文件夹路径。"
+"probeDbPath","4969","是","实例路径探测已接","校验实例目录并返回数据库路径信息。"
+"saveInstance","5037","是","实例切换已接","停止运行时切换数据实例并重建 DataWorker。"
+"minimizeWindow","5085","是","宿主入口已接","原方法名连接 Win32/WebView2 宿主；首屏、置顶和消息往返有自测，其余窗口体验需人工回归。"
+"toggleMaximize","5091","是","宿主入口已接","原方法名连接 Win32/WebView2 宿主；首屏、置顶和消息往返有自测，其余窗口体验需人工回归。"
+"closeWindow","5100","是","宿主入口已接","原方法名连接 Win32/WebView2 宿主；首屏、置顶和消息往返有自测，其余窗口体验需人工回归。"
+"setTopMost","5117","是","宿主入口已接","原方法名连接 Win32/WebView2 宿主；首屏、置顶和消息往返有自测，其余窗口体验需人工回归。"
+"startDragWindow","5130","是","宿主入口已接","原方法名连接 Win32/WebView2 宿主；首屏、置顶和消息往返有自测，其余窗口体验需人工回归。"
+"getSystemCheck","5139","是","宿主自检部分接线","真实数据库路径、已保存偏好、管理员及拖动状态；运行引擎未接，版本明确为 C++ DATA-dev。"
+"uiReady","5222","是","宿主入口已接","原方法名连接 Win32/WebView2 宿主；首屏、置顶和消息往返有自测，其余窗口体验需人工回归。"

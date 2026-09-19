@@ -75,7 +75,7 @@ if(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8)
   target_link_libraries(wpe64-app PRIVATE wpe64-data wpe64-clipboard wpe64-injector
     wpe64-proxy-runtime
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/webview2/x64/WebView2LoaderStatic.lib"
-    ole32 oleaut32 user32 shell32 shlwapi advapi32 dwmapi version)
+    ole32 oleaut32 user32 shell32 shlwapi advapi32 dwmapi version wininet)
   target_include_directories(wpe64-app SYSTEM PRIVATE third_party/webview2/include)
   target_compile_definitions(wpe64-app PRIVATE UNICODE _UNICODE _WIN32_WINNT=0x0A00)
   add_dependencies(wpe64-app wpe64-hook)

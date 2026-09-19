@@ -109,7 +109,10 @@ void TargetLink::Submit(Job job) {
         reject = stopping_ || jobs_.size() >= 128;
         if (!reject) jobs_.push_back(std::move(job));
     }
-    if (reject) Complete(job.done, false, "目标连接正在退出或操作队列已满");
+    if (reject) {
+        Complete(job.done, false, "目标连接正在退出或操作队列已满");
+        Complete(job.response_done, false, "目标连接正在退出或操作队列已满");
+    }
     else wake_.notify_one();
 }
 
@@ -129,6 +132,19 @@ void TargetLink::ResumeLaunched(Completion done) {
 
 void TargetLink::CallVoid(ByteBuffer request, Completion done) {
     Submit({Job::Kind::CallVoid, 0, {}, {}, {}, std::move(request), std::move(done)});
+}
+
+void TargetLink::Call(ByteBuffer request, ResponseCompletion done) {
+    Job job{Job::Kind::Call};
+    job.request=std::move(request);
+    job.response_done=std::move(done);
+    Submit(std::move(job));
+}
+
+void TargetLink::Complete(ResponseCompletion& done, bool ok, std::string error,
+                          ByteBuffer response) noexcept {
+    if (!done) return;
+    try { done(ok, std::move(error), std::move(response)); } catch (...) {}
 }
 
 void TargetLink::Detach(Completion done) {
@@ -334,6 +350,10 @@ void TargetLink::Run() {
                     throw std::runtime_error("尚未连接目标进程");
                 session_->CallVoid(job.request);
                 Complete(job.done, true, {});
+            } else if (job.kind == Job::Kind::Call) {
+                if (!session_ || State() != IpcLinkState::Attached)
+                    throw std::runtime_error("尚未连接目标进程");
+                Complete(job.response_done, true, {}, session_->Call(job.request));
             } else if (job.kind == Job::Kind::Detach) {
                 if (session_) { session_->Detach(); session_.reset(); }
                 CleanupX86Helper(true);
@@ -351,8 +371,10 @@ void TargetLink::Run() {
                 SetState(IpcLinkState::Disconnected);
             }
             Complete(job.done, false, error.what());
+            Complete(job.response_done, false, error.what());
         } catch (...) {
             Complete(job.done, false, "目标连接操作失败");
+            Complete(job.response_done, false, "目标连接操作失败");
         }
     }
     if (session_) session_->Stop();

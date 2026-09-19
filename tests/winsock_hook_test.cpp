@@ -550,8 +550,8 @@ int main() {
         flags.fill(false); flags[8] = true; flags[10] = true;
         hooks.ConfigureHookFlags(flags);
         hooks.StartHook();
-        Check(hooks.RegisteredHookCount() == (sizeof(void*) == 4 ? 3U : 2U),
-              "WSA hook set follows the original WSARecvEx architecture rule");
+        Check(hooks.RegisteredHookCount() == 4U,
+              "WSA hook set includes the correctly typed WSARecvEx hook on both architectures");
         std::array<char, 2> part1{'m','u'};
         std::array<char, 3> part2{'l','t','i'};
         WSABUF outgoing[2]{{static_cast<ULONG>(part1.size()), part1.data()},
@@ -620,20 +620,18 @@ int main() {
               *received_packet->modified == wpe::ByteBuffer({'x','e','p','l','y'}),
               "WSARecv packet frame preserves raw and modified buffers");
         hooks.ConfigureFilters({}, 0, false);
-        if constexpr (sizeof(void*) == 4) {
-            using WsaRecvExFn = int (WSAAPI*)(SOCKET, char*, int, int*);
-            const auto msws = GetModuleHandleW(L"mswsock.dll");
-            const auto receive_ex = reinterpret_cast<WsaRecvExFn>(GetProcAddress(msws, "WSARecvEx"));
-            Check(receive_ex != nullptr, "x86 WSARecvEx export resolved");
-            Check(send(tcp.first.value, "ex", 2, 0) == 2, "WSARecvEx fixture sent");
-            std::array<char, 8> ex_buffer{};
-            int ex_flags = 0;
-            Check(receive_ex(tcp.second.value, ex_buffer.data(),
-                             static_cast<int>(ex_buffer.size()), &ex_flags) == 2,
-                  "WSARecvEx result");
-            packets = collector.WaitFor(11, "ex");
-            Check(Has(packets, 11, "ex"), "x86 WSARecvEx captured with pointer flags signature");
-        }
+        using WsaRecvExFn = int (WSAAPI*)(SOCKET, char*, int, int*);
+        const auto msws = GetModuleHandleW(L"mswsock.dll");
+        const auto receive_ex = reinterpret_cast<WsaRecvExFn>(GetProcAddress(msws, "WSARecvEx"));
+        Check(receive_ex != nullptr, "WSARecvEx export resolved");
+        Check(send(tcp.first.value, "ex", 2, 0) == 2, "WSARecvEx fixture sent");
+        std::array<char, 8> ex_buffer{};
+        int ex_flags = 0;
+        Check(receive_ex(tcp.second.value, ex_buffer.data(),
+                         static_cast<int>(ex_buffer.size()), &ex_flags) == 2,
+              "WSARecvEx result");
+        packets = collector.WaitFor(11, "ex");
+        Check(Has(packets, 11, "ex"), "WSARecvEx captured with pointer flags signature");
         hooks.StopHook();
 
         collector.Clear();

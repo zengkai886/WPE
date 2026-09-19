@@ -24,6 +24,7 @@ class SuspendedProcess;
 class TargetLink final {
 public:
     using Completion = std::function<void(bool, std::string)>;
+    using ResponseCompletion = std::function<void(bool, std::string, ByteBuffer)>;
     using EventHandler = std::function<void(ByteBuffer, bool packet_channel)>;
     using StateHandler = std::function<void(IpcLinkState)>;
 
@@ -42,6 +43,10 @@ public:
     // successful no-op for them.
     void ResumeLaunched(Completion done);
     void CallVoid(ByteBuffer request, Completion done);
+    // Send a request and return the target's full IPC response.  This is used
+    // by the packet editor's one-shot replay path; void calls intentionally
+    // keep their smaller callback contract.
+    void Call(ByteBuffer request, ResponseCompletion done);
     void Detach(Completion done);
     void Stop() noexcept;
 
@@ -51,19 +56,22 @@ public:
 
 private:
     struct Job {
-        enum class Kind { AttachPid, AttachLaunch, Resume, CallVoid, Detach, Stop } kind;
+        enum class Kind { AttachPid, AttachLaunch, Resume, CallVoid, Call, Detach, Stop } kind;
         DWORD pid{};
         std::filesystem::path path;
         std::filesystem::path dll;
         std::wstring arguments;
         ByteBuffer request;
         Completion done;
+        ResponseCompletion response_done;
     };
 
     void Submit(Job job);
     void Run();
     void Attach(Job& job, bool launch);
     void Complete(Completion& done, bool ok, std::string error) noexcept;
+    void Complete(ResponseCompletion& done, bool ok, std::string error,
+                  ByteBuffer response = {}) noexcept;
     void SetState(IpcLinkState state) noexcept;
     void CleanupX86Helper(bool abort) noexcept;
     bool TargetIsX86(const Job& job, bool launch) const;

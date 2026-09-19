@@ -17,6 +17,9 @@
 #include <random>
 #include <sstream>
 #include <cmath>
+#include <unordered_map>
+#include <unordered_set>
+#include <cstring>
 
 #include "data_util.h"
 namespace wpe::shell {
@@ -72,6 +75,47 @@ bool ValidIp(const std::string& value){const Winsock winsock;if(!winsock)return 
 std::string Address(const Json& proxy,const Json& local,bool http){
     if(http&&!B(proxy,"Enable_HTTP"))return {};std::string ip=S(proxy,"ProxyIP");if(B(proxy,"ProxyIP_Auto",true)||ip.empty())ip=local.empty()?"0.0.0.0":local[0].get<std::string>();
     if(ip.find(':')!=ip.npos)ip="["+ip+"]";return ip+":"+std::to_string(N(proxy,http?"HTTP_Port":"SOCKS5_Port",http?1081:1080));
+}
+
+std::vector<std::uint8_t> DecodeHexLoose(std::string_view text){
+    std::vector<std::uint8_t> out;int high=-1;
+    for(const unsigned char c:text){
+        if(c==' '||c=='\t'||c=='\r'||c=='\n'||c==':'||c=='-')continue;
+        const int v=c>='0'&&c<='9'?c-'0':c>='a'&&c<='f'?c-'a'+10:c>='A'&&c<='F'?c-'A'+10:-1;
+        if(v<0)return {};
+        if(high<0)high=v;else{out.push_back(static_cast<std::uint8_t>((high<<4)|v));high=-1;}
+    }
+    return high<0?out:std::vector<std::uint8_t>{};
+}
+std::string HexBytes(std::span<const std::uint8_t> bytes){
+    static constexpr char digits[]="0123456789ABCDEF";std::string out;out.reserve(bytes.size()*3);
+    for(std::size_t i=0;i<bytes.size();++i){if(i)out+=' ';out+=digits[bytes[i]>>4];out+=digits[bytes[i]&15];}return out;
+}
+std::string B64Bytes(std::span<const std::uint8_t> bytes){
+    static constexpr char alphabet[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";std::string out;
+    for(std::size_t i=0;i<bytes.size();i+=3){const auto a=bytes[i];const std::uint8_t b=i+1<bytes.size()?bytes[i+1]:0;const std::uint8_t c=i+2<bytes.size()?bytes[i+2]:0;out+=alphabet[a>>2];out+=alphabet[((a&3)<<4)|(b>>4)];out+=i+1<bytes.size()?alphabet[((b&15)<<2)|(c>>6)]:'=';out+=i+2<bytes.size()?alphabet[c&63]:'=';}return out;
+}
+std::vector<std::uint8_t> Unb64(std::string_view text){
+    std::string s;for(const auto c:text)if(c!=' '&&c!='\r'&&c!='\n'&&c!='\t')s+=c;
+    auto val=[](char c){return c>='A'&&c<='Z'?c-'A':c>='a'&&c<='z'?c-'a'+26:c>='0'&&c<='9'?c-'0'+52:c=='+'?62:c=='/'?63:-1;};
+    if(s.size()%4)return {};
+    std::vector<std::uint8_t> out;for(std::size_t i=0;i<s.size();i+=4){const int a=val(s[i]),b=val(s[i+1]),c=s[i+2]=='='?-1:val(s[i+2]),d=s[i+3]=='='?-1:val(s[i+3]);if(a<0||b<0||c<-1||d<-1)return {};out.push_back(static_cast<std::uint8_t>((a<<2)|(b>>4)));if(c>=0){out.push_back(static_cast<std::uint8_t>((b<<4)|(c>>2)));if(d>=0)out.push_back(static_cast<std::uint8_t>((c<<6)|d));}}return out;
+}
+std::wstring DecodeCp(UINT cp,std::span<const std::uint8_t> bytes){
+    if(bytes.empty())return {};const int n=MultiByteToWideChar(cp,MB_ERR_INVALID_CHARS,reinterpret_cast<const char*>(bytes.data()),static_cast<int>(bytes.size()),nullptr,0);if(n<=0)return {};
+    std::wstring out(static_cast<std::size_t>(n),L'\0');MultiByteToWideChar(cp,MB_ERR_INVALID_CHARS,reinterpret_cast<const char*>(bytes.data()),static_cast<int>(bytes.size()),out.data(),n);return out;
+}
+std::vector<std::uint8_t> EncodeCp(UINT cp,std::wstring_view text){
+    if(text.empty())return {};const int n=WideCharToMultiByte(cp,0,text.data(),static_cast<int>(text.size()),nullptr,0,nullptr,nullptr);if(n<=0)return {};
+    std::vector<std::uint8_t> out(static_cast<std::size_t>(n));WideCharToMultiByte(cp,0,text.data(),static_cast<int>(text.size()),reinterpret_cast<char*>(out.data()),n,nullptr,nullptr);return out;
+}
+std::string Utf8Bytes(std::span<const std::uint8_t> bytes){
+    if(bytes.empty())return {};const int n=MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,reinterpret_cast<const char*>(bytes.data()),static_cast<int>(bytes.size()),nullptr,0);if(n<=0)return std::string(reinterpret_cast<const char*>(bytes.data()),bytes.size());std::wstring w(static_cast<std::size_t>(n),L'\0');MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,reinterpret_cast<const char*>(bytes.data()),static_cast<int>(bytes.size()),w.data(),n);const int m=WideCharToMultiByte(CP_UTF8,0,w.data(),n,nullptr,0,nullptr,nullptr);std::string out(static_cast<std::size_t>(m),'\0');WideCharToMultiByte(CP_UTF8,0,w.data(),n,out.data(),m,nullptr,nullptr);return out;
+}
+std::string Utf8Wide(std::wstring_view text){
+    if(text.empty())return {};
+    const int n=WideCharToMultiByte(CP_UTF8,0,text.data(),static_cast<int>(text.size()),nullptr,0,nullptr,nullptr);if(n<=0)return {};
+    std::string out(static_cast<std::size_t>(n),'\0');WideCharToMultiByte(CP_UTF8,0,text.data(),static_cast<int>(text.size()),out.data(),n,nullptr,nullptr);return out;
 }
 }
 
@@ -192,7 +236,7 @@ std::vector<std::string> DataService::Methods(){return {
     "addIpRule","saveIPRule","deleteIPRule","ipRuleAction",
     "getAccountPassword","getAccountLogins","saveAccount","deleteAccount","clearAllAccounts","setAccountEnable","importAccounts","exportAccounts","previewBatchAccounts","saveBatchAccounts","exportBatchAccounts","adjustAccountExpiry","adjustAccountLimit","exportSelectedAccounts","deleteSelectedAccounts",
     "enterProxyMode","enterInjectMode","getStats","getClientConnections","getListSetting","saveListSetting","clearLogs","getCountryTable",
-    "getFilterExecute","getFilterEdit","saveFilterEdit","getExecuteTargets","addFilter","setFilterEnable","setAllFilterEnable","resetFilterCount","filterListAction","clearFilters",
+    "getFilterExecute","getFilterEdit","saveFilterEdit","getExecuteTargets","addFilter","setFilterEnable","setAllFilterEnable","resetFilterCount","filterListAction","clearFilters","setListEnable",
     "getSendMeta","addSend","setSendEnable","setAllSendEnable","resetSendCount","sendListAction","clearSends","openSendEdit","closeSendEdit","getSendCollection","saveSendEdit","exportSendCollection",
     "getRobotMeta","addRobot","setRobotEnable","setAllRobotEnable","resetRobotCount","robotListAction","clearRobots",
     "addWareHouse","wareHouseListAction","clearWareHouses","openWareHouseEdit","getStoreRows","getStorePreviews","copyStoresHex","saveWareHouseName",
@@ -201,7 +245,7 @@ std::vector<std::string> DataService::Methods(){return {
     "saveServer","setServerEnable","serverListAction","clearServers","getRuleTypes","getServerRules","saveServerRule","setServerRuleEnable","serverRuleAction","clearServerRules","saveNotice","noticeListAction","clearNotices",
     "openRobotEdit","closeRobotEdit","getRobotInstructions","addRobotInstruction","robotInstructionAction","saveRobotEdit",
     "sendCollectionAction","clearSendCollection","importSendCollection","openPacketEdit","savePacketEdit","storesAction","storesCommand",
-    "importFilters","exportFilters","importSends","exportSends","importRobots","exportRobots","importWareHouses","exportWareHouses","importBackup","exportBackup"
+    "importFilters","exportFilters","importSends","exportSends","importRobots","exportRobots","importWareHouses","exportWareHouses","importBackup","exportBackup","textDuplicates","transcode","extractBytes","saveExtraction","getProcessSetting","addSelectProcessName","removeSelectProcessName","saveProcessSetting","testSocksProxy","getExtProxySetting","saveExtProxySetting","getHotkeySetting","registerHotkey","saveHotkeyType"
 };}
 bool DataService::NeedsConfirmation(const std::string& method,const Json& args){
     if(method=="deleteAccount"||method=="clearAllAccounts"||method=="deleteSelectedAccounts"||method=="deleteIPRule"||method=="deleteAutoStores"||method=="clearSendCollection"||method=="clearServers"||method=="clearServerRules"||method=="clearNotices"||((method=="mapAction")&&N(args,"action",-1)==6)||((method=="mapCommand"||method=="robotInstructionAction"||method=="storesCommand"||method=="sendCollectionAction"||method=="ipRuleAction"||method=="autoStoresAction")&&N(args,"action",-1)==7)||((method=="serverListAction"||method=="serverRuleAction"||method=="noticeListAction")&&N(args,"action",-1)==6))return true;
@@ -448,6 +492,74 @@ Json DataService::ListAction(int list,const Json& args){
 Json DataService::Call(const std::string& method,const Json& args){
     if(auto result=CallEditor(method,args))return std::move(*result);
     if(auto result=CallConfigLists(method,args))return std::move(*result);
+    if(method=="textDuplicates"){
+        const auto parse=[&](const char* key){const auto text=S(args,key);auto bytes=DecodeHexLoose(text);if(bytes.empty()&&!text.empty())bytes.assign(text.begin(),text.end());return bytes;};
+        const auto a=parse("a"),b=parse("b");const auto minimum=std::clamp(N(args,"min",4),1,1024);Json rows=Json::array();
+        std::unordered_set<std::string> seen;
+        const auto limit=std::min<std::size_t>(a.size(),b.size());
+        for(std::size_t len=static_cast<std::size_t>(minimum);len<=std::min<std::size_t>(limit,256);++len){
+            for(std::size_t i=0;i+len<=a.size();++i){const std::string key(reinterpret_cast<const char*>(a.data()+i),len);if(seen.contains(key))continue;
+                std::vector<int> pa,pb;for(std::size_t p=i;p+len<=a.size();++p)if(std::memcmp(a.data()+p,key.data(),len)==0)pa.push_back(static_cast<int>(p));for(std::size_t p=0;p+len<=b.size();++p)if(std::memcmp(b.data()+p,key.data(),len)==0)pb.push_back(static_cast<int>(p));
+                if(!pb.empty()){seen.insert(key);rows.push_back({{"Sequence",HexBytes(std::span<const std::uint8_t>(reinterpret_cast<const std::uint8_t*>(key.data()),key.size()))},{"Length",static_cast<int>(len)},{"CountInA",static_cast<int>(pa.size())},{"CountInB",static_cast<int>(pb.size())},{"PositionsInA",pa},{"PositionsInB",pb}});}
+            }
+        }
+        std::sort(rows.begin(),rows.end(),[](const Json& x,const Json& y){if(N(x,"Length")!=N(y,"Length"))return N(x,"Length")>N(y,"Length");return S(x,"Sequence")<S(y,"Sequence");});
+        if(rows.size()>512)rows.erase(rows.begin()+512,rows.end());return {{"rows",std::move(rows)}};
+    }
+    if(method=="transcode"){
+        const auto text=S(args,"text");const bool decode=B(args,"decode");const auto input=decode?DecodeHexLoose(text):std::vector<std::uint8_t>(text.begin(),text.end());
+        std::wstring utf8_text; if(!decode){const int n=MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,text.data(),static_cast<int>(text.size()),nullptr,0);if(n>0){utf8_text.resize(static_cast<std::size_t>(n));MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,text.data(),static_cast<int>(text.size()),utf8_text.data(),n);}}
+        auto add=[&](const char* key,std::span<const std::uint8_t> bytes){return Json{{"Key",key},{"Value",decode?Utf8Bytes(bytes):HexBytes(bytes)}};};Json rows=Json::array();
+        if(!decode)rows.push_back({{"Key","Bytes"},{"Value",text}});else rows.push_back({{"Key","Bytes"},{"Value",Utf8Bytes(input)}});
+        const auto source=decode?std::wstring{}:utf8_text;
+        if(!decode){rows.push_back(add("ANSI-GBK",EncodeCp(936,source)));rows.push_back(add("ANSI-UTF7",EncodeCp(65000,source)));rows.push_back(add("ANSI-UTF8",EncodeCp(CP_UTF8,source)));auto le=EncodeCp(1200,source);for(std::size_t i=0;i+1<le.size();i+=2)std::swap(le[i],le[i+1]);rows.push_back({{"Key","ANSI-UTF16"},{"Value",HexBytes(le)}});rows.push_back(add("ANSI-UTF32",EncodeCp(12000,source)));rows.push_back(add("ANSI-Unicode",EncodeCp(1200,source)));rows.push_back({{"Key","base64"},{"Value",B64Bytes(std::span<const std::uint8_t>(reinterpret_cast<const std::uint8_t*>(text.data()),text.size()))}});}
+        // Decode rows above need a stable UTF-8 conversion; rebuild them from the input bytes.
+        if(decode){rows=Json::array();rows.push_back({{"Key","Bytes"},{"Value",Utf8Bytes(input)}});for(const auto& [key,cp]:std::array<std::pair<const char*,UINT>,5>{{{"ANSI-GBK",936},{"ANSI-UTF8",CP_UTF8},{"ANSI-UTF16",1201},{"ANSI-UTF32",12000},{"ANSI-Unicode",1200}}}){auto w=DecodeCp(cp,input);const int n=WideCharToMultiByte(CP_UTF8,0,w.data(),static_cast<int>(w.size()),nullptr,0,nullptr,nullptr);std::string out(static_cast<std::size_t>(std::max(0,n)),'\0');if(n)WideCharToMultiByte(CP_UTF8,0,w.data(),static_cast<int>(w.size()),out.data(),n,nullptr,nullptr);rows.push_back({{"Key",key},{"Value",out}});}rows.push_back({{"Key","base64"},{"Value",Utf8Bytes(Unb64(text))}});}
+        return {{"rows",std::move(rows)}};
+    }
+    if(method=="extractBytes"){
+        const auto bytes=Unb64(S(args,"content"));const auto kind=N(args,"kind");std::string text;
+        if(kind==0||kind==1)text=Utf8Bytes(bytes);else text=Utf8Bytes(bytes);
+        if(text.empty()&&!bytes.empty())text=HexBytes(bytes);return {{"Path",S(args,"name")},{"Text",text},{"Error",text.empty()?"文件中没有可提取的数据":""},{"Count",text.empty()?0:1}};
+    }
+    if(method=="saveExtraction")return Bad("提取文件必须通过宿主文件保存对话框写入");
+    if(method=="getProcessSetting"){
+        Json p={{"DriverType",N(proxy_config_,"DriverType",1)},{"IsLoadDriver",false},{"MustTCP",B(proxy_config_,"MustTCP",true)},{"IP",S(proxy_config_,"MustTCP_IP","127.0.0.1")},{"Port",N(proxy_config_,"MustTCP_Port",1080)},{"AppointPort",B(proxy_config_,"MustTCP_AppointPort")},{"AppointPortContent",S(proxy_config_,"MustTCP_AppointPortContent")},{"Auth",B(proxy_config_,"MustTCP_Auth")},{"UserName",S(proxy_config_,"MustTCP_UserName")},{"PassWord",S(proxy_config_,"MustTCP_PassWord")},{"CheckedPids",Json::array()}};return p;
+    }
+    if(method=="addSelectProcessName"||method=="removeSelectProcessName"){
+        auto text=S(proxy_config_,"SelectProcessNames");std::vector<std::string> names;for(auto part:Split(text,';'))if(!Trim(part).empty())names.push_back(Trim(part));
+        std::string name=Trim(S(args,"name"));
+        if(name.empty()&&args.contains("pid")){const auto pid=static_cast<DWORD>(N(args,"pid"));HANDLE process=OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION,FALSE,pid);if(process){wchar_t path[MAX_PATH*4]{};DWORD size=static_cast<DWORD>(std::size(path));if(QueryFullProcessImageNameW(process,0,path,&size)){std::wstring_view full(path,size);const auto slash=full.find_last_of(L"\\/");name=Utf8Wide(slash==std::wstring_view::npos?full:full.substr(slash+1));}CloseHandle(process);}}
+        if(method=="addSelectProcessName"&&!name.empty()&&std::find(names.begin(),names.end(),name)==names.end())names.push_back(name);
+        if(method=="removeSelectProcessName"&&!name.empty())names.erase(std::remove(names.begin(),names.end(),name),names.end());
+        std::string packed;for(const auto& item:names){if(!packed.empty())packed+=';';packed+=item;}SaveProxyConfig({{"SelectProcessNames",packed}});return {{"ok",!name.empty()}};
+    }
+    if(method=="saveProcessSetting"){
+        const auto port=N(args,"port",0);
+        if(port<1||port>65535)return Json{{"error","代理端口必须在 1 ~ 65535 之间"}};
+        Json changes=Json::object();changes["DriverType"]=N(args,"driverType",1);changes["MustTCP"]=B(args,"mustTcp",true);changes["MustTCP_IP"]=Trim(S(args,"ip"));changes["MustTCP_Port"]=port;changes["MustTCP_AppointPort"]=B(args,"appointPort");changes["MustTCP_AppointPortContent"]=Trim(S(args,"appointPortContent"));changes["MustTCP_Auth"]=B(args,"auth");changes["MustTCP_UserName"]=S(args,"userName");changes["MustTCP_PassWord"]=S(args,"passWord");
+        SaveProxyConfig(changes);
+        return Json{{"error",""}};
+    }
+    if(method=="testSocksProxy"){
+        const auto host=Trim(S(args,"ip","127.0.0.1"));const auto port=N(args,"port",1080);if(port<1||port>65535)return {{"error","代理端口不正确"}};
+        const Winsock winsock;if(!winsock)return {{"error","Winsock 初始化失败"}};addrinfo hints{};hints.ai_socktype=SOCK_STREAM;hints.ai_protocol=IPPROTO_TCP;addrinfo* result=nullptr;const auto service=std::to_string(port);if(getaddrinfo(host.c_str(),service.c_str(),&hints,&result)!=0)return {{"error","无法解析代理地址"}};std::string error;for(auto* item=result;item;item=item->ai_next){SOCKET socket=::socket(item->ai_family,item->ai_socktype,item->ai_protocol);if(socket==INVALID_SOCKET)continue;u_long nonblocking=1;ioctlsocket(socket,FIONBIO,&nonblocking);const int rc=connect(socket,item->ai_addr,static_cast<int>(item->ai_addrlen));if(rc==SOCKET_ERROR&&WSAGetLastError()==WSAEWOULDBLOCK){fd_set write_set;FD_ZERO(&write_set);FD_SET(socket,&write_set);timeval timeout{2,0};if(select(0,nullptr,&write_set,nullptr,&timeout)>0){int so_error=0;int length=sizeof(so_error);getsockopt(socket,SOL_SOCKET,SO_ERROR,reinterpret_cast<char*>(&so_error),&length);if(so_error==0){closesocket(socket);freeaddrinfo(result);return {{"error",""}};}}}else if(rc==0){closesocket(socket);freeaddrinfo(result);return {{"error",""}};}closesocket(socket);}freeaddrinfo(result);return {{"error","无法连接代理地址"}};
+    }
+    if(method=="getExtProxySetting")return {{"enable",B(proxy_config_,"Enable_ExternalProxy")},{"ip",S(proxy_config_,"ExternalProxy_IP")},{"port",N(proxy_config_,"ExternalProxy_Port",8889)},{"appointPort",B(proxy_config_,"Enable_ExternalProxy_AppointPort")},{"appointPortContent",S(proxy_config_,"ExternalProxy_AppointPort")},{"auth",B(proxy_config_,"Enable_ExternalProxy_Auth")},{"userName",S(proxy_config_,"ExternalProxy_UserName")},{"passWord",S(proxy_config_,"ExternalProxy_PassWord")}};
+    if(method=="saveExtProxySetting"){
+        const auto port=N(args,"port",8889);
+        if(port<1||port>65535)return Json{{"error","外部代理端口不正确"}};
+        Json changes=Json::object();changes["Enable_ExternalProxy"]=B(args,"enable");changes["ExternalProxy_IP"]=Trim(S(args,"ip"));changes["ExternalProxy_Port"]=port;changes["Enable_ExternalProxy_AppointPort"]=B(args,"appointPort");changes["ExternalProxy_AppointPort"]=Trim(S(args,"appointPortContent"));changes["Enable_ExternalProxy_Auth"]=B(args,"auth");changes["ExternalProxy_UserName"]=S(args,"userName");changes["ExternalProxy_PassWord"]=S(args,"passWord");
+        SaveProxyConfig(changes);
+        return Json{{"error",""}};
+    }
+    if(method=="getHotkeySetting"){
+        Json keys=Json::array();for(int i=1;i<=12;++i)keys.push_back(S(config_,("HotKey"+std::to_string(i)).c_str()));return {{"Type",N(config_,"HotKeyType",0)},{"Keys",std::move(keys)}};
+    }
+    if(method=="registerHotkey"){
+        const int index=N(args,"index");if(index<1||index>12||S(args,"text").empty())return Json{{"ok",false}};Json change=Json::object();change["HotKey"+std::to_string(index)]=S(args,"text");SaveConfig(change);return Json{{"ok",true}};
+    }
+    if(method=="saveHotkeyType"){SaveConfig({{"HotKeyType",N(args,"type",0)}});return Good();}
     if(method=="getCountryTable")return Json::parse(country_codes);
     if(method=="getPrefs")return Prefs();
     if(method=="setAppearance"){
@@ -867,6 +979,15 @@ Json DataService::Call(const std::string& method,const Json& args){
         }
         if(method=="copyStoresHex")return {{"text",hex}};
         return {{method=="getStoreRows"?"rows":"items",items}};
+    }
+    if(method=="setListEnable"){
+        const int list=std::clamp(N(args,"list",9),8,11);auto rows=lists_[list];auto* row=Find(list,S(args,"id"));if(!row)return Json{{"ok",false}};for(auto& item:rows)if(S(item,"GUID")==S(*row,"GUID"))item["IsEnable"]=B(args,"enable");SaveList(list,rows);return Good();
+    }
+    if(method=="__appendPacketToSend"||method=="__appendPacketToWareHouse"){
+        const int list=method.ends_with("Send")?9:11;auto rows=lists_[list];auto* parent=Find(list,S(args,list==9?"sid":"wid"));if(!parent)return Json{{"count",0}};Json child={{"_id",Guid()},{"Socket",N(args,"socket")},{"Type",N(args,"type")},{"IPFrom",S(args,"from")},{"IPTo",S(args,"to")},{"Buffer",Json::binary(Unb64(S(args,"buffer")))}};for(auto& item:rows)if(S(item,"GUID")==S(*parent,"GUID")){item["_children"].push_back(std::move(child));TrimStores(item["_children"]);}SaveList(list,rows);return Json{{"count",1}};
+    }
+    if(method=="__appendPacketToFilter"){
+        auto row=NewRow(8);row["Name"]="封包滤镜";row["Search"]="0|"+S(args,"hex");auto rows=lists_[8];const auto id=row["GUID"];rows.push_back(std::move(row));SaveList(8,rows);return Json{{"ok",true},{"id",id}};
     }
     throw std::runtime_error("尚未实现的方法: "+method);
 }

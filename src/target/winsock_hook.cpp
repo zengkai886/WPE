@@ -21,6 +21,7 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -46,6 +47,15 @@ constexpr DWORD kMaximumWsaBufferCount = 65536;
 constexpr std::int64_t kFileTimeDateTimeTicks = 504911232000000000LL;
 SRWLOCK g_detour_entry_gate = SRWLOCK_INIT;
 thread_local bool g_replay_call = false;
+
+// Completion routines are invoked by Winsock after the detour admission gate
+// has already been left.  Keep a small process-local owner index so a
+// completion can still find its controller while StopHook is quiescing the
+// hooks.  The controller retains an in-flight lease for every entry and is
+// therefore not retired until the completion (or WSAGetOverlappedResult)
+// consumes it.
+std::mutex g_overlapped_owner_mutex;
+std::unordered_map<LPWSAOVERLAPPED, void*> g_overlapped_owners;
 
 std::int64_t DateTimeTicksNow() noexcept {
     FILETIME utc{};
@@ -377,6 +387,8 @@ struct WinsockHookController::Impl final {
                                         sockaddr*, LPINT, LPWSAOVERLAPPED,
                                         LPWSAOVERLAPPED_COMPLETION_ROUTINE);
     using WsaRecvExFn = int (WSAAPI*)(SOCKET, char*, int, int*);
+    using WsaGetOverlappedResultFn = BOOL (WSAAPI*)(SOCKET, LPWSAOVERLAPPED,
+                                                    LPDWORD, BOOL, LPDWORD);
     using GetNameFn = int (WSAAPI*)(SOCKET, sockaddr*, int*);
     using BindFn = int (WSAAPI*)(SOCKET, const sockaddr*, int);
     using ConnectFn = int (WSAAPI*)(SOCKET, const sockaddr*, int);
@@ -404,6 +416,23 @@ struct WinsockHookController::Impl final {
         TriggerNode* next{};
         explicit TriggerNode(FilterTrigger value) : trigger(std::move(value)) {}
     };
+    struct OverlappedOp {
+        SOCKET socket{};
+        std::uint8_t packet_type{};
+        bool receive{};
+        bool receive_from{};
+        std::vector<WSABUF> buffers;
+        LPDWORD bytes_output{};
+        sockaddr_storage address{};
+        int address_length{};
+        sockaddr* from{};
+        LPINT from_length{};
+        std::shared_ptr<const ByteBuffer> raw;
+        std::shared_ptr<const ByteBuffer> modified;
+        std::uint8_t filter_action{static_cast<std::uint8_t>(FilterAction::None)};
+        std::vector<PendingFilterLog> filter_logs;
+        LPWSAOVERLAPPED_COMPLETION_ROUTINE completion{};
+    };
     static constexpr std::size_t kMaximumTriggerCount = 8192;
     static constexpr std::size_t kMaximumTriggerBytes = 16U * 1024U * 1024U;
     std::atomic<TriggerNode*> trigger_head{};
@@ -414,6 +443,8 @@ struct WinsockHookController::Impl final {
     std::mutex trigger_wait_mutex;
     std::condition_variable trigger_changed;
     std::thread trigger_worker;
+    std::mutex overlapped_mutex;
+    std::unordered_map<LPWSAOVERLAPPED, std::shared_ptr<OverlappedOp>> pending_overlapped;
     FilterEngine filter_engine;
     HookManager manager;
     PacketRing ring;
@@ -552,6 +583,144 @@ struct WinsockHookController::Impl final {
         trigger_bytes.store(0, std::memory_order_release);
     }
 
+    bool RegisterOverlapped(LPWSAOVERLAPPED key,
+                            std::shared_ptr<OverlappedOp> operation) noexcept {
+        if (!key || !operation) return false;
+        try {
+            std::lock_guard lock(overlapped_mutex);
+            if (pending_overlapped.contains(key)) return false;
+            pending_overlapped.emplace(key, operation);
+            {
+                std::lock_guard global_lock(g_overlapped_owner_mutex);
+                g_overlapped_owners[key] = this;
+            }
+            in_flight.fetch_add(1, std::memory_order_acq_rel);
+            return true;
+        } catch (...) {
+            return false;
+        }
+    }
+
+    std::shared_ptr<OverlappedOp> TakeOverlapped(LPWSAOVERLAPPED key) noexcept {
+        if (!key) return {};
+        std::shared_ptr<OverlappedOp> result;
+        {
+            std::lock_guard lock(overlapped_mutex);
+            const auto it = pending_overlapped.find(key);
+            if (it == pending_overlapped.end()) return {};
+            result = std::move(it->second);
+            pending_overlapped.erase(it);
+        }
+        {
+            std::lock_guard global_lock(g_overlapped_owner_mutex);
+            const auto it = g_overlapped_owners.find(key);
+            if (it != g_overlapped_owners.end() && it->second == this)
+                g_overlapped_owners.erase(it);
+        }
+        return result;
+    }
+
+    void ReleaseOverlappedLease() noexcept {
+        if (in_flight.fetch_sub(1, std::memory_order_acq_rel) == 1)
+            in_flight_changed.notify_all();
+    }
+
+    void CompleteOverlapped(LPWSAOVERLAPPED key, DWORD error,
+                            DWORD transferred, DWORD flags_value,
+                            bool invoke_callback) noexcept {
+        auto operation = TakeOverlapped(key);
+        if (!operation) return;
+        DWORD returned = transferred;
+        try {
+            if (error == 0 && transferred != 0) {
+                if (operation->receive) {
+                    const auto raw = FlattenBuffers(operation->buffers.data(),
+                                                    static_cast<DWORD>(operation->buffers.size()),
+                                                    transferred);
+                    if (raw) {
+                        sockaddr* from = operation->receive_from ? operation->from : nullptr;
+                        int from_length = 0;
+                        if (operation->receive_from && operation->from_length)
+                            (void)TryReadInt(operation->from_length, from_length);
+                        auto filtered = ApplyFilter(
+                            Context(operation->socket, operation->packet_type,
+                                    from, from_length), *raw);
+                        const auto action = filtered.bytes.empty()
+                            ? FilterAction::None : filtered.action;
+                        if (action == FilterAction::Intercept) returned = 0;
+                        else if (!filtered.bytes.empty()) {
+                            returned = static_cast<DWORD>((std::min)(
+                                filtered.bytes.size(), static_cast<std::size_t>(transferred)));
+                            if (!CopyToBuffers(operation->buffers.data(),
+                                               static_cast<DWORD>(operation->buffers.size()),
+                                               std::span<const std::uint8_t>(filtered.bytes.data(), returned)))
+                                returned = transferred;
+                        }
+                        if (operation->bytes_output)
+                            (void)TryWriteDword(operation->bytes_output, returned);
+                        auto modified = filtered.bytes.empty()
+                            ? raw : std::shared_ptr<const ByteBuffer>(
+                                std::make_shared<ByteBuffer>(std::move(filtered.bytes)));
+                        Capture(operation->socket, operation->packet_type, raw,
+                                std::move(modified), static_cast<std::uint8_t>(action),
+                                static_cast<std::size_t>(returned), std::move(filtered.logs),
+                                from, from_length);
+                    }
+                } else {
+                    const auto logical = operation->modified
+                        ? (std::min)(operation->modified->size(), static_cast<std::size_t>(transferred))
+                        : static_cast<std::size_t>(transferred);
+                    const sockaddr* destination = nullptr;
+                    const int destination_length = operation->address_length;
+                    if (operation->packet_type == kWsaSendTo && destination_length > 0)
+                        destination = reinterpret_cast<const sockaddr*>(&operation->address);
+                    Capture(operation->socket, operation->packet_type,
+                            std::move(operation->raw), std::move(operation->modified),
+                            operation->filter_action, logical,
+                            std::move(operation->filter_logs), destination,
+                            destination_length);
+                }
+            }
+        } catch (...) {
+            // Completion handling is observational.  It must never turn a
+            // successful overlapped Winsock operation into a target failure.
+        }
+        ReleaseOverlappedLease();
+        if (invoke_callback && operation->completion) {
+            try { operation->completion(error, returned, key, flags_value); }
+            catch (...) {}
+        }
+    }
+
+    static VOID CALLBACK DetourOverlappedCompletion(DWORD error, DWORD transferred,
+                                                     LPWSAOVERLAPPED key,
+                                                     DWORD flags_value) noexcept {
+        Impl* owner = nullptr;
+        {
+            std::lock_guard lock(g_overlapped_owner_mutex);
+            const auto it = g_overlapped_owners.find(key);
+            if (it != g_overlapped_owners.end())
+                owner = static_cast<Impl*>(it->second);
+        }
+        if (owner) owner->CompleteOverlapped(key, error, transferred, flags_value, true);
+    }
+
+    BOOL OnWsaGetOverlappedResult(WsaGetOverlappedResultFn original, SOCKET socket,
+                                  LPWSAOVERLAPPED key, LPDWORD transferred,
+                                  BOOL wait, LPDWORD flags_value) noexcept {
+        const BOOL result = original(socket, key, transferred, wait, flags_value);
+        const int saved_error = WSAGetLastError();
+        if (key && (result || saved_error != WSA_IO_INCOMPLETE)) {
+            DWORD bytes = 0, completion_flags = 0;
+            if (transferred) (void)TryReadDword(transferred, bytes);
+            if (flags_value) (void)TryReadDword(flags_value, completion_flags);
+            CompleteOverlapped(key, result ? 0U : static_cast<DWORD>(saved_error),
+                               bytes, completion_flags, false);
+        }
+        WSASetLastError(saved_error);
+        return result;
+    }
+
     SendFn ws1_send{};
     SendToFn ws1_send_to{};
     RecvFn ws1_recv{};
@@ -565,6 +734,7 @@ struct WinsockHookController::Impl final {
     WsaRecvFn wsa_recv{};
     WsaRecvFromFn wsa_recv_from{};
     WsaRecvExFn wsa_recv_ex{};
+    WsaGetOverlappedResultFn wsa_get_overlapped_result{};
     GetNameFn get_sock_name{};
     GetNameFn get_peer_name{};
     BindFn hook_bind{};
@@ -1343,31 +1513,59 @@ struct WinsockHookController::Impl final {
         try {
             if (total_length) {
                 raw = FlattenBuffers(buffers, count, *total_length);
-                if (raw && !overlapped)
+                if (raw)
                     filtered = ApplyFilter(Context(socket, kWsaSend, nullptr, 0), *raw);
             }
         }
         catch (...) {}
         const auto action = filtered.bytes.empty() ? FilterAction::None : filtered.action;
+        std::shared_ptr<const ByteBuffer> modified;
+        if (!filtered.bytes.empty()) {
+            try { modified = std::make_shared<ByteBuffer>(std::move(filtered.bytes)); }
+            catch (...) { modified.reset(); }
+        }
+        bool registered = false;
+        if (overlapped && raw) {
+            auto operation = std::make_shared<OverlappedOp>();
+            operation->socket = socket;
+            operation->packet_type = kWsaSend;
+            operation->bytes_output = bytes_sent;
+            operation->raw = raw;
+            operation->modified = modified;
+            operation->filter_action = static_cast<std::uint8_t>(action);
+            operation->filter_logs = filtered.logs;
+            operation->completion = completion;
+            registered = RegisterOverlapped(overlapped, std::move(operation));
+        }
+        const auto completion_to_use = registered ? &Impl::DetourOverlappedCompletion : completion;
         int result = 0;
-        if (action == FilterAction::Intercept) {
+        if (action == FilterAction::Intercept && !overlapped) {
             const auto length = total_length.value_or(0);
             result = length <= (std::numeric_limits<DWORD>::max)() && bytes_sent &&
                      TryWriteDword(bytes_sent, static_cast<DWORD>(length)) ? 0 : SOCKET_ERROR;
-        } else if (!filtered.bytes.empty()) {
-            WSABUF outgoing{static_cast<ULONG>(filtered.bytes.size()),
-                            reinterpret_cast<char*>(filtered.bytes.data())};
-            result = original(socket, &outgoing, 1, bytes_sent, flags_value, overlapped, completion);
+        } else if (modified) {
+            WSABUF outgoing{static_cast<ULONG>(modified->size()),
+                            reinterpret_cast<char*>(const_cast<std::uint8_t*>(modified->data()))};
+            result = original(socket, &outgoing, 1, bytes_sent, flags_value, overlapped,
+                              completion_to_use);
         } else {
-            result = original(socket, buffers, count, bytes_sent, flags_value, overlapped, completion);
+            result = original(socket, buffers, count, bytes_sent, flags_value, overlapped,
+                              completion_to_use);
         }
         const int saved_error = WSAGetLastError();
+        if (registered && result == SOCKET_ERROR && saved_error != WSA_IO_PENDING) {
+            if (TakeOverlapped(overlapped)) ReleaseOverlappedLease();
+            registered = false;
+        }
+        if (registered) {
+            WSASetLastError(saved_error);
+            return result;
+        }
         DWORD captured_bytes = 0;
         const bool completed = result == 0 && bytes_sent &&
             TryReadDword(bytes_sent, captured_bytes) && captured_bytes > 0;
         if (completed || raw || !filtered.logs.empty()) {
-            auto modified = filtered.bytes.empty() ? raw :
-                std::shared_ptr<const ByteBuffer>(std::make_shared<ByteBuffer>(std::move(filtered.bytes)));
+            if (!modified) modified = raw;
             const auto filtered_length = completed
                 ? (modified ? modified->size() : total_length.value_or(captured_bytes)) : 0U;
             Capture(socket, kWsaSend, std::move(raw), std::move(modified),
@@ -1391,33 +1589,63 @@ struct WinsockHookController::Impl final {
         try {
             if (total_length) {
                 raw = FlattenBuffers(buffers, count, *total_length);
-                if (raw && !overlapped)
+                if (raw)
                     filtered = ApplyFilter(Context(socket, kWsaSendTo, to, to_length), *raw);
             }
         }
         catch (...) {}
         const auto action = filtered.bytes.empty() ? FilterAction::None : filtered.action;
+        std::shared_ptr<const ByteBuffer> modified;
+        if (!filtered.bytes.empty()) {
+            try { modified = std::make_shared<ByteBuffer>(std::move(filtered.bytes)); }
+            catch (...) { modified.reset(); }
+        }
+        bool registered = false;
+        if (overlapped && raw) {
+            auto operation = std::make_shared<OverlappedOp>();
+            operation->socket = socket;
+            operation->packet_type = kWsaSendTo;
+            operation->bytes_output = bytes_sent;
+            operation->raw = raw;
+            operation->modified = modified;
+            operation->filter_action = static_cast<std::uint8_t>(action);
+            operation->filter_logs = filtered.logs;
+            operation->completion = completion;
+            const auto length = std::min<std::size_t>(static_cast<std::size_t>(to_length),
+                                                       sizeof(operation->address));
+            if (to && length && TryCopyMemory(&operation->address, to, length))
+                operation->address_length = static_cast<int>(length);
+            registered = RegisterOverlapped(overlapped, std::move(operation));
+        }
+        const auto completion_to_use = registered ? &Impl::DetourOverlappedCompletion : completion;
         int result = 0;
-        if (action == FilterAction::Intercept) {
+        if (action == FilterAction::Intercept && !overlapped) {
             const auto length = total_length.value_or(0);
             result = length <= (std::numeric_limits<DWORD>::max)() && bytes_sent &&
                      TryWriteDword(bytes_sent, static_cast<DWORD>(length)) ? 0 : SOCKET_ERROR;
-        } else if (!filtered.bytes.empty()) {
-            WSABUF outgoing{static_cast<ULONG>(filtered.bytes.size()),
-                            reinterpret_cast<char*>(filtered.bytes.data())};
+        } else if (modified) {
+            WSABUF outgoing{static_cast<ULONG>(modified->size()),
+                            reinterpret_cast<char*>(const_cast<std::uint8_t*>(modified->data()))};
             result = original(socket, &outgoing, 1, bytes_sent, flags_value, to, to_length,
-                              overlapped, completion);
+                              overlapped, completion_to_use);
         } else {
             result = original(socket, buffers, count, bytes_sent, flags_value, to,
-                              to_length, overlapped, completion);
+                              to_length, overlapped, completion_to_use);
         }
         const int saved_error = WSAGetLastError();
+        if (registered && result == SOCKET_ERROR && saved_error != WSA_IO_PENDING) {
+            if (TakeOverlapped(overlapped)) ReleaseOverlappedLease();
+            registered = false;
+        }
+        if (registered) {
+            WSASetLastError(saved_error);
+            return result;
+        }
         DWORD captured_bytes = 0;
         const bool completed = result == 0 && bytes_sent &&
             TryReadDword(bytes_sent, captured_bytes) && captured_bytes > 0;
         if (completed || raw || !filtered.logs.empty()) {
-            auto modified = filtered.bytes.empty() ? raw :
-                std::shared_ptr<const ByteBuffer>(std::make_shared<ByteBuffer>(std::move(filtered.bytes)));
+            if (!modified) modified = raw;
             const auto filtered_length = completed
                 ? (modified ? modified->size() : total_length.value_or(captured_bytes)) : 0U;
             Capture(socket, kWsaSendTo, std::move(raw), std::move(modified),
@@ -1433,15 +1661,39 @@ struct WinsockHookController::Impl final {
     int OnWsaRecv(WsaRecvFn original, SOCKET socket, LPWSABUF buffers, DWORD count,
                   LPDWORD bytes_received, LPDWORD flags_value, LPWSAOVERLAPPED overlapped,
                   LPWSAOVERLAPPED_COMPLETION_ROUTINE completion) noexcept {
+        std::shared_ptr<OverlappedOp> operation;
+        bool registered = false;
+        if (overlapped && buffers && count != 0 && count <= kMaximumWsaBufferCount) {
+            try {
+                operation = std::make_shared<OverlappedOp>();
+                operation->socket = socket;
+                operation->packet_type = kWsaRecv;
+                operation->receive = true;
+                operation->bytes_output = bytes_received;
+                operation->completion = completion;
+                operation->buffers.resize(count);
+                for (DWORD i = 0; i < count; ++i)
+                    if (!TryReadWsaBuffer(buffers, i, operation->buffers[i])) { operation.reset(); break; }
+                if (operation) registered = RegisterOverlapped(overlapped, operation);
+            } catch (...) { operation.reset(); }
+        }
         const int result = original(socket, buffers, count, bytes_received, flags_value,
-                                    overlapped, completion);
+                                    overlapped, registered ? &Impl::DetourOverlappedCompletion : completion);
         const int saved_error = WSAGetLastError();
+        if (registered && result == SOCKET_ERROR && saved_error != WSA_IO_PENDING) {
+            if (TakeOverlapped(overlapped)) ReleaseOverlappedLease();
+            registered = false;
+        }
+        if (registered) {
+            WSASetLastError(saved_error);
+            return result;
+        }
         DWORD captured_bytes = 0;
         if (result == 0 && bytes_received && TryReadDword(bytes_received, captured_bytes) &&
             captured_bytes > 0) {
             try {
                 auto raw = FlattenBuffers(buffers, count, captured_bytes);
-                auto filtered = raw && !overlapped
+                auto filtered = raw
                     ? ApplyFilter(Context(socket, kWsaRecv, nullptr, 0), *raw)
                     : FilterResult{};
                 const auto action = filtered.bytes.empty() ? FilterAction::None : filtered.action;
@@ -1470,9 +1722,37 @@ struct WinsockHookController::Impl final {
                       LPDWORD bytes_received, LPDWORD flags_value, sockaddr* from,
                       LPINT from_length, LPWSAOVERLAPPED overlapped,
                       LPWSAOVERLAPPED_COMPLETION_ROUTINE completion) noexcept {
+        std::shared_ptr<OverlappedOp> operation;
+        bool registered = false;
+        if (overlapped && buffers && count != 0 && count <= kMaximumWsaBufferCount) {
+            try {
+                operation = std::make_shared<OverlappedOp>();
+                operation->socket = socket;
+                operation->packet_type = kWsaRecvFrom;
+                operation->receive = true;
+                operation->receive_from = true;
+                operation->bytes_output = bytes_received;
+                operation->from = from;
+                operation->from_length = from_length;
+                operation->completion = completion;
+                operation->buffers.resize(count);
+                for (DWORD i = 0; i < count; ++i)
+                    if (!TryReadWsaBuffer(buffers, i, operation->buffers[i])) { operation.reset(); break; }
+                if (operation) registered = RegisterOverlapped(overlapped, operation);
+            } catch (...) { operation.reset(); }
+        }
         const int result = original(socket, buffers, count, bytes_received, flags_value, from,
-                                    from_length, overlapped, completion);
+                                    from_length, overlapped,
+                                    registered ? &Impl::DetourOverlappedCompletion : completion);
         const int saved_error = WSAGetLastError();
+        if (registered && result == SOCKET_ERROR && saved_error != WSA_IO_PENDING) {
+            if (TakeOverlapped(overlapped)) ReleaseOverlappedLease();
+            registered = false;
+        }
+        if (registered) {
+            WSASetLastError(saved_error);
+            return result;
+        }
         DWORD captured_bytes = 0;
         if (result == 0 && bytes_received && TryReadDword(bytes_received, captured_bytes) &&
             captured_bytes > 0) {
@@ -1480,7 +1760,7 @@ struct WinsockHookController::Impl final {
                 int captured_from_length = 0;
                 if (from_length) (void)TryReadInt(from_length, captured_from_length);
                 auto raw = FlattenBuffers(buffers, count, captured_bytes);
-                auto filtered = raw && !overlapped
+                auto filtered = raw
                     ? ApplyFilter(Context(socket, kWsaRecvFrom, from, captured_from_length), *raw)
                     : FilterResult{};
                 const auto action = filtered.bytes.empty() ? FilterAction::None : filtered.action;
@@ -1675,6 +1955,16 @@ struct WinsockHookController::Impl final {
         auto* owner = call.owner;
         return owner && owner->wsa_recv_ex ? owner->OnWsaRecvEx(owner->wsa_recv_ex, s, b, n, f) : SOCKET_ERROR;
     }
+    static BOOL WSAAPI DetourWsaGetOverlappedResult(SOCKET s, LPWSAOVERLAPPED o,
+                                                     LPDWORD transferred, BOOL wait,
+                                                     LPDWORD flags) noexcept {
+        CallGuard call;
+        auto* owner = call.owner;
+        return owner && owner->wsa_get_overlapped_result
+            ? owner->OnWsaGetOverlappedResult(owner->wsa_get_overlapped_result,
+                                              s, o, transferred, wait, flags)
+            : FALSE;
+    }
 };
 
 std::atomic<WinsockHookController::Impl*> WinsockHookController::Impl::active{};
@@ -1768,8 +2058,22 @@ void WinsockHookController::StartHook() {
             if (impl_->flags[9]) impl_->Add("ws2_32.dll", "WSASendTo", reinterpret_cast<void*>(&Impl::DetourWsaSendTo), impl_->wsa_send_to);
             if (impl_->flags[10]) impl_->Add("ws2_32.dll", "WSARecv", reinterpret_cast<void*>(&Impl::DetourWsaRecv), impl_->wsa_recv);
             if (impl_->flags[11]) impl_->Add("ws2_32.dll", "WSARecvFrom", reinterpret_cast<void*>(&Impl::DetourWsaRecvFrom), impl_->wsa_recv_from);
+            // Event/IOCP-style callers observe completion through
+            // WSAGetOverlappedResult rather than a completion routine.  Hook
+            // the result hand-off only when one of the WSA* overlapped entry
+            // points is enabled; this keeps a plain synchronous send/recv
+            // profile free of an unrelated extra hook.
+            if (impl_->flags[8] || impl_->flags[9] || impl_->flags[10] || impl_->flags[11]) {
+                impl_->Add("ws2_32.dll", "WSAGetOverlappedResult",
+                           reinterpret_cast<void*>(&Impl::DetourWsaGetOverlappedResult),
+                           impl_->wsa_get_overlapped_result);
+            }
         }
-        if (impl_->support.msws && impl_->flags[10] && sizeof(void*) == 4)
+        // The documented WSARecvEx signature is pointer-size independent:
+        // int (SOCKET, char*, int, int*).  The old x86-only guard belonged to
+        // an earlier incorrectly declared detour and left x64 targets blind
+        // to this receive path.
+        if (impl_->support.msws && impl_->flags[10])
             impl_->Add("mswsock.dll", "WSARecvEx", reinterpret_cast<void*>(&Impl::DetourWsaRecvEx), impl_->wsa_recv_ex);
 
         impl_->capture_hook_count.store(impl_->targets.size(), std::memory_order_release);

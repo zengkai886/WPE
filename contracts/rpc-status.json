@@ -1,18 +1,18 @@
 {
-  "scope": "Registration inventory, not a functional-completion percentage. Partial and offline methods are explicitly distinguished. Robot runtime execution was explicitly removed from the requested delivery scope on 2026-09-18; robot data/editor compatibility remains.",
+  "scope": "Registration inventory with functional boundaries. Fourteen semantic backup groups are supported: SystemConfig, ProxyMode, ProxyAccountList, WhiteList, BlackList, InjectMode, AutoStores, ProxyMapping, WPCServer, WPCNotice and the four parent lists. Robot runtime execution remains explicitly excluded; exportCert and overlapped/IOCP completion remain separately tracked.",
   "originalRpcCount": 217,
-  "nativeDataRegistered": 130,
-  "nativeHostRegistered": 26,
-  "remainingUnregistered": 61,
+  "nativeDataRegistered": 147,
+  "nativeHostRegistered": 64,
+  "remainingUnregistered": 6,
   "originalSource": "WinsockPacketEditor/ShellForm.cs",
   "originalSourceSha256": "86d277408d233903ec82ffe8f06a2cd1995898617c477a1f181046ebe0f72f12",
   "methods": [
     {
       "method": "getPacketDetail",
       "originalLine": 1328,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主封包详情已接",
+      "note": "从当前注入封包缓存按 Id 返回原始/修改后字节及元数据。"
     },
     {
       "method": "getPrefs",
@@ -38,16 +38,16 @@
     {
       "method": "clearPackets",
       "originalLine": 1506,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主封包清理已接",
+      "note": "清理当前注入封包缓存并回传成功状态。"
     },
     {
       "method": "openExternal",
       "originalLine": 1549,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "setLanguage",
@@ -59,16 +59,16 @@
     {
       "method": "getFileAssoc",
       "originalLine": 1617,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "setFileAssoc",
       "originalLine": 1620,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "enterProxyMode",
@@ -101,9 +101,9 @@
     {
       "method": "pickTargetExe",
       "originalLine": 1739,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "injectAttach",
@@ -171,9 +171,9 @@
     {
       "method": "setListEnable",
       "originalLine": 1918,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "数据/运行入口已接通",
+      "note": "原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
     },
     {
       "method": "getCountryTable",
@@ -199,9 +199,9 @@
     {
       "method": "setSystemProxy",
       "originalLine": 2147,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "exportCert",
@@ -213,9 +213,9 @@
     {
       "method": "getListSetting",
       "originalLine": 2218,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "列表设置读写已接",
+      "note": "读取注入/代理列表列显示和自动清理设置。"
     },
     {
       "method": "saveListAutoClear",
@@ -227,9 +227,9 @@
     {
       "method": "saveListSetting",
       "originalLine": 2293,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "列表设置读写已接",
+      "note": "校验并持久化注入/代理列表列显示和自动清理设置。"
     },
     {
       "method": "getClientConnections",
@@ -759,37 +759,37 @@
     {
       "method": "textDuplicates",
       "originalLine": 3843,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "数据/运行入口已接通",
+      "note": "原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
     },
     {
       "method": "transcode",
       "originalLine": 3860,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "数据/运行入口已接通",
+      "note": "原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
     },
     {
       "method": "extractPick",
       "originalLine": 3868,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "extractBytes",
       "originalLine": 3872,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "数据/运行入口已接通",
+      "note": "原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
     },
     {
       "method": "saveExtraction",
       "originalLine": 3880,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "saveServer",
@@ -920,23 +920,23 @@
     {
       "method": "exportLogs",
       "originalLine": 4090,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "日志导出入口已接",
+      "note": "使用原生 CSV 对话框导出当前统计快照；系统/滤镜日志明细仍由页面实时 feed 保留。"
     },
     {
       "method": "getProcessSetting",
       "originalLine": 4102,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "数据/运行入口已接通",
+      "note": "原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
     },
     {
       "method": "getProcessRows",
       "originalLine": 4105,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "getProcessIcons",
@@ -948,37 +948,37 @@
     {
       "method": "addSelectProcessName",
       "originalLine": 4154,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "数据/运行入口已接通",
+      "note": "原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
     },
     {
       "method": "removeSelectProcessName",
       "originalLine": 4159,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "数据/运行入口已接通",
+      "note": "原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
     },
     {
       "method": "uninstallDriver",
       "originalLine": 4164,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "驱动边界已接",
+      "note": "当前构建没有加载驱动，返回明确不可卸载错误，不伪造卸载成功。"
     },
     {
       "method": "saveProcessSetting",
       "originalLine": 4167,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "数据/运行入口已接通",
+      "note": "原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
     },
     {
       "method": "testSocksProxy",
       "originalLine": 4190,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "数据/运行入口已接通",
+      "note": "原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
     },
     {
       "method": "getMapSetting",
@@ -1032,58 +1032,58 @@
     {
       "method": "pickLocalFile",
       "originalLine": 4272,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "getExtProxySetting",
       "originalLine": 4279,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "数据/运行入口已接通",
+      "note": "原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
     },
     {
       "method": "saveExtProxySetting",
       "originalLine": 4281,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "数据/运行入口已接通",
+      "note": "原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
     },
     {
       "method": "getHotkeySetting",
       "originalLine": 4296,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "数据/运行入口已接通",
+      "note": "原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
     },
     {
       "method": "registerHotkey",
       "originalLine": 4298,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "saveHotkeyType",
       "originalLine": 4305,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "数据/运行入口已接通",
+      "note": "原 Vue 调用已接入 DataService 配置/SQLite 或运行时控制，并在失败时返回明确错误。"
     },
     {
       "method": "exportBackup",
       "originalLine": 4318,
       "registered": true,
       "status": "文件接线已接（备份部分）",
-      "note": "原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、ProxyAccountList、WhiteList、BlackList、InjectMode、AutoStores 与四父列表共十一组，其余三组整次拒绝；参见配置加密接线进度。"
+      "note": "原 XML/原 AES 文件互通；备份支持十四组语义分组：SystemConfig、ProxyMode、ProxyAccountList、WhiteList、BlackList、InjectMode、AutoStores、ProxyMapping、WPCServer、WPCNotice 与四个父列表；非法分组整次拒绝。"
     },
     {
       "method": "importBackup",
       "originalLine": 4351,
       "registered": true,
       "status": "文件接线已接（备份部分）",
-      "note": "原 XML/原 AES 文件互通；备份支持 SystemConfig、ProxyMode、ProxyAccountList、WhiteList、BlackList、InjectMode、AutoStores 与四父列表共十一组，其余三组整次拒绝；参见配置加密接线进度。"
+      "note": "原 XML/原 AES 文件互通；备份支持十四组语义分组：SystemConfig、ProxyMode、ProxyAccountList、WhiteList、BlackList、InjectMode、AutoStores、ProxyMapping、WPCServer、WPCNotice 与四个父列表；非法分组整次拒绝。"
     },
     {
       "method": "getRemoteSetting",
@@ -1102,107 +1102,107 @@
     {
       "method": "copyProxyHex",
       "originalLine": 4407,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "代理工具入口已接（边界）",
+      "note": "当前 Host 只持有注入封包镜像；代理列表来源未接入时返回空文本。"
     },
     {
       "method": "addProxyToSend",
       "originalLine": 4412,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "运行时来源未纳入",
+      "note": "代理模式封包暂未保留到当前 Host 捕获镜像，调用返回明确错误，不伪造追加成功。"
     },
     {
       "method": "addProxyToWareHouse",
       "originalLine": 4418,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "运行时来源未纳入",
+      "note": "代理模式封包暂未保留到当前 Host 捕获镜像，调用返回明确错误，不伪造追加成功。"
     },
     {
       "method": "addProxyToFilter",
       "originalLine": 4424,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "运行时来源未纳入",
+      "note": "代理模式封包暂未保留到当前 Host 捕获镜像，调用返回明确错误，不伪造追加成功。"
     },
     {
       "method": "setSystemSocketByProxy",
       "originalLine": 4430,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "代理工具入口已接（边界）",
+      "note": "代理运行时尚未向 Host 暴露可选封包 Id，接口不会虚构 socket。"
     },
     {
       "method": "exportProxyExcel",
       "originalLine": 4437,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "代理导出入口已接（边界）",
+      "note": "使用原生 CSV 对话框；只有当前 Host 捕获镜像可导出，代理运行时列表为空时导出表头。"
     },
     {
       "method": "copyPacketHex",
       "originalLine": 4449,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "addPacketToSend",
       "originalLine": 4454,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "addPacketToWareHouse",
       "originalLine": 4460,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "addPacketToFilter",
       "originalLine": 4466,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "setSystemSocketByPacket",
       "originalLine": 4472,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "setSelectedPacket",
       "originalLine": 4489,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主封包选择已接",
+      "note": "记录兼容选择动作并返回成功。"
     },
     {
       "method": "exportPacketExcel",
       "originalLine": 4499,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "searchProxyList",
       "originalLine": 4519,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "代理搜索入口已接（边界）",
+      "note": "搜索复用当前 Host 捕获镜像，代理运行时行源尚未统一。"
     },
     {
       "method": "searchPacketList",
       "originalLine": 4533,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "openSendEdit",
@@ -1263,23 +1263,23 @@
     {
       "method": "startSendEdit",
       "originalLine": 4613,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "stopSendEdit",
       "originalLine": 4623,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "getSendEditProgress",
       "originalLine": 4630,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "addWareHouse",
@@ -1321,42 +1321,42 @@
       "originalLine": 4686,
       "registered": true,
       "status": "自动入库数据与文件已接",
-      "note": "AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。"
+      "note": "AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；滤镜命中后的 StoreAdded 已进入 DataWorker/SQLite 仓库链路。"
     },
     {
       "method": "setAutoStoresSwitch",
       "originalLine": 4698,
       "registered": true,
       "status": "自动入库数据与文件已接",
-      "note": "AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。"
+      "note": "AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；滤镜命中后的 StoreAdded 已进入 DataWorker/SQLite 仓库链路。"
     },
     {
       "method": "saveAutoStores",
       "originalLine": 4726,
       "registered": true,
       "status": "自动入库数据与文件已接",
-      "note": "AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。"
+      "note": "AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；滤镜命中后的 StoreAdded 已进入 DataWorker/SQLite 仓库链路。"
     },
     {
       "method": "setAutoStoresEnable",
       "originalLine": 4736,
       "registered": true,
       "status": "自动入库数据与文件已接",
-      "note": "AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。"
+      "note": "AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；滤镜命中后的 StoreAdded 已进入 DataWorker/SQLite 仓库链路。"
     },
     {
       "method": "deleteAutoStores",
       "originalLine": 4744,
       "registered": true,
       "status": "自动入库数据与文件已接",
-      "note": "AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。"
+      "note": "AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；滤镜命中后的 StoreAdded 已进入 DataWorker/SQLite 仓库链路。"
     },
     {
       "method": "autoStoresAction",
       "originalLine": 4751,
       "registered": true,
       "status": "自动入库数据与文件已接",
-      "note": "AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；真实封包匹配并自动入库仍待抓包执行链路接通。"
+      "note": "AutoStores 原表、运行期 AID、feed 12、原 Vue 增改删/启用/排序、运行期总开关、持久化容量、.pas 明文/AES 与备份分组已接；滤镜命中后的 StoreAdded 已进入 DataWorker/SQLite 仓库链路。"
     },
     {
       "method": "openWareHouseEdit",
@@ -1424,58 +1424,58 @@
     {
       "method": "packetEditToFilter",
       "originalLine": 4878,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "packetEditToSend",
       "originalLine": 4883,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "宿主运行入口已接通",
+      "note": "原 Vue 调用已注册到 Windows 宿主；文件、目标、运行时或导出操作返回真实成功/错误结果。"
     },
     {
       "method": "startPacketSend",
       "originalLine": 4891,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "单包发送运行入口已接（基础）",
+      "note": "通过 TargetLink SendPacket 解析目标成功位并回传进度；连续/次数使用基础循环，progression/interval 仍需专项。"
     },
     {
       "method": "stopPacketSend",
       "originalLine": 4907,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "单包发送停止入口已接",
+      "note": "停止 Host 侧发送状态并回传成功。"
     },
     {
       "method": "getPacketSendProgress",
       "originalLine": 4913,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "单包发送进度已接",
+      "note": "回传 Running/Index/Total/Success/Fail。"
     },
     {
       "method": "pickFolder",
       "originalLine": 4931,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "原生文件夹选择已接",
+      "note": "通过原生文件选择器异步授予文件夹路径。"
     },
     {
       "method": "probeDbPath",
       "originalLine": 4969,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "实例路径探测已接",
+      "note": "校验实例目录并返回数据库路径信息。"
     },
     {
       "method": "saveInstance",
       "originalLine": 5037,
-      "registered": false,
-      "status": "未接线",
-      "note": "没有原方法名处理器；调用返回尚未实现，不报告成功。"
+      "registered": true,
+      "status": "实例切换已接",
+      "note": "停止运行时切换数据实例并重建 DataWorker。"
     },
     {
       "method": "minimizeWindow",
