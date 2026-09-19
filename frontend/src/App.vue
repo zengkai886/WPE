@@ -245,8 +245,8 @@ watchEffect(() => {
     <div class="shell" :inert="modalOpen || anyModalOpen">
       <header class="titlebar" @mousedown="onTitlebarMouseDown">
         <div class="brand">
-          <!-- 与官网侧栏 logo 逐项对齐：文本 WPE x64、紧字距、x64 更小更细且灰（cyber.css 的 .sb-logo）-->
-          <span class="bname">WPE <small>x64</small></span>
+          <!-- Product branding is shared by the native shell and the Vue title bar. -->
+          <span class="bname">WPE-陈北玄</span>
           <span class="bver">V {{ version || '—' }}</span>
           <span v-if="isBeta" class="tag">Beta</span>
         </div>
@@ -343,7 +343,7 @@ watchEffect(() => {
 
       <footer class="statusbar">
         <div class="sb-left">
-          <a @click="open('https://www.wpe64.com')">© 2026 Winsock Packet Editor</a>
+          <a @click="open('https://www.wpe64.com')">© 2026 WPE-陈北玄</a>
           <!--
             官网的英文站与中文站是同名页分居 en/ 下，链接跟着语言走，
             否则英文界面点进去看到的是中文页。

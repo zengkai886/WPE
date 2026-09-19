@@ -1,7 +1,37 @@
 .build/
 build-native2/
+build-win32-p3/
+work/
+deliverables/*/source/
+deliverables/*/bin/runtime/
+deliverables/wpe64-*.exe
+deliverables/wpe64-*.dll
+deliverables/wwwroot/
+deliverables/*.zip
+deliverables/*.7z
+deliverables/*-direct.exe
+deliverables/wpe-launch.cmd
+deliverables/wpe64-*.exe
+deliverables/wpe64-*.dll
+deliverables/wwwroot/
+deliverables/*/*.zip
+$dest/
 evidence/manual-host/
 **/obj/
 **/bin/
 **/node_modules/
 *.user
+
+# Keep the compiled delivery payload while excluding the duplicated source
+# snapshot and machine-local WebView2 profile.
+!deliverables/
+!deliverables/*/
+!deliverables/*/bin/
+!deliverables/*/bin/**
+!deliverables/*.exe
+!deliverables/*/README-delivery.txt
+deliverables/*/bin/runtime/
+deliverables/*-direct.exe
+deliverables/wpe64-*.exe
+deliverables/wpe64-*.dll
+deliverables/wwwroot/

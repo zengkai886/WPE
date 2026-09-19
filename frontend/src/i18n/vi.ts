@@ -148,7 +148,7 @@ export const vi: Record<Key, string> = {
   'set.app.assocDone': 'Đã liên kết biểu tượng tệp',
   'set.app.assocCleared': 'Đã gỡ liên kết; sẽ không tự liên kết lại khi khởi động',
   'set.system': 'Cài đặt hệ thống',
-  'set.lockedHint': 'Proxy đang chạy —— các cài đặt lắng nghe chỉ được đọc một lần khi khởi động dịch vụ nên thay đổi bây giờ sẽ không có hiệu lực. Hãy dừng dịch vụ trước.',
+  'set.lockedHint': 'Proxy đang chạy —— các thay đổi về lắng nghe, tài khoản và ánh xạ sẽ được áp dụng ngay khi lưu; các phiên hiện tại sẽ kết thúc khi đổi cấu hình.',
   'fw.grp.main': 'Tường lửa',
   'fw.enable': 'Bật tường lửa',
   'fw.mode': 'Chế độ',

@@ -206,8 +206,8 @@ export const DICT = {
   'set.app.assocCleared': { zh: '已清除文件关联，启动时不会再自动关联', en: 'File association removed; it will not be restored at startup' },
   'set.system': { zh: '系统设置', en: 'System Settings' },
   'set.lockedHint': {
-    zh: '代理服务正在运行 —— 监听相关的设置只在服务启动时读取一次，现在改了不会生效。要修改请先停止服务。',
-    en: 'The proxy is running — listener settings are read once at startup, so changes will not take effect. Stop the service first.',
+    zh: '代理服务正在运行 —— 保存后会实时同步监听、账号和映射设置；当前连接会在配置切换时结束。',
+    en: 'The proxy is running — saved listener, account, and mapping changes are applied immediately; existing sessions end when the configuration is switched.',
   },
 
   // 列表设置

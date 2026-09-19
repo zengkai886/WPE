@@ -83,6 +83,15 @@ DataService::DataService(const std::filesystem::path& path,Emit emit):db_(path),
         };
         for(const auto& field:std::array<std::pair<const char*,const char*>,8>{{{"ThemeFollowSystem","BOOLEAN DEFAULT 0"},{"ScanLine","BOOLEAN DEFAULT 1"},{"StoresLimit","BOOLEAN DEFAULT 1"},{"StoresLimit_Value","INTEGER DEFAULT 5000"},{"LastInjectMethod","INTEGER DEFAULT 0"},{"LastInjectPath","TEXT"},{"LastInjectArgs","TEXT"},{"LastInjectTime","TEXT"}}})ensure("SystemConfig",field.first,field.second);
         ensure("ProxyMode","DriverType","INTEGER DEFAULT 1");ensure("ProxyMode","SelectProcessNames","TEXT");ensure("ProxyMode","Only_WPC_Client","BOOLEAN DEFAULT 0");
+        // Column visibility is kept separately for proxy and inject mode, as
+        // in the original client.  Older databases do not have these columns
+        // yet, so add them idempotently before loading either config mirror.
+        for(const auto suffix:{"ShowSocket","ShowType","ShowClientAddr","ShowClientLoc","ShowServerAddr","ShowServerLoc","ShowLen"}){
+            const auto inject_name="PacketList_"+std::string(suffix);
+            const auto proxy_name="ProxyList_"+std::string(suffix);
+            ensure("InjectMode",inject_name.c_str(),"BOOLEAN DEFAULT 1");
+            ensure("ProxyMode",proxy_name.c_str(),"BOOLEAN DEFAULT 1");
+        }
     });
     auto settings=db_.Query("SELECT * FROM SystemConfig ORDER BY rowid LIMIT 1");
     if(settings.empty()){
@@ -182,7 +191,7 @@ std::vector<std::string> DataService::Methods(){return {
     "getProxySetting","saveProxySetting","getRemoteSetting","saveRemoteSetting","getHookSetting","saveHookSetting","getLeachSetting","saveLeachSetting","getFireWall","saveFireWall","saveListAutoClear",
     "addIpRule","saveIPRule","deleteIPRule","ipRuleAction",
     "getAccountPassword","getAccountLogins","saveAccount","deleteAccount","clearAllAccounts","setAccountEnable","importAccounts","exportAccounts","previewBatchAccounts","saveBatchAccounts","exportBatchAccounts","adjustAccountExpiry","adjustAccountLimit","exportSelectedAccounts","deleteSelectedAccounts",
-    "enterProxyMode","enterInjectMode","getStats","getClientConnections","clearLogs","getCountryTable",
+    "enterProxyMode","enterInjectMode","getStats","getClientConnections","getListSetting","saveListSetting","clearLogs","getCountryTable",
     "getFilterExecute","getFilterEdit","saveFilterEdit","getExecuteTargets","addFilter","setFilterEnable","setAllFilterEnable","resetFilterCount","filterListAction","clearFilters",
     "getSendMeta","addSend","setSendEnable","setAllSendEnable","resetSendCount","sendListAction","clearSends","openSendEdit","closeSendEdit","getSendCollection","saveSendEdit","exportSendCollection",
     "getRobotMeta","addRobot","setRobotEnable","setAllRobotEnable","resetRobotCount","robotListAction","clearRobots",
@@ -463,6 +472,40 @@ Json DataService::Call(const std::string& method,const Json& args){
     if(method=="getSystemSetting")return {{"speedMode",B(config_,"SpeedMode")},{"listExecute",N(config_,"ListExecute",1)},{"filterExecute",N(config_,"FilterExecute",1)}};
     if(method=="saveSystemSetting"){
         SaveConfig({{"SpeedMode",B(args,"speedMode")},{"ListExecute",N(args,"listExecute")==1?1:0},{"FilterExecute",N(args,"filterExecute")==1?1:0}});return Good();
+    }
+    if(method=="getListSetting"){
+        const bool inject=Upper(S(args,"mode"))=="INJECT";
+        const auto& source=inject?inject_config_:proxy_config_;
+        const std::string prefix=inject?"PacketList_":"ProxyList_";
+        auto value=[&](const char* suffix){return B(source,(prefix+suffix).c_str(),true);};
+        return {{"showSocket",value("ShowSocket")},{"showType",value("ShowType")},
+            {"showClientAddr",value("ShowClientAddr")},{"showClientLoc",value("ShowClientLoc")},
+            {"showServerAddr",value("ShowServerAddr")},{"showServerLoc",value("ShowServerLoc")},
+            {"showLen",value("ShowLen")},
+            // Auto-clear is one shared inject-list setting in the original
+            // configuration, even though the column switches are per mode.
+            {"autoClear",B(inject_config_,"PacketList_AutoClear",true)},
+            {"autoClearValue",N(inject_config_,"PacketList_AutoClear_Value",5000)}};
+    }
+    if(method=="saveListSetting"){
+        const bool inject=Upper(S(args,"mode"))=="INJECT";
+        const std::string prefix=inject?"PacketList_":"ProxyList_";
+        Json changes=Json::object();
+        for(const auto suffix:{"ShowSocket","ShowType","ShowClientAddr","ShowClientLoc","ShowServerAddr","ShowServerLoc","ShowLen"}){
+            const auto key=prefix+std::string(suffix);
+            const auto arg=std::string("show")+std::string(suffix).substr(4); // ShowSocket -> showSocket
+            if(args.contains(arg))changes[key]=B(args,arg.c_str());
+        }
+        if(inject){
+            if(args.contains("autoClear"))changes["PacketList_AutoClear"]=B(args,"autoClear");
+            if(args.contains("autoClearValue")){
+                const int keep=N(args,"autoClearValue");
+                if(keep<100||keep>500000)return Bad(Text("ListSettingsForm.Range","保留条数需在 100 ~ 500000 之间"));
+                changes["PacketList_AutoClear_Value"]=keep;
+            }
+            SaveInjectConfig(changes);
+        }else SaveProxyConfig(changes);
+        return Good();
     }
     if(method=="getLeachSetting"){
         // Capture filtering is stored in SystemConfig using the same names as

@@ -16,16 +16,20 @@
 #include "socks5_runtime.h"
 #include "http_proxy_runtime.h"
 #include "wpc_runtime.h"
+#include "resource.h"
 #include "common/ipc_codec.h"
 #include "common/packet_frame.h"
 #include <TlHelp32.h>
 #include <filesystem>
 #include <fstream>
 #include <algorithm>
+#include <iomanip>
 #include <memory>
 #include <sstream>
 #include <deque>
 #include <mutex>
+#include <optional>
+#include <unordered_set>
 
 using Microsoft::WRL::Callback;
 using Microsoft::WRL::ComPtr;
@@ -54,6 +58,67 @@ std::string Utf8(std::wstring_view text){
 }
 std::u16string U16(std::string_view text){
     const auto wide=Wide(text);return std::u16string(wide.begin(),wide.end());
+}
+std::string PacketTime(std::int64_t ticks){
+    // The target sends .NET DateTime ticks in local time.  Convert the value
+    // back to a fixed-width string matching the original PacketRow format:
+    // HH:mm:ss:fffffff.  Invalid/zero timestamps are deliberately rendered
+    // as an empty value instead of making one malformed packet break the feed.
+    constexpr std::int64_t kFileTimeDateTimeTicks=504911232000000000LL;
+    if(ticks<kFileTimeDateTimeTicks)return {};
+    const auto file_ticks=static_cast<std::uint64_t>(ticks-kFileTimeDateTimeTicks);
+    FILETIME local{};ULARGE_INTEGER value{};value.QuadPart=file_ticks;
+    local.dwLowDateTime=value.LowPart;local.dwHighDateTime=value.HighPart;
+    SYSTEMTIME time{};if(!FileTimeToSystemTime(&local,&time))return {};
+    std::ostringstream out;out<<std::setfill('0')<<std::setw(2)<<time.wHour<<':'
+        <<std::setw(2)<<time.wMinute<<':'<<std::setw(2)<<time.wSecond<<':'
+        <<std::setw(7)<<(file_ticks%10000000ULL);return out.str();
+}
+std::string PacketHex(const wpe::Bytes& bytes,std::size_t limit=60){
+    if(!bytes)return {};
+    const char digits[]="0123456789ABCDEF";std::string out;
+    for(std::size_t i=0;i<std::min(bytes->size(),limit);++i){
+        if(i)out+=' ';out+=digits[(*bytes)[i]>>4];out+=digits[(*bytes)[i]&15];
+    }
+    if(bytes->size()>limit)out+=" ...";return out;
+}
+std::string Base64(std::span<const std::uint8_t> bytes){
+    static constexpr char alphabet[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    std::string out;out.reserve((bytes.size()+2)/3*4);
+    for(std::size_t i=0;i<bytes.size();i+=3){
+        const auto a=bytes[i];const auto b=i+1<bytes.size()?bytes[i+1]:0;const auto c=i+2<bytes.size()?bytes[i+2]:0;
+        out+=alphabet[a>>2];out+=alphabet[((a&3)<<4)|(b>>4)];
+        out+=i+1<bytes.size()?alphabet[((b&15)<<2)|(c>>6)]:'=';
+        out+=i+2<bytes.size()?alphabet[c&63]:'=';
+    }
+    return out;
+}
+std::string PacketText(const wpe::Text& text){
+    return text?Utf8(std::wstring(text->begin(),text->end())):std::string{};
+}
+bool ValidInstancePath(const fs::path& path){
+    if(path.empty()||!path.is_absolute())return false;
+    const auto text=path.wstring();
+    for(std::size_t i=0;i<text.size();++i){
+        const auto c=text[i];
+        if(c==L'<'||c==L'>'||c==L'"'||c==L'|'||c==L'?'||c==L'*')return false;
+        if(c==L':'&&!(i==1&&((text[0]>=L'A'&&text[0]<=L'Z')||(text[0]>=L'a'&&text[0]<=L'z'))))return false;
+    }
+    return true;
+}
+Json ProbeInstancePath(const fs::path& root,const fs::path& current){
+    std::error_code ec;const auto normalized=root.lexically_normal();
+    const auto version=normalized/L"2.3.0";const auto db=version/L"WPE.db";
+    const bool valid=ValidInstancePath(normalized);
+    const bool dir_exists=valid&&fs::is_directory(normalized,ec);ec.clear();
+    const bool file_exists=valid&&fs::is_regular_file(db,ec);ec.clear();
+    std::int64_t size=0,current_size=0;
+    if(file_exists){const auto bytes=fs::file_size(db,ec);if(!ec)size=static_cast<std::int64_t>(bytes);ec.clear();}
+    const auto current_db=current/L"2.3.0"/L"WPE.db";
+    if(fs::is_regular_file(current_db,ec)){const auto bytes=fs::file_size(current_db,ec);if(!ec)current_size=static_cast<std::int64_t>(bytes);}
+    return {{"valid",valid},{"full",Utf8(normalized.wstring())},{"dirExists",dir_exists},
+            {"fileExists",file_exists},{"size",size},{"modified",file_exists?"已存在":""},
+            {"current",Utf8(current.lexically_normal().wstring())},{"currentSize",current_size}};
 }
 struct CoString {LPWSTR value{};~CoString(){CoTaskMemFree(value);} };
 bool IsAdmin(){
@@ -138,7 +203,12 @@ private:
     void QueueTargetResult(WebBridge::Completion done,Json value,std::string error);
     void AbortTargetInjection(WebBridge::Completion done,std::string error);
     void HandleTargetFrame(wpe::ByteBuffer frame,bool packet_channel);
+    Json PacketRow(const wpe::Packet& packet) const;
+    Json PacketDetail(const wpe::Packet& packet) const;
+    const wpe::Packet* FindPacket(std::int64_t id) const;
+    void ClearCapturedPackets();
     void SyncTargetConfiguration(WebBridge::Completion done);
+    bool ApplyProxyRuntimeConfiguration(const Json& config, bool allow_start, Json& result, std::string& error);
     bool StartWpc(const Json& setting,const Json& snapshot,std::string& error);
     std::filesystem::path HookDll() const;
     std::filesystem::path X86HookDll() const;
@@ -174,9 +244,19 @@ private:
     std::mutex target_mutex_;
     std::deque<std::pair<wpe::ByteBuffer,bool>> target_frames_;
     std::deque<TargetResult> target_results_;
+    // Injected packets are runtime data, not database rows.  Keep the same
+    // bounded mirror the UI list consumes so selecting a row can fetch its
+    // before/after bytes without crossing the IPC channel a second time.
+    std::deque<wpe::Packet> packet_capture_;
     Json target_stats_=Json::object();
     Json last_inject_=nullptr;
     bool send_running_{},hook_running_{};
+    // Borderless windows do not get DefWindowProc's WS_THICKFRAME resize
+    // loop.  Keep a small native resize session so removing that style does
+    // not remove the user's edge/corner resize gestures.
+    WPARAM resize_hit_{};
+    POINT resize_origin_{};
+    RECT resize_window_{};
     bool native_drag_{},ready_{},revealed_{},closing_{},done_{},failure_posted_{};
     int exit_code_;
     std::uint64_t messages_{};
@@ -194,7 +274,14 @@ LRESULT CALLBACK Host::WindowProc(HWND window,UINT message,WPARAM wparam,LPARAM 
 }
 LRESULT Host::Message(UINT message,WPARAM wparam,LPARAM lparam){
     switch(message){
-    case WM_NCCALCSIZE:if(wparam)return 0;break;
+    // There is no native non-client area: returning zero for both forms of
+    // WM_NCCALCSIZE prevents DefWindowProc from restoring a one-pixel frame
+    // during an activation or DPI transition.
+    case WM_NCCALCSIZE:return 0;
+    // The client surface is the complete window; suppress the default
+    // non-client repaint so the native resize frame cannot reintroduce a
+    // white outline around the custom shell.
+    case WM_NCPAINT:return 0;
     case WM_ERASEBKGND:return 1;
     case WM_GETMINMAXINFO:{auto info=reinterpret_cast<MINMAXINFO*>(lparam);info->ptMinTrackSize={900,600};
         MONITORINFO monitor{sizeof(MONITORINFO)};if(GetMonitorInfoW(MonitorFromWindow(window_,MONITOR_DEFAULTTONEAREST),&monitor)){
@@ -207,6 +294,44 @@ LRESULT Host::Message(UINT message,WPARAM wparam,LPARAM lparam){
         if(bottom)return left?HTBOTTOMLEFT:right?HTBOTTOMRIGHT:HTBOTTOM;
         if(left)return HTLEFT;if(right)return HTRIGHT;
     }break;
+    case WM_NCLBUTTONDOWN:
+        if(!IsZoomed(window_)&&(wparam==HTLEFT||wparam==HTRIGHT||wparam==HTTOP||wparam==HTBOTTOM||
+            wparam==HTTOPLEFT||wparam==HTTOPRIGHT||wparam==HTBOTTOMLEFT||wparam==HTBOTTOMRIGHT)){
+            resize_hit_=wparam;GetCursorPos(&resize_origin_);GetWindowRect(window_,&resize_window_);SetCapture(window_);return 0;
+        }
+        break;
+    case WM_MOUSEMOVE:
+        if(resize_hit_){
+            POINT cursor{};GetCursorPos(&cursor);RECT next=resize_window_;
+            constexpr LONG min_width=900,min_height=600;
+            const bool left=resize_hit_==HTLEFT||resize_hit_==HTTOPLEFT||resize_hit_==HTBOTTOMLEFT;
+            const bool right=resize_hit_==HTRIGHT||resize_hit_==HTTOPRIGHT||resize_hit_==HTBOTTOMRIGHT;
+            const bool top=resize_hit_==HTTOP||resize_hit_==HTTOPLEFT||resize_hit_==HTTOPRIGHT;
+            const bool bottom=resize_hit_==HTBOTTOM||resize_hit_==HTBOTTOMLEFT||resize_hit_==HTBOTTOMRIGHT;
+            if(left)next.left=std::min(cursor.x,resize_window_.right-min_width);
+            if(right)next.right=std::max(cursor.x,resize_window_.left+min_width);
+            if(top)next.top=std::min(cursor.y,resize_window_.bottom-min_height);
+            if(bottom)next.bottom=std::max(cursor.y,resize_window_.top+min_height);
+            SetWindowPos(window_,nullptr,next.left,next.top,next.right-next.left,next.bottom-next.top,SWP_NOZORDER|SWP_NOACTIVATE);
+            return 0;
+        }
+        break;
+    case WM_LBUTTONUP:
+    case WM_NCLBUTTONUP:
+        if(resize_hit_){resize_hit_=0;ReleaseCapture();return 0;}
+        break;
+    case WM_CAPTURECHANGED:resize_hit_=0;break;
+    case WM_SETCURSOR:
+        if(!IsZoomed(window_)){
+            switch(LOWORD(lparam)){
+            case HTTOPLEFT:case HTBOTTOMRIGHT:SetCursor(LoadCursorW(nullptr,IDC_SIZENWSE));return TRUE;
+            case HTTOPRIGHT:case HTBOTTOMLEFT:SetCursor(LoadCursorW(nullptr,IDC_SIZENESW));return TRUE;
+            case HTTOP:case HTBOTTOM:SetCursor(LoadCursorW(nullptr,IDC_SIZENS));return TRUE;
+            case HTLEFT:case HTRIGHT:SetCursor(LoadCursorW(nullptr,IDC_SIZEWE));return TRUE;
+            default:break;
+            }
+        }
+        break;
     case WM_DPICHANGED:{auto r=reinterpret_cast<RECT*>(lparam);SetWindowPos(window_,nullptr,r->left,r->top,r->right-r->left,r->bottom-r->top,SWP_NOZORDER|SWP_NOACTIVATE);return 0;}
     case WM_SIZE:Resize();State();return 0;
     case WM_TIMER:
@@ -254,11 +379,35 @@ LRESULT Host::Message(UINT message,WPARAM wparam,LPARAM lparam){
 }
 int Host::Run(){
     const auto instance=GetModuleHandleW(nullptr);
-    WNDCLASSEXW type{sizeof(WNDCLASSEXW)};type.lpfnWndProc=WindowProc;type.hInstance=instance;type.hCursor=LoadCursorW(nullptr,IDC_ARROW);type.lpszClassName=L"Wpe64NativeHost";
+    WNDCLASSEXW type{sizeof(WNDCLASSEXW)};type.lpfnWndProc=WindowProc;type.hInstance=instance;type.hIcon=LoadIconW(instance,MAKEINTRESOURCEW(IDI_APP_ICON));type.hIconSm=LoadIconW(instance,MAKEINTRESOURCEW(IDI_APP_ICON));type.hCursor=LoadCursorW(nullptr,IDC_ARROW);type.lpszClassName=L"Wpe64NativeHost";
     if(!RegisterClassExW(&type))throw std::runtime_error("Window class registration failed");
-    window_=CreateWindowExW(0,type.lpszClassName,L"WPE x64 C++ development host",WS_OVERLAPPEDWINDOW,100,100,1200,820,nullptr,nullptr,instance,this);
+    // The Vue shell already owns the title bar and window buttons.  Remove
+    // both caption and thick-frame styles: the latter is the Windows/DWM
+    // source of the bright one-pixel outline.  Resize gestures are handled
+    // by the small borderless loop in Message() instead.
+    constexpr DWORD style=WS_OVERLAPPEDWINDOW & ~(WS_CAPTION|WS_THICKFRAME);
+    window_=CreateWindowExW(0,type.lpszClassName,L"WPE-陈北玄 v2.3.0",style,100,100,1200,820,nullptr,nullptr,instance,this);
     if(!window_)throw std::runtime_error("Window creation failed");
-    const MARGINS margins{1,1,1,1};DwmExtendFrameIntoClientArea(window_,&margins);
+    // Some Windows themes/WebView2 versions reintroduce the caption while
+    // attaching the controller.  Apply the non-client style explicitly and
+    // ask DWM to recalculate the frame so the invariant is observable at
+    // runtime, not just in the CreateWindowEx argument.
+    auto frame_style=GetWindowLongPtrW(window_,GWL_STYLE);
+    frame_style&=~static_cast<LONG_PTR>(WS_CAPTION|WS_THICKFRAME);
+    SetWindowLongPtrW(window_,GWL_STYLE,frame_style);
+    SetWindowPos(window_,nullptr,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE|SWP_FRAMECHANGED);
+    // Extend the DWM surface across the complete client rectangle.  A zero
+    // margin still leaves a one-pixel active-window outline on some Windows
+    // builds; the documented -1 sentinel makes the non-client surface fully
+    // transparent while WebView2 paints the entire visible window.
+    const MARGINS margins{-1,-1,-1,-1};DwmExtendFrameIntoClientArea(window_,&margins);
+    // DWMWA_BORDER_COLOR is only available on newer DWM versions.  Use the
+    // numeric value so older SDK headers still build, and ignore E_INVALIDARG
+    // on older Windows where the attribute does not exist.  COLOR_NONE makes
+    // the resize frame transparent; the custom Vue shell remains visible.
+    constexpr DWORD kDwmBorderColor=34;
+    constexpr COLORREF kDwmColorNone=0xFFFFFFFEu;
+    DwmSetWindowAttribute(window_,kDwmBorderColor,&kDwmColorNone,sizeof(kDwmColorNone));
     SetTimer(window_,1,100,nullptr);
     Initialize();
     MSG message{};BOOL status;
@@ -319,7 +468,14 @@ void Host::Configure(){
     Check(controller_->put_IsVisible(TRUE),"Show WebView2 controller");
     Check(view_->Navigate(origin),"Navigate original frontend");
 }
-void Host::Resize(){if(controller_){RECT bounds{};GetClientRect(window_,&bounds);if(!IsZoomed(window_)){InflateRect(&bounds,-3,-3);}controller_->put_Bounds(bounds);}}
+void Host::Resize(){
+    if(!controller_)return;
+    // The native host is borderless: the WebView must occupy the entire
+    // client rectangle.  The old three-pixel inset was only compensating for
+    // the removed native frame and left the host's default (white) background
+    // visible as a bright outline on all four sides.
+    RECT bounds{};GetClientRect(window_,&bounds);controller_->put_Bounds(bounds);
+}
 void Host::State(){if(bridge_&&!closing_)bridge_->PushEvent("window:state",{{"maximized",IsZoomed(window_)!=FALSE}});}
 bool Host::StartWpc(const Json& setting,const Json& snapshot,std::string& error){
     wpe::shell::WpcConfig config;
@@ -335,6 +491,85 @@ bool Host::StartWpc(const Json& setting,const Json& snapshot,std::string& error)
     if(!wpc_||!wpc_->Start(std::move(config),error))return false;
     const auto stats=wpc_->Stats();
     if(bridge_)bridge_->PushEvent("wpc:state",{{"running",true},{"port",stats.port}});
+    return true;
+}
+bool Host::ApplyProxyRuntimeConfiguration(const Json& config, bool allow_start, Json& result, std::string& error){
+    if(!proxy_||!http_proxy_){error="代理运行时未初始化";return false;}
+    const bool want_socks=config.value("enableSocks5",false),want_http=config.value("enableHttp",false);
+    const bool running_socks=proxy_->Stats().running,running_http=http_proxy_->Stats().running;
+    const bool running_any=running_socks||running_http;
+    if(!want_socks&&!want_http){
+        if(!allow_start&&!running_any){result={{"ok",true},{"running",false},{"socks5Addr",""},{"httpAddr",""}};return true;}
+        error="请至少启用一种代理类型";return false;
+    }
+    const bool automatic=config.value("proxyIpAuto",true);
+    const auto bind_address=automatic?std::string("0.0.0.0"):config.value("proxyIp",std::string{});
+    if(bind_address.empty()){error="监听地址不能为空";return false;}
+    const auto max_connections=static_cast<std::size_t>(std::max(1,config.value("maxConnection",5000)));
+    const bool require_auth=config.value("enableAuth",true);
+    std::vector<wpe::shell::Socks5Credential> credentials,wpc_accounts;
+    for(const auto& account:config.value("accounts",Json::array()))if(account.is_object()){
+        wpe::shell::Socks5Credential value;value.user=account.value("user",std::string{});value.password=account.value("password",std::string{});
+        credentials.push_back(std::move(value));
+    }
+    for(const auto& account:config.value("wpcAccounts",Json::array()))if(account.is_object()){
+        wpe::shell::Socks5Credential value;value.account_id=account.value("accountId",std::string{});value.user=account.value("user",std::string{});
+        value.password=account.value("password",std::string{});value.enabled=account.value("enabled",false);value.limit_devices=account.value("limitDevices",false);
+        value.max_devices=static_cast<std::size_t>(std::max(1,account.value("maxDevices",1)));value.expiry=account.value("expiry",false);value.expiry_time=account.value("expiryTime",std::string{});
+        wpc_accounts.push_back(std::move(value));
+    }
+    const auto read_port=[&](const char* key,std::uint16_t fallback,const char* label,std::uint16_t& output){
+        const auto value=config.value(key,static_cast<int>(fallback));
+        if(value<1||value>65535){error=std::string(label)+" 端口必须在 1 ~ 65535 之间";return false;}
+        output=static_cast<std::uint16_t>(value);return true;
+    };
+    std::uint16_t socks_port=0,http_port=0;
+    if(want_socks&&!read_port("socks5Port",1080,"SOCKS5",socks_port))return false;
+    if(want_http&&!read_port("httpPort",1081,"HTTP",http_port))return false;
+    if(want_socks&&want_http&&socks_port==http_port){error="SOCKS5 和 HTTP 端口不能相同";return false;}
+    std::optional<wpe::shell::Socks5Config> socks_config;
+    std::optional<wpe::shell::HttpProxyConfig> http_config;
+    if(want_socks){
+        wpe::shell::Socks5Config runtime;runtime.bind_address=bind_address;runtime.port=socks_port;runtime.max_connections=max_connections;
+        runtime.require_auth=require_auth;runtime.only_wpc=config.value("onlyWpc",false);runtime.credentials=credentials;runtime.wpc_accounts=wpc_accounts;socks_config=std::move(runtime);
+    }
+    if(want_http){
+        wpe::shell::HttpProxyConfig runtime;runtime.bind_address=bind_address;runtime.port=http_port;runtime.max_connections=max_connections;runtime.require_auth=require_auth;runtime.credentials=credentials;
+        runtime.enable_local_map=config.value("enableLocalMap",false);runtime.enable_remote_map=config.value("enableRemoteMap",false);
+        const auto read_map_port=[&](const Json& row,const char* key,const char* label,std::uint16_t& output){
+            const auto value=row.value(key,80);if(value<1||value>65535){error=std::string(label)+" 映射端口必须在 1 ~ 65535 之间";return false;}output=static_cast<std::uint16_t>(value);return true;
+        };
+        for(const auto& item:config.value("localMaps",Json::array()))if(item.is_object()){
+            wpe::shell::HttpProxyConfig::LocalMapRule rule;rule.enabled=item.value("enabled",true);rule.protocol=item.value("protocol",std::string("Http"));
+            rule.host=item.value("host",std::string{});rule.remote_path=item.value("remotePath",std::string{});rule.local_path=item.value("localPath",std::string{});
+            if(rule.host.empty()||rule.local_path.empty()){error="本地映射缺少源地址或本地文件";return false;}if(!read_map_port(item,"port","本地",rule.port))return false;runtime.local_maps.push_back(std::move(rule));
+        }
+        for(const auto& item:config.value("remoteMaps",Json::array()))if(item.is_object()){
+            wpe::shell::HttpProxyConfig::RemoteMapRule rule;rule.enabled=item.value("enabled",true);rule.protocol_from=item.value("protocolFrom",std::string("Http"));
+            rule.host_from=item.value("hostFrom",std::string{});rule.path_from=item.value("pathFrom",std::string{});rule.protocol_to=item.value("protocolTo",std::string("Http"));
+            rule.host_to=item.value("hostTo",std::string{});rule.path_to=item.value("pathTo",std::string{});
+            if(rule.host_from.empty()||rule.host_to.empty()){error="远程映射缺少源地址或目标地址";return false;}
+            if(!read_map_port(item,"portFrom","远程源",rule.port_from)||!read_map_port(item,"portTo","远程目标",rule.port_to))return false;runtime.remote_maps.push_back(std::move(rule));
+        }
+        http_config=std::move(runtime);
+    }
+    if(!allow_start&&!running_any){result={{"ok",true},{"running",false},{"socks5Addr",""},{"httpAddr",""}};return true;}
+    // Apply atomically from the user's perspective: validate the complete
+    // snapshot first, then replace the listeners. Existing sessions are closed
+    // only for a live configuration change; subsequent connections use the
+    // newly saved account/map/list data immediately.
+    if(running_any){if(http_proxy_->Running())http_proxy_->Stop();if(proxy_->Running())proxy_->Stop();}
+    std::string start_error;bool socks_started=false;
+    if(socks_config&& !proxy_->Start(std::move(*socks_config),start_error)){error=std::move(start_error);return false;}
+    socks_started=want_socks;
+    if(http_config&&!http_proxy_->Start(std::move(*http_config),start_error)){
+        if(socks_started)proxy_->Stop();error=std::move(start_error);return false;
+    }
+    const auto display_host=automatic?std::string("127.0.0.1"):config.value("proxyIp",std::string{});proxy_display_host_=display_host;
+    const auto format_address=[&](std::uint16_t port){if(port==0)return std::string{};return (display_host.find(':')==display_host.npos?display_host:"["+display_host+"]")+":"+std::to_string(port);};
+    const auto socks=proxy_->Stats(),http=http_proxy_->Stats();const auto socks_address=format_address(socks.port),http_address=format_address(http.port);
+    result={{"ok",true},{"running",socks.running||http.running},{"socks5Addr",socks_address},{"httpAddr",http_address}};
+    if(bridge_)bridge_->PushEvent("proxy:state",{{"running",socks.running||http.running},{"socks5Addr",socks_address},{"httpAddr",http_address}});
     return true;
 }
 void Host::RegisterMethods(){
@@ -354,8 +589,25 @@ void Host::RegisterMethods(){
                        {"hooked",false}};
              QueueTargetResult({},Json{{"__event","inject:state"},{"value",std::move(value)}},{});
         }, X86HookDll(), X86Helper());
+    const auto target_config_method=[](const std::string& method){
+        static const std::unordered_set<std::string> methods{
+            "saveSystemSetting","saveHookSetting","saveLeachSetting","saveListSetting","saveListAutoClear",
+            "addFilter","setFilterEnable","setAllFilterEnable","filterListAction","clearFilters","saveFilterEdit","importFilters",
+            "addSend","setSendEnable","setAllSendEnable","sendListAction","clearSends","saveSendEdit","sendCollectionAction","clearSendCollection","importSends",
+            "savePacketEdit","importBackup"
+        };
+        return methods.contains(method);
+    };
+    const auto proxy_live_method=[](const std::string& method){
+        static const std::unordered_set<std::string> methods{
+            "saveProxySetting","saveMapSetting","saveMapLocal","saveMapRemote","setMapEnable","mapAction","mapCommand",
+            "saveAccount","deleteAccount","clearAllAccounts","setAccountEnable","saveBatchAccounts","deleteSelectedAccounts",
+            "importAccounts","adjustAccountExpiry","adjustAccountLimit","importBackup"
+        };
+        return methods.contains(method);
+    };
     for(const auto& method:wpe::shell::DataService::Methods()){
-        bridge_->RegisterAsync(method,[this,method](const Json& args,WebBridge::Completion done){
+        bridge_->RegisterAsync(method,[this,method,target_config_method,proxy_live_method](const Json& args,WebBridge::Completion done){
             if(method=="getRemoteSetting"){
                 data_->Submit(method,args,[this,done=std::move(done)](Json value,std::string error) mutable {
                     if(!error.empty()){done(nullptr,std::move(error));return;}
@@ -408,10 +660,36 @@ void Host::RegisterMethods(){
                     file_jobs_.push_back({method,safe,complete,nullptr,std::move(info)});PostMessageW(window_,app_file,0,0);
                 });return;
             }
-            auto submit=[this,method,args,done]{data_->Submit(method,args,done);};
+            auto submit=[this,method,args,done,target_config_method,proxy_live_method]() mutable {
+                data_->Submit(method,args,[this,method,done=std::move(done),target_config_method,proxy_live_method](Json value,std::string error) mutable {
+                    if(!error.empty()){done(std::move(value),std::move(error));return;}
+                    const bool target_live=target_config_method(method)&&target_&&target_->State()==wpe::IpcLinkState::Attached;
+                    const bool proxy_live=proxy_live_method(method)&&proxy_&&http_proxy_&&
+                        (proxy_->Stats().running||http_proxy_->Stats().running);
+                    if(target_live){
+                        SyncTargetConfiguration([done=std::move(done),value=std::move(value)](Json,std::string sync_error) mutable {
+                            if(!sync_error.empty()){done(std::move(value),"数据已保存，但目标配置实时同步失败："+sync_error);return;}
+                            done(std::move(value),{});
+                        });
+                        return;
+                    }
+                    if(proxy_live){
+                        data_->Submit("__proxyRuntimeConfiguration",Json::object(),[this,done=std::move(done),value=std::move(value)](Json config,std::string config_error) mutable {
+                            if(!config_error.empty()){done(std::move(value),"数据已保存，但代理配置读取失败："+config_error);return;}
+                            Json refreshed;std::string refresh_error;
+                            if(!ApplyProxyRuntimeConfiguration(config,false,refreshed,refresh_error)){
+                                done(std::move(value),"数据已保存，但代理实时同步失败："+refresh_error);return;
+                            }
+                            done(std::move(value),{});
+                        });
+                        return;
+                    }
+                    done(std::move(value),{});
+                });
+            };
             if(wpe::shell::DataService::NeedsConfirmation(method,args)){
                 bridge_->Ask("confirm",{{"title","确认操作"},{"content","确定删除选中的数据吗？此操作不可撤销。"},{"icon",2}},
-                    [submit=std::move(submit),done](Json answer){if(answer==true)submit();else done({{"ok",true},{"delta",0}},{});});
+                    [submit=std::move(submit),done](Json answer) mutable {if(answer==true)submit();else done({{"ok",true},{"delta",0}},{});});
             }else submit();
         });
     }
@@ -421,15 +699,46 @@ void Host::RegisterMethods(){
             if(!error.empty()||epoch!=file_epoch_||token!=import_token_){done({{"ok",false}},{});return;}done(std::move(value),{});
         });
     });
-    bridge_->RegisterAsync("getSystemCheck",[this,db](const Json&,WebBridge::Completion done){
-        data_->Submit("getPrefs",Json::object(),[this,db,done](Json prefs,std::string error){
+    bridge_->RegisterAsync("getSystemCheck",[this](const Json&,WebBridge::Completion done){
+        data_->Submit("getPrefs",Json::object(),[this,done](Json prefs,std::string error){
             if(!error.empty()){done(nullptr,std::move(error));return;}
+            const auto db=options_.data/L"2.3.0"/L"WPE.db";
             done(Json{
-                {"isAdmin",IsAdmin()},{"version","C++ DATA-dev"},{"isBeta",false},{"language",prefs["language"]},
+                {"isAdmin",IsAdmin()},{"version","2.3.0"},{"isBeta",false},{"language",prefs["language"]},
                 {"themeMode",prefs["themeMode"]},{"isDark",prefs["isDark"]},{"scanLine",prefs["scanLine"]},{"nativeDrag",native_drag_},
-                {"dbDir",Utf8(db.parent_path().wstring())},{"dbFile","WPE.db"},{"dbFull",Utf8(db.wstring())},{"dbInstance","default"},{"lastInjection",""},{"lastInject",nullptr},
+                {"dbDir",Utf8(options_.data.wstring())},{"dbFile","WPE.db"},{"dbFull",Utf8(db.wstring())},{"dbInstance","default"},{"lastInjection",""},{"lastInject",nullptr},
                 {"socks5Port",0},{"socks5Addr",""},{"httpAddr",""},{"geoVersion","未实现"},{"geoCount",0}},{});
         });
+    });
+    // InstanceView is a native-backed screen, not a static mock.  The path
+    // is used as the root of <path>\\2.3.0\\WPE.db, matching the worker that
+    // was created above.  The UI deliberately treats it as per-run state.
+    bridge_->Register("probeDbPath",[this](const Json& args){
+        try{return ProbeInstancePath(fs::path(Wide(args.value("path",std::string{}))),options_.data);}
+        catch(const std::exception& e){return Json{{"valid",false},{"full",""},{"error",e.what()}};}
+    });
+    bridge_->RegisterAsync("pickFolder",[this](const Json& args,WebBridge::Completion done){
+        if(closing_||file_dialog_||file_prompt_pending_){done(nullptr,"文件选择器正在使用");return;}
+        if(file_jobs_.size()>=8){done(nullptr,"文件选择请求过多");return;}
+        file_jobs_.push_back({"__pickFolder",args,std::move(done),nullptr,nullptr});PostMessageW(window_,app_file,0,0);
+    });
+    bridge_->RegisterAsync("saveInstance",[this](const Json& args,WebBridge::Completion done){
+        try{
+            const auto root=fs::path(Wide(args.value("path",std::string{})));
+            const auto probe=ProbeInstancePath(root,options_.data);
+            if(!probe.value("valid",false)){done(nullptr,"数据库路径无效；请使用绝对路径且不要包含非法字符");return;}
+            const auto running=(proxy_&& (proxy_->Stats().running||http_proxy_&&http_proxy_->Stats().running))||
+                (wpc_&&wpc_->Running())||(target_&&target_->State()!=wpe::IpcLinkState::Idle);
+            if(running){done(nullptr,"请先停止当前代理、WPC 或目标连接，再切换数据库");return;}
+            std::error_code ec;fs::create_directories(root/L"2.3.0",ec);if(ec){done(nullptr,"无法创建数据库目录: "+ec.message());return;}
+            if(data_)data_.reset();
+            options_.data=root.lexically_normal();
+            data_=std::make_unique<wpe::shell::DataWorker>(options_.data/L"2.3.0"/L"WPE.db");
+            data_->Submit("getPrefs",Json::object(),[this,done](Json prefs,std::string error){
+                if(!error.empty()){done(nullptr,std::move(error));return;}
+                done({{"ok",true},{"language",prefs.value("language",std::string("zh-CN"))},{"socks5Addr",""},{"httpAddr",""}},{});
+            });
+        }catch(const std::exception& e){done(nullptr,e.what());}
     });
     bridge_->Register("uiReady",[this](const Json&){PostMessageW(window_,app_ready,0,0);return Json{{"ok",true}};});
     bridge_->Register("minimizeWindow",[this](const Json&){ShowWindow(window_,SW_MINIMIZE);return Json{{"ok",true}};});
@@ -554,14 +863,44 @@ void Host::QueueTargetResult(WebBridge::Completion done,Json value,std::string e
     {std::lock_guard lock(target_mutex_);target_results_.push_back({std::move(done),std::move(value),std::move(error)});}
     if(window_)PostMessageW(window_,app_target,0,0);
 }
+Json Host::PacketRow(const wpe::Packet& packet) const {
+    const auto& bytes=packet.modified?packet.modified:packet.raw;
+    const auto length=bytes?static_cast<std::int64_t>(bytes->size()):0;
+    return {
+        {"Id",packet.id},{"Time",PacketTime(packet.time_ticks)},{"Socket",packet.socket},
+        {"Type",packet.packet_type},{"From",PacketText(packet.from)},{"FromLocation",""},
+        {"To",PacketText(packet.to)},{"ToLocation",""},{"Len",length},
+        {"Preview",PacketHex(bytes)},{"Action",packet.filter_action}
+    };
+}
+Json Host::PacketDetail(const wpe::Packet& packet) const {
+    const auto raw=packet.raw?Base64(*packet.raw):std::string{};
+    const auto modified=packet.modified?Base64(*packet.modified):std::string{};
+    return {{"id",packet.id},{"packet",modified.empty()?Json(nullptr):Json(modified)},
+            {"raw",raw.empty()?Json(nullptr):Json(raw)},
+            {"modified",packet.raw!=packet.modified}};
+}
+const wpe::Packet* Host::FindPacket(std::int64_t id) const {
+    for(auto it=packet_capture_.rbegin();it!=packet_capture_.rend();++it)
+        if(it->id==id)return &*it;
+    return nullptr;
+}
+void Host::ClearCapturedPackets(){
+    packet_capture_.clear();
+    if(bridge_)bridge_->PushEvent("feed:clear",{{"list",0}});
+}
 void Host::HandleTargetFrame(wpe::ByteBuffer frame,bool packet_channel){
     if(packet_channel){
         try{
             const auto packet=wpe::PacketFrame::Decode(frame);
-            bridge_->PushEvent("packet:frame",{{"id",packet.id},{"socket",packet.socket},
-                {"type",packet.packet_type},{"from",packet.from?Utf8(std::wstring(packet.from->begin(),packet.from->end())):""},
-                {"to",packet.to?Utf8(std::wstring(packet.to->begin(),packet.to->end())):""},
-                {"length",packet.modified?static_cast<std::int64_t>(packet.modified->size()):0}});
+            packet_capture_.push_back(packet);
+            constexpr std::size_t kCaptureLimit=500000;
+            if(packet_capture_.size()>kCaptureLimit){
+                const auto drop=packet_capture_.size()-kCaptureLimit;
+                packet_capture_.erase(packet_capture_.begin(),packet_capture_.begin()+static_cast<std::ptrdiff_t>(drop));
+                if(bridge_)bridge_->PushEvent("feed:trim",{{"list",0},{"keep",static_cast<std::int64_t>(packet_capture_.size())}});
+            }
+            if(bridge_)bridge_->PushEvent("feed:append",{{"list",0},{"rows",Json::array({PacketRow(packet)})}});
         }catch(...){ }
         return;
     }
@@ -668,6 +1007,19 @@ void Host::RegisterTargetMethods(){
     bridge_->Register("enterInjectMode",[this](const Json&){return Json{{"ok",true},{"lastInject",last_inject_}};});
     bridge_->Register("getInjectStatus",[this](const Json&){return InjectStatus();});
     bridge_->Register("getInjectStats",[this](const Json&){return InjectStats();});
+    bridge_->Register("getPacketDetail",[this](const Json& args){
+        // The injected Packet list is the only runtime capture table owned by
+        // this host.  Proxy-mode rows remain in their dedicated runtime and
+        // must not accidentally resolve against the same numeric Ids.
+        if(args.value("list",0)!=0)return Json(nullptr);
+        const auto* packet=FindPacket(args.value("id",static_cast<std::int64_t>(0)));
+        return packet?PacketDetail(*packet):Json(nullptr);
+    });
+    bridge_->Register("setSelectedPacket",[](const Json&){return Json{{"ok",true}};});
+    bridge_->Register("clearPackets",[this](const Json& args){
+        if(args.value("list",0)==0)ClearCapturedPackets();
+        return Json{{"ok",true}};
+    });
      bridge_->RegisterAsync("injectAttach",[this](const Json& args,WebBridge::Completion done){
          try{const auto pid=args.value("pid",0);const auto method=args.value("method",0);const auto dll=HookDll();auto finish=[this,done=std::move(done)](bool ok,std::string error) mutable {if(!ok){QueueTargetResult(std::move(done),nullptr,std::move(error));return;}SyncTargetConfiguration([this,done=std::move(done)](Json,std::string error) mutable {if(!error.empty()){AbortTargetInjection(std::move(done),std::move(error));return;}auto value=InjectStatus();value["ok"]=true;QueueTargetResult(std::move(done),std::move(value),{});});};if(pid<1){const auto path=fs::path(Wide(args.value("path",std::string{})));const auto command=Wide(args.value("args",std::string{}));RememberInjection(0,path,std::to_string(method),command);target_->AttachLaunched(path,command,dll,std::move(finish));}else{RememberInjection(static_cast<DWORD>(pid),{},std::to_string(method),{});target_->AttachPid(static_cast<DWORD>(pid),dll,std::move(finish));}}
         catch(const std::exception& e){done(nullptr,e.what());}
@@ -698,111 +1050,12 @@ void Host::RegisterTargetMethods(){
         }
         data_->Submit("__proxyRuntimeConfiguration",Json::object(),[this,done=std::move(done)](Json config,std::string error) mutable {
             if(!error.empty()){done(nullptr,std::move(error));return;}
+            Json result;std::string apply_error;
             try{
-                if(!config.value("enableSocks5",false)&&!config.value("enableHttp",false)){
-                    done(nullptr,"请至少启用一种代理类型");return;
-                }
-                const bool automatic=config.value("proxyIpAuto",true);
-                const auto bind_address=automatic?std::string("0.0.0.0"):config.value("proxyIp",std::string{});
-                if(bind_address.empty()){done(nullptr,"监听地址不能为空");return;}
-                const auto max_connections=static_cast<std::size_t>(std::max(1,config.value("maxConnection",5000)));
-                const bool require_auth=config.value("enableAuth",true);
-                std::vector<wpe::shell::Socks5Credential> credentials;
-                for(const auto& account:config.value("accounts",Json::array())){
-                    if(account.is_object()){
-                        wpe::shell::Socks5Credential value;
-                        value.user=account.value("user",std::string{});
-                        value.password=account.value("password",std::string{});
-                        credentials.push_back(std::move(value));
-                    }
-                }
-                std::vector<wpe::shell::Socks5Credential> wpc_accounts;
-                for(const auto& account:config.value("wpcAccounts",Json::array())){
-                    if(!account.is_object())continue;
-                    wpe::shell::Socks5Credential value;
-                    value.account_id=account.value("accountId",std::string{});
-                    value.user=account.value("user",std::string{});
-                    value.password=account.value("password",std::string{});
-                    value.enabled=account.value("enabled",false);
-                    value.limit_devices=account.value("limitDevices",false);
-                    value.max_devices=static_cast<std::size_t>(std::max(1,account.value("maxDevices",1)));
-                    value.expiry=account.value("expiry",false);
-                    value.expiry_time=account.value("expiryTime",std::string{});
-                    wpc_accounts.push_back(std::move(value));
-                }
-                const auto read_port=[&](const char* key,std::uint16_t fallback,const char* label,std::uint16_t& result){
-                    const auto value=config.value(key,static_cast<int>(fallback));
-                    if(value<1||value>65535){done(nullptr,std::string(label)+" 端口必须在 1 ~ 65535 之间");return false;}
-                    result=static_cast<std::uint16_t>(value);return true;
-                };
-                std::uint16_t socks_port=0,http_port=0;
-                if(config.value("enableSocks5",false)&&!read_port("socks5Port",1080,"SOCKS5",socks_port))return;
-                if(config.value("enableHttp",false)&&!read_port("httpPort",1081,"HTTP",http_port))return;
-                if(config.value("enableSocks5",false)&&config.value("enableHttp",false)&&socks_port==http_port){
-                    done(nullptr,"SOCKS5 和 HTTP 端口不能相同");return;
-                }
-                std::string start_error;
-                bool socks_started=false;
-                if(config.value("enableSocks5",false)){
-                    wpe::shell::Socks5Config runtime;
-                    runtime.bind_address=bind_address;runtime.port=socks_port;runtime.max_connections=max_connections;
-                    runtime.require_auth=require_auth;runtime.only_wpc=config.value("onlyWpc",false);
-                    runtime.credentials=credentials;runtime.wpc_accounts=wpc_accounts;
-                    if(!proxy_->Start(std::move(runtime),start_error)){done(nullptr,std::move(start_error));return;}
-                    socks_started=true;
-                }
-                if(config.value("enableHttp",false)){
-                    wpe::shell::HttpProxyConfig runtime;
-                    runtime.bind_address=bind_address;runtime.port=http_port;runtime.max_connections=max_connections;
-                    runtime.require_auth=require_auth;runtime.credentials=credentials;
-                    runtime.enable_local_map=config.value("enableLocalMap",false);
-                    runtime.enable_remote_map=config.value("enableRemoteMap",false);
-                    const auto read_map_port=[&](const Json& row,const char* key,const char* label,std::uint16_t& result){
-                        const auto value=row.value(key,80);
-                        if(value<1||value>65535){done(nullptr,std::string(label)+" 映射端口必须在 1 ~ 65535 之间");return false;}
-                        result=static_cast<std::uint16_t>(value);return true;
-                    };
-                    for(const auto& item:config.value("localMaps",Json::array())){
-                        if(!item.is_object())continue;
-                        wpe::shell::HttpProxyConfig::LocalMapRule rule;
-                        rule.enabled=item.value("enabled",true);rule.protocol=item.value("protocol",std::string("Http"));
-                        rule.host=item.value("host",std::string{});rule.remote_path=item.value("remotePath",std::string{});
-                        rule.local_path=item.value("localPath",std::string{});
-                        if(rule.host.empty()||rule.local_path.empty()){done(nullptr,"本地映射缺少源地址或本地文件");return;}
-                        if(!read_map_port(item,"port","本地",rule.port))return;
-                        runtime.local_maps.push_back(std::move(rule));
-                    }
-                    for(const auto& item:config.value("remoteMaps",Json::array())){
-                        if(!item.is_object())continue;
-                        wpe::shell::HttpProxyConfig::RemoteMapRule rule;
-                        rule.enabled=item.value("enabled",true);
-                        rule.protocol_from=item.value("protocolFrom",std::string("Http"));
-                        rule.host_from=item.value("hostFrom",std::string{});rule.path_from=item.value("pathFrom",std::string{});
-                        rule.protocol_to=item.value("protocolTo",std::string("Http"));
-                        rule.host_to=item.value("hostTo",std::string{});rule.path_to=item.value("pathTo",std::string{});
-                        if(rule.host_from.empty()||rule.host_to.empty()){done(nullptr,"远程映射缺少源地址或目标地址");return;}
-                        if(!read_map_port(item,"portFrom","远程源",rule.port_from)||!read_map_port(item,"portTo","远程目标",rule.port_to))return;
-                        runtime.remote_maps.push_back(std::move(rule));
-                    }
-                    if(!http_proxy_->Start(std::move(runtime),start_error)){
-                        if(socks_started)proxy_->Stop();
-                        done(nullptr,std::move(start_error));return;
-                    }
-                }
-                const auto display_host=automatic?std::string("127.0.0.1"):config.value("proxyIp",std::string{});
-                proxy_display_host_=display_host;
-                const auto format_address=[&](std::uint16_t port){
-                    if(port==0)return std::string{};
-                    return (display_host.find(':')==display_host.npos?display_host:"["+display_host+"]")+":"+std::to_string(port);
-                };
-                const auto socks=proxy_->Stats(),http=http_proxy_->Stats();
-                const auto socks_address=format_address(socks.port),http_address=format_address(http.port);
-                if(bridge_)bridge_->PushEvent("proxy:state",{{"running",true},{"socks5Addr",socks_address},{"httpAddr",http_address}});
-                done({{"ok",true},{"running",true},{"socks5Addr",socks_address},{"httpAddr",http_address}},{});
+                if(!ApplyProxyRuntimeConfiguration(config,true,result,apply_error)){done(nullptr,std::move(apply_error));return;}
+                done(std::move(result),{});
             }catch(const std::exception& exception){
-                if(proxy_->Running())proxy_->Stop();
-                if(http_proxy_->Running())http_proxy_->Stop();
-                done(nullptr,exception.what());
+                if(proxy_&&proxy_->Running())proxy_->Stop();if(http_proxy_&&http_proxy_->Running())http_proxy_->Stop();done(nullptr,exception.what());
             }
         });
     });
@@ -875,6 +1128,25 @@ void Host::PickImportFile(){
     if(closing_||file_dialog_||file_prompt_pending_||file_jobs_.empty())return;
     auto job=std::move(file_jobs_.front());file_jobs_.pop_front();const auto epoch=file_epoch_;
     try{
+        if(job.method=="__pickFolder"){
+            Check(CoCreateInstance(CLSID_FileOpenDialog,nullptr,CLSCTX_INPROC_SERVER,IID_PPV_ARGS(&file_dialog_)),"Create folder dialog");
+            DWORD flags=0;Check(file_dialog_->GetOptions(&flags),"Get folder dialog options");
+            Check(file_dialog_->SetOptions(flags|FOS_PICKFOLDERS|FOS_FORCEFILESYSTEM|FOS_PATHMUSTEXIST|FOS_NOCHANGEDIR),"Configure folder dialog");
+            const auto initial=job.args.value("path",std::string{});
+            if(!initial.empty()){
+                const auto folder=fs::path(Wide(initial));std::error_code ec;
+                if(fs::is_directory(folder,ec)){
+                    ComPtr<IShellItem> item;
+                    if(SUCCEEDED(SHCreateItemFromParsingName(folder.wstring().c_str(),nullptr,IID_PPV_ARGS(&item))))file_dialog_->SetFolder(item.Get());
+                }
+            }
+            const auto result=file_dialog_->Show(window_);
+            if(result==HRESULT_FROM_WIN32(ERROR_CANCELLED)){job.done(nullptr,{});}
+            else {Check(result,"Open folder dialog");ComPtr<IShellItem> item;Check(file_dialog_->GetResult(&item),"Get selected folder");CoString name;Check(item->GetDisplayName(SIGDN_FILESYSPATH,&name.value),"Get selected folder path");job.done({{"path",Utf8(name.value)}},{});}
+            file_dialog_.Reset();
+            if(!closing_&&!file_jobs_.empty())PostMessageW(window_,app_file,0,0);
+            return;
+        }
         fs::path path;const bool save=!job.export_plan.is_null();const auto& info=save?job.export_plan:job.file_info;const auto kind=info.at("kind").get<std::string>();
         if(options_.test){
             // Test-only chooser seam; fixed files under the isolated report dir.
@@ -922,10 +1194,32 @@ void Host::BeginImport(FileJob job,const fs::path& path,std::uint64_t epoch){
     file_prompt_pending_=true;job.args["_filePath"]=Utf8(path.wstring());
     data_->Submit("__prepareImport",{{"method",job.method},{"args",job.args}},[this,job,epoch](Json plan,std::string error){
         const auto token=plan.is_object()?plan.value("token",std::string{}):std::string{};
-        auto finish=[this,job,epoch,token](Json value,std::string failure){
+        auto complete=[this,job,epoch,token](Json value,std::string failure) mutable {
             ReleaseImport(token);
             if(epoch==file_epoch_){file_prompt_pending_=false;if(!closing_&&!file_jobs_.empty())PostMessageW(window_,app_file,0,0);}
             job.done(std::move(value),std::move(failure));
+        };
+        const bool target_import=job.method=="importFilters"||job.method=="importSends"||job.method=="importBackup";
+        const bool proxy_import=job.method=="importAccounts"||job.method=="importBackup";
+        auto finish=[this,job,epoch,token,complete,target_import,proxy_import](Json value,std::string failure) mutable {
+            if(!failure.empty()){complete(std::move(value),std::move(failure));return;}
+            if(target_import&&target_&&target_->State()==wpe::IpcLinkState::Attached){
+                SyncTargetConfiguration([complete,value=std::move(value)](Json,std::string sync_error) mutable {
+                    if(!sync_error.empty()){complete(std::move(value),"数据已导入，但目标配置实时同步失败："+sync_error);return;}
+                    complete(std::move(value),{});
+                });
+                return;
+            }
+            if(proxy_import&&proxy_&&http_proxy_&&(proxy_->Stats().running||http_proxy_->Stats().running)){
+                data_->Submit("__proxyRuntimeConfiguration",Json::object(),[this,complete,value=std::move(value)](Json config,std::string config_error) mutable {
+                    if(!config_error.empty()){complete(std::move(value),"数据已导入，但代理配置读取失败："+config_error);return;}
+                    Json refreshed;std::string refresh_error;
+                    if(!ApplyProxyRuntimeConfiguration(config,false,refreshed,refresh_error)){complete(std::move(value),"数据已导入，但代理实时同步失败："+refresh_error);return;}
+                    complete(std::move(value),{});
+                });
+                return;
+            }
+            complete(std::move(value),{});
         };
         if(closing_||epoch!=file_epoch_){finish(nullptr,"导入已取消");return;}
         if(!error.empty()){finish(nullptr,std::move(error));return;}
@@ -934,7 +1228,7 @@ void Host::BeginImport(FileJob job,const fs::path& path,std::uint64_t epoch){
             if(!plan.at("encrypted").get<bool>()){data_->Submit("__applyImport",{{"token",token}},finish);return;}
             import_path_=job.args.at("_filePath").get<std::string>();
             bridge_->AskResult("prompt",{{"formId","encrypt-import"},{"arg",{{"Title",plan.at("title")},{"FilePath",import_path_}}}},
-                [this,job,epoch,token,finish](Json answer,std::string failure){
+                [this,job,epoch,token,finish](Json answer,std::string failure) mutable {
                     if(closing_||epoch!=file_epoch_){finish(nullptr,"导入已取消");return;}
                     if(!failure.empty()){finish(nullptr,"导入已取消："+failure);return;}
                     if(answer.is_null()){auto cancelled=job.args;cancelled.erase("_filePath");data_->Submit(job.method,std::move(cancelled),finish);return;}
@@ -961,7 +1255,9 @@ void Host::BeginTest(){
       const call=(method,args={})=>new Promise((resolve,reject)=>{const id='selftest-'+(++seq);pending.set(id,{resolve,reject});w.postMessage({type:'call',id,method,args});});
       const wait=async(f)=>{for(let i=0;i<150;i++){if(f())return;await new Promise(r=>setTimeout(r,40));}throw Error('DOM condition timed out');};
       (async()=>{
-        const info=await call('getSystemCheck');if(info.version!=='C++ DATA-dev')throw Error('wrong native host');
+        const info=await call('getSystemCheck');if(info.version!=='2.3.0')throw Error('wrong native host');
+        const instanceProbe=await call('probeDbPath',{path:info.dbDir});
+        if(!instanceProbe.valid||instanceProbe.full!==info.dbDir)throw Error('instance path probe failed');
         await wait(()=>document.querySelector('.win .titlebar')&&document.querySelectorAll('.rack .cd').length>=2);
         // A hidden/background process can fail this platform-dependent probe.
         // Keep its exact result separate from editor acceptance, never fake it.
@@ -1146,7 +1442,7 @@ void Host::BeginTest(){
           const restored=(await call('getFilterEdit',{id:old[0].Id})).row;
           if(restored.Modify[0].Index!==-1||!restored.Modify[0].Progression)throw Error('restart editor persistence failed');
           await wait(()=>document.querySelector('.list-page .row .name')?.textContent==='C++ 数据闭环测试');
-          const editorResult=await editors(true);await call('__testDone',{ok:true,restartPersistence:true,firewallIpRuleRoundTrip,accountRoundTrip,batchAccountRoundTrip,configurationListsRoundTrip,originalListDom:true,persistentFilterId:old[0].Id,dbFull:info.dbFull,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',...editorResult});return;
+          const editorResult=await editors(true);const switched=await call('saveInstance',{path:info.dbDir});if(!switched.ok)throw Error('instance path switch failed');await call('__testDone',{ok:true,restartPersistence:true,instancePathRoundTrip:true,firewallIpRuleRoundTrip,accountRoundTrip,batchAccountRoundTrip,configurationListsRoundTrip,originalListDom:true,persistentFilterId:old[0].Id,dbFull:info.dbFull,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',...editorResult});return;
         }
         document.querySelector('.list-page .bar .btn.primary').click();
         await wait(()=>feeds.get(8)?.length===1&&document.querySelector('.list-page .row .name'));
@@ -1162,7 +1458,7 @@ void Host::BeginTest(){
         await wait(()=>document.querySelector('[role=alertdialog] .btn:not(.primary)'));
         document.querySelector('[role=alertdialog] .btn:not(.primary)').click();await deletion;
         if(!(await call('getFilterEdit',{id})).row)throw Error('cancelled deletion changed data');
-        const editorResult=await editors(false);await call('__testDone',{ok:true,titlebar:!!document.querySelector('.titlebar'),modeCards,unsupportedRejected:unsupported,windowRoundTrip:!!top.topMost,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',firewallIpRuleRoundTrip,accountRoundTrip,batchAccountRoundTrip,configurationListsRoundTrip,originalListDom:true,originalAddAndEnableButtons:true,negativeOffsetRoundTrip:true,cancelledDeletionKeptData:true,persistentFilterId:id,dbFull:info.dbFull,url:location.href,...editorResult});
+        const editorResult=await editors(false);const switched=await call('saveInstance',{path:info.dbDir});if(!switched.ok)throw Error('instance path switch failed');await call('__testDone',{ok:true,titlebar:!!document.querySelector('.titlebar'),modeCards,instancePathRoundTrip:true,unsupportedRejected:unsupported,windowRoundTrip:!!top.topMost,topmostProbe:top.topMost?'passed':'failed-background-request-not-applied',firewallIpRuleRoundTrip,accountRoundTrip,batchAccountRoundTrip,configurationListsRoundTrip,originalListDom:true,originalAddAndEnableButtons:true,negativeOffsetRoundTrip:true,cancelledDeletionKeptData:true,persistentFilterId:id,dbFull:info.dbFull,url:location.href,...editorResult});
       })().catch(error=>call('__testDone',{ok:false,error:String(error)}));
     })())JS");
 }
