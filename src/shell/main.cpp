@@ -178,6 +178,49 @@ Options Arguments(){
     fs::create_directories(result.data);
     return result;
 }
+std::string StartupEnvironmentError(const Options& options){
+    std::vector<std::string> errors;
+    std::error_code ec;
+    if(!fs::is_regular_file(options.assets/L"index.html",ec))
+        errors.emplace_back("前端资源缺失：未找到 wwwroot\\index.html。请完整解压发布包，不要只复制 EXE。");
+    ec.clear();
+    if(!fs::is_directory(options.assets/L"assets",ec))
+        errors.emplace_back("前端资源不完整：未找到 wwwroot\\assets 目录。");
+
+    LPWSTR version=nullptr;
+    const HRESULT runtime_hr=GetAvailableCoreWebView2BrowserVersionString(nullptr,&version);
+    const bool runtime_ok=SUCCEEDED(runtime_hr)&&version&&*version;
+    if(!runtime_ok){
+        std::ostringstream text;
+        text<<"未检测到 Microsoft Edge WebView2 Runtime（x64）。请在服务器安装 WebView2 Runtime 后再启动。";
+        if(FAILED(runtime_hr))text<<" HRESULT=0x"<<std::hex<<static_cast<unsigned long>(runtime_hr);
+        errors.push_back(text.str());
+    }
+    if(version)CoTaskMemFree(version);
+
+    ec.clear();
+    fs::create_directories(options.data,ec);
+    if(ec){
+        errors.push_back("数据目录不可写："+Utf8(options.data.wstring())+
+                         "。请把程序放到本地磁盘，或使用可写的用户目录启动。");
+    }else{
+        const auto probe=options.data/(L".startup-write-"+std::to_wstring(GetCurrentProcessId()));
+        HANDLE file=CreateFileW(probe.c_str(),GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+                                nullptr,CREATE_ALWAYS,FILE_ATTRIBUTE_TEMPORARY|FILE_FLAG_DELETE_ON_CLOSE,nullptr);
+        if(file==INVALID_HANDLE_VALUE){
+            errors.push_back("数据目录不可写："+Utf8(options.data.wstring())+
+                             "。请换到当前用户可写目录后再启动。");
+        }else CloseHandle(file);
+    }
+    if(errors.empty())return {};
+    std::string result="WPE-陈北玄 启动环境检查失败：\n\n";
+    for(std::size_t i=0;i<errors.size();++i){
+        result+="• "+errors[i];
+        if(i+1<errors.size())result+='\n';
+    }
+    result+="\n\n请修复以上项目后重新打开程序。";
+    return result;
+}
 class Host {
 public:
     explicit Host(Options options):options_(std::move(options)),exit_code_(options_.test?1:0){}
@@ -399,6 +442,8 @@ LRESULT Host::Message(UINT message,WPARAM wparam,LPARAM lparam){
     return DefWindowProcW(window_,message,wparam,lparam);
 }
 int Host::Run(){
+    if(const auto error=StartupEnvironmentError(options_);!error.empty())
+        throw std::runtime_error(error);
     const auto instance=GetModuleHandleW(nullptr);
     WNDCLASSEXW type{sizeof(WNDCLASSEXW)};type.lpfnWndProc=WindowProc;type.hInstance=instance;type.hIcon=LoadIconW(instance,MAKEINTRESOURCEW(IDI_APP_ICON));type.hIconSm=LoadIconW(instance,MAKEINTRESOURCEW(IDI_APP_ICON));type.hCursor=LoadCursorW(nullptr,IDC_ARROW);type.lpszClassName=L"Wpe64NativeHost";
     if(!RegisterClassExW(&type))throw std::runtime_error("Window class registration failed");
