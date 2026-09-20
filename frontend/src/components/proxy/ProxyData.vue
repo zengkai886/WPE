@@ -678,6 +678,12 @@ const cells = computed(() => {
   ]
 })
 
+const filterEvidenceTip = computed(() => {
+  const e = (stats.value as any)?.filterEvidence
+  if (!e) return ''
+  return `候选 ${e.seen ?? 0} · 包头命中 ${e.headerMatches ?? 0} · 类别命中 ${e.typeMatches ?? 0} · 放行 ${e.allowed ?? 0} · 丢弃 ${e.dropped ?? 0} · TCP请求 ${e.tcpReq ?? 0} · TCP响应 ${e.tcpResp ?? 0} · UDP请求 ${e.udpReq ?? 0} · UDP响应 ${e.udpResp ?? 0} · 其他 ${e.other ?? 0}`
+})
+
 </script>
 
 <template>
@@ -751,7 +757,7 @@ const cells = computed(() => {
         直接写 data-tip 就没有窗口：原生从头到尾无题可画，tooltip.ts 照样认得它。
         详见 tooltip.ts 头上「两道防线」那段。
       -->
-      <div v-for="c in cells" :key="c.k" class="st-c" :data-tip="c.z + ' · ' + c.v">
+      <div v-for="c in cells" :key="c.k" class="st-c" :data-tip="c.k === 'Filtered' && filterEvidenceTip ? filterEvidenceTip : c.z + ' · ' + c.v">
         <div class="k">{{ c.k }}</div>
         <div class="v" :class="c.tone">{{ c.v }}</div>
         <div class="z">{{ c.z }}</div>
@@ -876,4 +882,3 @@ const cells = computed(() => {
 
   </div>
 </template>
-

@@ -84,10 +84,13 @@ function pick(it: MenuItem): void {
 }
 
 /*
-  关掉的三条路：点别处、按 Esc、滚动。
+  关掉的两条路：点别处、按 Esc。
 
-  滚动那条容易漏 —— 菜单是 fixed 的，页面一滚它就停在原地、指向的行已经变了。
-  用捕获阶段监听，滚动容器不冒泡也能收到。
+  这里刻意不把 scroll 当成「点别处」。状态条的设置下拉菜单挂在 body 上，
+  WebView2 在指针仍停在菜单内时也可能发出一次滚动事件（尤其是窗口刚打开、
+  触控板有惯性滚动时）。旧实现收到任意 scroll 就立即关闭，结果就是菜单在
+  鼠标没有离开时自己消失。菜单是 fixed 的，保留到用户点外面或按 Esc 更符合
+  下拉菜单的预期，也不会影响右键菜单的操作。
 */
 function onKey(e: KeyboardEvent): void {
   if (e.key === 'Escape') emit('close')
@@ -96,7 +99,6 @@ function onKey(e: KeyboardEvent): void {
 watch(() => props.at, (at) => {
   if (at) {
     window.addEventListener('keydown', onKey)
-    window.addEventListener('scroll', () => emit('close'), { capture: true, once: true })
   } else {
     window.removeEventListener('keydown', onKey)
   }
@@ -116,8 +118,8 @@ const style = computed(() => ({ left: pos.value.x + 'px', top: pos.value.y + 'px
   -->
   <Teleport to="body">
   <!-- 遮罩只负责收口点击，透明且铺满；菜单自己浮在它上面 -->
-  <div v-if="props.at" class="cm-mask" @mousedown.self="emit('close')" @contextmenu.prevent.self="emit('close')">
-    <div ref="box" class="cm" :style="style" role="menu">
+  <div v-if="props.at" class="cm-mask" @pointerdown.self="emit('close')" @contextmenu.prevent.self="emit('close')">
+    <div ref="box" class="cm" :style="style" role="menu" @pointerdown.stop>
       <span class="mk tl" /><span class="mk br" />
 
       <template v-for="(it, i) in props.items">

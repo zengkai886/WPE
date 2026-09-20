@@ -86,6 +86,16 @@ function trim<T>(all: T[], keep: number, which: 'sys' | 'filter' | 'proxy'): voi
 export function attachLogFeed(): () => void {
   const offs: Array<() => void> = []
 
+  // enterProxyMode / PublishAll uses a replace snapshot when the log page is
+  // opened after an operation.  Listening only to append/clear made the page
+  // permanently blank even though the native side had rows in its session
+  // mirror.  Reuse append so the same cap and batched redraw rules apply.
+  offs.push(on('feed:replace', (d: { list: number; rows: any[] }) => {
+    if (d.list === FeedList.SystemLog) { sysAll.length = 0; append(sysAll, d.rows, 'sys') }
+    else if (d.list === FeedList.FilterLog) { filterAll.length = 0; append(filterAll, d.rows, 'filter') }
+    else if (d.list === FeedList.ProxyLog) { proxyAll.length = 0; append(proxyAll, d.rows, 'proxy') }
+  }))
+
   offs.push(on('feed:append', (d: { list: number; rows: any[] }) => {
     if (d.list === FeedList.SystemLog) append(sysAll, d.rows, 'sys')
     else if (d.list === FeedList.FilterLog) append(filterAll, d.rows, 'filter')

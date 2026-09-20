@@ -196,7 +196,7 @@ async function save(): Promise<void> {
           v-for="x in TYPES"
           :key="x.key"
           class="chk"
-          :class="{ on: f[x.key] }"
+          :class="{ on: f.checkType && f[x.key] }"
           :disabled="!f.checkType"
           @click="(f[x.key] as boolean) = !f[x.key]"
         ><i />{{ t(x.label) }}</button>

@@ -33,6 +33,40 @@ constexpr std::uint8_t wpc_pong = 0x82;
 SOCKET AsSocket(std::uintptr_t value) noexcept { return static_cast<SOCKET>(value); }
 std::uintptr_t AsHandle(SOCKET value) noexcept { return static_cast<std::uintptr_t>(value); }
 
+std::string EndpointText(SOCKET socket) {
+    sockaddr_storage address{};
+    int length = sizeof(address);
+    if (getpeername(socket, reinterpret_cast<sockaddr*>(&address), &length) != 0) return {};
+    char host[NI_MAXHOST]{};
+    char service[NI_MAXSERV]{};
+    if (getnameinfo(reinterpret_cast<const sockaddr*>(&address), length, host, sizeof(host), service, sizeof(service),
+                    NI_NUMERICHOST | NI_NUMERICSERV) != 0) return {};
+    std::string result = host;
+    if (address.ss_family == AF_INET6) result = "[" + result + "]";
+    result += ":";
+    result += service;
+    return result;
+}
+
+std::string EndpointHost(SOCKET socket) {
+    sockaddr_storage address{};
+    int length = sizeof(address);
+    if (getpeername(socket, reinterpret_cast<sockaddr*>(&address), &length) != 0) return {};
+    char host[NI_MAXHOST]{};
+    if (getnameinfo(reinterpret_cast<const sockaddr*>(&address), length, host, sizeof(host), nullptr, 0,
+                    NI_NUMERICHOST) != 0) return {};
+    return host;
+}
+
+int EndpointPort(SOCKET socket) {
+    sockaddr_storage address{};
+    int length = sizeof(address);
+    if (getpeername(socket, reinterpret_cast<sockaddr*>(&address), &length) != 0) return 0;
+    if (address.ss_family == AF_INET) return ntohs(reinterpret_cast<const sockaddr_in*>(&address)->sin_port);
+    if (address.ss_family == AF_INET6) return ntohs(reinterpret_cast<const sockaddr_in6*>(&address)->sin6_port);
+    return 0;
+}
+
 bool SendAll(SOCKET socket, const std::uint8_t* data, std::size_t size) {
     while (size != 0) {
         const auto chunk = static_cast<int>(std::min<std::size_t>(size, 64 * 1024));
@@ -240,6 +274,10 @@ bool Socks5Runtime::Start(Socks5Config config, std::string& error) {
         wpc_account_devices_.clear();
         wpc_controls_.clear();
     }
+    {
+        std::lock_guard account_lock(account_mutex_);
+        online_accounts_.clear();
+    }
     stopping_ = false;
     listener_.store(AsHandle(socket), std::memory_order_release);
     running_ = true;
@@ -276,6 +314,10 @@ void Socks5Runtime::Stop() {
         wpc_account_devices_.clear();
         wpc_controls_.clear();
     }
+    {
+        std::lock_guard account_lock(account_mutex_);
+        online_accounts_.clear();
+    }
     running_ = false;
     port_ = 0;
     if (winsock_started_) {
@@ -306,6 +348,58 @@ Socks5Stats Socks5Runtime::Stats() const noexcept {
 }
 
 bool Socks5Runtime::Running() const noexcept { return running_.load(std::memory_order_acquire); }
+
+void Socks5Runtime::EmitPacket(ProxyPacket packet) const {
+    if (!config_.on_packet || packet.bytes.empty()) return;
+    try { config_.on_packet(std::move(packet)); } catch (...) { /* UI delivery is best effort. */ }
+}
+
+void Socks5Runtime::EmitClient(ProxyClientEvent event) const {
+    if (!config_.on_client || event.session_id.empty()) return;
+    try { config_.on_client(std::move(event)); } catch (...) { /* UI delivery is best effort. */ }
+}
+
+void Socks5Runtime::EmitConnection(ProxyConnectionEvent event) const {
+    if (!config_.on_connection || event.session_id.empty()) return;
+    try { config_.on_connection(std::move(event)); } catch (...) { /* UI delivery is best effort. */ }
+}
+
+std::vector<std::string> Socks5Runtime::OnlineAccounts() const {
+    std::vector<std::string> result;
+    {
+        std::lock_guard lock(account_mutex_);
+        result.reserve(online_accounts_.size());
+        for (const auto& [account, count] : online_accounts_)
+            if (count != 0) result.push_back(account);
+    }
+    // WPC heartbeats are persistent control sessions rather than ordinary
+    // SOCKS CONNECT sessions, so include their account IDs separately.
+    {
+        std::lock_guard lock(wpc_mutex_);
+        for (const auto& [token, device] : wpc_devices_) {
+            (void)token;
+            if (!device.account_id.empty() &&
+                std::find(result.begin(), result.end(), device.account_id) == result.end())
+                result.push_back(device.account_id);
+        }
+    }
+    return result;
+}
+
+void Socks5Runtime::MarkAccountOnline(const std::string& account_key) {
+    if (account_key.empty()) return;
+    std::lock_guard lock(account_mutex_);
+    ++online_accounts_[account_key];
+}
+
+void Socks5Runtime::MarkAccountOffline(const std::string& account_key) {
+    if (account_key.empty()) return;
+    std::lock_guard lock(account_mutex_);
+    const auto found = online_accounts_.find(account_key);
+    if (found == online_accounts_.end()) return;
+    if (found->second <= 1) online_accounts_.erase(found);
+    else --found->second;
+}
 
 void Socks5Runtime::AcceptLoop() {
     while (!stopping_.load(std::memory_order_acquire)) {
@@ -466,6 +560,8 @@ int Socks5Runtime::RegisterWpc(std::uintptr_t client, const std::string& payload
     WpcDeviceInfo info{token, account_id, device, client_ip, version, os};
     std::uintptr_t old_control = invalid_socket;
     std::string old_token;
+    WpcDeviceInfo old_info;
+    bool replaced = false;
     {
         std::lock_guard lock(wpc_mutex_);
         const auto old_pair = wpc_account_devices_.find(pair);
@@ -473,6 +569,8 @@ int Socks5Runtime::RegisterWpc(std::uintptr_t client, const std::string& payload
             old_token = old_pair->second;
             const auto old_device = wpc_devices_.find(old_token);
             if (old_device != wpc_devices_.end()) {
+                old_info = old_device->second;
+                replaced = true;
                 const auto old_control_it = wpc_controls_.find(old_token);
                 if (old_control_it != wpc_controls_.end()) old_control = old_control_it->second;
                 wpc_devices_.erase(old_device);
@@ -492,6 +590,14 @@ int Socks5Runtime::RegisterWpc(std::uintptr_t client, const std::string& payload
     if (old_control != invalid_socket && old_control != client) {
         shutdown(AsSocket(old_control), SD_BOTH);
     }
+    if (replaced) {
+        EmitClient({false, old_info.token, old_info.account_id, old_info.client_ip,
+                    old_info.device_id, "WPC " + old_info.version, {}});
+        EmitConnection({false, old_info.token, old_info.client_ip, 0, {}, 0, {}, false, true});
+    }
+    EmitClient({true, token, info.account_id, info.client_ip, info.device_id,
+                "WPC " + info.version, {}});
+    EmitConnection({true, token, info.client_ip, EndpointPort(AsSocket(client)), {}, 0, {}, false, true});
     wpc_registers_.fetch_add(1, std::memory_order_relaxed);
     return 0;
 }
@@ -581,17 +687,24 @@ bool Socks5Runtime::RunWpcControl(std::uintptr_t client) {
 }
 
 void Socks5Runtime::UnregisterWpc(const std::string& token, std::uintptr_t client) {
-    std::lock_guard lock(wpc_mutex_);
-    const auto item = wpc_devices_.find(token);
-    if (item == wpc_devices_.end()) return;
-    const auto control = wpc_controls_.find(token);
-    if (control != wpc_controls_.end() && control->second != client) return;
-    const auto pair = item->second.account_id + "|" + item->second.device_id;
-    wpc_devices_.erase(item);
-    wpc_controls_.erase(token);
-    const auto account_device = wpc_account_devices_.find(pair);
-    if (account_device != wpc_account_devices_.end() && account_device->second == token)
-        wpc_account_devices_.erase(account_device);
+    WpcDeviceInfo info;
+    {
+        std::lock_guard lock(wpc_mutex_);
+        const auto item = wpc_devices_.find(token);
+        if (item == wpc_devices_.end()) return;
+        const auto control = wpc_controls_.find(token);
+        if (control != wpc_controls_.end() && control->second != client) return;
+        info = item->second;
+        const auto pair = item->second.account_id + "|" + item->second.device_id;
+        wpc_devices_.erase(item);
+        wpc_controls_.erase(token);
+        const auto account_device = wpc_account_devices_.find(pair);
+        if (account_device != wpc_account_devices_.end() && account_device->second == token)
+            wpc_account_devices_.erase(account_device);
+    }
+    EmitClient({false, info.token, info.account_id, info.client_ip, info.device_id,
+                "WPC " + info.version, {}});
+    EmitConnection({false, info.token, info.client_ip, 0, {}, 0, {}, false, true});
 }
 
 bool Socks5Runtime::AuthenticateWpcToken(const std::string& user, const std::string& token,
@@ -657,6 +770,7 @@ Socks5Runtime::AuthMode Socks5Runtime::Authenticate(std::uintptr_t client, Sessi
     if (!SendAll(socket, result.data(), result.size())) return AuthMode::Failed;
     if (!valid) return AuthMode::Failed;
     identity.via_wpc = identity.device.token.rfind("wpc1.", 0) == 0;
+    identity.account_key = identity.via_wpc ? identity.device.account_id : user;
     return AuthMode::Username;
 }
 
@@ -726,8 +840,13 @@ bool Socks5Runtime::ConnectRequest(std::uintptr_t client, std::uintptr_t& remote
             return false;
         }
         udp_active_.fetch_add(1, std::memory_order_relaxed);
+        const auto session_id = std::to_string(static_cast<std::uint64_t>(client));
+        EmitConnection({true, session_id, EndpointHost(socket), EndpointPort(socket),
+                        host + ":" + std::to_string(destination_port), 0, {}, true, false});
         const auto result = RelayUdp(client, AsHandle(udp));
         udp_active_.fetch_sub(1, std::memory_order_relaxed);
+        EmitConnection({false, session_id, EndpointHost(socket), EndpointPort(socket),
+                        host + ":" + std::to_string(destination_port), 0, {}, true, false});
         Close(AsHandle(udp));
         return result;
     }
@@ -908,6 +1027,8 @@ bool Socks5Runtime::RelayUdp(std::uintptr_t client, std::uintptr_t udp_socket) {
 
 void Socks5Runtime::Relay(std::uintptr_t client, std::uintptr_t remote) {
     const SOCKET left = AsSocket(client), right = AsSocket(remote);
+    const auto client_addr = EndpointText(left);
+    const auto server_addr = EndpointText(right);
     std::array<std::uint8_t, 64 * 1024> buffer{};
     while (!stopping_.load(std::memory_order_acquire)) {
         fd_set read{};
@@ -923,12 +1044,16 @@ void Socks5Runtime::Relay(std::uintptr_t client, std::uintptr_t remote) {
             const auto count = recv(left, reinterpret_cast<char*>(buffer.data()), static_cast<int>(buffer.size()), 0);
             if (count <= 0 || !SendAll(right, buffer.data(), static_cast<std::size_t>(count))) break;
             bytes_up_.fetch_add(static_cast<std::uint64_t>(count), std::memory_order_relaxed);
+            EmitPacket({client, 13, 0, client_addr, server_addr, {},
+                        std::vector<std::uint8_t>(buffer.begin(), buffer.begin() + count)});
         }
         if (FD_ISSET(right, &read)) {
             const auto count = recv(right, reinterpret_cast<char*>(buffer.data()), static_cast<int>(buffer.size()), 0);
             if (count <= 0 || !SendAll(left, buffer.data(), static_cast<std::size_t>(count))) break;
             bytes_down_.fetch_add(static_cast<std::uint64_t>(count), std::memory_order_relaxed);
             responses_.fetch_add(1, std::memory_order_relaxed);
+            EmitPacket({client, 15, 0, client_addr, server_addr, {},
+                        std::vector<std::uint8_t>(buffer.begin(), buffer.begin() + count)});
         }
     }
 }
@@ -940,12 +1065,29 @@ void Socks5Runtime::Client(std::uintptr_t client) {
     setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&timeout), sizeof(timeout));
     bool success = false;
     std::uintptr_t remote = invalid_socket;
+    std::string account_key;
+    const auto session_id = std::to_string(static_cast<std::uint64_t>(client));
+    const auto client_ip = EndpointHost(socket);
+    bool client_emitted = false;
+    bool account_marked = false;
     try {
         SessionIdentity identity;
         const auto mode = Authenticate(client, identity);
-        if (mode == AuthMode::Username && ConnectRequest(client, remote)) {
-            success = true;
-            Relay(client, remote);
+        if (mode == AuthMode::Username) {
+            account_key = identity.account_key;
+            MarkAccountOnline(account_key);
+            account_marked = true;
+            EmitClient({true, session_id, account_key, client_ip,
+                        identity.via_wpc ? identity.device.device_id : std::string{},
+                        identity.via_wpc ? "WPC " + identity.device.version : "SOCKS5", {}});
+            client_emitted = true;
+            if (ConnectRequest(client, remote)) {
+                success = true;
+                const auto endpoint = EndpointText(AsSocket(remote));
+                EmitConnection({true, session_id, client_ip, EndpointPort(socket), endpoint, 0, endpoint, false, false});
+                Relay(client, remote);
+                EmitConnection({false, session_id, client_ip, EndpointPort(socket), endpoint, 0, endpoint, false, false});
+            }
         } else if (mode == AuthMode::WpcControl) {
             // RunWpcControl owns the socket until the control peer closes or
             // the runtime stops.  There is no SOCKS CONNECT request on this
@@ -956,6 +1098,9 @@ void Socks5Runtime::Client(std::uintptr_t client) {
         // A malformed peer or an allocation failure must retire only this
         // session; the listener remains available for other clients.
     }
+    if (client_emitted)
+        EmitClient({false, session_id, account_key, client_ip, {}, "SOCKS5", {}});
+    if (account_marked) MarkAccountOffline(account_key);
     if (remote != invalid_socket) {
         shutdown(AsSocket(remote), SD_BOTH);
         Close(remote);

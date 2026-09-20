@@ -108,6 +108,17 @@ export function createPacketFeed<T extends { Id: number }>(list: FeedList): Pack
       scheduleFlush()
     })
 
+    // Packet/proxy editing updates one runtime row in place on the native
+    // side.  Keep the hot-path array in sync without replacing the whole
+    // feed; the next animation frame will repaint the edited preview/length.
+    const offUpdate = on('feed:update', (d: { list: number; row: T }) => {
+      if (d.list !== list || !d.row) return
+      const index = all.findIndex((row) => row.Id === d.row.Id)
+      if (index < 0) return
+      all[index] = Object.freeze(d.row)
+      scheduleFlush()
+    })
+
     /*
       自动清理不再走 feed:clear，走这条：<b>只留最近 keep 条</b>（2026-09-07 改的）。
 
@@ -156,6 +167,7 @@ export function createPacketFeed<T extends { Id: number }>(list: FeedList): Pack
 
     return () => {
       offAppend()
+      offUpdate()
       offClear()
       offTrim()
       window.clearInterval(timer)

@@ -18,6 +18,7 @@
 #include "socks5_runtime.h"
 #include "http_proxy_runtime.h"
 #include "wpc_runtime.h"
+#include "proxy_capture_filter.h"
 #include "resource.h"
 #include "common/ipc_codec.h"
 #include "common/packet_frame.h"
@@ -35,6 +36,8 @@
 #include <atomic>
 #include <array>
 #include <cctype>
+#include <map>
+#include <string_view>
 
 using Microsoft::WRL::Callback;
 using Microsoft::WRL::ComPtr;
@@ -79,6 +82,19 @@ std::string PacketTime(std::int64_t ticks){
         <<std::setw(2)<<time.wMinute<<':'<<std::setw(2)<<time.wSecond<<':'
         <<std::setw(7)<<(file_ticks%10000000ULL);return out.str();
 }
+std::string LogTime(){
+    SYSTEMTIME now{};GetLocalTime(&now);
+    std::ostringstream out;out<<std::setfill('0')<<std::setw(2)<<now.wHour<<':'
+        <<std::setw(2)<<now.wMinute<<':'<<std::setw(2)<<now.wSecond<<':'
+        <<std::setw(7)<<static_cast<unsigned>(now.wMilliseconds)*10000U;return out.str();
+}
+std::int64_t NowPacketTicks(){
+    FILETIME file_time{};GetSystemTimeAsFileTime(&file_time);
+    ULARGE_INTEGER value{};value.LowPart=file_time.dwLowDateTime;value.HighPart=file_time.dwHighDateTime;
+    // .NET ticks are 100 ns units since 0001-01-01; FILETIME uses the same
+    // unit since 1601-01-01.
+    return 504911232000000000LL+static_cast<std::int64_t>(value.QuadPart/100ULL);
+}
 std::string PacketHex(const wpe::Bytes& bytes,std::size_t limit=60){
     if(!bytes)return {};
     const char digits[]="0123456789ABCDEF";std::string out;
@@ -86,6 +102,130 @@ std::string PacketHex(const wpe::Bytes& bytes,std::size_t limit=60){
         if(i)out+=' ';out+=digits[(*bytes)[i]>>4];out+=digits[(*bytes)[i]&15];
     }
     if(bytes->size()>limit)out+=" ...";return out;
+}
+
+/*
+  Proxy capture filtering lives in the native host, not in the Vue table.
+  ProxyPacket rows are produced on the Winsock worker and the browser only
+  receives rows that passed this gate.  Keeping the gate here also means the
+  selected row and its byte detail use the same set of packets.
+*/
+std::string CompactHex(std::string_view text){
+    std::string out;
+    for(const auto c:text){
+        if(std::isspace(static_cast<unsigned char>(c))||c==','||c==';')continue;
+        if(!std::isxdigit(static_cast<unsigned char>(c)))return {};
+        out.push_back(static_cast<char>(std::toupper(static_cast<unsigned char>(c))));
+    }
+    if(out.empty()||(out.size()%2)!=0)return {};
+    return out;
+}
+bool HexBytes(std::string_view text,std::vector<std::uint8_t>& out){
+    const auto compact=CompactHex(text);
+    if(compact.empty())return false;
+    out.clear();out.reserve(compact.size()/2);
+    for(std::size_t i=0;i<compact.size();i+=2){
+        const auto digit=[](char c)->int{
+            if(c>='0'&&c<='9')return c-'0';
+            if(c>='A'&&c<='F')return c-'A'+10;
+            return -1;
+        };
+        const int hi=digit(compact[i]),lo=digit(compact[i+1]);
+        if(hi<0||lo<0)return false;
+        out.push_back(static_cast<std::uint8_t>((hi<<4)|lo));
+    }
+    return true;
+}
+std::vector<std::string_view> FilterHexAlternatives(std::string_view text){
+    // The original capture filter treats ';' as an OR separator for packet
+    // data and headers. Keep it out of HexBytes: concatenating alternatives
+    // such as "01 00;FF EE" would turn two rules into one impossible value.
+    std::vector<std::string_view> result;
+    std::size_t begin=0;
+    while(begin<=text.size()){
+        const auto end=text.find(';',begin);
+        const auto part=text.substr(begin,end==std::string_view::npos?text.size()-begin:end-begin);
+        const auto first=part.find_first_not_of(" \t\r\n");
+        if(first!=std::string_view::npos){
+            const auto last=part.find_last_not_of(" \t\r\n");
+            result.push_back(part.substr(first,last-first+1));
+        }
+        if(end==std::string_view::npos)break;
+        begin=end+1;
+    }
+    return result;
+}
+bool ContainsBytes(std::span<const std::uint8_t> hay,std::span<const std::uint8_t> needle){
+    if(needle.empty()||needle.size()>hay.size())return false;
+    return std::search(hay.begin(),hay.end(),needle.begin(),needle.end())!=hay.end();
+}
+std::vector<std::string> FilterParts(std::string_view text){
+    std::vector<std::string> parts;std::string current;
+    for(const auto c:text){
+        if(c==','||c==';'||std::isspace(static_cast<unsigned char>(c))){
+            if(!current.empty()){parts.push_back(std::move(current));current.clear();}
+        }else current.push_back(c);
+    }
+    if(!current.empty())parts.push_back(std::move(current));
+    return parts;
+}
+bool NumberInList(std::string_view text,std::int64_t value){
+    for(const auto& part:FilterParts(text)){
+        std::istringstream in(part);std::int64_t n{};char extra{};
+        if((in>>n)&&!(in>>extra)&&n==value)return true;
+    }
+    return false;
+}
+bool LengthMatches(std::string_view text,std::int64_t value){
+    const auto trimmed=std::string(text);
+    const auto dash=trimmed.find('-');
+    try{
+        if(dash==std::string::npos)return std::stoll(trimmed)==value;
+        const auto lo=std::stoll(trimmed.substr(0,dash)),hi=std::stoll(trimmed.substr(dash+1));
+        return lo<=value&&value<=hi;
+    }catch(...){return false;}
+}
+bool AddressHasIp(std::string_view address,std::string_view wanted){
+    if(wanted.empty())return false;
+    if(address==wanted)return true;
+    if(address.size()>wanted.size()&&address.compare(0,wanted.size(),wanted)==0){
+        const auto next=address[wanted.size()];
+        if(next==':'||next==']')return true;
+    }
+    return false;
+}
+bool AddressHasPort(std::string_view address,std::string_view wanted){
+    const auto parts=FilterParts(wanted);
+    for(const auto& part:parts){
+        std::string tail(address);
+        if(!tail.empty()&&tail.back()==']')continue;
+        const auto colon=tail.rfind(':');
+        if(colon==std::string::npos)continue;
+        std::istringstream in(part);std::int64_t port{};char extra{};
+        if((in>>port)&&!(in>>extra)&&std::to_string(port)==tail.substr(colon+1))return true;
+    }
+    return false;
+}
+bool TypeMatches(const Json& filter,std::uint8_t type){
+    const auto enabled=[&](const char* key){return filter.value(key,false);};
+    // Keep the original FilterFunction mapping exact.  The four proxy types
+    // are not a generic "request/response" bucket, and HTTP/HTTPS rows do
+    // not implicitly match TCP_Req/TCP_Resp in the C# implementation.
+    switch(type){
+    case 0:case 1:return enabled("send");
+    case 2:case 3:return enabled("sendTo");
+    case 4:case 5:return enabled("recv");
+    case 6:case 7:return enabled("recvFrom");
+    case 8:return enabled("wsaSend");
+    case 9:return enabled("wsaSendTo");
+    case 10:case 11:return enabled("wsaRecv");
+    case 12:return enabled("wsaRecvFrom");
+    case 13:return enabled("tcpReq");
+    case 14:return enabled("udpReq");
+    case 15:return enabled("tcpResp");
+    case 16:return enabled("udpResp");
+    default:return false;
+    }
 }
 std::string Base64(std::span<const std::uint8_t> bytes){
     static constexpr char alphabet[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -231,6 +371,14 @@ public:
         if(http_proxy_)http_proxy_->Stop();
         if(proxy_)proxy_->Stop();
         if(wpc_)wpc_->Stop();
+        {
+            std::lock_guard lock(proxy_clients_mutex_);
+            proxy_clients_.clear();
+        }
+        {
+            std::lock_guard lock(proxy_connections_mutex_);
+            proxy_connections_.clear();
+        }
         if(target_)target_->Stop();
         clipboard_.reset();data_.reset();
         // Complete callbacks while the report/window state they capture still exists.
@@ -240,6 +388,7 @@ public:
     }
     int Run();
 private:
+    struct ProxyCapture { wpe::Packet packet; std::string client_addr; std::string server_addr; std::string server_domain; std::uint8_t domain_type{}; };
     static LRESULT CALLBACK WindowProc(HWND window,UINT message,WPARAM wparam,LPARAM lparam);
     LRESULT Message(UINT message,WPARAM wparam,LPARAM lparam);
     template<class F> HRESULT Guard(F&& action){try{action();return S_OK;}catch(const std::exception& e){Fail(e.what());return E_FAIL;}}
@@ -258,16 +407,36 @@ private:
     void DiscardExport(const Json& plan){if(data_&&plan.is_object()&&plan.contains("token"))data_->ForgetExportPlan(plan.at("token").get<std::string>());}
     void DrainClipboard();
     void DrainTarget();
+    void DrainProxy();
     void QueueTargetFrame(wpe::ByteBuffer frame,bool packet_channel);
+    void QueueProxyPacket(wpe::shell::ProxyPacket packet);
     void QueueTargetResult(WebBridge::Completion done,Json value,std::string error);
     void AbortTargetInjection(WebBridge::Completion done,std::string error);
     void HandleTargetFrame(wpe::ByteBuffer frame,bool packet_channel);
     Json PacketRow(const wpe::Packet& packet) const;
+    Json ProxyPacketRow(const ProxyCapture& packet) const;
     Json PacketDetail(const wpe::Packet& packet) const;
     const wpe::Packet* FindPacket(std::int64_t id) const;
+    const wpe::Packet* FindProxyPacket(std::int64_t id) const;
+    wpe::Packet* FindPacketMutable(std::int64_t id);
+    ProxyCapture* FindProxyCaptureMutable(std::int64_t id);
     void ClearCapturedPackets();
+    void ClearProxyPackets();
+    void RefreshProxyCaptureFilter();
+    struct ProxyFilterEvidence {
+        bool header_match{};
+        bool type_match{};
+    };
+    bool ProxyCaptureAllowed(const wpe::shell::ProxyPacket& packet,
+                             ProxyFilterEvidence* evidence=nullptr) const;
     void SyncTargetConfiguration(WebBridge::Completion done);
     bool ApplyProxyRuntimeConfiguration(const Json& config, bool allow_start, Json& result, std::string& error);
+    void AppendSystemLog(std::string module,std::string content);
+    void AppendProxyLog(std::string user,std::string ip,std::string content);
+    void QueueProxyClientEvent(wpe::shell::ProxyClientEvent event);
+    Json ProxyClientRows() const;
+    void QueueProxyConnectionEvent(wpe::shell::ProxyConnectionEvent event);
+    void RefreshAccountOnline();
     bool StartWpc(const Json& setting,const Json& snapshot,std::string& error);
     std::filesystem::path HookDll() const;
     std::filesystem::path X86HookDll() const;
@@ -298,15 +467,54 @@ private:
     std::unique_ptr<wpe::shell::WpcRuntime> wpc_;
     bool wpc_refresh_pending_{};
     std::string proxy_display_host_="127.0.0.1";
+    std::unordered_set<std::string> last_online_accounts_;
     std::unique_ptr<wpe::shell::TargetLink> target_;
     struct TargetResult {WebBridge::Completion done;Json value;std::string error;};
     std::mutex target_mutex_;
     std::deque<std::pair<wpe::ByteBuffer,bool>> target_frames_;
     std::deque<TargetResult> target_results_;
+    std::mutex proxy_mutex_;
+    std::deque<wpe::shell::ProxyPacket> proxy_frames_;
+    mutable std::mutex proxy_clients_mutex_;
+    std::unordered_map<std::string, wpe::shell::ProxyClientEvent> proxy_clients_;
+    mutable std::mutex proxy_connections_mutex_;
+    std::unordered_map<std::string, wpe::shell::ProxyConnectionEvent> proxy_connections_;
     // Injected packets are runtime data, not database rows.  Keep the same
     // bounded mirror the UI list consumes so selecting a row can fetch its
     // before/after bytes without crossing the IPC channel a second time.
     std::deque<wpe::Packet> packet_capture_;
+    std::deque<ProxyCapture> proxy_capture_;
+    // JavaScript Numbers are exact only through 2^53-1.  The old 1<<60
+    // seed made every nearby proxy id round to the same value in WebView2,
+    // so one click appeared to select every row and details pointed at the
+    // wrong packet.  Proxy and injected feeds already have separate id
+    // namespaces; a small, safe integer is the correct boundary here.
+    std::int64_t next_proxy_packet_id_{1};
+    mutable std::mutex proxy_filter_mutex_;
+    Json proxy_capture_filter_=Json::object();
+    std::atomic<std::uint64_t> proxy_filter_dropped_{};
+    struct ProxyFilterDiagnostics {
+        std::atomic<std::uint64_t> seen{};
+        std::atomic<std::uint64_t> header_matches{};
+        std::atomic<std::uint64_t> type_matches{};
+        std::atomic<std::uint64_t> allowed{};
+        std::atomic<std::uint64_t> tcp_requests{};
+        std::atomic<std::uint64_t> tcp_responses{};
+        std::atomic<std::uint64_t> udp_requests{};
+        std::atomic<std::uint64_t> udp_responses{};
+        std::atomic<std::uint64_t> other{};
+        void Reset() noexcept {
+            seen.store(0,std::memory_order_relaxed);
+            header_matches.store(0,std::memory_order_relaxed);
+            type_matches.store(0,std::memory_order_relaxed);
+            allowed.store(0,std::memory_order_relaxed);
+            tcp_requests.store(0,std::memory_order_relaxed);
+            tcp_responses.store(0,std::memory_order_relaxed);
+            udp_requests.store(0,std::memory_order_relaxed);
+            udp_responses.store(0,std::memory_order_relaxed);
+            other.store(0,std::memory_order_relaxed);
+        }
+    } proxy_filter_diagnostics_;
     Json target_stats_=Json::object();
     Json last_inject_=nullptr;
     std::int64_t system_socket_{};
@@ -402,6 +610,7 @@ LRESULT Host::Message(UINT message,WPARAM wparam,LPARAM lparam){
         if(bridge_)bridge_->Tick();
         if(!closing_)DrainClipboard();
         if(!closing_)DrainTarget();
+        if(!closing_)DrainProxy();
         if(data_&&bridge_&&!closing_)data_->Drain([this](std::string name,Json value){
             const bool wpc_feed = name == "feed:replace" && value.is_object() &&
                                   (value.value("list",0) == 17 || value.value("list",0) == 18);
@@ -414,6 +623,7 @@ LRESULT Host::Message(UINT message,WPARAM wparam,LPARAM lparam){
                 });
             }
         });
+        if(data_&&!closing_)RefreshAccountOnline();
         if(options_.test && std::chrono::steady_clock::now()-started_>std::chrono::seconds(90))Fail("WebView2 self-test timed out");
         if(!options_.test && !revealed_ && std::chrono::steady_clock::now()-started_>std::chrono::seconds(4)){
             revealed_=true;ShowWindow(window_,SW_SHOW);if(controller_)controller_->put_IsVisible(TRUE);Resize();
@@ -427,7 +637,7 @@ LRESULT Host::Message(UINT message,WPARAM wparam,LPARAM lparam){
     case app_drag:ReleaseCapture();SendMessageW(window_,WM_NCLBUTTONDOWN,HTCAPTION,0);return 0;
     case app_test:CaptureAndFinish();return 0;
     case app_file:PickImportFile();return 0;
-    case app_target:DrainTarget();return 0;
+    case app_target:DrainTarget();DrainProxy();return 0;
     case app_failure:
         // Posted from WebView2 callbacks: no nested modal pump in those callbacks.
         if(!options_.test)MessageBoxW(window_,Wide(report_.value("error",std::string("Native host failed"))).c_str(),L"WPE C++ 宿主错误",MB_OK|MB_ICONERROR);
@@ -559,8 +769,91 @@ bool Host::StartWpc(const Json& setting,const Json& snapshot,std::string& error)
     if(bridge_)bridge_->PushEvent("wpc:state",{{"running",true},{"port",stats.port}});
     return true;
 }
+void Host::AppendSystemLog(std::string module,std::string content){
+    if(!data_||content.empty())return;
+    data_->Submit("__appendLog",{{"list",2},{"row",{{"Time",LogTime()},{"FuncName",std::move(module)},{"Content",std::move(content)}}}},[](Json,std::string){});
+}
+void Host::AppendProxyLog(std::string user,std::string ip,std::string content){
+    if(!data_||content.empty())return;
+    data_->Submit("__appendLog",{{"list",4},{"row",{{"Time",LogTime()},{"UserName",std::move(user)},{"LoginIP",std::move(ip)},{"Content",std::move(content)}}}},[](Json,std::string){});
+}
+Json Host::ProxyClientRows() const {
+    struct Aggregate {
+        std::string account, ip, device, client, auth_time;
+        std::int64_t links{};
+    };
+    std::map<std::string, Aggregate> grouped;
+    std::lock_guard lock(proxy_clients_mutex_);
+    for (const auto& [session, event] : proxy_clients_) {
+        (void)session;
+        if (event.account_key.empty()) continue;
+        const auto endpoint = event.device_id.empty() ? "ip:" + event.client_ip : "device:" + event.device_id;
+        const auto key = event.account_key + "|" + endpoint;
+        auto& row = grouped[key];
+        if (row.links == 0) {
+            row.account = event.account_key;
+            row.ip = event.client_ip;
+            row.device = event.device_id;
+            row.client = event.client;
+            row.auth_time = event.auth_time.empty() ? LogTime() : event.auth_time;
+        }
+        ++row.links;
+    }
+    Json rows = Json::array();
+    for (const auto& [key, row] : grouped) {
+        (void)key;
+        rows.push_back({{"AccountId", row.account}, {"UserName", row.account},
+                        {"AuthIP", row.ip}, {"IPLocation", ""},
+                        {"LinksNumber", row.links}, {"DevicesNumber", 1},
+                        {"TrafficStatistics", 0}, {"AuthResult", true},
+                        {"AuthTime", row.auth_time}, {"DeviceId", row.device},
+                        {"Client", row.client}});
+    }
+    return rows;
+}
+void Host::QueueProxyClientEvent(wpe::shell::ProxyClientEvent event) {
+    if (event.session_id.empty()) return;
+    if (event.connected && event.auth_time.empty()) event.auth_time = LogTime();
+    {
+        std::lock_guard lock(proxy_clients_mutex_);
+        if (event.connected) proxy_clients_[event.session_id] = std::move(event);
+        else proxy_clients_.erase(event.session_id);
+    }
+    if (!data_) return;
+    data_->Submit("__setClientRows", {{"rows", ProxyClientRows()}}, [](Json, std::string) {});
+}
+void Host::QueueProxyConnectionEvent(wpe::shell::ProxyConnectionEvent event) {
+    if (event.session_id.empty()) return;
+    Json rows=Json::array();
+    {
+        std::lock_guard lock(proxy_connections_mutex_);
+        if (event.connected) proxy_connections_[event.session_id]=std::move(event);
+        else proxy_connections_.erase(event.session_id);
+        for (const auto& [session, item] : proxy_connections_) {
+            (void)session;
+            rows.push_back({{"ClientIP",item.client_ip},{"ClientPort",item.client_port},
+                            {"Target",item.target},{"DomainType",item.domain_type},
+                            {"ServerAddress",item.server_address},{"Udp",item.udp},{"Wpc",item.wpc}});
+        }
+    }
+    if (data_) data_->Submit("__setClientConnections", {{"items", std::move(rows)}}, [](Json, std::string) {});
+}
+void Host::RefreshAccountOnline(){
+    std::unordered_set<std::string> current;
+    if(proxy_){for(const auto& account:proxy_->OnlineAccounts())if(!account.empty())current.insert(account);}
+    if(http_proxy_){for(const auto& account:http_proxy_->OnlineAccounts())if(!account.empty())current.insert(account);}
+    if(current==last_online_accounts_)return;
+    last_online_accounts_=current;
+    Json accounts=Json::array();
+    for(const auto& account:current)accounts.push_back(account);
+    data_->Submit("__setAccountOnline",{{"accounts",std::move(accounts)}},[](Json,std::string){});
+}
 bool Host::ApplyProxyRuntimeConfiguration(const Json& config, bool allow_start, Json& result, std::string& error){
     if(!proxy_||!http_proxy_){error="代理运行时未初始化";return false;}
+    {
+        std::lock_guard lock(proxy_filter_mutex_);
+        proxy_capture_filter_=config.value("captureFilter",Json::object());
+    }
     const bool want_socks=config.value("enableSocks5",false),want_http=config.value("enableHttp",false);
     const bool running_socks=proxy_->Stats().running,running_http=http_proxy_->Stats().running;
     const bool running_any=running_socks||running_http;
@@ -597,7 +890,11 @@ bool Host::ApplyProxyRuntimeConfiguration(const Json& config, bool allow_start, 
     std::optional<wpe::shell::HttpProxyConfig> http_config;
     if(want_socks){
         wpe::shell::Socks5Config runtime;runtime.bind_address=bind_address;runtime.port=socks_port;runtime.max_connections=max_connections;
-        runtime.require_auth=require_auth;runtime.only_wpc=config.value("onlyWpc",false);runtime.credentials=credentials;runtime.wpc_accounts=wpc_accounts;socks_config=std::move(runtime);
+        runtime.require_auth=require_auth;runtime.only_wpc=config.value("onlyWpc",false);runtime.credentials=credentials;runtime.wpc_accounts=wpc_accounts;
+        runtime.on_packet=[this](wpe::shell::ProxyPacket packet){QueueProxyPacket(std::move(packet));};
+        runtime.on_client=[this](wpe::shell::ProxyClientEvent event){QueueProxyClientEvent(std::move(event));};
+        runtime.on_connection=[this](wpe::shell::ProxyConnectionEvent event){QueueProxyConnectionEvent(std::move(event));};
+        socks_config=std::move(runtime);
     }
     if(want_http){
         wpe::shell::HttpProxyConfig runtime;runtime.bind_address=bind_address;runtime.port=http_port;runtime.max_connections=max_connections;runtime.require_auth=require_auth;runtime.credentials=credentials;
@@ -617,6 +914,9 @@ bool Host::ApplyProxyRuntimeConfiguration(const Json& config, bool allow_start, 
             if(rule.host_from.empty()||rule.host_to.empty()){error="远程映射缺少源地址或目标地址";return false;}
             if(!read_map_port(item,"portFrom","远程源",rule.port_from)||!read_map_port(item,"portTo","远程目标",rule.port_to))return false;runtime.remote_maps.push_back(std::move(rule));
         }
+        runtime.on_packet=[this](wpe::shell::ProxyPacket packet){QueueProxyPacket(std::move(packet));};
+        runtime.on_client=[this](wpe::shell::ProxyClientEvent event){QueueProxyClientEvent(std::move(event));};
+        runtime.on_connection=[this](wpe::shell::ProxyConnectionEvent event){QueueProxyConnectionEvent(std::move(event));};
         http_config=std::move(runtime);
     }
     if(!allow_start&&!running_any){result={{"ok",true},{"running",false},{"socks5Addr",""},{"httpAddr",""}};return true;}
@@ -729,6 +1029,12 @@ void Host::RegisterMethods(){
             auto submit=[this,method,args,done,target_config_method,proxy_live_method]() mutable {
                 data_->Submit(method,args,[this,method,done=std::move(done),target_config_method,proxy_live_method](Json value,std::string error) mutable {
                     if(!error.empty()){done(std::move(value),std::move(error));return;}
+                    // Capture filtering is also used by the proxy feed.  It
+                    // must take effect without restarting listeners when the
+                    // user saves the filter dialog while a proxy is running.
+                    if(method=="saveLeachSetting"&&proxy_&&http_proxy_&&
+                       (proxy_->Stats().running||http_proxy_->Stats().running))
+                        RefreshProxyCaptureFilter();
                     const bool target_live=target_config_method(method)&&target_&&target_->State()==wpe::IpcLinkState::Attached;
                     const bool proxy_live=proxy_live_method(method)&&proxy_&&http_proxy_&&
                         (proxy_->Stats().running||http_proxy_->Stats().running);
@@ -973,6 +1279,11 @@ void Host::QueueTargetFrame(wpe::ByteBuffer frame,bool packet_channel){
     {std::lock_guard lock(target_mutex_);if(target_frames_.size()<8192)target_frames_.emplace_back(std::move(frame),packet_channel);}
     if(window_)PostMessageW(window_,app_target,0,0);
 }
+void Host::QueueProxyPacket(wpe::shell::ProxyPacket packet){
+    if(packet.bytes.empty())return;
+    {std::lock_guard lock(proxy_mutex_);if(proxy_frames_.size()<8192)proxy_frames_.push_back(std::move(packet));}
+    if(window_)PostMessageW(window_,app_target,0,0);
+}
 void Host::QueueTargetResult(WebBridge::Completion done,Json value,std::string error){
     {std::lock_guard lock(target_mutex_);target_results_.push_back({std::move(done),std::move(value),std::move(error)});}
     if(window_)PostMessageW(window_,app_target,0,0);
@@ -984,6 +1295,18 @@ Json Host::PacketRow(const wpe::Packet& packet) const {
         {"Id",packet.id},{"Time",PacketTime(packet.time_ticks)},{"Socket",packet.socket},
         {"Type",packet.packet_type},{"From",PacketText(packet.from)},{"FromLocation",""},
         {"To",PacketText(packet.to)},{"ToLocation",""},{"Len",length},
+        {"Preview",PacketHex(bytes)},{"Action",packet.filter_action}
+    };
+}
+Json Host::ProxyPacketRow(const ProxyCapture& capture) const {
+    const auto& packet=capture.packet;
+    const auto& bytes=packet.modified?packet.modified:packet.raw;
+    const auto length=bytes?static_cast<std::int64_t>(bytes->size()):0;
+    return {
+        {"Id",packet.id},{"Time",PacketTime(packet.time_ticks)},{"Socket",packet.socket},{"TheologyID",0},
+        {"Type",packet.packet_type},{"WebSocketType",0},{"ClientAddr",capture.client_addr},
+        {"ClientLocation",""},{"ServerAddr",capture.server_addr},{"ServerLocation",""},
+        {"ServerDomain",capture.server_domain},{"DomainType",capture.domain_type},{"Len",length},
         {"Preview",PacketHex(bytes)},{"Action",packet.filter_action}
     };
 }
@@ -999,9 +1322,98 @@ const wpe::Packet* Host::FindPacket(std::int64_t id) const {
         if(it->id==id)return &*it;
     return nullptr;
 }
+const wpe::Packet* Host::FindProxyPacket(std::int64_t id) const {
+    for(auto it=proxy_capture_.rbegin();it!=proxy_capture_.rend();++it)
+        if(it->packet.id==id)return &it->packet;
+    return nullptr;
+}
+wpe::Packet* Host::FindPacketMutable(std::int64_t id) {
+    for(auto it=packet_capture_.rbegin();it!=packet_capture_.rend();++it)
+        if(it->id==id)return &*it;
+    return nullptr;
+}
+Host::ProxyCapture* Host::FindProxyCaptureMutable(std::int64_t id) {
+    for(auto it=proxy_capture_.rbegin();it!=proxy_capture_.rend();++it)
+        if(it->packet.id==id)return &*it;
+    return nullptr;
+}
 void Host::ClearCapturedPackets(){
     packet_capture_.clear();
     if(bridge_)bridge_->PushEvent("feed:clear",{{"list",0}});
+}
+void Host::ClearProxyPackets(){
+    proxy_capture_.clear();
+    proxy_filter_dropped_.store(0,std::memory_order_relaxed);
+    proxy_filter_diagnostics_.Reset();
+    if(bridge_)bridge_->PushEvent("feed:clear",{{"list",1}});
+}
+void Host::RefreshProxyCaptureFilter(){
+    if(!data_)return;
+    data_->Submit("__proxyRuntimeConfiguration",Json::object(),[this](Json config,std::string error){
+        if(!error.empty()||!config.is_object())return;
+        std::lock_guard lock(proxy_filter_mutex_);
+        proxy_capture_filter_=config.value("captureFilter",Json::object());
+    });
+}
+bool Host::ProxyCaptureAllowed(const wpe::shell::ProxyPacket& frame,
+                               ProxyFilterEvidence* evidence) const {
+    if(evidence)*evidence={};
+    Json filter;
+    {
+        std::lock_guard lock(proxy_filter_mutex_);
+        filter=proxy_capture_filter_;
+    }
+    if(!filter.is_object())return true;
+
+    const bool check_socket=filter.value("checkSocket",false);
+    const bool check_ip=filter.value("checkIP",false);
+    const bool check_port=filter.value("checkPort",false);
+    const bool check_head=filter.value("checkHead",false);
+    const bool check_data=filter.value("checkData",false);
+    const bool check_length=filter.value("checkLen",false);
+    const bool check_type=filter.value("checkType",false);
+    if(!check_socket&&!check_ip&&!check_port&&!check_head&&!check_data&&!check_length&&!check_type)return true;
+
+    const auto bytes=std::span<const std::uint8_t>(frame.bytes.data(),frame.bytes.size());
+    const auto hex_match=[&](std::string_view pattern,bool prefix){
+        for(const auto alternative:FilterHexAlternatives(pattern)){
+            std::vector<std::uint8_t> needle;
+            if(!HexBytes(alternative,needle)||needle.size()>bytes.size())continue;
+            if(prefix&&std::equal(needle.begin(),needle.end(),bytes.begin()))return true;
+            if(!prefix&&ContainsBytes(bytes,std::span<const std::uint8_t>(needle.data(),needle.size())))return true;
+        }
+        return false;
+    };
+    const auto data_match=[&](std::string_view pattern){
+        if(hex_match(pattern,false))return true;
+        for(const auto alternative:FilterHexAlternatives(pattern)){
+            const std::string text(alternative);
+            if(!text.empty()&&std::search(frame.bytes.begin(),frame.bytes.end(),text.begin(),text.end())!=frame.bytes.end())return true;
+        }
+        return false;
+    };
+    const auto ip_match=[&](){
+        for(const auto& part:FilterParts(filter.value("ipValue",std::string{})))
+            if(AddressHasIp(frame.client_addr,part)||AddressHasIp(frame.server_addr,part))return true;
+        return false;
+    };
+    const auto port_match=[&](){return AddressHasPort(frame.client_addr,filter.value("portValue",std::string{}))||
+                                      AddressHasPort(frame.server_addr,filter.value("portValue",std::string{}));};
+    const auto socket_match=NumberInList(filter.value("socketValue",std::string{}),static_cast<std::int64_t>(frame.socket));
+    const auto head_match=hex_match(filter.value("headValue",std::string{}),true);
+    const auto content_match=data_match(filter.value("dataValue",std::string{}));
+    const auto length_match=LengthMatches(filter.value("lenValue",std::string{}),static_cast<std::int64_t>(frame.bytes.size()));
+    const auto type_match=TypeMatches(filter,frame.packet_type);
+    if(evidence){
+        evidence->header_match=check_head&&head_match;
+        evidence->type_match=check_type&&type_match;
+    }
+    const bool not_show=filter.value("notShow",true);
+    return wpe::shell::CaptureFilterAllowed({
+        not_show, check_socket, socket_match, check_ip, ip_match(),
+        check_port, port_match(), check_head, head_match, check_data,
+        content_match, check_length, length_match, check_type, type_match
+    });
 }
 void Host::HandleTargetFrame(wpe::ByteBuffer frame,bool packet_channel){
     if(packet_channel){
@@ -1068,6 +1480,58 @@ void Host::DrainTarget(){
     }
     for(auto& frame:frames)if(bridge_&&!closing_)HandleTargetFrame(std::move(frame.first),frame.second);
 }
+void Host::DrainProxy(){
+    std::deque<wpe::shell::ProxyPacket> frames;
+    {std::lock_guard lock(proxy_mutex_);frames.swap(proxy_frames_);}
+    if(!bridge_||closing_||frames.empty())return;
+    Json rows=Json::array();
+    for(auto& frame:frames){
+        proxy_filter_diagnostics_.seen.fetch_add(1,std::memory_order_relaxed);
+        switch(frame.packet_type){
+        case 13: proxy_filter_diagnostics_.tcp_requests.fetch_add(1,std::memory_order_relaxed);break;
+        case 15: proxy_filter_diagnostics_.tcp_responses.fetch_add(1,std::memory_order_relaxed);break;
+        case 14: proxy_filter_diagnostics_.udp_requests.fetch_add(1,std::memory_order_relaxed);break;
+        case 16: proxy_filter_diagnostics_.udp_responses.fetch_add(1,std::memory_order_relaxed);break;
+        default: proxy_filter_diagnostics_.other.fetch_add(1,std::memory_order_relaxed);break;
+        }
+        ProxyFilterEvidence evidence;
+        const bool allowed=ProxyCaptureAllowed(frame,&evidence);
+        if(evidence.header_match)proxy_filter_diagnostics_.header_matches.fetch_add(1,std::memory_order_relaxed);
+        if(evidence.type_match)proxy_filter_diagnostics_.type_matches.fetch_add(1,std::memory_order_relaxed);
+        if(!allowed){
+            proxy_filter_dropped_.fetch_add(1,std::memory_order_relaxed);
+            continue;
+        }
+        proxy_filter_diagnostics_.allowed.fetch_add(1,std::memory_order_relaxed);
+        ProxyCapture capture;
+        capture.packet.id=next_proxy_packet_id_++;
+        capture.packet.time_ticks=NowPacketTicks();
+        capture.packet.socket=static_cast<std::int64_t>(frame.socket);
+        capture.packet.packet_type=frame.packet_type;
+        capture.packet.filter_action=4;
+        capture.packet.from=U16(frame.client_addr);
+        capture.packet.to=U16(frame.server_addr);
+        capture.packet.raw=std::move(frame.bytes);
+        // Runtime proxy packets do not pass through PacketFrame::Decode, so
+        // there is no same-buffer marker to populate `modified`. Keep the
+        // current bytes available to the detail/editor path while preserving
+        // value equality (PacketDetail will still report this as unmodified).
+        capture.packet.modified=capture.packet.raw;
+        capture.client_addr=std::move(frame.client_addr);
+        capture.server_addr=std::move(frame.server_addr);
+        capture.server_domain=std::move(frame.server_domain);
+        capture.domain_type=frame.domain_type;
+        proxy_capture_.push_back(std::move(capture));
+        rows.push_back(ProxyPacketRow(proxy_capture_.back()));
+    }
+    constexpr std::size_t kCaptureLimit=500000;
+    if(proxy_capture_.size()>kCaptureLimit){
+        const auto drop=proxy_capture_.size()-kCaptureLimit;
+        proxy_capture_.erase(proxy_capture_.begin(),proxy_capture_.begin()+static_cast<std::ptrdiff_t>(drop));
+        bridge_->PushEvent("feed:trim",{{"list",1},{"keep",static_cast<std::int64_t>(proxy_capture_.size())}});
+    }
+    bridge_->PushEvent("feed:append",{{"list",1},{"rows",std::move(rows)}});
+}
 void Host::AbortTargetInjection(WebBridge::Completion done,std::string error){
     if(!target_){QueueTargetResult(std::move(done),Json{},std::move(error));return;}
     target_->Detach([this,done=std::move(done),error=std::move(error)](bool ok,std::string detach_error) mutable {
@@ -1123,19 +1587,85 @@ void Host::RegisterTargetMethods(){
     bridge_->Register("getInjectStatus",[this](const Json&){return InjectStatus();});
     bridge_->Register("getInjectStats",[this](const Json&){return InjectStats();});
     bridge_->Register("getPacketDetail",[this](const Json& args){
-        // The injected Packet list is the only runtime capture table owned by
-        // this host.  Proxy-mode rows remain in their dedicated runtime and
-        // must not accidentally resolve against the same numeric Ids.
-        if(args.value("list",0)!=0)return Json(nullptr);
-        const auto* packet=FindPacket(args.value("id",static_cast<std::int64_t>(0)));
+        const auto id=args.value("id",static_cast<std::int64_t>(0));
+        const auto* packet=args.value("list",0)==0?FindPacket(id):FindProxyPacket(id);
         return packet?PacketDetail(*packet):Json(nullptr);
+    });
+    // The data worker owns the persistent send-list editor.  Runtime packet
+    // and proxy rows live in the host deques instead, so route those two lists
+    // here rather than returning the old "proxy/inject source is not wired"
+    // placeholder from data_edit.cpp.
+    const auto edit_id=[](const Json& args)->std::int64_t{
+        try{
+            if(args.contains("id")&&args.at("id").is_string())return std::stoll(args.at("id").get<std::string>());
+            return args.value("id",static_cast<std::int64_t>(0));
+        }catch(...){return 0;}
+    };
+    bridge_->RegisterAsync("openPacketEdit",[this,edit_id](const Json& args,WebBridge::Completion done){
+        const auto list=args.value("list",std::string("proxy"));
+        if(list=="send"){
+            data_->Submit("openPacketEdit",args,[done](Json value,std::string error) mutable {done(std::move(value),std::move(error));});
+            return;
+        }
+        const auto id=edit_id(args);
+        const auto* packet=list=="packet"?FindPacket(id):FindProxyPacket(id);
+        if(!packet){done(Json{{"Id",""},{"List",list}},{});return;}
+        const auto bytes=packet->modified?packet->modified:packet->raw;
+        done(Json{{"Id",std::to_string(packet->id)},
+                  {"List",list},
+                  {"Socket",packet->socket},
+                  {"Type",packet->packet_type},
+                  {"From",PacketText(packet->from)},
+                  {"To",PacketText(packet->to)},
+                  {"Buffer",Base64(bytes?std::span<const std::uint8_t>(*bytes):std::span<const std::uint8_t>())},
+                  {"CanSendBySession",false},
+                  {"SystemSocket",system_socket_}},{});
+    });
+    bridge_->RegisterAsync("savePacketEdit",[this,edit_id](const Json& args,WebBridge::Completion done){
+        const auto list=args.value("list",std::string("proxy"));
+        if(list=="send"){
+            data_->Submit("savePacketEdit",args,[done](Json value,std::string error) mutable {done(std::move(value),std::move(error));});
+            return;
+        }
+        const auto bytes=Unbase64(args.value("buffer",std::string{}));
+        if(bytes.empty()){done(Json{{"error","封包数据为空"}},{});return;}
+        const auto id=edit_id(args);
+        wpe::Packet* packet=nullptr;
+        ProxyCapture* proxy_capture=nullptr;
+        if(list=="packet")packet=FindPacketMutable(id);
+        else if(list=="proxy"){
+            proxy_capture=FindProxyCaptureMutable(id);
+            packet=proxy_capture?&proxy_capture->packet:nullptr;
+        }
+        if(!packet){done(Json{{"error","这条封包已经不在列表里了"}},{});return;}
+        packet->socket=args.value("socket",static_cast<std::int64_t>(0));
+        packet->modified=bytes;
+        if(packet->raw&&packet->modified&&*packet->raw==*packet->modified)packet->modified=packet->raw;
+        const auto row=list=="packet"?PacketRow(*packet):ProxyPacketRow(*proxy_capture);
+        if(bridge_)bridge_->PushEvent("feed:update",{{"list",list=="packet"?0:1},{"row",row}});
+        done(Json{{"error",""}},{});
     });
     bridge_->Register("setSelectedPacket",[](const Json&){return Json{{"ok",true}};});
     bridge_->Register("clearPackets",[this](const Json& args){
         if(args.value("list",0)==0)ClearCapturedPackets();
+        else ClearProxyPackets();
         return Json{{"ok",true}};
     });
-    const auto packet_for=[this](std::int64_t id)->const wpe::Packet*{return FindPacket(id);};
+    const auto packet_for=[this](std::int64_t id)->const wpe::Packet*{
+        if(const auto* packet=FindPacket(id))return packet;
+        return FindProxyPacket(id);
+    };
+    const auto packet_for_list=[this,packet_for](const Json& args)->const wpe::Packet*{
+        std::int64_t id=0;
+        try{
+            if(args.contains("id")&&args.at("id").is_string())id=std::stoll(args.at("id").get<std::string>());
+            else id=args.value("id",static_cast<std::int64_t>(0));
+        }catch(...){return nullptr;}
+        const auto list=args.value("list",std::string("proxy"));
+        if(list=="packet")return FindPacket(id);
+        if(list=="proxy")return FindProxyPacket(id);
+        return packet_for(id);
+    };
     const auto packet_text=[packet_for](const Json& args){std::string text;for(const auto& id:args.value("ids",Json::array()))if(id.is_number_integer()){if(const auto* p=packet_for(id.get<std::int64_t>())){const auto bytes=p->modified?p->modified:p->raw;text+=PacketHex(bytes,bytes?bytes->size():0);text+="\r\n";}}return text;};
     bridge_->Register("copyPacketHex",[packet_text](const Json& args){return Json{{"text",packet_text(args)}};});
     bridge_->Register("copyProxyHex",[packet_text](const Json& args){return Json{{"text",packet_text(args)}};});
@@ -1152,8 +1682,47 @@ void Host::RegisterTargetMethods(){
     bridge_->RegisterAsync("addProxyToWareHouse",[](const Json&,WebBridge::Completion done){done({{"count",0}},"代理列表没有可追加的运行时封包源");});
     bridge_->RegisterAsync("addPacketToFilter",[this,packet_for](const Json& args,WebBridge::Completion done){const auto* p=packet_for(args.value("id",static_cast<std::int64_t>(0)));if(!p){done({{"ok",false}},{});return;}const auto bytes=p->modified?p->modified:p->raw;data_->Submit("__appendPacketToFilter",{{"hex",PacketHex(bytes,bytes?bytes->size():0)}},[done](Json value,std::string error) mutable {done(error.empty()?Json{{"ok",value.value("ok",false)}}:Json{},std::move(error));});});
     bridge_->RegisterAsync("addProxyToFilter",[](const Json&,WebBridge::Completion done){done({{"ok",false}},"代理列表没有可追加的运行时封包源");});
-    const auto search_packets=[this,packet_for](const Json& args){const auto pattern=args.value("pattern",std::string{});const bool hex=args.value("isHex",false);const int from=std::max(0,args.value("from",0));const int from_pos=std::max(0,args.value("fromPos",0));std::vector<std::uint8_t> needle;for(const auto c:pattern){if(c==' '||c=='\t'||c=='\r'||c=='\n')continue;const auto v=(c>='0'&&c<='9')?c-'0':(c>='a'&&c<='f')?c-'a'+10:(c>='A'&&c<='F')?c-'A'+10:-1;if(v<0){needle.clear();break;}if(needle.empty()||false){} }if(hex){int high=-1;for(const auto c:pattern){if(c==' '||c=='\t'||c=='\r'||c=='\n')continue;const int v=(c>='0'&&c<='9')?c-'0':(c>='a'&&c<='f')?c-'a'+10:(c>='A'&&c<='F')?c-'A'+10:-1;if(v<0)return Json{{"Found",false},{"Error","十六进制搜索格式不正确"}};if(high<0)high=v;else{needle.push_back(static_cast<std::uint8_t>((high<<4)|v));high=-1;}}if(high>=0)return Json{{"Found",false},{"Error","十六进制搜索必须为偶数位"}};}for(std::size_t i=static_cast<std::size_t>(from);i<packet_capture_.size();++i){const auto* p=&packet_capture_[i];const auto bytes=p->modified?p->modified:p->raw;if(!bytes)continue;const auto start=i==static_cast<std::size_t>(from)?static_cast<std::size_t>(from_pos):0;if(hex){for(std::size_t pos=start;pos+needle.size()<=bytes->size();++pos)if(std::equal(needle.begin(),needle.end(),bytes->begin()+static_cast<std::ptrdiff_t>(pos)))return Json{{"Found",true},{"Id",p->id},{"Index",static_cast<int>(i)},{"Offset",static_cast<int>(pos)},{"Length",static_cast<int>(needle.size())},{"NextPos",static_cast<int>(pos+std::max<std::size_t>(1,needle.size()))},{"Error",nullptr}};}else{const auto text=PacketHex(bytes,bytes->size());const auto pos=text.find(pattern,start);if(pos!=std::string::npos)return Json{{"Found",true},{"Id",p->id},{"Index",static_cast<int>(i)},{"Offset",static_cast<int>(pos)},{"Length",static_cast<int>(pattern.size())},{"NextPos",static_cast<int>(pos+std::max<std::size_t>(1,pattern.size()))},{"Error",nullptr}};}}return Json{{"Found",false},{"Error",nullptr},{"NextPos",0}};};
-    bridge_->Register("searchPacketList",search_packets);bridge_->Register("searchProxyList",search_packets);
+    const auto search_packets=[this](const Json& args,bool proxy){
+        const auto pattern=args.value("pattern",std::string{});
+        const bool hex=args.value("isHex",false);
+        const int from=std::max(0,args.value("from",0));
+        const int from_pos=std::max(0,args.value("fromPos",0));
+        std::vector<std::uint8_t> needle;
+        if(hex){
+            int high=-1;
+            for(const auto c:pattern){
+                if(c==' '||c=='\t'||c=='\r'||c=='\n')continue;
+                const int v=(c>='0'&&c<='9')?c-'0':(c>='a'&&c<='f')?c-'a'+10:(c>='A'&&c<='F')?c-'A'+10:-1;
+                if(v<0)return Json{{"Found",false},{"Error","十六进制搜索格式不正确"}};
+                if(high<0)high=v;
+                else{needle.push_back(static_cast<std::uint8_t>((high<<4)|v));high=-1;}
+            }
+            if(high>=0)return Json{{"Found",false},{"Error","十六进制搜索必须为偶数位"}};
+            if(needle.empty())return Json{{"Found",false},{"Error","十六进制搜索内容为空"},{"NextPos",0}};
+        }
+        const auto size=proxy?proxy_capture_.size():packet_capture_.size();
+        const auto begin=std::min<std::size_t>(static_cast<std::size_t>(from),size);
+        for(std::size_t i=begin;i<size;++i){
+            const auto* p=proxy?&proxy_capture_[i].packet:&packet_capture_[i];
+            const auto bytes=p->modified?p->modified:p->raw;
+            if(!bytes)continue;
+            const auto start_pos=i==begin?static_cast<std::size_t>(std::max(0,from_pos)):0;
+            if(hex){
+                if(start_pos>bytes->size()||needle.size()>bytes->size())continue;
+                for(std::size_t pos=start_pos;pos+needle.size()<=bytes->size();++pos)
+                    if(std::equal(needle.begin(),needle.end(),bytes->begin()+static_cast<std::ptrdiff_t>(pos)))
+                        return Json{{"Found",true},{"Id",p->id},{"Index",static_cast<int>(i)},{"Offset",static_cast<int>(pos)},{"Length",static_cast<int>(needle.size())},{"NextPos",static_cast<int>(pos+std::max<std::size_t>(1,needle.size()))},{"Error",nullptr}};
+            }else{
+                const auto text=PacketHex(bytes,bytes->size());
+                const auto pos=text.find(pattern,start_pos);
+                if(pos!=std::string::npos)
+                    return Json{{"Found",true},{"Id",p->id},{"Index",static_cast<int>(i)},{"Offset",static_cast<int>(pos)},{"Length",static_cast<int>(pattern.size())},{"NextPos",static_cast<int>(pos+std::max<std::size_t>(1,pattern.size()))},{"Error",nullptr}};
+            }
+        }
+        return Json{{"Found",false},{"Error",nullptr},{"NextPos",0}};
+    };
+    bridge_->Register("searchPacketList",[search_packets](const Json& args){return search_packets(args,false);});
+    bridge_->Register("searchProxyList",[search_packets](const Json& args){return search_packets(args,true);});
      bridge_->RegisterAsync("injectAttach",[this](const Json& args,WebBridge::Completion done){
          try{const auto pid=args.value("pid",0);const auto method=args.value("method",0);const auto dll=HookDll();auto finish=[this,done=std::move(done)](bool ok,std::string error) mutable {if(!ok){QueueTargetResult(std::move(done),nullptr,std::move(error));return;}SyncTargetConfiguration([this,done=std::move(done)](Json,std::string error) mutable {if(!error.empty()){AbortTargetInjection(std::move(done),std::move(error));return;}auto value=InjectStatus();value["ok"]=true;QueueTargetResult(std::move(done),std::move(value),{});});};if(pid<1){const auto path=fs::path(Wide(args.value("path",std::string{})));const auto command=Wide(args.value("args",std::string{}));RememberInjection(0,path,std::to_string(method),command);target_->AttachLaunched(path,command,dll,std::move(finish));}else{RememberInjection(static_cast<DWORD>(pid),{},std::to_string(method),{});target_->AttachPid(static_cast<DWORD>(pid),dll,std::move(finish));}}
         catch(const std::exception& e){done(nullptr,e.what());}
@@ -1207,15 +1776,29 @@ void Host::RegisterTargetMethods(){
     });
     bridge_->RegisterAsync("stopPacketSend",[this](const Json&,WebBridge::Completion done){packet_send_running_=false;{std::lock_guard lock(send_progress_mutex_);send_progress_["Running"]=false;}done({{"ok",true}},{});});
     bridge_->RegisterAsync("getPacketSendProgress",[this](const Json&,WebBridge::Completion done){std::lock_guard lock(send_progress_mutex_);done(send_progress_,{});});
-    bridge_->RegisterAsync("packetEditToSend",[this,packet_for](const Json& args,WebBridge::Completion done){
+    bridge_->RegisterAsync("packetEditToSend",[this,packet_for_list](const Json& args,WebBridge::Completion done){
         const auto bytes=Unbase64(args.value("buffer",std::string{}));if(bytes.empty()){done({{"ok",false}},"封包内容为空");return;}
         Json request={{"sid",args.value("sid",std::string{})},{"socket",args.value("socket",0)},{"type",args.value("type",0)},{"from",args.value("from",std::string{})},{"to",args.value("to",std::string{})},{"buffer",args.value("buffer",std::string{})}};
-        if(const auto* packet=packet_for(args.value("id",static_cast<std::int64_t>(0)))){request["socket"]=packet->socket;request["type"]=packet->packet_type;request["from"]=PacketText(packet->from);request["to"]=PacketText(packet->to);}
+        if(const auto* packet=packet_for_list(args)){request["socket"]=packet->socket;request["type"]=packet->packet_type;request["from"]=PacketText(packet->from);request["to"]=PacketText(packet->to);}
         data_->Submit("__appendPacketToSend",request,[done](Json v,std::string e) mutable {done(e.empty()?Json{{"ok",v.value("count",0)>0}}:Json{},std::move(e));});
     });
     bridge_->RegisterAsync("packetEditToFilter",[this](const Json& args,WebBridge::Completion done){const auto bytes=Unbase64(args.value("buffer",std::string{}));if(bytes.empty()){done({{"ok",false}},"封包内容为空");return;}data_->Submit("__appendPacketToFilter",{{"hex",PacketHex(wpe::Bytes{bytes},bytes.size())}},[done](Json v,std::string e) mutable {done(e.empty()?Json{{"ok",v.value("ok",false)}}:Json{},std::move(e));});});
     bridge_->RegisterAsync("startProxy",[this](const Json&,WebBridge::Completion done){
-        if(!proxy_||!http_proxy_){done(nullptr,"代理运行时未初始化");return;}
+        auto finish=[this,done=std::move(done)](Json value,std::string error) mutable {
+            if(!error.empty()){
+                AppendSystemLog("Proxy", "代理启动失败: "+error);
+                AppendProxyLog("系统", proxy_display_host_, "代理启动失败: "+error);
+            }else if(value.is_object()&&value.value("running",false)){
+                const auto socks=value.value("socks5Addr",std::string{}),http=value.value("httpAddr",std::string{});
+                std::string content="代理已启动";
+                if(!socks.empty())content+="；SOCKS5 "+socks;
+                if(!http.empty())content+="；HTTP "+http;
+                AppendSystemLog("Proxy",content);
+                AppendProxyLog("系统",proxy_display_host_,content);
+            }
+            done(std::move(value),std::move(error));
+        };
+        if(!proxy_||!http_proxy_){finish(nullptr,"代理运行时未初始化");return;}
         const auto socks_stats=proxy_->Stats();
         const auto http_stats=http_proxy_->Stats();
         if(socks_stats.running||http_stats.running){
@@ -1223,27 +1806,32 @@ void Host::RegisterTargetMethods(){
                 if(port==0)return std::string{};
                 return (proxy_display_host_.find(':')==proxy_display_host_.npos?proxy_display_host_:"["+proxy_display_host_+"]")+":"+std::to_string(port);
             };
-            done({{"ok",true},{"running",true},
+            finish({{"ok",true},{"running",true},
                   {"socks5Addr",address(socks_stats.port)},
                   {"httpAddr",address(http_stats.port)}},{});
             return;
         }
-        data_->Submit("__proxyRuntimeConfiguration",Json::object(),[this,done=std::move(done)](Json config,std::string error) mutable {
-            if(!error.empty()){done(nullptr,std::move(error));return;}
+        data_->Submit("__proxyRuntimeConfiguration",Json::object(),[this,finish=std::move(finish)](Json config,std::string error) mutable {
+            if(!error.empty()){finish(nullptr,std::move(error));return;}
             Json result;std::string apply_error;
             try{
-                if(!ApplyProxyRuntimeConfiguration(config,true,result,apply_error)){done(nullptr,std::move(apply_error));return;}
-                done(std::move(result),{});
+                if(!ApplyProxyRuntimeConfiguration(config,true,result,apply_error)){finish(nullptr,std::move(apply_error));return;}
+                finish(std::move(result),{});
             }catch(const std::exception& exception){
-                if(proxy_&&proxy_->Running())proxy_->Stop();if(http_proxy_&&http_proxy_->Running())http_proxy_->Stop();done(nullptr,exception.what());
+                if(proxy_&&proxy_->Running())proxy_->Stop();if(http_proxy_&&http_proxy_->Running())http_proxy_->Stop();finish(nullptr,exception.what());
             }
         });
     });
     bridge_->RegisterAsync("stopProxy",[this](const Json&,WebBridge::Completion done){
+        const bool was_running=(http_proxy_&&http_proxy_->Running())||(proxy_&&proxy_->Running());
         if(http_proxy_)http_proxy_->Stop();
         if(proxy_)proxy_->Stop();
         proxy_display_host_="127.0.0.1";
         if(bridge_)bridge_->PushEvent("proxy:state",{{"running",false},{"socks5Addr",""},{"httpAddr",""}});
+        if(was_running){
+            AppendSystemLog("Proxy","代理已停止");
+            AppendProxyLog("系统",proxy_display_host_,"代理已停止");
+        }
         done({{"ok",true},{"running",false}},{});
     });
     bridge_->Register("getStats",[this](const Json&){
@@ -1253,7 +1841,10 @@ void Host::RegisterTargetMethods(){
             {"totalRequest",0},{"totalResponse",0},{"speedUp",0},{"speedDown",0},
             {"mappingHits",0},{"mappingMisses",0},{"mappingErrors",0},
             {"wpcProxyControl",0},{"wpcProxyDevices",0},{"wpcProxyRegisters",0},
-            {"wpcProxyPings",0},{"wpcProxyErrors",0}};
+            {"wpcProxyPings",0},{"wpcProxyErrors",0},
+            {"filterEvidence",Json{{"seen",0},{"headerMatches",0},{"typeMatches",0},
+                {"allowed",0},{"dropped",0},{"tcpReq",0},{"tcpResp",0},
+                {"udpReq",0},{"udpResp",0},{"other",0}}}};
         if(target_stats_.is_object())value.update(target_stats_);
         const auto socks=proxy_?proxy_->Stats():wpe::shell::Socks5Stats{};
         const auto http=http_proxy_?http_proxy_->Stats():wpe::shell::Socks5Stats{};
@@ -1279,6 +1870,19 @@ void Host::RegisterTargetMethods(){
         value["wpcProxyRegisters"]=static_cast<std::int64_t>(socks.wpc_registers);
         value["wpcProxyPings"]=static_cast<std::int64_t>(socks.wpc_pings);
         value["wpcProxyErrors"]=static_cast<std::int64_t>(socks.wpc_errors);
+        value["filterProxy"]=static_cast<std::int64_t>(proxy_filter_dropped_.load(std::memory_order_relaxed));
+        value["filterEvidence"]={
+            {"seen",static_cast<std::int64_t>(proxy_filter_diagnostics_.seen.load(std::memory_order_relaxed))},
+            {"headerMatches",static_cast<std::int64_t>(proxy_filter_diagnostics_.header_matches.load(std::memory_order_relaxed))},
+            {"typeMatches",static_cast<std::int64_t>(proxy_filter_diagnostics_.type_matches.load(std::memory_order_relaxed))},
+            {"allowed",static_cast<std::int64_t>(proxy_filter_diagnostics_.allowed.load(std::memory_order_relaxed))},
+            {"dropped",static_cast<std::int64_t>(proxy_filter_dropped_.load(std::memory_order_relaxed))},
+            {"tcpReq",static_cast<std::int64_t>(proxy_filter_diagnostics_.tcp_requests.load(std::memory_order_relaxed))},
+            {"tcpResp",static_cast<std::int64_t>(proxy_filter_diagnostics_.tcp_responses.load(std::memory_order_relaxed))},
+            {"udpReq",static_cast<std::int64_t>(proxy_filter_diagnostics_.udp_requests.load(std::memory_order_relaxed))},
+            {"udpResp",static_cast<std::int64_t>(proxy_filter_diagnostics_.udp_responses.load(std::memory_order_relaxed))},
+            {"other",static_cast<std::int64_t>(proxy_filter_diagnostics_.other.load(std::memory_order_relaxed))}
+        };
         const auto wpc=wpc_?wpc_->Stats():wpe::shell::WpcStats{};
         value["wpcRunning"]=wpc.running;
         value["wpcConn"]=static_cast<std::int64_t>(wpc.active);

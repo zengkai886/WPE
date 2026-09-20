@@ -12,6 +12,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { call } from '../../bridge'
 import { t } from '../../i18n'
 import { httpAddr, proxyRunning, socks5Addr } from '../../stores/runtime'
+import { pushToast } from '../../stores/toast'
 // 设置清单与 SettingKey 在独立模块里 —— <script setup> 不能写 export
 import { SETTINGS, type SettingKey } from './settings'
 import ContextMenu from '../ContextMenu.vue'
@@ -92,10 +93,21 @@ async function toggle(): Promise<void> {
   busy.value = true
   try {
     const r = await call<any>(proxyRunning.value ? 'stopProxy' : 'startProxy')
+    if (r?.ok === false) {
+      const message = String(r?.error || '代理操作失败')
+      pushToast('error', message)
+      return
+    }
     proxyRunning.value = !!r?.running
-    if (r?.socks5Addr) socks5Addr.value = r.socks5Addr
+    socks5Addr.value = r?.socks5Addr || ''
+    httpAddr.value = r?.httpAddr || ''
   } catch (e) {
     console.error('[proxy] 启停失败', e)
+    // The native bridge rejects failed RPCs.  The old handler only wrote to
+    // DevTools, which made the button look dead on a server without a valid
+    // bind address, available account, or free port.  Surface the exact
+    // native error in the same toast stack used by the rest of the UI.
+    pushToast('error', String((e as Error)?.message || e))
   } finally {
     busy.value = false
   }

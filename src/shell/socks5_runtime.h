@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <functional>
 #include <mutex>
 #include <limits>
 #include <string>
@@ -33,6 +34,48 @@ struct WpcDeviceInfo {
     std::string os;
 };
 
+// A proxy relay emits a small, ownership-safe copy of each forwarded chunk.
+// The native host consumes it on its UI thread and turns it into a ProxyRow;
+// the runtime never calls WebView2 directly from a Winsock worker thread.
+struct ProxyPacket {
+    std::uintptr_t socket{};
+    std::uint8_t packet_type{};
+    std::uint8_t domain_type{};
+    std::string client_addr;
+    std::string server_addr;
+    std::string server_domain;
+    std::vector<std::uint8_t> bytes;
+};
+using ProxyPacketCallback = std::function<void(ProxyPacket)>;
+
+// Authentication/session lifecycle emitted by the native listener.  The
+// callback carries only copied strings so a Winsock worker never touches the
+// WebView or a host-owned socket.  The host aggregates these events into the
+// Auth/Client feed (the same activity list the original WinForms client used).
+struct ProxyClientEvent {
+    bool connected{};
+    std::string session_id;
+    std::string account_key;
+    std::string client_ip;
+    std::string device_id;
+    std::string client;
+    std::string auth_time;
+};
+using ProxyClientCallback = std::function<void(ProxyClientEvent)>;
+
+struct ProxyConnectionEvent {
+    bool connected{};
+    std::string session_id;
+    std::string client_ip;
+    int client_port{};
+    std::string target;
+    std::uint8_t domain_type{};
+    std::string server_address;
+    bool udp{};
+    bool wpc{};
+};
+using ProxyConnectionCallback = std::function<void(ProxyConnectionEvent)>;
+
 struct Socks5Config {
     std::string bind_address{"127.0.0.1"};
     std::uint16_t port{};
@@ -45,6 +88,9 @@ struct Socks5Config {
     // expired account.  The ordinary credential vector remains the fast
     // path for regular SOCKS5 authentication.
     std::vector<Socks5Credential> wpc_accounts;
+    ProxyPacketCallback on_packet;
+    ProxyClientCallback on_client;
+    ProxyConnectionCallback on_connection;
 };
 
 struct Socks5Stats {
@@ -88,12 +134,20 @@ public:
     void Stop();
     [[nodiscard]] Socks5Stats Stats() const noexcept;
     [[nodiscard]] bool Running() const noexcept;
+    // Returns the account keys that currently have an authenticated SOCKS5
+    // session (or a registered WPC control session).  This is deliberately a
+    // separate snapshot from the traffic counters: account-list presence is
+    // a UI concern and must not change the existing Stats ABI.
+    [[nodiscard]] std::vector<std::string> OnlineAccounts() const;
 
 private:
     enum class AuthMode { Failed, Username, WpcControl };
     struct SessionIdentity {
         bool via_wpc{};
         WpcDeviceInfo device;
+        // Username for ordinary proxy authentication; account GUID for a
+        // WPC token.  The data worker accepts either key when updating rows.
+        std::string account_key;
     };
 
     void AcceptLoop();
@@ -109,9 +163,14 @@ private:
     static bool AccountExpired(const Socks5Credential& account);
     static std::string NewWpcToken();
     static bool SendWpcFrame(std::uintptr_t client, std::uint8_t type, const std::string& payload);
+    void MarkAccountOnline(const std::string& account_key);
+    void MarkAccountOffline(const std::string& account_key);
     bool ConnectRequest(std::uintptr_t client, std::uintptr_t& remote);
     bool RelayUdp(std::uintptr_t client, std::uintptr_t udp_socket);
     void Relay(std::uintptr_t client, std::uintptr_t remote);
+    void EmitPacket(ProxyPacket packet) const;
+    void EmitClient(ProxyClientEvent event) const;
+    void EmitConnection(ProxyConnectionEvent event) const;
     static void Close(std::uintptr_t socket) noexcept;
 
     mutable std::mutex lifecycle_;
@@ -122,9 +181,11 @@ private:
     std::vector<std::thread> clients_;
     Socks5Config config_;
     mutable std::mutex wpc_mutex_;
+    mutable std::mutex account_mutex_;
     std::unordered_map<std::string, WpcDeviceInfo> wpc_devices_;
     std::unordered_map<std::string, std::string> wpc_account_devices_;
     std::unordered_map<std::string, std::uintptr_t> wpc_controls_;
+    std::unordered_map<std::string, std::size_t> online_accounts_;
     std::atomic<std::uint16_t> port_{0};
     std::atomic<std::uint64_t> accepted_{0};
     std::atomic<std::uint64_t> completed_{0};

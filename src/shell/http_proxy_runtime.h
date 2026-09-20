@@ -42,6 +42,9 @@ struct HttpProxyConfig {
     };
     std::vector<LocalMapRule> local_maps;
     std::vector<RemoteMapRule> remote_maps;
+    ProxyPacketCallback on_packet;
+    ProxyClientCallback on_client;
+    ProxyConnectionCallback on_connection;
 };
 
 // HTTP forward proxy runtime.  It supports ordinary absolute-form HTTP
@@ -58,14 +61,20 @@ public:
     void Stop();
     [[nodiscard]] Socks5Stats Stats() const noexcept;
     [[nodiscard]] bool Running() const noexcept;
+    [[nodiscard]] std::vector<std::string> OnlineAccounts() const;
 
 private:
     void AcceptLoop();
     void Client(std::uintptr_t client);
-    bool HandleRequest(std::uintptr_t client, std::uintptr_t& remote);
+    bool HandleRequest(std::uintptr_t client, std::uintptr_t& remote, std::string& account_key, bool& connection_emitted);
     bool ConnectTarget(const std::string& host, std::uint16_t port, std::uintptr_t& remote);
-    void Relay(std::uintptr_t client, std::uintptr_t remote);
+    void Relay(std::uintptr_t client, std::uintptr_t remote, const std::string& server_domain = {}, std::uint8_t domain_type = 1);
+    void EmitPacket(ProxyPacket packet) const;
+    void EmitClient(ProxyClientEvent event) const;
+    void EmitConnection(ProxyConnectionEvent event) const;
     static void Close(std::uintptr_t socket) noexcept;
+    void MarkAccountOnline(const std::string& account_key);
+    void MarkAccountOffline(const std::string& account_key);
 
     mutable std::mutex lifecycle_;
     std::atomic<bool> stopping_{false};
@@ -74,6 +83,8 @@ private:
     std::thread accept_thread_;
     std::vector<std::thread> clients_;
     HttpProxyConfig config_;
+    mutable std::mutex account_mutex_;
+    std::unordered_map<std::string, std::size_t> online_accounts_;
     std::atomic<std::uint16_t> port_{0};
     std::atomic<std::uint64_t> accepted_{0};
     std::atomic<std::uint64_t> completed_{0};

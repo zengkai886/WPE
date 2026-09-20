@@ -1,13 +1,11 @@
-WPE-陈北玄 2.3.0
+WPE-陈北玄 2.3.0 集成环境版
 
-bin\wpe64-app.exe       x64 主程序（已内置 KK.png 图标）
-bin\wpe64-hook.dll      x64 注入模块
-bin\wpe64-hook-x86.dll  x86 注入模块
-bin\wpe64-x86-helper.exe x86 辅助程序
-bin\wwwroot\            前端资源
-source\                  与本次编译对应的源码快照
+启动方式：双击 bin\wpe-launch.cmd，或直接运行 WPE-陈北玄-2.3.0-集成环境.exe。
 
-启动：优先运行 bin\wpe-launch.cmd；它会把数据库和 WebView2 用户数据放到当前用户可写的 `%LOCALAPPDATA%\WPE64\2.3.0`。
-也可以直接运行 bin\wpe64-app.exe，并追加：--data-dir <目录>。
-程序启动前会检查 wwwroot、WebView2 Runtime 和数据目录写权限；缺失时会弹出明确错误，不再静默显示空白窗口。
-WebView2 Runtime 仍需由系统安装或预先部署。
+集成内容：
+- WPE 主程序、前端资源、Hook DLL 和 x86 Helper
+- WebView2 自动安装引导程序
+- WebView2 缺失时会提示 UAC 并安装 Evergreen Runtime；安装完成后自动启动 WPE
+- 使用 %LOCALAPPDATA%\WPE64\2.3.0 作为可写数据目录
+
+说明：WebView2 引导安装器需要服务器能够访问 Microsoft 下载服务；如果服务器完全离线，请使用微软官方 Evergreen Standalone Installer x64 替换同名安装器。

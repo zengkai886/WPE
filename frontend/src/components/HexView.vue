@@ -639,10 +639,17 @@ defineExpose({ cur, nib, col, insertMode, hasSel, selCount, per, selectAll, sele
 .c { display: inline-block; width: 1ch; }
 
 /*
-  与对比份不同的字节：琥珀而不是红 —— 红在这套皮肤里是「拦截 / 出错」，这里只是"这一位被动过"。
-  底色只有 20%：密排的等宽字上实心底会连成色块，看不出边界。
+  与对比份不同的字节：用琥珀底纹而不是红 —— 红在这套皮肤里是「拦截 / 出错」，
+  这里只是「这一位被动过」。密排的等宽字不再使用琥珀前景，避免整包改写时
+  连成一片看不清。
 */
-.b.d, .c.d { color: #f9d86f; background: rgb(var(--amber-rgb) / 20%); }
+/*
+  差异仍保留琥珀色底纹，但正文不能整片变成橙色：代理包常常是整段被
+  改写，旧的琥珀前景会把几十行字压成一片低对比度色块。正文回到正常
+  灰阶，琥珀只作为低透明度背景提示「这一位与另一份不同」，这样既能
+  看清字节，也不会丢掉改写前/后的差异语义。
+*/
+.b.d, .c.d { color: var(--gray); background: rgb(var(--amber-rgb) / 12%); }
 
 .b.sel, .c.sel { background: rgb(var(--cyan-rgb) / 18%); color: var(--gray); }
 

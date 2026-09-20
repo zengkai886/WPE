@@ -22,6 +22,40 @@ constexpr std::uintptr_t invalid_socket = std::numeric_limits<std::uintptr_t>::m
 SOCKET AsSocket(std::uintptr_t value) noexcept { return static_cast<SOCKET>(value); }
 std::uintptr_t AsHandle(SOCKET value) noexcept { return static_cast<std::uintptr_t>(value); }
 
+std::string EndpointText(SOCKET socket) {
+    sockaddr_storage address{};
+    int length = sizeof(address);
+    if (getpeername(socket, reinterpret_cast<sockaddr*>(&address), &length) != 0) return {};
+    char host[NI_MAXHOST]{};
+    char service[NI_MAXSERV]{};
+    if (getnameinfo(reinterpret_cast<const sockaddr*>(&address), length, host, sizeof(host), service, sizeof(service),
+                    NI_NUMERICHOST | NI_NUMERICSERV) != 0) return {};
+    std::string result = host;
+    if (address.ss_family == AF_INET6) result = "[" + result + "]";
+    result += ":";
+    result += service;
+    return result;
+}
+
+std::string EndpointHost(SOCKET socket) {
+    sockaddr_storage address{};
+    int length = sizeof(address);
+    if (getpeername(socket, reinterpret_cast<sockaddr*>(&address), &length) != 0) return {};
+    char host[NI_MAXHOST]{};
+    if (getnameinfo(reinterpret_cast<const sockaddr*>(&address), length, host, sizeof(host), nullptr, 0,
+                    NI_NUMERICHOST) != 0) return {};
+    return host;
+}
+
+int EndpointPort(SOCKET socket) {
+    sockaddr_storage address{};
+    int length = sizeof(address);
+    if (getpeername(socket, reinterpret_cast<sockaddr*>(&address), &length) != 0) return 0;
+    if (address.ss_family == AF_INET) return ntohs(reinterpret_cast<const sockaddr_in*>(&address)->sin_port);
+    if (address.ss_family == AF_INET6) return ntohs(reinterpret_cast<const sockaddr_in6*>(&address)->sin6_port);
+    return 0;
+}
+
 bool SendAll(SOCKET socket, const std::uint8_t* data, std::size_t size) {
     while (size != 0) {
         const auto chunk = static_cast<int>(std::min<std::size_t>(size, 64 * 1024));
@@ -297,6 +331,10 @@ bool HttpProxyRuntime::Start(HttpProxyConfig config, std::string& error) {
     port_ = actual_port;
     accepted_ = completed_ = active_ = requests_ = responses_ = bytes_up_ = bytes_down_ = errors_ = 0;
     map_hits_ = map_misses_ = map_errors_ = 0;
+    {
+        std::lock_guard account_lock(account_mutex_);
+        online_accounts_.clear();
+    }
     stopping_ = false;
     listener_.store(AsHandle(socket), std::memory_order_release);
     running_ = true;
@@ -329,6 +367,10 @@ void HttpProxyRuntime::Stop() {
     clients_.clear();
     running_ = false;
     port_ = 0;
+    {
+        std::lock_guard account_lock(account_mutex_);
+        online_accounts_.clear();
+    }
     if (winsock_started_) {
         WSACleanup();
         winsock_started_ = false;
@@ -346,6 +388,45 @@ Socks5Stats HttpProxyRuntime::Stats() const noexcept {
 }
 
 bool HttpProxyRuntime::Running() const noexcept { return running_.load(std::memory_order_acquire); }
+
+void HttpProxyRuntime::EmitPacket(ProxyPacket packet) const {
+    if (!config_.on_packet || packet.bytes.empty()) return;
+    try { config_.on_packet(std::move(packet)); } catch (...) { /* UI delivery is best effort. */ }
+}
+
+void HttpProxyRuntime::EmitClient(ProxyClientEvent event) const {
+    if (!config_.on_client || event.session_id.empty()) return;
+    try { config_.on_client(std::move(event)); } catch (...) { /* UI delivery is best effort. */ }
+}
+
+void HttpProxyRuntime::EmitConnection(ProxyConnectionEvent event) const {
+    if (!config_.on_connection || event.session_id.empty()) return;
+    try { config_.on_connection(std::move(event)); } catch (...) { /* UI delivery is best effort. */ }
+}
+
+std::vector<std::string> HttpProxyRuntime::OnlineAccounts() const {
+    std::vector<std::string> result;
+    std::lock_guard lock(account_mutex_);
+    result.reserve(online_accounts_.size());
+    for (const auto& [account, count] : online_accounts_)
+        if (count != 0) result.push_back(account);
+    return result;
+}
+
+void HttpProxyRuntime::MarkAccountOnline(const std::string& account_key) {
+    if (account_key.empty()) return;
+    std::lock_guard lock(account_mutex_);
+    ++online_accounts_[account_key];
+}
+
+void HttpProxyRuntime::MarkAccountOffline(const std::string& account_key) {
+    if (account_key.empty()) return;
+    std::lock_guard lock(account_mutex_);
+    const auto found = online_accounts_.find(account_key);
+    if (found == online_accounts_.end()) return;
+    if (found->second <= 1) online_accounts_.erase(found);
+    else --found->second;
+}
 
 void HttpProxyRuntime::AcceptLoop() {
     while (!stopping_.load(std::memory_order_acquire)) {
@@ -402,7 +483,8 @@ bool HttpProxyRuntime::ConnectTarget(const std::string& host, std::uint16_t port
     return true;
 }
 
-bool HttpProxyRuntime::HandleRequest(std::uintptr_t client, std::uintptr_t& remote) {
+bool HttpProxyRuntime::HandleRequest(std::uintptr_t client, std::uintptr_t& remote, std::string& account_key,
+                                     bool& connection_emitted) {
     const SOCKET socket = AsSocket(client);
     std::string input;
     std::size_t header_end = std::string::npos;
@@ -438,11 +520,12 @@ bool HttpProxyRuntime::HandleRequest(std::uintptr_t client, std::uintptr_t& remo
     if (config_.require_auth) {
         const auto authorization = HeaderValue(headers, "Proxy-Authorization");
         const auto scheme_end = authorization.find(' ');
+        std::size_t separator = std::string::npos;
         std::string decoded;
         bool valid = scheme_end != std::string::npos && Lower(authorization.substr(0, scheme_end)) == "basic" &&
                      DecodeBase64(Trim(authorization.substr(scheme_end + 1)), decoded);
         if (valid) {
-            const auto separator = decoded.find(':');
+            separator = decoded.find(':');
             valid = separator != std::string::npos && std::any_of(config_.credentials.begin(), config_.credentials.end(), [&](const Socks5Credential& credential) {
                 return credential.user == decoded.substr(0, separator) && credential.password == decoded.substr(separator + 1);
             });
@@ -452,6 +535,10 @@ bool HttpProxyRuntime::HandleRequest(std::uintptr_t client, std::uintptr_t& remo
             SendAll(socket, reinterpret_cast<const std::uint8_t*>(response.data()), response.size());
             return false;
         }
+        account_key = decoded.substr(0, separator);
+        MarkAccountOnline(account_key);
+        EmitClient({true, std::to_string(static_cast<std::uint64_t>(client)), account_key,
+                    EndpointHost(socket), {}, "HTTP", {}});
     }
 
     const auto is_connect = Lower(method) == "connect";
@@ -537,6 +624,13 @@ bool HttpProxyRuntime::HandleRequest(std::uintptr_t client, std::uintptr_t& remo
             responses_.fetch_add(1, std::memory_order_relaxed);
             bytes_up_.fetch_add(pending.size(), std::memory_order_relaxed);
             bytes_down_.fetch_add(response.size() + body.size(), std::memory_order_relaxed);
+            std::vector<std::uint8_t> request(header_text.begin(), header_text.end());
+            request.insert(request.end(), {'\r', '\n', '\r', '\n'});
+            request.insert(request.end(), pending.begin(), pending.end());
+            EmitPacket({client, 17, 1, EndpointText(socket), {}, host, std::move(request)});
+            std::vector<std::uint8_t> response_bytes(response.begin(), response.end());
+            response_bytes.insert(response_bytes.end(), body.begin(), body.end());
+            EmitPacket({client, 18, 1, EndpointText(socket), {}, host, std::move(response_bytes)});
             return true;
         }
 
@@ -579,7 +673,15 @@ bool HttpProxyRuntime::HandleRequest(std::uintptr_t client, std::uintptr_t& remo
             if (!SendAll(AsSocket(remote), reinterpret_cast<const std::uint8_t*>(pending.data()), pending.size())) return false;
             bytes_up_.fetch_add(pending.size(), std::memory_order_relaxed);
         }
-        Relay(client, remote);
+        if (!pending.empty()) {
+            EmitPacket({client, 13, 2, EndpointText(socket), EndpointText(AsSocket(remote)), host,
+                        std::vector<std::uint8_t>(pending.begin(), pending.end())});
+        }
+        const auto session_id = std::to_string(static_cast<std::uint64_t>(client));
+        EmitConnection({true, session_id, EndpointHost(socket), EndpointPort(socket),
+                        host + ":" + std::to_string(port), 2, EndpointText(AsSocket(remote)), false, false});
+        connection_emitted = true;
+        Relay(client, remote, host, 2);
         return true;
     }
 
@@ -607,16 +709,27 @@ bool HttpProxyRuntime::HandleRequest(std::uintptr_t client, std::uintptr_t& remo
     forwarded += "Connection: close\r\n\r\n";
     if (!SendAll(AsSocket(remote), reinterpret_cast<const std::uint8_t*>(forwarded.data()), forwarded.size())) return false;
     requests_.fetch_add(1, std::memory_order_relaxed);
+    {
+        std::vector<std::uint8_t> request(forwarded.begin(), forwarded.end());
+        request.insert(request.end(), pending.begin(), pending.end());
+        EmitPacket({client, 17, 1, EndpointText(socket), EndpointText(AsSocket(remote)), host, std::move(request)});
+    }
     if (!pending.empty()) {
         if (!SendAll(AsSocket(remote), reinterpret_cast<const std::uint8_t*>(pending.data()), pending.size())) return false;
         bytes_up_.fetch_add(pending.size(), std::memory_order_relaxed);
     }
-    Relay(client, remote);
+    const auto session_id = std::to_string(static_cast<std::uint64_t>(client));
+    EmitConnection({true, session_id, EndpointHost(socket), EndpointPort(socket),
+                    host + ":" + std::to_string(port), 1, EndpointText(AsSocket(remote)), false, false});
+    connection_emitted = true;
+    Relay(client, remote, host, 1);
     return true;
 }
 
-void HttpProxyRuntime::Relay(std::uintptr_t client, std::uintptr_t remote) {
+void HttpProxyRuntime::Relay(std::uintptr_t client, std::uintptr_t remote, const std::string& server_domain, std::uint8_t domain_type) {
     const SOCKET left = AsSocket(client), right = AsSocket(remote);
+    const auto client_addr = EndpointText(left);
+    const auto server_addr = EndpointText(right);
     std::array<std::uint8_t, 64 * 1024> buffer{};
     while (!stopping_.load(std::memory_order_acquire)) {
         fd_set read{};
@@ -632,12 +745,16 @@ void HttpProxyRuntime::Relay(std::uintptr_t client, std::uintptr_t remote) {
             const auto count = recv(left, reinterpret_cast<char*>(buffer.data()), static_cast<int>(buffer.size()), 0);
             if (count <= 0 || !SendAll(right, buffer.data(), static_cast<std::size_t>(count))) break;
             bytes_up_.fetch_add(static_cast<std::uint64_t>(count), std::memory_order_relaxed);
+            EmitPacket({client, static_cast<std::uint8_t>(domain_type == 2 ? 19 : 17), domain_type, client_addr, server_addr, server_domain,
+                        std::vector<std::uint8_t>(buffer.begin(), buffer.begin() + count)});
         }
         if (FD_ISSET(right, &read)) {
             const auto count = recv(right, reinterpret_cast<char*>(buffer.data()), static_cast<int>(buffer.size()), 0);
             if (count <= 0 || !SendAll(left, buffer.data(), static_cast<std::size_t>(count))) break;
             bytes_down_.fetch_add(static_cast<std::uint64_t>(count), std::memory_order_relaxed);
             responses_.fetch_add(1, std::memory_order_relaxed);
+            EmitPacket({client, static_cast<std::uint8_t>(domain_type == 2 ? 20 : 18), domain_type, client_addr, server_addr, server_domain,
+                        std::vector<std::uint8_t>(buffer.begin(), buffer.begin() + count)});
         }
     }
 }
@@ -648,8 +765,16 @@ void HttpProxyRuntime::Client(std::uintptr_t client) {
     setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&timeout), sizeof(timeout));
     setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&timeout), sizeof(timeout));
     bool success = false;
+    bool connection_emitted = false;
+    std::string account_key;
     std::uintptr_t remote = invalid_socket;
-    try { success = HandleRequest(client, remote); } catch (...) {}
+    try { success = HandleRequest(client, remote, account_key, connection_emitted); } catch (...) {}
+    if (connection_emitted)
+        EmitConnection({false, std::to_string(static_cast<std::uint64_t>(client)), EndpointHost(socket),
+                        EndpointPort(socket), {}, 0, {}, false, false});
+    if (!account_key.empty())
+        EmitClient({false, std::to_string(static_cast<std::uint64_t>(client)), account_key,
+                    EndpointHost(socket), {}, "HTTP", {}});
     if (remote != invalid_socket) {
         shutdown(AsSocket(remote), SD_BOTH);
         Close(remote);
@@ -657,6 +782,7 @@ void HttpProxyRuntime::Client(std::uintptr_t client) {
     shutdown(socket, SD_BOTH);
     Close(client);
     if (!success) errors_.fetch_add(1, std::memory_order_relaxed);
+    MarkAccountOffline(account_key);
     active_.fetch_sub(1, std::memory_order_relaxed);
     completed_.fetch_add(1, std::memory_order_relaxed);
 }

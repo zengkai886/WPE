@@ -65,12 +65,32 @@ int main(int argc,char** argv){
                 const auto merged=Call(service,"getLeachSetting");
                 Require(merged["send"]==true&&merged["recv"]==true&&merged["wsaSend"]==true&&merged["tcpReq"]==false&&merged["tcpResp"]==true,
                         "capture filter mode fields were not preserved");
+                auto header_only=merged;
+                header_only["notShow"]=false;header_only["checkSocket"]=false;header_only["checkIP"]=false;
+                header_only["checkPort"]=false;header_only["checkHead"]=true;header_only["headValue"]="01 00 00";
+                header_only["checkData"]=false;header_only["checkLen"]=false;header_only["checkType"]=false;
+                Require(Call(service,"saveLeachSetting",header_only)["ok"]==true,"header-only capture filter save");
+                const auto header_saved=Call(service,"getLeachSetting");
+                Require(header_saved["checkHead"]==true&&header_saved["checkType"]==false&&
+                        header_saved["headValue"]=="01 00 00","header-only capture filter was widened");
+                Require(Call(service,"saveLeachSetting",merged)["ok"]==true,"capture filter restore");
             }
             Call(service,"enterProxyMode");Require(feeds[8].empty(),"fresh filter list");Require(Call(service,"getStats")["proxyRunning"]==false,"proxy falsely running");
             Require(feeds.contains(5)&&feeds[5].empty(),"fresh account feed");
             Require(Call(service,"saveAccount",{{"userName"," 账号持久化 "},{"password"," P@ss'中 "},{"isEnable",true},{"isLimitLinks",true},{"limitLinks",3},{"isLimitDevices",false},{"limitDevices",7},{"isExpiry",true},{"expiryTime","2030-01-02 03:04:05"}})["ok"]==true,"account save");
             Require(feeds[5].size()==1&&!feeds[5][0].contains("PassWord")&&feeds[5][0]["LoginCount"]==0,"account feed shape or secret leak");
             accountId=feeds[5][0]["Id"].get<std::string>();Require(Call(service,"getAccountPassword",{{"id",accountId}})["password"]=="P@ss'中","account password mapping");
+            Require(Call(service,"__setAccountOnline",{{"accounts",Json::array({"账号持久化"})}})["ok"]==true&&feeds[5][0]["IsOnLine"]==true,
+                    "authenticated account online state was not pushed");
+            Require(Call(service,"__setAccountOnline",{{"accounts",Json::array()}})["ok"]==true&&!feeds[5][0]["IsOnLine"].get<bool>(),
+                    "account offline state was not pushed");
+            Require(Call(service,"__setClientRows",{{"rows",Json::array({{{"AccountId",accountId},{"AuthIP","192.0.2.10"},{"LinksNumber",2},{"DevicesNumber",1},{"AuthTime","12:00:00:0000000"}}})}})["ok"]==true&&
+                    feeds[6].size()==1&&feeds[6][0]["UserName"]=="账号持久化"&&feeds[6][0]["AccountId"]==accountId,
+                    "authenticated client feed was not normalized/pushed");
+            Require(Call(service,"__setClientConnections",{{"items",Json::array({{{"ClientIP","192.0.2.10"},{"ClientPort",1234},{"Target","example.test:443"},{"DomainType",2},{"ServerAddress","198.51.100.5:443"},{"Udp",false},{"Wpc",false}}})}})["ok"]==true&&
+                    Call(service,"getClientConnections",{{"ip","192.0.2.10"}})["items"].size()==1&&
+                    Call(service,"getClientConnections",{{"ip","203.0.113.9"}})["items"].empty(),
+                    "client connection snapshot/filter mismatch");
             Require(Call(service,"setAccountEnable",{{"id",accountId},{"enable",false}})["ok"]==true&&feeds[5][0]["IsEnable"]==false,"account enable");
             Require(Call(service,"adjustAccountLimit",{{"ids",Json::array({accountId})},{"devices",true},{"on",true},{"value",2}})["count"]==1&&feeds[5][0]["LimitDevices"]==2,"account device adjustment");
             Require(Call(service,"adjustAccountExpiry",{{"ids",Json::array({accountId})},{"addType",0},{"hours",25}})["count"]==1&&feeds[5][0]["ExpiryTime"]=="2030-01-03 04:04:05","account expiry adjustment");

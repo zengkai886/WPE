@@ -81,6 +81,16 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
         return Fail(L"无法启动 WPE 主程序。");
     }
     CloseHandle(process.hThread);
+
+    // When launched from the one-file SFX package, the SFX host removes its
+    // temporary extraction directory as soon as this process exits. Keep the
+    // bootstrapper alive until the UI process exits so wwwroot, hook DLLs and
+    // the other extracted files remain available for the whole session.
+    const DWORD waitResult = WaitForSingleObject(process.hProcess, INFINITE);
+    DWORD exitCode = 1;
+    if (waitResult == WAIT_OBJECT_0) {
+        GetExitCodeProcess(process.hProcess, &exitCode);
+    }
     CloseHandle(process.hProcess);
-    return 0;
+    return static_cast<int>(exitCode);
 }

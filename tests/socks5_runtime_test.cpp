@@ -118,6 +118,9 @@ void RunRelay(Socks5Runtime& runtime, std::uint16_t destination_port, bool auth)
         std::array<std::uint8_t, 2> result{};
         ReceiveAll(client.value, result.data(), result.size());
         Check(result == std::array<std::uint8_t, 2>{1, 0}, "proxy authentication failed");
+        const auto online = runtime.OnlineAccounts();
+        Check(std::find(online.begin(), online.end(), "user") != online.end(),
+              "authenticated account was not reported online");
     } else {
         const std::array<std::uint8_t, 3> methods{5, 1, 0};
         SendAll(client.value, methods.data(), methods.size());
@@ -331,6 +334,8 @@ int main() {
         std::thread auth_destination([&] { RunDestination(auth_listener); });
         RunRelay(runtime, auth_destination_port, true);
         auth_destination.join();
+        for (int i = 0; i != 50 && !runtime.OnlineAccounts().empty(); ++i) std::this_thread::sleep_for(10ms);
+        Check(runtime.OnlineAccounts().empty(), "authenticated account remained online after disconnect");
         runtime.Stop();
 
         std::uint16_t wpc_destination_port{};

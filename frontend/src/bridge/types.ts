@@ -175,6 +175,10 @@ export interface Stats {
   total: number
   autoClear: boolean
   autoClearValue: number
+  filterEvidence?: {
+    seen: number; headerMatches: number; typeMatches: number; allowed: number; dropped: number
+    tcpReq: number; tcpResp: number; udpReq: number; udpResp: number; other: number
+  }
 }
 
 /* ────────────────────────────────────────────────────────────────

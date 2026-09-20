@@ -60,7 +60,19 @@ Json LocalAddresses(){
         wchar_t wide[INET6_ADDRSTRLEN]{};if(!InetNtopW(item->Address.lpSockaddr->sa_family,const_cast<void*>(source),wide,std::size(wide)))continue;
         const auto count=WideCharToMultiByte(CP_UTF8,0,wide,-1,nullptr,0,nullptr,nullptr);if(count<=1)continue;std::string value(static_cast<std::size_t>(count),0);WideCharToMultiByte(CP_UTF8,0,wide,-1,value.data(),count,nullptr,nullptr);value.pop_back();if(scope)value+="%"+std::to_string(scope);
         if(seen.insert(value).second)result.push_back(value);
-    }}return result;
+    }}
+    // Prefer a routable IPv4 address for the display value.  On Windows the
+    // first adapter is often an IPv6 link-local address (fe80::...%N).  That
+    // address is valid for diagnostics but is a poor default for a proxy
+    // listener and the scope suffix is not accepted by InetPtonA.  The native
+    // listener still binds 0.0.0.0 in auto mode; this ordering keeps the UI
+    // endpoint consistent with what users can actually connect to.
+    std::stable_sort(result.begin(),result.end(),[](const Json& left,const Json& right){
+        const auto a=left.is_string()?left.get<std::string>():std::string{};
+        const auto b=right.is_string()?right.get<std::string>():std::string{};
+        return (a.find(':')==a.npos)>(b.find(':')==b.npos);
+    });
+    return result;
 }
 std::uint64_t PhysicalMemory(){MEMORYSTATUSEX info{};info.dwLength=sizeof(info);return GlobalMemoryStatusEx(&info)?info.ullTotalPhys:0;}
 int MaxConnectionCap(){constexpr std::uint64_t mb=1024ull*1024ull;std::uint64_t bytes;
@@ -385,6 +397,11 @@ void DataService::SaveIpRules(int list,const Json& rows){db_.Transaction([&]{Per
 void DataService::SaveAccounts(const Json& rows){db_.Transaction([&]{PersistAccounts(rows);});lists_[5]=rows;Publish(5);}
 Json DataService::Rows(int list)const{
     Json result=Json::array();
+    // Runtime log rows are session-scoped, but they still use the normal feed
+    // contract.  Keep them in the worker mirror so switching to the log page
+    // after an operation can republish the rows instead of showing a blank
+    // table until the next event.
+    if(list==2||list==3||list==4||list==6)return lists_[list];
     if(list==5){for(const auto& row:lists_[5])result.push_back({{"Id",Upper(S(row,"GUID"))},{"IsCheck",false},{"IsEnable",B(row,"IsEnable")},{"UserName",S(row,"UserName")},{"IsLimitLinks",B(row,"IsLimitLinks")},{"LimitLinks",N(row,"LimitLinks")},{"IsLimitDevices",B(row,"IsLimitDevices")},{"LimitDevices",N(row,"LimitDevices")},{"IsExpiry",B(row,"IsExpiry")},{"ExpiryTime",S(row,"ExpiryTime")},{"CreateTime",S(row,"CreateTime")},{"IsOnLine",B(row,"IsOnLine")},{"LoginCount",row.contains("_logins")?row.at("_logins").size():0}});return result;}
     if(list==12){for(const auto& row:lists_[12])result.push_back({{"Id",S(row,"_id")},{"IsEnable",B(row,"IsEnable")},{"PacketHead",S(row,"PacketHead")},{"WareHouseId",Upper(S(row,"WID"))}});return result;}
     if(list==13){for(const auto& row:lists_[13])result.push_back({{"Id",S(row,"_id")},{"IsEnable",B(row,"IsEnable")},{"Protocol",0},{"Host",S(row,"Host")},{"Port",N(row,"Port",80)},{"RemotePath",S(row,"RemotePath")},{"LocalPath",S(row,"LocalPath")}});return result;}
@@ -411,6 +428,7 @@ void DataService::PublishAll(){
     for(int list=8;list<=11;++list)Publish(list);
     for(int list=2;list<=4;++list)Publish(list);
     Publish(5);
+    Publish(6);
     Publish(12);
     Publish(13);Publish(14);
     Publish(15);Publish(16);
@@ -715,6 +733,72 @@ Json DataService::Call(const std::string& method,const Json& args){
     if(method=="__wpcSnapshot"){
         return {{"servers",lists_[17]},{"notices",lists_[18]}};
     }
+    if(method=="__appendLog"){
+        const int list=N(args,"list",-1);
+        if(list<2||list>4)return Bad("Invalid log list");
+        const auto row=args.value("row",Json::object());
+        if(!row.is_object())return Bad("Invalid log row");
+        lists_[list].push_back(row);
+        const bool auto_clear=B(config_,"LogList_AutoClear",true);
+        const auto keep=std::max(100,N(config_,"LogList_AutoClear_Value",5000));
+        if(auto_clear&&lists_[list].size()>static_cast<std::size_t>(keep)){
+            const auto drop=lists_[list].size()-static_cast<std::size_t>(keep);
+            lists_[list].erase(lists_[list].begin(),lists_[list].begin()+static_cast<Json::difference_type>(drop));
+            emit_("feed:trim",{{"list",list},{"keep",keep}});
+        }
+        emit_("feed:append",{{"list",list},{"rows",Json::array({row})}});
+        return Good();
+    }
+    if(method=="__setClientRows"){
+        const auto input=args.value("rows",Json::array());
+        if(!input.is_array())return Bad("Invalid client rows");
+        Json rows=Json::array();
+        for(const auto& source:input){
+            if(!source.is_object())continue;
+            auto row=source;
+            const auto key=Trim(S(row,"AccountId"));
+            // Runtime events can identify an account by username (ordinary
+            // SOCKS/HTTP) or GUID (WPC).  Restore the original AuthInfo
+            // contract so the UI always shows the friendly username.
+            for(const auto& account:lists_[5]){
+                if(Upper(S(account,"GUID"))==Upper(key)||S(account,"UserName")==key){
+                    row["AccountId"]=Upper(S(account,"GUID"));
+                    row["UserName"]=S(account,"UserName");
+                    break;
+                }
+            }
+            row["LinksNumber"]=std::max<std::int64_t>(0,N(row,"LinksNumber"));
+            row["DevicesNumber"]=std::max<std::int64_t>(0,N(row,"DevicesNumber",1));
+            row["TrafficStatistics"]=std::max<std::int64_t>(0,N(row,"TrafficStatistics"));
+            row["AuthResult"]=B(row,"AuthResult",true);
+            rows.push_back(std::move(row));
+        }
+        lists_[6]=std::move(rows);
+        Publish(6);
+        return Good();
+    }
+    if(method=="__setClientConnections"){
+        const auto items=args.value("items",Json::array());
+        if(!items.is_array())return Bad("Invalid client connections");
+        client_connections_=items;
+        return Good();
+    }
+    if(method=="__setAccountOnline"){
+        // Runtime listeners report the authenticated username; WPC control
+        // sessions report the account GUID.  Match either representation so
+        // the account list reflects both ordinary proxy clients and WPC
+        // heartbeats without exposing credentials to the browser.
+        std::unordered_set<std::string> online;
+        for(const auto& item:args.value("accounts",Json::array()))
+            if(item.is_string()&&!item.get<std::string>().empty())online.insert(item.get<std::string>());
+        bool changed=false;
+        for(auto& row:lists_[5]){
+            const bool value=online.contains(S(row,"UserName"))||online.contains(Upper(S(row,"GUID")));
+            if(B(row,"IsOnLine")!=value){row["IsOnLine"]=value;changed=true;}
+        }
+        if(changed)Publish(5);
+        return Good();
+    }
     // Native-only snapshot consumed by the SOCKS5 and HTTP proxy listeners.  It deliberately
     // is not part of Methods(), so browser code cannot ask the bridge for
     // decrypted proxy credentials.
@@ -749,6 +833,21 @@ Json DataService::Call(const std::string& method,const Json& args){
                                    {"hostTo",S(row,"Host_To")},{"portTo",N(row,"Port_To",80)},
                                    {"pathTo",S(row,"Path_To")}});
         }
+        const auto capture_mask=Split(S(config_,"CheckType_Value",""),':');
+        auto capture_flag=[&](std::size_t index){int value=0;return index<capture_mask.size()&&Integer(capture_mask[index],value)&&value!=0;};
+        const Json capture_filter={
+            {"notShow",B(config_,"CheckNotShow",true)},
+            {"checkSocket",B(config_,"CheckSocket")},{"socketValue",S(config_,"CheckSocket_Value")},
+            {"checkIP",B(config_,"CheckIP")},{"ipValue",S(config_,"CheckIP_Value")},
+            {"checkPort",B(config_,"CheckPort")},{"portValue",S(config_,"CheckPort_Value")},
+            {"checkHead",B(config_,"CheckHead")},{"headValue",S(config_,"CheckHead_Value")},
+            {"checkData",B(config_,"CheckData")},{"dataValue",S(config_,"CheckData_Value")},
+            {"checkLen",B(config_,"CheckSize")},{"lenValue",S(config_,"CheckLength_Value")},
+            {"checkType",B(config_,"CheckType")},
+            {"send",capture_flag(0)},{"sendTo",capture_flag(1)},{"recv",capture_flag(2)},{"recvFrom",capture_flag(3)},
+            {"wsaSend",capture_flag(4)},{"wsaSendTo",capture_flag(5)},{"wsaRecv",capture_flag(6)},{"wsaRecvFrom",capture_flag(7)},
+            {"tcpReq",capture_flag(8)},{"udpReq",capture_flag(9)},{"tcpResp",capture_flag(10)},{"udpResp",capture_flag(11)}
+        };
         return {{"proxyIpAuto",B(proxy_config_,"ProxyIP_Auto",true)},
                 {"proxyIp",S(proxy_config_,"ProxyIP")},
                 {"enableSocks5",B(proxy_config_,"Enable_SOCKS5",true)},
@@ -762,6 +861,7 @@ Json DataService::Call(const std::string& method,const Json& args){
                 {"enableRemoteMap",B(proxy_config_,"Enable_MapRemote")},
                 {"localMaps",std::move(local_maps)},
                 {"remoteMaps",std::move(remote_maps)},
+                {"captureFilter",capture_filter},
                 {"accounts",std::move(accounts)},{"wpcAccounts",std::move(wpc_accounts)}};
     }
     if(method=="saveProxySetting"){
@@ -918,7 +1018,15 @@ Json DataService::Call(const std::string& method,const Json& args){
     if(method=="getRobotMeta")return {{"running",false},{"listExecute",N(config_,"ListExecute",1)}};
     if(method=="enterProxyMode"){PublishAll();return Good();}
     if(method=="enterInjectMode")return {{"ok",true},{"lastInject",nullptr}};
-    if(method=="getClientConnections")return {{"rows",Json::array()}};
+    if(method=="getClientConnections"){
+        const auto wanted=Trim(S(args,"ip"));
+        Json items=Json::array();
+        for(const auto& item:client_connections_){
+            if(!wanted.empty()&&S(item,"ClientIP")!=wanted)continue;
+            items.push_back(item);
+        }
+        return {{"items",std::move(items)}};
+    }
     if(method=="getStats")return {{"queue",0},{"list",0},{"total",0},{"proxyRunning",false},{"tcpReq",0},{"tcpResp",0},{"udpReq",0},{"udpResp",0},{"httpReq",0},{"httpResp",0},{"filterExecute",0},{"filterProxy",0},{"tcpConn",0},{"udpConn",0},{"onlineInfo",""},{"totalRequest",0},{"totalResponse",0},{"speedUp",0},{"speedDown",0},{"mappingHits",0},{"mappingMisses",0},{"mappingErrors",0}};
     if(method=="clearLogs"){const auto kind=N(args,"kind");if(kind<0||kind>2)return Bad("Invalid log kind");lists_[kind+2].clear();Publish(kind+2);return Good();}
     const std::array<std::string,4> singular={"Filter","Send","Robot","WareHouse"},plural={"Filters","Sends","Robots","WareHouses"};

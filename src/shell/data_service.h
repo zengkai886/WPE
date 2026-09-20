@@ -77,6 +77,7 @@ private:
     Json inject_config_;
     Json proxy_config_;
     std::array<Json,19> lists_;
+    Json client_connections_=Json::array();
     Json send_edit_=nullptr,robot_edit_=nullptr;
     std::map<std::string,Json> export_plans_; // Membership frozen; PacketInfo fields retain alias semantics.
     struct ImportPlan {std::string method,bytes;Json args;};

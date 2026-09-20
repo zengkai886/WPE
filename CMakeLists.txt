@@ -62,6 +62,8 @@ add_library(wpe64-proxy-runtime STATIC
 target_include_directories(wpe64-proxy-runtime PUBLIC src)
 target_include_directories(wpe64-proxy-runtime SYSTEM PUBLIC third_party)
 target_link_libraries(wpe64-proxy-runtime PUBLIC ws2_32 bcrypt)
+add_library(wpe64-proxy-filter STATIC src/shell/proxy_capture_filter.cpp)
+target_include_directories(wpe64-proxy-filter PUBLIC src)
 if(WIN32)
   # This target is deliberately excluded from the default build.  It must be
   # generated with a Win32 generator and shipped beside the x64 shell so the
@@ -80,7 +82,7 @@ if(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8)
 
   add_executable(wpe64-app WIN32 src/shell/main.cpp src/shell/target_link.cpp src/shell/app.manifest src/shell/app.rc)
   target_link_libraries(wpe64-app PRIVATE wpe64-data wpe64-clipboard wpe64-injector
-    wpe64-proxy-runtime
+    wpe64-proxy-runtime wpe64-proxy-filter
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/webview2/x64/WebView2LoaderStatic.lib"
     ole32 oleaut32 user32 shell32 shlwapi advapi32 dwmapi version wininet)
   target_include_directories(wpe64-app SYSTEM PRIVATE third_party/webview2/include)
@@ -97,6 +99,9 @@ if(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8)
       "$<TARGET_FILE:wpe64-hook>" "$<TARGET_FILE_DIR:wpe64-app>/wpe64-hook.dll")
 endif()
 if(BUILD_TESTING)
+  add_executable(wpe64-proxy-capture-filter-test tests/proxy_capture_filter_test.cpp)
+  target_link_libraries(wpe64-proxy-capture-filter-test PRIVATE wpe64-proxy-filter)
+  add_test(NAME proxy-capture-filter-semantics COMMAND wpe64-proxy-capture-filter-test)
   add_executable(wpe64-codec-test tests/codec_test.cpp)
   target_link_libraries(wpe64-codec-test PRIVATE wpe64-common)
   add_test(NAME codec-smoke COMMAND wpe64-codec-test)
