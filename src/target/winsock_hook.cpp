@@ -9,6 +9,7 @@
 #include "common/ipc_protocol.h"
 #include "common/packet_frame.h"
 #include "common/packet_ring.h"
+#include "tcp_zlib_inspector.h"
 #include <algorithm>
 #include <atomic>
 #include <cctype>
@@ -47,6 +48,25 @@ constexpr DWORD kMaximumWsaBufferCount = 65536;
 constexpr std::int64_t kFileTimeDateTimeTicks = 504911232000000000LL;
 SRWLOCK g_detour_entry_gate = SRWLOCK_INIT;
 thread_local bool g_replay_call = false;
+
+bool IsTcpCaptureType(std::uint8_t type) noexcept {
+    switch (type) {
+    case kWs1Send: case kWs2Send: case kWs1Recv: case kWs2Recv:
+    case kWsaSend: case kWsaRecv: case kWsaRecvEx:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool IsSourceToDestinationType(std::uint8_t type) noexcept {
+    switch (type) {
+    case kWs1Send: case kWs2Send: case kWsaSend:
+        return true;
+    default:
+        return false;
+    }
+}
 
 // Completion routines are invoked by Winsock after the detour admission gate
 // has already been left.  Keep a small process-local owner index so a
@@ -456,6 +476,7 @@ struct WinsockHookController::Impl final {
     std::atomic<std::int64_t> sequence{};
     std::atomic<bool> speed_mode{};
     std::atomic<std::shared_ptr<const CaptureFilterSnapshot>> capture_filter;
+    TcpZlibInspector tcp_zlib;
     std::atomic<bool> accepting{};
     std::atomic<bool> writer_running{};
     std::atomic<std::uint32_t> in_flight{};
@@ -913,6 +934,34 @@ struct WinsockHookController::Impl final {
         } catch (...) {}
     }
 
+    void EmitTcpZlibEvent(const TcpZlibEvent& record) noexcept {
+        if (!event_sender) return;
+        try {
+            IpcWriter writer_event;
+            writer_event.U8(static_cast<std::uint8_t>(IpcEvent::Log));
+            writer_event.Str(AsciiText("tcp-zlib"));
+            writer_event.Str(AsciiText(record.ToLogJson()));
+            event_sender(writer_event.ToArray());
+        } catch (...) {}
+    }
+
+    void InspectTcpPayload(const PendingPacket& pending,
+                           const std::pair<std::string, std::string>& endpoints,
+                           std::span<const std::uint8_t> bytes) noexcept {
+        if (!IsTcpCaptureType(pending.packet_type) || bytes.empty()) return;
+        try {
+            const TcpFlowKey flow{endpoints.first, endpoints.second, 6};
+            const auto direction = IsSourceToDestinationType(pending.packet_type)
+                ? TcpFlowDirection::SourceToDestination
+                : TcpFlowDirection::DestinationToSource;
+            for (const auto& event : tcp_zlib.Feed(flow, direction, bytes))
+                EmitTcpZlibEvent(event);
+        } catch (...) {
+            // Decoder diagnostics are observational and must never affect the
+            // target process or packet delivery path.
+        }
+    }
+
     FilterContext Context(SOCKET socket, std::uint8_t type,
                           const sockaddr* address, int address_length) const noexcept {
         FilterContext context;
@@ -1197,6 +1246,14 @@ struct WinsockHookController::Impl final {
                         ? std::span<const std::uint8_t>(*pending->modified)
                         : (pending->raw ? std::span<const std::uint8_t>(*pending->raw)
                                         : std::span<const std::uint8_t>{});
+                    // Business decoding observes the accepted TCP payload
+                    // before the UI capture filter removes rows.  It is
+                    // strictly read-only and keeps a separate decoder for
+                    // every flow/direction.
+                    InspectTcpPayload(*pending, endpoints,
+                                      pending->raw && !pending->raw->empty()
+                                          ? std::span<const std::uint8_t>(*pending->raw)
+                                          : capture_bytes);
                     if (!CaptureFilterAllows(capture_context, capture_bytes)) continue;
                     for (const auto& log : pending->filter_logs) EmitFilterLog(log);
                     try {
@@ -1244,6 +1301,7 @@ struct WinsockHookController::Impl final {
         ring.Wake();
         if (writer.joinable() && writer.get_id() != std::this_thread::get_id()) writer.join();
         ring.Clear();
+        tcp_zlib.ResetAll();
     }
 
     bool WaitForDetours(std::chrono::milliseconds timeout) noexcept {
