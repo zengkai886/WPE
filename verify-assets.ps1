@@ -9,4 +9,4 @@ foreach($file in $manifest.files){
 $actual=@(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'frontend'),(Join-Path $PSScriptRoot 'wwwroot'),(Join-Path $PSScriptRoot 'remote-web') -Recurse -File -Force |
     Where-Object { $_.FullName -notmatch '[\\/]node_modules[\\/]' })
 if($actual.Count -ne $manifest.files.Count){throw "Asset inventory count mismatch: $($actual.Count) vs $($manifest.files.Count)"}
-Write-Output "PASS: $($manifest.files.Count) original assets preserved; $($manifest.vueFiles) Vue files."
+Write-Output "PASS: $($manifest.files.Count) tracked assets present; $($manifest.vueFiles) Vue files."

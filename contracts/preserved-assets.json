@@ -70,7 +70,7 @@
     {
       "path": "frontend/index.html",
       "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/index.html",
-      "sha256": "25371D753C191321FD734FE1F4137ACC71241FAB8E6D1B8E37B3DE4374B8E808"
+      "sha256": "A0D47A39BB3685F787C743248B5663665402C4D33EDCA82B3D943150B1511B33"
     },
     {
       "path": "frontend/package-lock.json",
@@ -1120,7 +1120,7 @@
     {
       "path": "frontend/src/App.vue",
       "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/App.vue",
-      "sha256": "03293A53B3F250FAB4C8FDE547FFA3B5E2B7D8E0993141727DC9BF172ABBDB06"
+      "sha256": "2A0A28EF59FA7DA71FAB76D544C2A488BC888DA04E6BE365B4B9DAF6FDF1BB35"
     },
     {
       "path": "frontend/src/assets/fonts/OFL.txt",
@@ -1170,7 +1170,7 @@
     {
       "path": "frontend/src/bridge/types.ts",
       "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/bridge/types.ts",
-      "sha256": "7AFD5D8E56FD7EABC5CCE3C64A9E2A50EACEDF4B0FA56F8F1E71608CE6E06995"
+      "sha256": "F74E87B4E19749086BEC1CACC801E0B708D41E1C38116D1AEC6BBE196B614BE3"
     },
     {
       "path": "frontend/src/components/AppSetting.vue",
@@ -1195,7 +1195,7 @@
     {
       "path": "frontend/src/components/ContextMenu.vue",
       "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/ContextMenu.vue",
-      "sha256": "5AF02A668E48ED65B88769DE5D8562B4E3B9D39CE12D756613BF2CAC1851C2ED"
+      "sha256": "969496D84234B22BB8BFF89371C2DAEFECD79291E872DEBBCC0789AAF1A9EFBB"
     },
     {
       "path": "frontend/src/components/CyberSelect.vue",
@@ -1215,7 +1215,7 @@
     {
       "path": "frontend/src/components/HexView.vue",
       "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/HexView.vue",
-      "sha256": "B6445A5248BC1E0B5CD14105990121D7E2BB37BE942691457FE7CE962A7B5835"
+      "sha256": "5658FD64E7478D51B2FB7EDF0F66C766702563B71F1915906743F9DED107F901"
     },
     {
       "path": "frontend/src/components/HiliteArea.vue",
@@ -1370,7 +1370,7 @@
     {
       "path": "frontend/src/components/proxy/LeachSetting.vue",
       "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/LeachSetting.vue",
-      "sha256": "D12C6E8B7A7DEA21D885D83EC0C3A229B14DFF1BC38946610DCBACAE75599238"
+      "sha256": "653D97DBC8C9CDBE1EBFCFB902C75A522FE0BE66D7885ED88E4E8191DC0B80B9"
     },
     {
       "path": "frontend/src/components/proxy/ListSetting.vue",
@@ -1415,7 +1415,7 @@
     {
       "path": "frontend/src/components/proxy/ProxyData.vue",
       "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/ProxyData.vue",
-      "sha256": "6226FBFE123BA62A538BD917FB3221AC7E5050044560A429FE7C8AAD79BBF7ED"
+      "sha256": "FC2A6A9EC375838F2260344FA48B780584AC3ECB229425AFAE1979D1B4E4BA2B"
     },
     {
       "path": "frontend/src/components/proxy/ProxySetting.vue",
@@ -1455,7 +1455,7 @@
     {
       "path": "frontend/src/components/proxy/RunBar.vue",
       "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/components/proxy/RunBar.vue",
-      "sha256": "02E9E9F8B04F17BFEE48BE14E1712822579EA7F35DAA6F6A1E80A9206527DFA4"
+      "sha256": "D4301674B5B30998D4D4D6D963158F9A197D7D98B01B36014010463F4D84D74E"
     },
     {
       "path": "frontend/src/components/proxy/SendEdit.vue",
@@ -1555,17 +1555,17 @@
     {
       "path": "frontend/src/i18n/base.ts",
       "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/i18n/base.ts",
-      "sha256": "4F8CCD9DF7BACAF78C7CF4F3CBFD44F504062D2868EB60B7225934FA25D39245"
+      "sha256": "889E7AF453B5E7E456D4F6052DBD256591A4E88645B48AA3D3A8867D2E1F7462"
     },
     {
       "path": "frontend/src/i18n/ja.ts",
       "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/i18n/ja.ts",
-      "sha256": "8B6B77FF943744C7D0AB1358CF08B3BA2C9C3A6D61D2BA6AC25517B3B4C31423"
+      "sha256": "E390563696B8AA70DE70DD6CA1F3693E9CA4A2ED98EDE1EBC09B853278CC10E8"
     },
     {
       "path": "frontend/src/i18n/ko.ts",
       "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/i18n/ko.ts",
-      "sha256": "4450B93C769DAE410225BF73E1984EE621DE6A29CE8BC7F5D971BE3C5206631F"
+      "sha256": "7A493E4E66A1E26145C0DF0F37452B2C997B378582BA757E9756E93CB865DDE7"
     },
     {
       "path": "frontend/src/i18n/langs.ts",
@@ -1575,17 +1575,17 @@
     {
       "path": "frontend/src/i18n/ru.ts",
       "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/i18n/ru.ts",
-      "sha256": "A2093B48083FF7ACB9D8327B67AA1A9BEFE04935584B1540D2C540A5E7675A53"
+      "sha256": "05219CAC15CEFCC4A7094CF76447CD693A293F07821628844E0728312486A327"
     },
     {
       "path": "frontend/src/i18n/tw.ts",
       "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/i18n/tw.ts",
-      "sha256": "99B40822CEDACA28D12379F27042EF2A58637561B9EC95BE450938372D320E85"
+      "sha256": "D7714E71747DD1585F2CC32F735FB718FDA6E8AE261CC1BBFFE308C9BDADD089"
     },
     {
       "path": "frontend/src/i18n/vi.ts",
       "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/i18n/vi.ts",
-      "sha256": "D99346F47FC9CDA9E725D78D5B63FC7AB3B3465DECFB7E4B386577DCB66B3C3F"
+      "sha256": "0D6BBE85CD3EA800D295C575B3E458236D7DD1F0A46793EAF844EA06E47434BE"
     },
     {
       "path": "frontend/src/keys.ts",
@@ -1620,12 +1620,12 @@
     {
       "path": "frontend/src/stores/logs.ts",
       "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/stores/logs.ts",
-      "sha256": "902EC10860262DFE23E654DBA4E4C6EA07DBD0A8E33BF597B25A6607B4988700"
+      "sha256": "84578CAD3BFF6A97DCEFB20BA55BD8EC856393269F9752EC981B0165EDDDEE42"
     },
     {
       "path": "frontend/src/stores/packets.ts",
       "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/WebUI/src/stores/packets.ts",
-      "sha256": "93AF26B3491FC5B38B9401E12BAA250AB9FFB20CE6FC7FB0E80DBBA2B730EEB6"
+      "sha256": "59BD0682D17718ADB85473BB75A2398F7EE12532F167E7E6548D121C242FB745"
     },
     {
       "path": "frontend/src/stores/runtime.ts",
@@ -1703,14 +1703,14 @@
       "sha256": "469CC117A5234C8207D300B8D71A45C84F62E57C017AAA34D96D9AF9696FB0B9"
     },
     {
-      "path": "wwwroot/assets/index-CfVAkFW9.css",
-      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/assets/index-CfVAkFW9.css",
-      "sha256": "4893A6834EAD6D0B8FC6F1C7AF5DA600E621B6DD580A098787F7E0B5E3F0F718"
+      "path": "wwwroot/assets/index-D17F3kjT.css",
+      "sourceEntry": "derived/current-build/wwwroot/assets/index-D17F3kjT.css",
+      "sha256": "0890A7CA072F09F5391A21D7DA6B3EAA67DE9BBFC0EBF2B0C3E82DC19F6A774C"
     },
     {
-      "path": "wwwroot/assets/index-DG1obY7A.js",
-      "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/assets/index-DG1obY7A.js",
-      "sha256": "DADC559D9A36F6A5DB180E85FFA2BBB2E562663E8653025167985815182555D2"
+      "path": "wwwroot/assets/index-DQvPSg82.js",
+      "sourceEntry": "derived/current-build/wwwroot/assets/index-DQvPSg82.js",
+      "sha256": "AC8E5256E6A4CF549B3626E3A2089049D8CA9C1711755F22FCF0838E3B383CDD"
     },
     {
       "path": "wwwroot/assets/jetbrainsmono-6fWv1k7M.woff2",
@@ -2775,7 +2775,7 @@
     {
       "path": "wwwroot/index.html",
       "sourceEntry": "WinsockPacketEditor-master/WinsockPacketEditor/wwwroot/index.html",
-      "sha256": "0D71F8F0E03AEC554443519C8F75F8A15D3C03DA8896225891DD30B9EF51F9A7"
+      "sha256": "F3594EC3476ED6A4B9C9326BB6791470E2156844907526B67C724C91977A7F86"
     }
   ]
 }
